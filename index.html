@@ -7,26 +7,28 @@
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
     .container { max-width: 480px; margin: 0 auto; }
-    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .menu-btn:active { background: #1d4ed8; }
-    .card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); margin-bottom: 15px; display: none; }
+    .btn-exit { background: #dc2626; grid-column: span 2; margin-top: 5px; }
+    .btn-exit:active { background: #b91c1c; }
+    .card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); display: none; }
     .card.active { display: block; }
-    h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
-    input, select { width: 100%; padding: 9px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+    input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: #fff; }
     input[readonly] { background-color: #f1f5f9; cursor: not-allowed; }
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
     .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
     .success { color: #16a34a; }
     .error { color: #dc2626; }
-    .btn-back { background: #64748b; margin-top: 8px; width: 100%; padding: 8px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 13px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- Top Main 7 Buttons -->
+  <!-- Top Main Buttons Menu -->
   <div id="mainMenu" class="menu-grid">
     <button class="menu-btn" onclick="openSection('fitupSec')">1. 🔧 Fit-up</button>
     <button class="menu-btn" onclick="openSection('weldSec')">2. ⚡ Welding</button>
@@ -35,6 +37,7 @@
     <button class="menu-btn" onclick="alert('Coming Soon!')">5. 🔬 NDT clear</button>
     <button class="menu-btn" onclick="alert('Coming Soon!')">6. 🚚 Dispatch</button>
     <button class="menu-btn" style="grid-column: span 2;" onclick="alert('Coming Soon!')">7. 📑 RA Bill</button>
+    <button class="menu-btn btn-exit" onclick="closeApp()">🚪 Exit App (બંધ કરો)</button>
   </div>
 
   <!-- 1. FIT-UP SECTION -->
@@ -67,7 +70,7 @@
       <input type="date" id="fitup_date" required>
 
       <button type="submit" class="btn-submit">💾 Fit-up સેવ કરો</button>
-      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
+      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ (Back to Menu)</button>
     </form>
     <div id="fitupMsg" class="msg"></div>
   </div>
@@ -104,7 +107,7 @@
       <input type="date" id="weld_date" required>
 
       <button type="submit" class="btn-submit">💾 Welding સેવ કરો</button>
-      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
+      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ (Back to Menu)</button>
     </form>
     <div id="weldMsg" class="msg"></div>
   </div>
@@ -115,14 +118,27 @@
   let fitupJoints = [];
 
   function openSection(secId) {
+    document.getElementById('mainMenu').style.display = 'none';
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
     document.getElementById(secId).classList.add('active');
+    
     if (secId === 'fitupSec') loadMasterSpools();
     if (secId === 'weldSec') loadFitupCompleted();
   }
 
   function backToMenu() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    document.getElementById('mainMenu').style.display = 'grid';
+  }
+
+  function closeApp() {
+    if (confirm("શું તમે એપ બંધ કરવા માંગો છો?")) {
+      if (navigator.app && navigator.app.exitApp) {
+        navigator.app.exitApp();
+      } else {
+        window.close();
+      }
+    }
   }
 
   // Master Data Load for Fit-up
