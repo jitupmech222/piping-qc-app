@@ -1,6 +1,5 @@
 const express = require('express');
 const { Pool } = require('pg');
-const PDFDocument = require('pdfkit');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
@@ -19,35 +18,65 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.post('/api/joints', async (req, res) => {
+// ૧. માસ્ટર લાઇન & સ્પૂલ લિસ્ટ
+app.get('/api/master-spools', async (req, res) => {
   try {
-    const { line_no, spool_no, joint_no, status } = req.body;
-    const result = await pool.query(
-      'INSERT INTO piping_joints (line_no, spool_id, joint_no, status) VALUES ($1, $2, $3, $4) RETURNING *',
-      [line_no, spool_no, joint_no, status]
-    );
-    res.status(200).json({ success: true, data: result.rows[0] });
+    const result = await pool.query('SELECT DISTINCT line_no, spool_no FROM master_spools ORDER BY line_no, spool_no');
+    res.json({ success: true, data: result.rows });
   } catch (err) {
-    console.error('Database Error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-app.get('/api/report', async (req, res) => {
+// માસ્ટર લાઇન ઉમેરવા માટે
+app.post('/api/master-spools', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM piping_joints ORDER BY id DESC');
-    const doc = new PDFDocument({ margin: 30 });
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=inspection_report.pdf');
-    doc.pipe(res);
-    doc.fontSize(18).text('Piping Inspection Daily Report', { align: 'center' });
-    doc.moveDown();
-    result.rows.forEach((row, i) => {
-      doc.fontSize(11).text(`${i + 1}. Line: ${row.line_no} | Spool: ${row.spool_id || row.spool_no} | Joint: ${row.joint_no} | Status: ${row.status}`);
-    });
-    doc.end();
+    const { line_no, spool_no } = req.body;
+    await pool.query('INSERT INTO master_spools (line_no, spool_no) VALUES ($1, $2)', [line_no, spool_no]);
+    res.json({ success: true });
   } catch (err) {
-    res.status(500).send('Error generating PDF');
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ૨. Fit-up ડેટા સેવ કરવો
+app.post('/api/fitup', async (req, res) => {
+  try {
+    const { line_no, spool_id, joint_no, joint_type, joint_size, fitup_date } = req.body;
+    const result = await pool.query(
+      `INSERT INTO piping_joints (line_no, spool_id, joint_no, joint_type, joint_size, fitup_date, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'Fit-Up Completed') RETURNING *`,
+      [line_no, spool_id, joint_no, joint_type, joint_size, fitup_date]
+    );
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ૩. વેલ્ડીંગ માટે Fit-up થયેલા જોઈન્ટ્સ મેળવવા
+app.get('/api/fitup-joints', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM piping_joints WHERE status = 'Fit-Up Completed' ORDER BY id DESC");
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ૪. Welding ડેટા અપડેટ કરવો
+app.post('/api/welding', async (req, res) => {
+  try {
+    const { joint_id, welder_no, wps, weld_date } = req.body;
+    const result = await pool.query(
+      `UPDATE piping_joints 
+       SET welder_no = $1, wps = $2, weld_date = $3, status = 'Welding Completed'
+       WHERE id = $4 RETURNING *`,
+      [welder_no, wps, weld_date, joint_id]
+    );
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

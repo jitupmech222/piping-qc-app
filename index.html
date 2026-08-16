@@ -5,86 +5,232 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piping QC</title>
   <style>
-    body { font-family: sans-serif; background: #f0f4f8; margin: 0; padding: 15px; display: flex; justify-content: center; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; }
-    h2, h3 { color: #1e3a8a; text-align: center; margin-top: 0; }
-    label { font-weight: bold; font-size: 13px; color: #333; margin-top: 10px; display: block; }
-    input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-    button { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; }
-    .btn-save { background: #2563eb; color: white; }
-    .btn-pdf { background: #059669; color: white; }
-    .msg { margin-top: 10px; font-weight: bold; text-align: center; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
+    .container { max-width: 480px; margin: 0 auto; }
+    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+    .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .menu-btn:active { background: #1d4ed8; }
+    .card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); margin-bottom: 15px; display: none; }
+    .card.active { display: block; }
+    h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
+    input, select { width: 100%; padding: 9px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+    input[readonly] { background-color: #f1f5f9; cursor: not-allowed; }
+    .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
     .success { color: #16a34a; }
     .error { color: #dc2626; }
+    .btn-back { background: #64748b; margin-top: 8px; width: 100%; padding: 8px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 13px; }
   </style>
 </head>
 <body>
-  <div>
-    <div class="card">
-      <h2>🛠️ Piping Joint Data Entry</h2>
-      <form id="jointForm">
-        <label>Line Number (લાઈન નંબર):</label>
-        <input type="text" id="line_no" placeholder="ઉદા. L-101" required>
 
-        <label>Spool ID (સ્પૂલ ID):</label>
-        <input type="text" id="spool_no" placeholder="ઉદા. SP-01" required>
-
-        <label>Joint Number (જોઈન્ટ નંબર):</label>
-        <input type="text" id="joint_no" placeholder="ઉદા. J-05" required>
-
-        <label>Status (સ્ટેટસ):</label>
-        <select id="status">
-          <option value="Fit-Up Pending">🟡 Fit-Up Pending</option>
-          <option value="Fit-Up Approved">🟢 Fit-Up Approved</option>
-          <option value="Visual Inspected">🔵 Visual Inspected</option>
-          <option value="NDT Cleared">🟣 NDT Cleared</option>
-        </select>
-
-        <button type="submit" class="btn-save">💾 ડેટા સેવ કરો (Save Joint)</button>
-      </form>
-      <div id="msgBox" class="msg"></div>
-    </div>
-
-    <div class="card">
-      <h3>📄 Inspection Report Generator</h3>
-      <button class="btn-pdf" onclick="window.location.href='/api/report'">📥 Daily PDF Report ડાઉનલોડ કરો</button>
-    </div>
+<div class="container">
+  <!-- Top Main 7 Buttons -->
+  <div id="mainMenu" class="menu-grid">
+    <button class="menu-btn" onclick="openSection('fitupSec')">1. 🔧 Fit-up</button>
+    <button class="menu-btn" onclick="openSection('weldSec')">2. ⚡ Welding</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">3. 📦 Lot offer</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">4. ✅ Lot clear</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">5. 🔬 NDT clear</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">6. 🚚 Dispatch</button>
+    <button class="menu-btn" style="grid-column: span 2;" onclick="alert('Coming Soon!')">7. 📑 RA Bill</button>
   </div>
 
-  <script>
-    document.getElementById('jointForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const msg = document.getElementById('msgBox');
-      msg.textContent = '⏳ સેવ થઈ રહ્યું છે...';
-      msg.className = 'msg';
+  <!-- 1. FIT-UP SECTION -->
+  <div id="fitupSec" class="card">
+    <h3>🔧 Fit-up Data Entry</h3>
+    <form id="fitupForm">
+      <label>1. Line Number:</label>
+      <select id="fitup_line" onchange="filterSpools()" required></select>
 
-      const payload = {
-        line_no: document.getElementById('line_no').value,
-        spool_no: document.getElementById('spool_no').value,
-        joint_no: document.getElementById('joint_no').value,
-        status: document.getElementById('status').value
-      };
+      <label>2. Spool Number:</label>
+      <select id="fitup_spool" required></select>
 
-      try {
-        const res = await fetch('/api/joints', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-          msg.textContent = '✅ જોઈન્ટ સફળતાપૂર્વક સેવ થઈ ગયો!';
-          msg.className = 'msg success';
-          document.getElementById('jointForm').reset();
-        } else {
-          msg.textContent = '❌ એરર: ' + data.error;
-          msg.className = 'msg error';
-        }
-      } catch (err) {
-        msg.textContent = '❌ સર્વર કનેક્શન ફેલ!';
-        msg.className = 'msg error';
-      }
+      <label>3. Joint Number:</label>
+      <input type="text" id="fitup_joint" placeholder="e.g. J-01" required>
+
+      <label>4. Type of Joint:</label>
+      <select id="fitup_type" required>
+        <option value="">-- પસંદ કરો --</option>
+        <option value="BW">BW (Butt Weld)</option>
+        <option value="SOF">SOF (Slip-On Flange)</option>
+        <option value="SOB">SOB (Socket Weld)</option>
+        <option value="LET">LET (Weldolet/Sockolet)</option>
+        <option value="SW">SW (Socket Weld)</option>
+      </select>
+
+      <label>5. Joint Size:</label>
+      <input type="text" id="fitup_size" placeholder="e.g. 2 inch, 4 inch" required>
+
+      <label>6. Fit-up Date:</label>
+      <input type="date" id="fitup_date" required>
+
+      <button type="submit" class="btn-submit">💾 Fit-up સેવ કરો</button>
+      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
+    </form>
+    <div id="fitupMsg" class="msg"></div>
+  </div>
+
+  <!-- 2. WELDING SECTION -->
+  <div id="weldSec" class="card">
+    <h3>⚡ Welding Data Entry</h3>
+    <form id="weldForm">
+      <label>Select Joint (Fit-up Completed):</label>
+      <select id="weld_select" onchange="populateWeldFields()" required></select>
+
+      <label>1. Line Number:</label>
+      <input type="text" id="weld_line" readonly>
+
+      <label>2. Spool Number:</label>
+      <input type="text" id="weld_spool" readonly>
+
+      <label>3. Joint Number:</label>
+      <input type="text" id="weld_joint" readonly>
+
+      <label>4. Type of Joint:</label>
+      <input type="text" id="weld_type" readonly>
+
+      <label>5. Joint Size:</label>
+      <input type="text" id="weld_size" readonly>
+
+      <label>6. Welder No:</label>
+      <input type="text" id="weld_welder" placeholder="e.g. W-01" required>
+
+      <label>7. WPS Number:</label>
+      <input type="text" id="weld_wps" placeholder="e.g. WPS-05" required>
+
+      <label>8. Weld Visual Date:</label>
+      <input type="date" id="weld_date" required>
+
+      <button type="submit" class="btn-submit">💾 Welding સેવ કરો</button>
+      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
+    </form>
+    <div id="weldMsg" class="msg"></div>
+  </div>
+</div>
+
+<script>
+  let masterData = [];
+  let fitupJoints = [];
+
+  function openSection(secId) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    document.getElementById(secId).classList.add('active');
+    if (secId === 'fitupSec') loadMasterSpools();
+    if (secId === 'weldSec') loadFitupCompleted();
+  }
+
+  function backToMenu() {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+  }
+
+  // Master Data Load for Fit-up
+  async function loadMasterSpools() {
+    const res = await fetch('/api/master-spools');
+    const json = await res.json();
+    if (json.success) {
+      masterData = json.data;
+      const lines = [...new Set(masterData.map(d => d.line_no))];
+      const lineSelect = document.getElementById('fitup_line');
+      lineSelect.innerHTML = '<option value="">-- Line પસંદ કરો --</option>' + 
+        lines.map(l => `<option value="${l}">${l}</option>`).join('');
+    }
+  }
+
+  function filterSpools() {
+    const selectedLine = document.getElementById('fitup_line').value;
+    const spools = masterData.filter(d => d.line_no === selectedLine).map(d => d.spool_no);
+    const spoolSelect = document.getElementById('fitup_spool');
+    spoolSelect.innerHTML = '<option value="">-- Spool પસંદ કરો --</option>' + 
+      spools.map(s => `<option value="${s}">${s}</option>`).join('');
+  }
+
+  // Fit-up Submit
+  document.getElementById('fitupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('fitupMsg');
+    msg.textContent = '⏳ સેવ થઈ રહ્યું છે...';
+    
+    const payload = {
+      line_no: document.getElementById('fitup_line').value,
+      spool_id: document.getElementById('fitup_spool').value,
+      joint_no: document.getElementById('fitup_joint').value,
+      joint_type: document.getElementById('fitup_type').value,
+      joint_size: document.getElementById('fitup_size').value,
+      fitup_date: document.getElementById('fitup_date').value
+    };
+
+    const res = await fetch('/api/fitup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
-  </script>
+    const data = await res.json();
+    if (data.success) {
+      msg.textContent = '✅ Fit-up સફળતાપૂર્વક સેવ થઈ ગયું!';
+      msg.className = 'msg success';
+      document.getElementById('fitupForm').reset();
+    } else {
+      msg.textContent = '❌ એરર: ' + data.error;
+      msg.className = 'msg error';
+    }
+  });
+
+  // Load Fit-up Completed for Welding
+  async function loadFitupCompleted() {
+    const res = await fetch('/api/fitup-joints');
+    const json = await res.json();
+    if (json.success) {
+      fitupJoints = json.data;
+      const sel = document.getElementById('weld_select');
+      sel.innerHTML = '<option value="">-- જોઈન્ટ સિલેક્ટ કરો --</option>' + 
+        fitupJoints.map(j => `<option value="${j.id}">${j.line_no} | ${j.spool_id} | Joint: ${j.joint_no}</option>`).join('');
+    }
+  }
+
+  function populateWeldFields() {
+    const id = document.getElementById('weld_select').value;
+    const j = fitupJoints.find(item => item.id == id);
+    if (j) {
+      document.getElementById('weld_line').value = j.line_no;
+      document.getElementById('weld_spool').value = j.spool_id;
+      document.getElementById('weld_joint').value = j.joint_no;
+      document.getElementById('weld_type').value = j.joint_type || '';
+      document.getElementById('weld_size').value = j.joint_size || '';
+    }
+  }
+
+  // Welding Submit
+  document.getElementById('weldForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('weldMsg');
+    msg.textContent = '⏳ સેવ થઈ રહ્યું છે...';
+
+    const payload = {
+      joint_id: document.getElementById('weld_select').value,
+      welder_no: document.getElementById('weld_welder').value,
+      wps: document.getElementById('weld_wps').value,
+      weld_date: document.getElementById('weld_date').value
+    };
+
+    const res = await fetch('/api/welding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.textContent = '✅ Welding ડેટા સેવ થઈ ગયો!';
+      msg.className = 'msg success';
+      document.getElementById('weldForm').reset();
+      loadFitupCompleted();
+    } else {
+      msg.textContent = '❌ એરર: ' + data.error;
+      msg.className = 'msg error';
+    }
+  });
+</script>
+
 </body>
 </html>
