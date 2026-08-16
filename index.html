@@ -23,6 +23,7 @@
     .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
     .success { color: #16a34a; }
     .error { color: #dc2626; }
+    #exitScreen { display: none; text-align: center; padding: 40px 10px; background: white; border-radius: 12px; }
   </style>
 </head>
 <body>
@@ -37,7 +38,14 @@
     <button class="menu-btn" onclick="alert('Coming Soon!')">5. 🔬 NDT clear</button>
     <button class="menu-btn" onclick="alert('Coming Soon!')">6. 🚚 Dispatch</button>
     <button class="menu-btn" style="grid-column: span 2;" onclick="alert('Coming Soon!')">7. 📑 RA Bill</button>
-    <button class="menu-btn btn-exit" onclick="closeApp()">🚪 Exit App (બંધ કરો)</button>
+    <button class="menu-btn btn-exit" onclick="closeApp()">🚪 Exit App</button>
+  </div>
+
+  <!-- Exit Screen -->
+  <div id="exitScreen">
+    <h2 style="color: #dc2626;">🚪 એપ બંધ થઈ ગઈ છે</h2>
+    <p style="color: #64748b; font-size: 15px;">તમારા ફોનનું <b>Home (⚪)</b> અથવા <b>Back (⬅)</b> બટન દબાવો.</p>
+    <button class="btn-submit" onclick="location.reload()">🔄 ફરી ચાલુ કરો</button>
   </div>
 
   <!-- 1. FIT-UP SECTION -->
@@ -70,7 +78,7 @@
       <input type="date" id="fitup_date" required>
 
       <button type="submit" class="btn-submit">💾 Fit-up સેવ કરો</button>
-      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ (Back to Menu)</button>
+      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
     </form>
     <div id="fitupMsg" class="msg"></div>
   </div>
@@ -107,7 +115,7 @@
       <input type="date" id="weld_date" required>
 
       <button type="submit" class="btn-submit">💾 Welding સેવ કરો</button>
-      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ (Back to Menu)</button>
+      <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
     </form>
     <div id="weldMsg" class="msg"></div>
   </div>
@@ -133,15 +141,13 @@
 
   function closeApp() {
     if (confirm("શું તમે એપ બંધ કરવા માંગો છો?")) {
-      if (navigator.app && navigator.app.exitApp) {
-        navigator.app.exitApp();
-      } else {
-        window.close();
-      }
+      document.getElementById('mainMenu').style.display = 'none';
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+      document.getElementById('exitScreen').style.display = 'block';
+      try { window.close(); } catch(e) {}
     }
   }
 
-  // Master Data Load for Fit-up
   async function loadMasterSpools() {
     const res = await fetch('/api/master-spools');
     const json = await res.json();
@@ -162,7 +168,6 @@
       spools.map(s => `<option value="${s}">${s}</option>`).join('');
   }
 
-  // Fit-up Submit
   document.getElementById('fitupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('fitupMsg');
@@ -193,7 +198,6 @@
     }
   });
 
-  // Load Fit-up Completed for Welding
   async function loadFitupCompleted() {
     const res = await fetch('/api/fitup-joints');
     const json = await res.json();
@@ -217,7 +221,6 @@
     }
   }
 
-  // Welding Submit
   document.getElementById('weldForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('weldMsg');
