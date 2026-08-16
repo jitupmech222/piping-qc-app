@@ -23,7 +23,7 @@ app.post('/api/joints', async (req, res) => {
   try {
     const { line_no, spool_no, joint_no, status } = req.body;
     const result = await pool.query(
-      'INSERT INTO piping_joints (line_no, spool_no, joint_no, status) VALUES ($1, $2, $3, $4) RETURNING *',
+      'INSERT INTO piping_joints (line_no, spool_id, joint_no, status) VALUES ($1, $2, $3, $4) RETURNING *',
       [line_no, spool_no, joint_no, status]
     );
     res.status(200).json({ success: true, data: result.rows[0] });
@@ -43,7 +43,7 @@ app.get('/api/report', async (req, res) => {
     doc.fontSize(18).text('Piping Inspection Daily Report', { align: 'center' });
     doc.moveDown();
     result.rows.forEach((row, i) => {
-      doc.fontSize(11).text(`${i + 1}. Line: ${row.line_no} | Spool: ${row.spool_no} | Joint: ${row.joint_no} | Status: ${row.status}`);
+      doc.fontSize(11).text(`${i + 1}. Line: ${row.line_no} | Spool: ${row.spool_id || row.spool_no} | Joint: ${row.joint_no} | Status: ${row.status}`);
     });
     doc.end();
   } catch (err) {
