@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piping QC Data Entry</title>
+    <style>
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background-color: #f4f6f9; padding: 15px; margin: 0; }
+        .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: #1e3a8a; text-align: center; margin-top: 0; }
+        label { font-weight: bold; font-size: 14px; color: #374151; display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-submit { background-color: #2563eb; color: white; }
+        .btn-pdf { background-color: #059669; color: white; }
+        #message { margin-top: 15px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🛠️ Piping Joint Data Entry</h2>
+        <form id="pipingForm">
+            <label>Line Number (લાઈન નંબર):</label>
+            <input type="text" id="line_no" placeholder="ઉદા. L-101" required>
+
+            <label>Spool ID (સ્પૂલ ID):</label>
+            <input type="text" id="spool_id" placeholder="ઉદા. SP-01" required>
+
+            <label>Joint Number (જોઈન્ટ નંબર):</label>
+            <input type="text" id="joint_no" placeholder="ઉદા. J-05" required>
+
+            <label>Status (સ્ટેટસ):</label>
+            <select id="status">
+                <option value="Fit-Up Pending">🟡 Fit-Up Pending</option>
+                <option value="Fit-Up Approved">🟢 Fit-Up Approved</option>
+                <option value="Weld In Progress">🟡 Weld In Progress</option>
+                <option value="Visual Cleared">🟢 Visual Cleared</option>
+                <option value="NDT Approved">🔵 NDT Approved</option>
+            </select>
+
+            <button type="submit" class="btn-submit">💾 ડેટા સેવ કરો (Save Joint)</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <div class="card">
+        <h2>📄 Inspection Report Generator</h2>
+        <button id="downloadPdf" class="btn-pdf">📥 Daily PDF Report ડાઉનલોડ કરો</button>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api/piping';
+
+        document.getElementById('pipingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('message');
+            msg.style.color = 'black';
+            msg.innerText = 'સેવ થઈ રહ્યું છે...';
+
+            const payload = {
+                line_no: document.getElementById('line_no').value,
+                spool_id: document.getElementById('spool_id').value,
+                joint_no: document.getElementById('joint_no').value,
+                status: document.getElementById('status').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/entry`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    msg.style.color = 'green';
+                    msg.innerText = '✅ ' + data.message;
+                    document.getElementById('pipingForm').reset();
+                } else {
+                    msg.style.color = 'red';
+                    msg.innerText = '❌ એરર: ' + (data.error || 'સેવ ન થઈ શક્યું');
+                }
+            } catch (err) {
+                msg.style.color = 'red';
+                msg.innerText = '❌ સર્વર કનેક્શન ફેલ!';
+            }
+        });
+
+        document.getElementById('downloadPdf').addEventListener('click', () => {
+            window.location.href = `${API_BASE}/generate-pdf`;
+        });
+    </script>
+</body>
+</html>

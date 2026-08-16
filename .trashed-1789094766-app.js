@@ -1,0 +1,79 @@
+cat << 'EOF' > /sdcard/piping-app/app.js
+const express = require('express');
+const cors = require('cors');
+const { Pool } = require('pg');
+const PDFDocument = require('pdfkit');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
+app.use(cors());
+app.use(express.json());
+app.use(express.static(__dirname)); // HTML ફાઈલ બ્રાઉઝરમાં ઓપન કરવા માટે
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
+
+// ડેટા એન્ટ્રી API
+app.post('/api/piping/entry', async (req, res) => {
+    const { line_no, spool_id, joint_no, status } = req.body;
+    try {
+        const queryText = `
+            INSERT INTO piping_joints (line_no, spool_id, joint_no, status) 
+            VALUES ($1, $2, $3, $4) RETURNING *;
+        `;
+        const values = [line_no, spool_id, joint_no, status || 'Pending'];
+        const result = await pool.query(queryText, values);
+        res.status(201).json({ message: "જોઈન્ટ સેવ થઈ ગયો!", data: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PDF Generator API
+app.get('/api/piping/generate-pdf', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM piping_joints ORDER BY id ASC;');
+        const joints = result.rows;
+
+        const doc = new PDFDocument({ margin: 30 });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=Piping_Report.pdf');
+
+        doc.pipe(res);
+        doc.fontSize(18).text('DAILY PIPING INSPECTION REPORT', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(10).text(`Generated Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
+        doc.moveDown();
+
+        doc.fontSize(12).fillColor('blue').text('ID   | Line No   | Spool ID   | Joint No   | Status');
+        doc.fillColor('black').text('------------------------------------------------------------------');
+        doc.moveDown(0.5);
+
+        joints.forEach(j => {
+            doc.fontSize(10).text(`${j.id}   | ${j.line_no}   | ${j.spool_id}   | ${j.joint_no}   | ${j.status}`);
+        });
+
+        doc.moveDown(2);
+        doc.text('Inspector Signature: _________________', { align: 'left' });
+
+        doc.end();
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
+EOF
+
+
+
