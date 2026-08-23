@@ -1,0 +1,30 @@
+<div class="card active">
+  <h3>🔧 Fit-up Data Entry (Bulk Joints)</h3>
+  <form id="fitupForm">
+    <label>1. Drawing No (Type to search):</label>
+    <input type="text" id="fitup_drawing" placeholder="🔍 Type 6713, CWR etc..." oninput="handleDrawingSearch()" autocomplete="off" required>
+    <div id="drawingSearchResults" class="search-results"></div>
+
+    <label>2. Spool Number:</label>
+    <select id="fitup_spool" onchange="autoFillSpoolDetails()" required>
+      <option value="">-- પહેલા Drawing No પસંદ કરો --</option>
+    </select>
+
+    <label>Spool Size (Auto):</label>
+    <input type="text" id="fitup_spool_size" placeholder="Auto-filled from Spool" readonly>
+
+    <label>Rev No (Auto):</label>
+    <input type="text" id="fitup_rev_no" placeholder="Auto-filled" readonly>
+
+    <label>3. Fit-up Date (All Joints):</label>
+    <input type="date" id="fitup_date" required>
+
+    <label style="margin-top:15px; border-bottom:1px solid #cbd5e1; padding-bottom:4px;">Joints Details:</label>
+    <div id="jointsContainer"></div>
+
+    <button type="button" class="btn-add-joint" onclick="addJointRow()">➕ Add More Joint</button>
+    <button type="submit" class="btn-submit">💾 બધા જોઈન્ટ્સ સેવ કરો</button>
+    <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
+  </form>
+  <div id="fitupMsg" class="msg"></div>
+</div>
