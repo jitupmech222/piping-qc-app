@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ૧. સર્વ-ગ્રાહી માસ્ટર સ્પૂલ API
+// ૧. Master Spools API
 app.get('/api/master-spools', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM master_spools');
@@ -35,7 +35,6 @@ app.get('/api/master-spools', async (req, res) => {
 
     res.json({ success: true, data: normalized });
   } catch (err) {
-    console.error('Master fetch error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -50,20 +49,31 @@ app.get('/api/all-joints', async (req, res) => {
   }
 });
 
-// ૩. Fit-up Data Save
-app.post('/api/fitup', async (req, res) => {
+// ૩. મલ્ટિપલ જોઈન્ટ્સ Fit-up એકસાથે સેવ કરવા
+app.post('/api/fitup-bulk', async (req, res) => {
+  const client = await pool.connect();
   try {
-    const { drawing_no, spool_number, spool_size, rev_no, joint_no, type_of_joint, joint_size, fit_up_date } = req.body;
-    const result = await pool.query(
-      `INSERT INTO piping_joints 
-       ("Drawing_no", "Spool_number", "Spool_size", "Rev_no", "Joint_no", "Type_of_joint", "Joint_size", "Fit_up_date", status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Fit-Up Completed') RETURNING *`,
-      [drawing_no, spool_number, spool_size, rev_no, joint_no, type_of_joint, joint_size, fit_up_date]
-    );
-    res.json({ success: true, data: result.rows[0] });
+    const { drawing_no, spool_number, spool_size, rev_no, fit_up_date, joints } = req.body;
+    
+    await client.query('BEGIN');
+    const insertedRows = [];
+    for (const j of joints) {
+      const result = await client.query(
+        `INSERT INTO piping_joints 
+         ("Drawing_no", "Spool_number", "Spool_size", "Rev_no", "Joint_no", "Type_of_joint", "Joint_size", "Fit_up_date", status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Fit-Up Completed') RETURNING *`,
+        [drawing_no, spool_number, spool_size, rev_no, j.joint_no, j.type_of_joint, j.joint_size, fit_up_date]
+      );
+      insertedRows.push(result.rows[0]);
+    }
+    await client.query('COMMIT');
+    res.json({ success: true, count: insertedRows.length });
   } catch (err) {
-    console.error('Fitup Insert Error:', err);
+    await client.query('ROLLBACK');
+    console.error('Fitup Bulk Error:', err);
     res.status(500).json({ success: false, error: err.message });
+  } finally {
+    client.release();
   }
 });
 
@@ -89,7 +99,6 @@ app.post('/api/welding', async (req, res) => {
     );
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
-    console.error('Welding Update Error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

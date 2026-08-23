@@ -27,6 +27,13 @@
     .search-results { max-height: 160px; overflow-y: auto; border: 1px solid #94a3b8; border-top: none; border-radius: 0 0 6px 6px; background: #ffffff; display: none; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .search-item { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; cursor: pointer; color: #1e293b; }
     .search-item:active, .search-item:hover { background: #dbeafe; color: #1e40af; font-weight: bold; }
+    
+    /* Joint Row Styling */
+    .joint-entry-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 12px; position: relative; }
+    .joint-row-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; color: #1e40af; }
+    .btn-remove-row { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; }
+    .btn-add-joint { background: #0284c7; color: white; border: none; border-radius: 6px; width: 100%; padding: 10px; font-size: 14px; font-weight: bold; margin-top: 12px; cursor: pointer; }
+    
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
     .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
     .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
@@ -70,9 +77,9 @@
     <button class="btn-submit" onclick="location.reload()">🔄 ફરી ચાલુ કરો</button>
   </div>
 
-  <!-- 1. FIT-UP SECTION -->
+  <!-- 1. FIT-UP SECTION (WITH MULTIPLE JOINTS ENTRY) -->
   <div id="fitupSec" class="card">
-    <h3>🔧 Fit-up Data Entry</h3>
+    <h3>🔧 Fit-up Data Entry (Bulk Joints)</h3>
     <form id="fitupForm">
       <label>1. Drawing No (Type to search):</label>
       <input type="text" id="fitup_drawing" placeholder="🔍 Type 6713, CWR etc..." oninput="handleDrawingSearch()" autocomplete="off" required>
@@ -89,26 +96,16 @@
       <label>Rev No (Auto):</label>
       <input type="text" id="fitup_rev_no" placeholder="Auto-filled" readonly>
 
-      <label>3. Joint Number:</label>
-      <input type="text" id="fitup_joint" placeholder="e.g. J-01" required>
-
-      <label>4. Type of Joint:</label>
-      <select id="fitup_type" required>
-        <option value="">-- પસંદ કરો --</option>
-        <option value="BW">BW (Butt Weld)</option>
-        <option value="SOF">SOF (Slip-On Flange)</option>
-        <option value="SOB">SOB (Socket Weld)</option>
-        <option value="LET">LET (Weldolet/Sockolet)</option>
-        <option value="SW">SW (Socket Weld)</option>
-      </select>
-
-      <label>5. Joint Size:</label>
-      <input type="text" id="fitup_joint_size" placeholder="e.g. 2 inch, 4 inch" required>
-
-      <label>6. Fit-up Date:</label>
+      <label>3. Fit-up Date (All Joints):</label>
       <input type="date" id="fitup_date" required>
 
-      <button type="submit" class="btn-submit">💾 Fit-up સેવ કરો</button>
+      <!-- Dynamic Joints Container -->
+      <label style="margin-top:15px; border-bottom:1px solid #cbd5e1; padding-bottom:4px;">Joints Details:</label>
+      <div id="jointsContainer"></div>
+
+      <button type="button" class="btn-add-joint" onclick="addJointRow()">➕ Add More Joint</button>
+
+      <button type="submit" class="btn-submit">💾 બધા જોઈન્ટ્સ સેવ કરો</button>
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
     </form>
     <div id="fitupMsg" class="msg"></div>
@@ -193,10 +190,11 @@
   let masterData = [];
   let fitupJoints = [];
   let allRecords = [];
+  let jointRowCount = 0;
 
-  // એપ ખુલતાં જ માસ્ટર ડેટા પ્રી-લોડ થશે
   window.addEventListener('DOMContentLoaded', () => {
     loadMasterSpools();
+    addJointRow(); // Default 1 row
   });
 
   function openSection(secId) {
@@ -230,12 +228,9 @@
     try {
       const res = await fetch('/api/master-spools');
       const json = await res.json();
-      if (json.success && json.data) {
-        masterData = json.data;
-        console.log("Master data loaded successfully:", masterData.length);
-      }
+      if (json.success && json.data) masterData = json.data;
     } catch(err) {
-      console.error('Failed to load master spools:', err);
+      console.error(err);
     }
   }
 
@@ -243,11 +238,7 @@
     const rawVal = document.getElementById('fitup_drawing').value;
     const val = rawVal.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
-    
-    if (!val) {
-      resultBox.style.display = 'none';
-      return;
-    }
+    if (!val) { resultBox.style.display = 'none'; return; }
 
     const uniqueDwgs = [...new Set(masterData.map(d => d.drawing_no).filter(Boolean))];
     const filtered = uniqueDwgs.filter(d => d.toLowerCase().includes(val));
@@ -266,15 +257,12 @@
     document.getElementById('fitup_drawing').value = selectedDwg;
     document.getElementById('drawingSearchResults').style.display = 'none';
 
-    // Filter Spools for this Drawing
     const spools = masterData.filter(d => d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
     const spoolSelect = document.getElementById('fitup_spool');
 
     if (spools.length > 0) {
       spoolSelect.innerHTML = '<option value="">-- Spool પસંદ કરો --</option>' + 
         spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}" data-rev="${s.rev_no || '0'}">${s.spool_number}</option>`).join('');
-      
-      // Auto select if only 1 spool exists
       if (spools.length === 1) {
         spoolSelect.selectedIndex = 1;
         autoFillSpoolDetails();
@@ -290,41 +278,106 @@
     const select = document.getElementById('fitup_spool');
     const selectedOpt = select.options[select.selectedIndex];
     if (selectedOpt && selectedOpt.value) {
-      document.getElementById('fitup_spool_size').value = selectedOpt.getAttribute('data-size') || '';
+      const defaultSize = selectedOpt.getAttribute('data-size') || '';
+      document.getElementById('fitup_spool_size').value = defaultSize;
       document.getElementById('fitup_rev_no').value = selectedOpt.getAttribute('data-rev') || '0';
+      
+      // Auto populate joint size in all active rows
+      document.querySelectorAll('.joint-size-input').forEach(input => {
+        if (!input.value) input.value = defaultSize;
+      });
     } else {
       document.getElementById('fitup_spool_size').value = '';
       document.getElementById('fitup_rev_no').value = '';
     }
   }
 
-  // Fit-up Submit
+  // Add Dynamic Joint Row
+  function addJointRow() {
+    jointRowCount++;
+    const defaultSize = document.getElementById('fitup_spool_size').value || '';
+    const container = document.getElementById('jointsContainer');
+    const div = document.createElement('div');
+    div.className = 'joint-entry-card';
+    div.id = `jointRow_${jointRowCount}`;
+    div.innerHTML = `
+      <div class="joint-row-header">
+        <span>Joint #${jointRowCount}</span>
+        ${jointRowCount > 1 ? `<button type="button" class="btn-remove-row" onclick="removeJointRow(${jointRowCount})">✕ Delete</button>` : ''}
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; margin-top:6px;">
+        <div>
+          <label style="font-size:11px; margin-top:2px;">Joint No:</label>
+          <input type="text" class="joint-no-input" placeholder="e.g. J-01" required>
+        </div>
+        <div>
+          <label style="font-size:11px; margin-top:2px;">Type:</label>
+          <select class="joint-type-input" required>
+            <option value="BW">BW</option>
+            <option value="SOF">SOF</option>
+            <option value="SOB">SOB</option>
+            <option value="LET">LET</option>
+            <option value="SW">SW</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px; margin-top:2px;">Size:</label>
+          <input type="text" class="joint-size-input" value="${defaultSize}" placeholder="e.g. 4 inch" required>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  function removeJointRow(id) {
+    const row = document.getElementById(`jointRow_${id}`);
+    if (row) row.remove();
+  }
+
+  // Bulk Fit-up Submit
   document.getElementById('fitupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('fitupMsg');
     msg.textContent = '⏳ સેવ થઈ રહ્યું છે...';
-    
+
+    const jointRows = document.querySelectorAll('.joint-entry-card');
+    const joints = [];
+    jointRows.forEach(row => {
+      const joint_no = row.querySelector('.joint-no-input').value.trim();
+      const type_of_joint = row.querySelector('.joint-type-input').value;
+      const joint_size = row.querySelector('.joint-size-input').value.trim();
+      if (joint_no) {
+        joints.push({ joint_no, type_of_joint, joint_size });
+      }
+    });
+
+    if (joints.length === 0) {
+      alert('કૃપા કરીને ઓછામાં ઓછો ૧ જોઈન્ટ ઉમેરો.');
+      return;
+    }
+
     const payload = {
       drawing_no: document.getElementById('fitup_drawing').value,
       spool_number: document.getElementById('fitup_spool').value,
       spool_size: document.getElementById('fitup_spool_size').value,
       rev_no: document.getElementById('fitup_rev_no').value,
-      joint_no: document.getElementById('fitup_joint').value,
-      type_of_joint: document.getElementById('fitup_type').value,
-      joint_size: document.getElementById('fitup_joint_size').value,
-      fit_up_date: document.getElementById('fitup_date').value
+      fit_up_date: document.getElementById('fitup_date').value,
+      joints: joints
     };
 
-    const res = await fetch('/api/fitup', {
+    const res = await fetch('/api/fitup-bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (data.success) {
-      msg.textContent = '✅ Fit-up સફળતાપૂર્વક સેવ થઈ ગયું!';
+      msg.textContent = `✅ ${data.count} જોઈન્ટ્સ સફળતાપૂર્વક સેવ થઈ ગયા!`;
       msg.className = 'msg success';
       document.getElementById('fitupForm').reset();
+      document.getElementById('jointsContainer').innerHTML = '';
+      jointRowCount = 0;
+      addJointRow();
       document.getElementById('fitup_spool').innerHTML = '<option value="">-- પહેલા Drawing No પસંદ કરો --</option>';
     } else {
       msg.textContent = '❌ એરર: ' + data.error;
@@ -389,7 +442,6 @@
   async function loadAllRecords() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">⏳ ડેટા લોડ થઈ રહ્યો છે...</td></tr>';
-    
     try {
       const res = await fetch('/api/all-joints');
       const json = await res.json();
