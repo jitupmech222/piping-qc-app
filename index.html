@@ -6,13 +6,19 @@
   <title>Piping QC</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
-    .container { max-width: 480px; margin: 0 auto; }
+    .container { max-width: 600px; margin: 0 auto; }
+    .logo-container { text-align: center; margin-bottom: 12px; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    .logo-img { max-width: 130px; height: auto; border-radius: 8px; }
+    .company-title { margin: 4px 0 0 0; color: #1e3a8a; font-size: 16px; font-weight: bold; }
+    .company-sub { margin: 2px 0 0 0; color: #64748b; font-size: 12px; }
     .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .menu-btn:active { background: #1d4ed8; }
-    .btn-exit { background: #dc2626; grid-column: span 2; margin-top: 5px; }
+    .btn-view-data { background: #059669; grid-column: span 2; }
+    .btn-view-data:active { background: #047857; }
+    .btn-exit { background: #dc2626; grid-column: span 2; }
     .btn-exit:active { background: #b91c1c; }
-    .card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); display: none; }
+    .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); display: none; }
     .card.active { display: block; }
     h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
@@ -24,11 +30,28 @@
     .success { color: #16a34a; }
     .error { color: #dc2626; }
     #exitScreen { display: none; text-align: center; padding: 40px 10px; background: white; border-radius: 12px; }
+    
+    /* Data Table Styling */
+    .table-container { overflow-x: auto; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 6px; white-space: nowrap; }
+    th { background: #1e40af; color: white; font-weight: 600; }
+    tr:nth-child(even) { background: #f8fafc; }
+    .badge { padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+    .badge-fitup { background: #fef08a; color: #854d0e; }
+    .badge-weld { background: #bbf7d0; color: #166534; }
   </style>
 </head>
 <body>
 
 <div class="container">
+  <!-- Top Logo Header -->
+  <div id="logoHeader" class="logo-container">
+    <img src="logo.jpg" alt="Aai Krupa Group" class="logo-img" onerror="this.style.display='none'">
+    <h2 class="company-title">AAI KRUPA GROUP</h2>
+    <p class="company-sub">PIPING FABRICATION QC</p>
+  </div>
+
   <!-- Top Main Buttons Menu -->
   <div id="mainMenu" class="menu-grid">
     <button class="menu-btn" onclick="openSection('fitupSec')">1. 🔧 Fit-up</button>
@@ -38,6 +61,7 @@
     <button class="menu-btn" onclick="alert('Coming Soon!')">5. 🔬 NDT clear</button>
     <button class="menu-btn" onclick="alert('Coming Soon!')">6. 🚚 Dispatch</button>
     <button class="menu-btn" style="grid-column: span 2;" onclick="alert('Coming Soon!')">7. 📑 RA Bill</button>
+    <button class="menu-btn btn-view-data" onclick="openSection('viewDataSec')">📊 View All QC Records (બધો ડેટા જુઓ)</button>
     <button class="menu-btn btn-exit" onclick="closeApp()">🚪 Exit App</button>
   </div>
 
@@ -119,28 +143,62 @@
     </form>
     <div id="weldMsg" class="msg"></div>
   </div>
+
+  <!-- 3. VIEW ALL DATA SECTION -->
+  <div id="viewDataSec" class="card">
+    <h3>📊 All Piping QC Records</h3>
+    <input type="text" id="tableSearch" placeholder="🔍 Search Line, Spool, Welder..." onkeyup="filterTable()">
+    
+    <div class="table-container">
+      <table id="qcDataTable">
+        <thead>
+          <tr>
+            <th>Line</th>
+            <th>Spool</th>
+            <th>Joint</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Fit-up Date</th>
+            <th>Welder</th>
+            <th>WPS</th>
+            <th>Weld Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="10" style="text-align:center;">ડેટા લોડ થઈ રહ્યો છે...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
+  </div>
 </div>
 
 <script>
   let masterData = [];
   let fitupJoints = [];
+  let allRecords = [];
 
   function openSection(secId) {
+    document.getElementById('logoHeader').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'none';
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
     document.getElementById(secId).classList.add('active');
     
     if (secId === 'fitupSec') loadMasterSpools();
     if (secId === 'weldSec') loadFitupCompleted();
+    if (secId === 'viewDataSec') loadAllRecords();
   }
 
   function backToMenu() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    document.getElementById('logoHeader').style.display = 'block';
     document.getElementById('mainMenu').style.display = 'grid';
   }
 
   function closeApp() {
     if (confirm("શું તમે એપ બંધ કરવા માંગો છો?")) {
+      document.getElementById('logoHeader').style.display = 'none';
       document.getElementById('mainMenu').style.display = 'none';
       document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
       document.getElementById('exitScreen').style.display = 'block';
@@ -249,6 +307,55 @@
       msg.className = 'msg error';
     }
   });
+
+  // Load All Records
+  async function loadAllRecords() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">⏳ ડેટા લોડ થઈ રહ્યો છે...</td></tr>';
+    
+    try {
+      const res = await fetch('/api/all-joints');
+      const json = await res.json();
+      if (json.success && json.data.length > 0) {
+        allRecords = json.data;
+        renderTable(allRecords);
+      } else {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>';
+      }
+    } catch(err) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:red;">ડેટા લાવવામાં એરર આવી!</td></tr>';
+    }
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = data.map(r => `
+      <tr>
+        <td><b>${r.line_no || '-'}</b></td>
+        <td>${r.spool_id || r.spool_no || '-'}</td>
+        <td>${r.joint_no || '-'}</td>
+        <td>${r.joint_type || '-'}</td>
+        <td>${r.joint_size || '-'}</td>
+        <td>${r.fitup_date ? r.fitup_date.split('T')[0] : '-'}</td>
+        <td>${r.welder_no || '-'}</td>
+        <td>${r.wps || '-'}</td>
+        <td>${r.weld_date ? r.weld_date.split('T')[0] : '-'}</td>
+        <td><span class="badge ${r.status === 'Welding Completed' ? 'badge-weld' : 'badge-fitup'}">${r.status || '-'}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function filterTable() {
+    const term = document.getElementById('tableSearch').value.toLowerCase();
+    const filtered = allRecords.filter(r => 
+      (r.line_no && r.line_no.toLowerCase().includes(term)) ||
+      (r.spool_id && r.spool_id.toLowerCase().includes(term)) ||
+      (r.joint_no && r.joint_no.toLowerCase().includes(term)) ||
+      (r.welder_no && r.welder_no.toLowerCase().includes(term)) ||
+      (r.status && r.status.toLowerCase().includes(term))
+    );
+    renderTable(filtered);
+  }
 </script>
 
 </body>
