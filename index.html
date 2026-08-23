@@ -30,8 +30,6 @@
     .success { color: #16a34a; }
     .error { color: #dc2626; }
     #exitScreen { display: none; text-align: center; padding: 40px 10px; background: white; border-radius: 12px; }
-    
-    /* Data Table Styling */
     .table-container { overflow-x: auto; margin-top: 12px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 8px 6px; white-space: nowrap; }
@@ -61,7 +59,7 @@
     <button class="menu-btn" onclick="alert('Coming Soon!')">5. 🔬 NDT clear</button>
     <button class="menu-btn" onclick="alert('Coming Soon!')">6. 🚚 Dispatch</button>
     <button class="menu-btn" style="grid-column: span 2;" onclick="alert('Coming Soon!')">7. 📑 RA Bill</button>
-    <button class="menu-btn btn-view-data" onclick="openSection('viewDataSec')">📊 View All QC Records (બધો ડેટા જુઓ)</button>
+    <button class="menu-btn btn-view-data" onclick="openSection('viewDataSec')">📊 View All QC Records</button>
     <button class="menu-btn btn-exit" onclick="closeApp()">🚪 Exit App</button>
   </div>
 
@@ -76,11 +74,14 @@
   <div id="fitupSec" class="card">
     <h3>🔧 Fit-up Data Entry</h3>
     <form id="fitupForm">
-      <label>1. Line Number:</label>
+      <label>1. Drawing No (Line No):</label>
       <select id="fitup_line" onchange="filterSpools()" required></select>
 
       <label>2. Spool Number:</label>
-      <select id="fitup_spool" required></select>
+      <select id="fitup_spool" onchange="autoFillSpoolDetails()" required></select>
+
+      <label>Spool Size (Auto):</label>
+      <input type="text" id="fitup_size" placeholder="Auto-filled from Spool" required>
 
       <label>3. Joint Number:</label>
       <input type="text" id="fitup_joint" placeholder="e.g. J-01" required>
@@ -95,10 +96,7 @@
         <option value="SW">SW (Socket Weld)</option>
       </select>
 
-      <label>5. Joint Size:</label>
-      <input type="text" id="fitup_size" placeholder="e.g. 2 inch, 4 inch" required>
-
-      <label>6. Fit-up Date:</label>
+      <label>5. Fit-up Date:</label>
       <input type="date" id="fitup_date" required>
 
       <button type="submit" class="btn-submit">💾 Fit-up સેવ કરો</button>
@@ -114,7 +112,7 @@
       <label>Select Joint (Fit-up Completed):</label>
       <select id="weld_select" onchange="populateWeldFields()" required></select>
 
-      <label>1. Line Number:</label>
+      <label>1. Drawing / Line Number:</label>
       <input type="text" id="weld_line" readonly>
 
       <label>2. Spool Number:</label>
@@ -147,13 +145,13 @@
   <!-- 3. VIEW ALL DATA SECTION -->
   <div id="viewDataSec" class="card">
     <h3>📊 All Piping QC Records</h3>
-    <input type="text" id="tableSearch" placeholder="🔍 Search Line, Spool, Welder..." onkeyup="filterTable()">
+    <input type="text" id="tableSearch" placeholder="🔍 Search Drawing, Spool, Welder..." onkeyup="filterTable()">
     
     <div class="table-container">
       <table id="qcDataTable">
         <thead>
           <tr>
-            <th>Line</th>
+            <th>Drawing / Line</th>
             <th>Spool</th>
             <th>Joint</th>
             <th>Type</th>
@@ -206,26 +204,37 @@
     }
   }
 
+  // Load Master Spools using new column names
   async function loadMasterSpools() {
     const res = await fetch('/api/master-spools');
     const json = await res.json();
     if (json.success) {
       masterData = json.data;
-      const lines = [...new Set(masterData.map(d => d.line_no))];
-      const lineSelect = document.getElementById('fitup_line');
-      lineSelect.innerHTML = '<option value="">-- Line પસંદ કરો --</option>' + 
-        lines.map(l => `<option value="${l}">${l}</option>`).join('');
+      const dwgs = [...new Set(masterData.map(d => d.drawing_no))];
+      const dwgSelect = document.getElementById('fitup_line');
+      dwgSelect.innerHTML = '<option value="">-- Drawing No પસંદ કરો --</option>' + 
+        dwgs.map(d => `<option value="${d}">${d}</option>`).join('');
     }
   }
 
   function filterSpools() {
-    const selectedLine = document.getElementById('fitup_line').value;
-    const spools = masterData.filter(d => d.line_no === selectedLine).map(d => d.spool_no);
+    const selectedDwg = document.getElementById('fitup_line').value;
+    const spools = masterData.filter(d => d.drawing_no === selectedDwg);
     const spoolSelect = document.getElementById('fitup_spool');
     spoolSelect.innerHTML = '<option value="">-- Spool પસંદ કરો --</option>' + 
-      spools.map(s => `<option value="${s}">${s}</option>`).join('');
+      spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}">${s.spool_number} (Rev: ${s.rev_no || '0'})</option>`).join('');
   }
 
+  function autoFillSpoolDetails() {
+    const select = document.getElementById('fitup_spool');
+    const selectedOpt = select.options[select.selectedIndex];
+    const size = selectedOpt.getAttribute('data-size');
+    if (size) {
+      document.getElementById('fitup_size').value = size;
+    }
+  }
+
+  // Fit-up Submit
   document.getElementById('fitupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('fitupMsg');
@@ -256,6 +265,7 @@
     }
   });
 
+  // Load Fit-up Completed for Welding
   async function loadFitupCompleted() {
     const res = await fetch('/api/fitup-joints');
     const json = await res.json();
@@ -279,6 +289,7 @@
     }
   }
 
+  // Welding Submit
   document.getElementById('weldForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('weldMsg');
