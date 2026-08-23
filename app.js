@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// માસ્ટર સ્પૂલ ડેટા (બંને કેસ હેન્ડલિંગ સાથે)
+// ૧. Master Spools Data
 app.get('/api/master-spools', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -36,7 +36,7 @@ app.get('/api/master-spools', async (req, res) => {
   }
 });
 
-// View All Data
+// ૨. View All Data API
 app.get('/api/all-joints', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM piping_joints ORDER BY id DESC');
@@ -46,22 +46,24 @@ app.get('/api/all-joints', async (req, res) => {
   }
 });
 
-// Fit-up સેવ કરવો
+// ૩. Fit-up Data Save
 app.post('/api/fitup', async (req, res) => {
   try {
-    const { line_no, spool_id, joint_no, joint_type, joint_size, fitup_date } = req.body;
+    const { drawing_no, spool_number, spool_size, rev_no, joint_no, type_of_joint, joint_size, fit_up_date } = req.body;
     const result = await pool.query(
-      `INSERT INTO piping_joints (line_no, spool_id, joint_no, joint_type, joint_size, fitup_date, status)
-       VALUES ($1, $2, $3, $4, $5, $6, 'Fit-Up Completed') RETURNING *`,
-      [line_no, spool_id, joint_no, joint_type, joint_size, fitup_date]
+      `INSERT INTO piping_joints 
+       ("Drawing_no", "Spool_number", "Spool_size", "Rev_no", "Joint_no", "Type_of_joint", "Joint_size", "Fit_up_date", status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Fit-Up Completed') RETURNING *`,
+      [drawing_no, spool_number, spool_size, rev_no, joint_no, type_of_joint, joint_size, fit_up_date]
     );
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
+    console.error('Fitup Insert Error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Fit-up થયેલા જોઈન્ટ્સ Welding માટે
+// ૪. Fit-up થયેલા Joints Welding માટે
 app.get('/api/fitup-joints', async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM piping_joints WHERE status = 'Fit-Up Completed' ORDER BY id DESC");
@@ -71,18 +73,19 @@ app.get('/api/fitup-joints', async (req, res) => {
   }
 });
 
-// Welding સેવ કરવો
+// ૫. Welding Data Save
 app.post('/api/welding', async (req, res) => {
   try {
-    const { joint_id, welder_no, wps, weld_date } = req.body;
+    const { joint_id, welder_no, wps, weld_visual_date } = req.body;
     const result = await pool.query(
       `UPDATE piping_joints 
-       SET welder_no = $1, wps = $2, weld_date = $3, status = 'Welding Completed'
+       SET "Welder_no" = $1, "Wps" = $2, "Weld_visual_date" = $3, status = 'Welding Completed'
        WHERE id = $4 RETURNING *`,
-      [welder_no, wps, weld_date, joint_id]
+      [welder_no, wps, weld_visual_date, joint_id]
     );
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
+    console.error('Welding Update Error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
