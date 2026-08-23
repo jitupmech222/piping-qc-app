@@ -74,11 +74,14 @@
   <div id="fitupSec" class="card">
     <h3>🔧 Fit-up Data Entry</h3>
     <form id="fitupForm">
-      <label>1. Drawing No (Line No):</label>
-      <select id="fitup_line" onchange="filterSpools()" required></select>
+      <label>1. Drawing No (Type to search):</label>
+      <input type="text" id="fitup_line" list="drawingList" placeholder="🔍 Type Drawing / Line No..." oninput="filterSpools()" required autocomplete="off">
+      <datalist id="drawingList"></datalist>
 
       <label>2. Spool Number:</label>
-      <select id="fitup_spool" onchange="autoFillSpoolDetails()" required></select>
+      <select id="fitup_spool" onchange="autoFillSpoolDetails()" required>
+        <option value="">-- પહેલા Drawing No પસંદ કરો --</option>
+      </select>
 
       <label>Spool Size (Auto):</label>
       <input type="text" id="fitup_size" placeholder="Auto-filled from Spool" required>
@@ -204,33 +207,38 @@
     }
   }
 
-  // Load Master Spools using new column names
+  // Load Master Spools into Datalist for typing & auto-complete
   async function loadMasterSpools() {
     const res = await fetch('/api/master-spools');
     const json = await res.json();
     if (json.success) {
       masterData = json.data;
-      const dwgs = [...new Set(masterData.map(d => d.drawing_no))];
-      const dwgSelect = document.getElementById('fitup_line');
-      dwgSelect.innerHTML = '<option value="">-- Drawing No પસંદ કરો --</option>' + 
-        dwgs.map(d => `<option value="${d}">${d}</option>`).join('');
+      const dwgs = [...new Set(masterData.map(d => d.drawing_no).filter(Boolean))];
+      const dList = document.getElementById('drawingList');
+      dList.innerHTML = dwgs.map(d => `<option value="${d}">`).join('');
     }
   }
 
   function filterSpools() {
-    const selectedDwg = document.getElementById('fitup_line').value;
-    const spools = masterData.filter(d => d.drawing_no === selectedDwg);
+    const selectedDwg = document.getElementById('fitup_line').value.trim();
+    const spools = masterData.filter(d => d.drawing_no && d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
     const spoolSelect = document.getElementById('fitup_spool');
-    spoolSelect.innerHTML = '<option value="">-- Spool પસંદ કરો --</option>' + 
-      spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}">${s.spool_number} (Rev: ${s.rev_no || '0'})</option>`).join('');
+    
+    if (spools.length > 0) {
+      spoolSelect.innerHTML = '<option value="">-- Spool પસંદ કરો --</option>' + 
+        spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}">${s.spool_number} (Rev: ${s.rev_no || '0'})</option>`).join('');
+    } else {
+      spoolSelect.innerHTML = '<option value="">-- કોઈ સ્પૂલ મળ્યો નથી --</option>';
+      document.getElementById('fitup_size').value = '';
+    }
   }
 
   function autoFillSpoolDetails() {
     const select = document.getElementById('fitup_spool');
     const selectedOpt = select.options[select.selectedIndex];
-    const size = selectedOpt.getAttribute('data-size');
-    if (size) {
-      document.getElementById('fitup_size').value = size;
+    if (selectedOpt) {
+      const size = selectedOpt.getAttribute('data-size');
+      document.getElementById('fitup_size').value = size || '';
     }
   }
 

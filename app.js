@@ -18,17 +18,25 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ૧. અપડેટેડ Master Spools લિસ્ટ
+// માસ્ટર સ્પૂલ ડેટા (બંને કેસ હેન્ડલિંગ સાથે)
 app.get('/api/master-spools', async (req, res) => {
   try {
-    const result = await pool.query('SELECT DISTINCT drawing_no, spool_number, spool_size, rev_no FROM master_spools ORDER BY drawing_no, spool_number');
+    const result = await pool.query(`
+      SELECT 
+        COALESCE("Drawing_no", drawing_no) as drawing_no,
+        COALESCE("Spool_number", spool_number) as spool_number,
+        COALESCE("Spool_size", spool_size) as spool_size,
+        COALESCE("Rev_no", rev_no) as rev_no
+      FROM master_spools 
+      ORDER BY 1, 2
+    `);
     res.json({ success: true, data: result.rows });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// ૨. View All Data API
+// View All Data
 app.get('/api/all-joints', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM piping_joints ORDER BY id DESC');
@@ -38,7 +46,7 @@ app.get('/api/all-joints', async (req, res) => {
   }
 });
 
-// ૩. Fit-up ડેટા સેવ કરવો
+// Fit-up સેવ કરવો
 app.post('/api/fitup', async (req, res) => {
   try {
     const { line_no, spool_id, joint_no, joint_type, joint_size, fitup_date } = req.body;
@@ -53,7 +61,7 @@ app.post('/api/fitup', async (req, res) => {
   }
 });
 
-// ૪. Fit-up થયેલા જોઈન્ટ્સ Welding માટે
+// Fit-up થયેલા જોઈન્ટ્સ Welding માટે
 app.get('/api/fitup-joints', async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM piping_joints WHERE status = 'Fit-Up Completed' ORDER BY id DESC");
@@ -63,7 +71,7 @@ app.get('/api/fitup-joints', async (req, res) => {
   }
 });
 
-// ૫. Welding સેવ કરવો
+// Welding સેવ કરવો
 app.post('/api/welding', async (req, res) => {
   try {
     const { joint_id, welder_no, wps, weld_date } = req.body;
