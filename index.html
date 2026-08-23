@@ -24,6 +24,9 @@
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: #fff; }
     input[readonly] { background-color: #f1f5f9; cursor: not-allowed; }
+    .search-results { max-height: 140px; overflow-y: auto; border: 1px solid #cbd5e1; border-top: none; border-radius: 0 0 6px 6px; background: white; display: none; margin-bottom: 8px; }
+    .search-item { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13px; cursor: pointer; }
+    .search-item:hover, .search-item:active { background: #eff6ff; color: #1e40af; font-weight: 600; }
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
     .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
     .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
@@ -43,14 +46,12 @@
 <body>
 
 <div class="container">
-  <!-- Top Logo Header -->
   <div id="logoHeader" class="logo-container">
     <img src="logo.jpg" alt="Aai Krupa Group" class="logo-img" onerror="this.style.display='none'">
     <h2 class="company-title">AAI KRUPA GROUP</h2>
     <p class="company-sub">PIPING FABRICATION QC</p>
   </div>
 
-  <!-- Top Main Buttons Menu -->
   <div id="mainMenu" class="menu-grid">
     <button class="menu-btn" onclick="openSection('fitupSec')">1. 🔧 Fit-up</button>
     <button class="menu-btn" onclick="openSection('weldSec')">2. ⚡ Welding</button>
@@ -63,7 +64,6 @@
     <button class="menu-btn btn-exit" onclick="closeApp()">🚪 Exit App</button>
   </div>
 
-  <!-- Exit Screen -->
   <div id="exitScreen">
     <h2 style="color: #dc2626;">🚪 એપ બંધ થઈ ગઈ છે</h2>
     <p style="color: #64748b; font-size: 15px;">તમારા ફોનનું <b>Home (⚪)</b> અથવા <b>Back (⬅)</b> બટન દબાવો.</p>
@@ -74,9 +74,9 @@
   <div id="fitupSec" class="card">
     <h3>🔧 Fit-up Data Entry</h3>
     <form id="fitupForm">
-      <label>1. Drawing No (Type to search):</label>
-      <input type="text" id="fitup_drawing" list="drawingList" placeholder="🔍 Type Drawing No..." oninput="filterSpools()" required autocomplete="off">
-      <datalist id="drawingList"></datalist>
+      <label>1. Drawing No (Type 6713, CWR etc.):</label>
+      <input type="text" id="fitup_drawing" placeholder="🔍 Type keyword..." oninput="handleDrawingSearch()" autocomplete="off" required>
+      <div id="drawingSearchResults" class="search-results"></div>
 
       <label>2. Spool Number:</label>
       <select id="fitup_spool" onchange="autoFillSpoolDetails()" required>
@@ -86,7 +86,8 @@
       <label>Spool Size (Auto):</label>
       <input type="text" id="fitup_spool_size" placeholder="Auto-filled from Spool" readonly>
 
-      <input type="hidden" id="fitup_rev_no" value="0">
+      <label>Rev No (Auto):</label>
+      <input type="text" id="fitup_rev_no" placeholder="Auto-filled" readonly>
 
       <label>3. Joint Number:</label>
       <input type="text" id="fitup_joint" placeholder="e.g. J-01" required>
@@ -221,37 +222,70 @@
   }
 
   async function loadMasterSpools() {
-    const res = await fetch('/api/master-spools');
-    const json = await res.json();
-    if (json.success) {
-      masterData = json.data;
-      const dwgs = [...new Set(masterData.map(d => d.drawing_no).filter(Boolean))];
-      const dList = document.getElementById('drawingList');
-      dList.innerHTML = dwgs.map(d => `<option value="${d}">`).join('');
+    try {
+      const res = await fetch('/api/master-spools');
+      const json = await res.json();
+      if (json.success) {
+        masterData = json.data;
+      }
+    } catch(err) {
+      console.error(err);
     }
   }
 
-  function filterSpools() {
-    const selectedDwg = document.getElementById('fitup_drawing').value.trim();
+  function handleDrawingSearch() {
+    const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
+    const resultBox = document.getElementById('drawingSearchResults');
+    if (!val) {
+      resultBox.style.display = 'none';
+      return;
+    }
+
+    const uniqueDwgs = [...new Set(masterData.map(d => d.drawing_no).filter(Boolean))];
+    const filtered = uniqueDwgs.filter(d => d.toLowerCase().includes(val));
+
+    if (filtered.length > 0) {
+      resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectDrawing('${d}')">${d}</div>`).join('');
+      resultBox.style.display = 'block';
+    } else {
+      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">કોઈ ડ્રોઇંગ મળ્યું નથી</div>';
+      resultBox.style.display = 'block';
+    }
+  }
+
+  function selectDrawing(selectedDwg) {
+    document.getElementById('fitup_drawing').value = selectedDwg;
+    document.getElementById('drawingSearchResults').style.display = 'none';
+
+    // Filter Spools for this Drawing
     const spools = masterData.filter(d => d.drawing_no && d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
     const spoolSelect = document.getElementById('fitup_spool');
-    
+
     if (spools.length > 0) {
       spoolSelect.innerHTML = '<option value="">-- Spool પસંદ કરો --</option>' + 
-        spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}" data-rev="${s.rev_no || '0'}">${s.spool_number} (Rev: ${s.rev_no || '0'})</option>`).join('');
+        spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}" data-rev="${s.rev_no || '0'}">${s.spool_number}</option>`).join('');
+      
+      // Auto select if only 1 spool exists
+      if (spools.length === 1) {
+        spoolSelect.selectedIndex = 1;
+        autoFillSpoolDetails();
+      }
     } else {
       spoolSelect.innerHTML = '<option value="">-- કોઈ સ્પૂલ મળ્યો નથી --</option>';
       document.getElementById('fitup_spool_size').value = '';
-      document.getElementById('fitup_rev_no').value = '0';
+      document.getElementById('fitup_rev_no').value = '';
     }
   }
 
   function autoFillSpoolDetails() {
     const select = document.getElementById('fitup_spool');
     const selectedOpt = select.options[select.selectedIndex];
-    if (selectedOpt) {
+    if (selectedOpt && selectedOpt.value) {
       document.getElementById('fitup_spool_size').value = selectedOpt.getAttribute('data-size') || '';
       document.getElementById('fitup_rev_no').value = selectedOpt.getAttribute('data-rev') || '0';
+    } else {
+      document.getElementById('fitup_spool_size').value = '';
+      document.getElementById('fitup_rev_no').value = '';
     }
   }
 
@@ -282,13 +316,13 @@
       msg.textContent = '✅ Fit-up સફળતાપૂર્વક સેવ થઈ ગયું!';
       msg.className = 'msg success';
       document.getElementById('fitupForm').reset();
+      document.getElementById('fitup_spool').innerHTML = '<option value="">-- પહેલા Drawing No પસંદ કરો --</option>';
     } else {
       msg.textContent = '❌ એરર: ' + data.error;
       msg.className = 'msg error';
     }
   });
 
-  // Load Fit-up Completed for Welding
   async function loadFitupCompleted() {
     const res = await fetch('/api/fitup-joints');
     const json = await res.json();
@@ -314,7 +348,6 @@
     }
   }
 
-  // Welding Submit
   document.getElementById('weldForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('weldMsg');
@@ -344,7 +377,6 @@
     }
   });
 
-  // Load All Records
   async function loadAllRecords() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">⏳ ડેટા લોડ થઈ રહ્યો છે...</td></tr>';
