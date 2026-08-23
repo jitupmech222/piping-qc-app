@@ -15,9 +15,7 @@
     .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .menu-btn:active { background: #1d4ed8; }
     .btn-view-data { background: #059669; grid-column: span 2; }
-    .btn-view-data:active { background: #047857; }
     .btn-exit { background: #dc2626; grid-column: span 2; }
-    .btn-exit:active { background: #b91c1c; }
     .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); display: none; }
     .card.active { display: block; }
     h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
@@ -28,12 +26,20 @@
     .search-item { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; cursor: pointer; color: #1e293b; }
     .search-item:active, .search-item:hover { background: #dbeafe; color: #1e40af; font-weight: bold; }
     
-    /* Joint Row Styling */
-    .joint-entry-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 12px; position: relative; }
+    .joint-entry-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 12px; }
     .joint-row-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; color: #1e40af; }
     .btn-remove-row { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; }
     .btn-add-joint { background: #0284c7; color: white; border: none; border-radius: 6px; width: 100%; padding: 10px; font-size: 14px; font-weight: bold; margin-top: 12px; cursor: pointer; }
     
+    /* Welding Joint Select Grid */
+    .weld-joint-item { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-top: 8px; cursor: pointer; background: #ffffff; transition: 0.2s; }
+    .weld-joint-item.filled { background: #dcfce7 !important; border-color: #22c55e !important; }
+    .weld-joint-item:active { transform: scale(0.98); }
+    
+    /* Modal Popup */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+    .modal-box { background: white; border-radius: 12px; padding: 18px; width: 100%; max-width: 360px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
     .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
     .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
@@ -77,7 +83,7 @@
     <button class="btn-submit" onclick="location.reload()">🔄 ફરી ચાલુ કરો</button>
   </div>
 
-  <!-- 1. FIT-UP SECTION (WITH MULTIPLE JOINTS ENTRY) -->
+  <!-- 1. FIT-UP SECTION -->
   <div id="fitupSec" class="card">
     <h3>🔧 Fit-up Data Entry (Bulk Joints)</h3>
     <form id="fitupForm">
@@ -99,12 +105,10 @@
       <label>3. Fit-up Date (All Joints):</label>
       <input type="date" id="fitup_date" required>
 
-      <!-- Dynamic Joints Container -->
       <label style="margin-top:15px; border-bottom:1px solid #cbd5e1; padding-bottom:4px;">Joints Details:</label>
       <div id="jointsContainer"></div>
 
       <button type="button" class="btn-add-joint" onclick="addJointRow()">➕ Add More Joint</button>
-
       <button type="submit" class="btn-submit">💾 બધા જોઈન્ટ્સ સેવ કરો</button>
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
     </form>
@@ -115,43 +119,38 @@
   <div id="weldSec" class="card">
     <h3>⚡ Welding Data Entry</h3>
     <form id="weldForm">
-      <label>Select Joint (Fit-up Completed):</label>
-      <select id="weld_select" onchange="populateWeldFields()" required></select>
+      <label>1. Filter Drawing No (Fit-up Completed):</label>
+      <input type="text" id="weld_drawing_search" placeholder="🔍 Type keyword for completed drawings..." oninput="handleWeldDrawingSearch()" autocomplete="off">
+      <div id="weldDrawingResults" class="search-results"></div>
 
-      <label>1. Drawing Number:</label>
-      <input type="text" id="weld_drawing" readonly>
+      <div id="weldJointsWrapper" style="display:none; margin-top:12px;">
+        <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">👉 જોઈન્ટ પર ટચ કરી WPS & Welder No ભરો:</label>
+        <div id="weldJointsList"></div>
 
-      <label>2. Spool Number:</label>
-      <input type="text" id="weld_spool" readonly>
+        <label style="margin-top:15px;">2. Weld Visual Date (બધા ભરેલા જોઈન્ટ્સ માટે):</label>
+        <input type="date" id="common_weld_date" required>
 
-      <label>3. Spool Size:</label>
-      <input type="text" id="weld_spool_size" readonly>
+        <button type="submit" class="btn-submit">💾 ભરેલા જોઈન્ટ્સ સેવ કરો</button>
+      </div>
 
-      <label>4. Rev No:</label>
-      <input type="text" id="weld_rev" readonly>
-
-      <label>5. Joint Number:</label>
-      <input type="text" id="weld_joint" readonly>
-
-      <label>6. Type of Joint:</label>
-      <input type="text" id="weld_type" readonly>
-
-      <label>7. Joint Size:</label>
-      <input type="text" id="weld_joint_size" readonly>
-
-      <label>8. Welder No:</label>
-      <input type="text" id="weld_welder" placeholder="e.g. W-01" required>
-
-      <label>9. WPS Number:</label>
-      <input type="text" id="weld_wps" placeholder="e.g. WPS-05" required>
-
-      <label>10. Weld Visual Date:</label>
-      <input type="date" id="weld_visual_date" required>
-
-      <button type="submit" class="btn-submit">💾 Welding સેવ કરો</button>
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
     </form>
     <div id="weldMsg" class="msg"></div>
+  </div>
+
+  <!-- Modal Popup for WPS & Welder -->
+  <div id="weldModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 style="margin-top:0; font-size:16px; color:#1e40af;" id="modalJointTitle">Joint Details</h3>
+      <label>Welder No:</label>
+      <input type="text" id="modal_welder" placeholder="e.g. W-01" required>
+      <label>WPS Number:</label>
+      <input type="text" id="modal_wps" placeholder="e.g. WPS-05" required>
+      <div style="display:flex; gap:8px; margin-top:15px;">
+        <button type="button" class="btn-submit" style="margin-top:0;" onclick="saveModalDetails()">Done (ઓકે)</button>
+        <button type="button" class="btn-back" style="margin-top:0;" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
   </div>
 
   <!-- 3. VIEW ALL DATA SECTION -->
@@ -188,13 +187,18 @@
 
 <script>
   let masterData = [];
-  let fitupJoints = [];
+  let fitupCompletedJoints = [];
   let allRecords = [];
   let jointRowCount = 0;
+  
+  // Welding State
+  let selectedWeldDrawing = '';
+  let activeJointForModal = null;
+  let weldEntryData = {};
 
   window.addEventListener('DOMContentLoaded', () => {
     loadMasterSpools();
-    addJointRow(); // Default 1 row
+    addJointRow();
   });
 
   function openSection(secId) {
@@ -229,14 +233,12 @@
       const res = await fetch('/api/master-spools');
       const json = await res.json();
       if (json.success && json.data) masterData = json.data;
-    } catch(err) {
-      console.error(err);
-    }
+    } catch(err) { console.error(err); }
   }
 
+  // --- Fit-up Logic ---
   function handleDrawingSearch() {
-    const rawVal = document.getElementById('fitup_drawing').value;
-    const val = rawVal.trim().toLowerCase();
+    const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
     if (!val) { resultBox.style.display = 'none'; return; }
 
@@ -281,8 +283,6 @@
       const defaultSize = selectedOpt.getAttribute('data-size') || '';
       document.getElementById('fitup_spool_size').value = defaultSize;
       document.getElementById('fitup_rev_no').value = selectedOpt.getAttribute('data-rev') || '0';
-      
-      // Auto populate joint size in all active rows
       document.querySelectorAll('.joint-size-input').forEach(input => {
         if (!input.value) input.value = defaultSize;
       });
@@ -292,7 +292,6 @@
     }
   }
 
-  // Add Dynamic Joint Row
   function addJointRow() {
     jointRowCount++;
     const defaultSize = document.getElementById('fitup_spool_size').value || '';
@@ -334,7 +333,6 @@
     if (row) row.remove();
   }
 
-  // Bulk Fit-up Submit
   document.getElementById('fitupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('fitupMsg');
@@ -346,15 +344,8 @@
       const joint_no = row.querySelector('.joint-no-input').value.trim();
       const type_of_joint = row.querySelector('.joint-type-input').value;
       const joint_size = row.querySelector('.joint-size-input').value.trim();
-      if (joint_no) {
-        joints.push({ joint_no, type_of_joint, joint_size });
-      }
+      if (joint_no) joints.push({ joint_no, type_of_joint, joint_size });
     });
-
-    if (joints.length === 0) {
-      alert('કૃપા કરીને ઓછામાં ઓછો ૧ જોઈન્ટ ઉમેરો.');
-      return;
-    }
 
     const payload = {
       drawing_no: document.getElementById('fitup_drawing').value,
@@ -385,53 +376,125 @@
     }
   });
 
+  // --- Welding Logic with Live Popup & Color Change ---
   async function loadFitupCompleted() {
-    const res = await fetch('/api/fitup-joints');
-    const json = await res.json();
-    if (json.success) {
-      fitupJoints = json.data;
-      const sel = document.getElementById('weld_select');
-      sel.innerHTML = '<option value="">-- જોઈન્ટ સિલેક્ટ કરો --</option>' + 
-        fitupJoints.map(j => `<option value="${j.id}">${j.Drawing_no || j.drawing_no} | ${j.Spool_number || j.spool_number} | Joint: ${j.Joint_no || j.joint_no}</option>`).join('');
+    try {
+      const res = await fetch('/api/fitup-joints');
+      const json = await res.json();
+      if (json.success) fitupCompletedJoints = json.data;
+    } catch(err) { console.error(err); }
+  }
+
+  function handleWeldDrawingSearch() {
+    const val = document.getElementById('weld_drawing_search').value.trim().toLowerCase();
+    const resultBox = document.getElementById('weldDrawingResults');
+    if (!val) { resultBox.style.display = 'none'; return; }
+
+    const uniqueDwgs = [...new Set(fitupCompletedJoints.map(j => j.Drawing_no || j.drawing_no).filter(Boolean))];
+    const filtered = uniqueDwgs.filter(d => d.toLowerCase().includes(val));
+
+    if (filtered.length > 0) {
+      resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectWeldDrawing('${encodeURIComponent(d)}')">${d}</div>`).join('');
+      resultBox.style.display = 'block';
+    } else {
+      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">કોઈ Fit-up ડ્રોઇંગ મળ્યું નથી</div>';
+      resultBox.style.display = 'block';
     }
   }
 
-  function populateWeldFields() {
-    const id = document.getElementById('weld_select').value;
-    const j = fitupJoints.find(item => item.id == id);
-    if (j) {
-      document.getElementById('weld_drawing').value = j.Drawing_no || j.drawing_no || '';
-      document.getElementById('weld_spool').value = j.Spool_number || j.spool_number || '';
-      document.getElementById('weld_spool_size').value = j.Spool_size || j.spool_size || '';
-      document.getElementById('weld_rev').value = j.Rev_no || j.rev_no || '0';
-      document.getElementById('weld_joint').value = j.Joint_no || j.joint_no || '';
-      document.getElementById('weld_type').value = j.Type_of_joint || j.type_of_joint || '';
-      document.getElementById('weld_joint_size').value = j.Joint_size || j.joint_size || '';
+  function selectWeldDrawing(encodedDwg) {
+    selectedWeldDrawing = decodeURIComponent(encodedDwg);
+    document.getElementById('weld_drawing_search').value = selectedWeldDrawing;
+    document.getElementById('weldDrawingResults').style.display = 'none';
+    weldEntryData = {};
+
+    const joints = fitupCompletedJoints.filter(j => (j.Drawing_no || j.drawing_no).toLowerCase() === selectedWeldDrawing.toLowerCase());
+    const listContainer = document.getElementById('weldJointsList');
+
+    listContainer.innerHTML = joints.map(j => `
+      <div class="weld-joint-item" id="weldCard_${j.id}" onclick="openWeldModal(${j.id})">
+        <div style="font-weight:bold; color:#1e3a8a;">Joint: ${j.Joint_no || j.joint_no} (Spool: ${j.Spool_number || j.spool_number})</div>
+        <div style="font-size:12px; color:#64748b;">Type: ${j.Type_of_joint || j.type_of_joint} | Size: ${j.Joint_size || j.joint_size} | Fit-up: ${(j.Fit_up_date || j.fit_up_date || '').split('T')[0]}</div>
+        <div id="weldSummary_${j.id}" style="font-size:12px; font-weight:bold; color:#15803d; margin-top:4px; display:none;"></div>
+      </div>
+    `).join('');
+
+    document.getElementById('weldJointsWrapper').style.display = 'block';
+  }
+
+  function openWeldModal(jointId) {
+    activeJointForModal = jointId;
+    const j = fitupCompletedJoints.find(item => item.id == jointId);
+    document.getElementById('modalJointTitle').innerText = `Welding: Joint ${j.Joint_no || j.joint_no}`;
+    
+    // Fill previous if already typed
+    if (weldEntryData[jointId]) {
+      document.getElementById('modal_welder').value = weldEntryData[jointId].welder_no || '';
+      document.getElementById('modal_wps').value = weldEntryData[jointId].wps || '';
+    } else {
+      document.getElementById('modal_welder').value = '';
+      document.getElementById('modal_wps').value = '';
     }
+
+    document.getElementById('weldModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('weldModal').style.display = 'none';
+  }
+
+  function saveModalDetails() {
+    const welder = document.getElementById('modal_welder').value.trim();
+    const wps = document.getElementById('modal_wps').value.trim();
+
+    if (!welder || !wps) {
+      alert('કૃપા કરીને Welder No અને WPS Number બંને ભરો.');
+      return;
+    }
+
+    weldEntryData[activeJointForModal] = { welder_no: welder, wps: wps };
+
+    // Change row color to Lite Green and Show Summary
+    const card = document.getElementById(`weldCard_${activeJointForModal}`);
+    card.classList.add('filled');
+    
+    const summary = document.getElementById(`weldSummary_${activeJointForModal}`);
+    summary.innerHTML = `✅ Welder: ${welder} | WPS: ${wps}`;
+    summary.style.display = 'block';
+
+    closeModal();
   }
 
   document.getElementById('weldForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('weldMsg');
+    const weldDate = document.getElementById('common_weld_date').value;
+
+    const updates = Object.keys(weldEntryData).map(id => ({
+      joint_id: id,
+      welder_no: weldEntryData[id].welder_no,
+      wps: weldEntryData[id].wps
+    }));
+
+    if (updates.length === 0) {
+      alert('કૃપા કરીને ઓછામાં ઓછા ૧ જોઈન્ટ પર ટચ કરીને Welder & WPS વિગતો ભરો.');
+      return;
+    }
+
     msg.textContent = '⏳ સેવ થઈ રહ્યું છે...';
 
-    const payload = {
-      joint_id: document.getElementById('weld_select').value,
-      welder_no: document.getElementById('weld_welder').value,
-      wps: document.getElementById('weld_wps').value,
-      weld_visual_date: document.getElementById('weld_visual_date').value
-    };
-
-    const res = await fetch('/api/welding', {
+    const res = await fetch('/api/welding-bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ weld_visual_date: weldDate, updates: updates })
     });
     const data = await res.json();
     if (data.success) {
-      msg.textContent = '✅ Welding ડેટા સેવ થઈ ગયો!';
+      msg.textContent = `✅ ${data.count} જોઈન્ટ્સ માટે Welding સફળતાપૂર્વક સેવ થઈ ગયું!`;
       msg.className = 'msg success';
       document.getElementById('weldForm').reset();
+      document.getElementById('weldJointsWrapper').style.display = 'none';
+      weldEntryData = {};
       loadFitupCompleted();
     } else {
       msg.textContent = '❌ એરર: ' + data.error;
@@ -439,6 +502,7 @@
     }
   });
 
+  // --- View All Records ---
   async function loadAllRecords() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">⏳ ડેટા લોડ થઈ રહ્યો છે...</td></tr>';

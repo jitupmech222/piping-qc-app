@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ૧. Master Spools API
+// ૧. Master Spools Data
 app.get('/api/master-spools', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM master_spools');
@@ -49,14 +49,13 @@ app.get('/api/all-joints', async (req, res) => {
   }
 });
 
-// ૩. મલ્ટિપલ જોઈન્ટ્સ Fit-up એકસાથે સેવ કરવા
+// ૩. Fit-up Bulk Insert
 app.post('/api/fitup-bulk', async (req, res) => {
   const client = await pool.connect();
   try {
     const { drawing_no, spool_number, spool_size, rev_no, fit_up_date, joints } = req.body;
-    
     await client.query('BEGIN');
-    const insertedRows = [];
+    const inserted = [];
     for (const j of joints) {
       const result = await client.query(
         `INSERT INTO piping_joints 
@@ -64,13 +63,12 @@ app.post('/api/fitup-bulk', async (req, res) => {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Fit-Up Completed') RETURNING *`,
         [drawing_no, spool_number, spool_size, rev_no, j.joint_no, j.type_of_joint, j.joint_size, fit_up_date]
       );
-      insertedRows.push(result.rows[0]);
+      inserted.push(result.rows[0]);
     }
     await client.query('COMMIT');
-    res.json({ success: true, count: insertedRows.length });
+    res.json({ success: true, count: inserted.length });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('Fitup Bulk Error:', err);
     res.status(500).json({ success: false, error: err.message });
   } finally {
     client.release();
@@ -87,19 +85,27 @@ app.get('/api/fitup-joints', async (req, res) => {
   }
 });
 
-// ૫. Welding Data Save
-app.post('/api/welding', async (req, res) => {
+// ૫. Welding Bulk Update
+app.post('/api/welding-bulk', async (req, res) => {
+  const client = await pool.connect();
   try {
-    const { joint_id, welder_no, wps, weld_visual_date } = req.body;
-    const result = await pool.query(
-      `UPDATE piping_joints 
-       SET "Welder_no" = $1, "Wps" = $2, "Weld_visual_date" = $3, status = 'Welding Completed'
-       WHERE id = $4 RETURNING *`,
-      [welder_no, wps, weld_visual_date, joint_id]
-    );
-    res.json({ success: true, data: result.rows[0] });
+    const { weld_visual_date, updates } = req.body;
+    await client.query('BEGIN');
+    for (const u of updates) {
+      await client.query(
+        `UPDATE piping_joints 
+         SET "Welder_no" = $1, "Wps" = $2, "Weld_visual_date" = $3, status = 'Welding Completed'
+         WHERE id = $4`,
+        [u.welder_no, u.wps, weld_visual_date, u.joint_id]
+      );
+    }
+    await client.query('COMMIT');
+    res.json({ success: true, count: updates.length });
   } catch (err) {
+    await client.query('ROLLBACK');
     res.status(500).json({ success: false, error: err.message });
+  } finally {
+    client.release();
   }
 });
 
