@@ -141,10 +141,15 @@
     }
   }
 
+  // --- Fit-up Logic ---
   function handleDrawingSearch() {
     const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
-    if (!val) { resultBox.style.display = 'none'; return; }
+    if (!val) { 
+      resultBox.style.display = 'none'; 
+      document.getElementById('fitupDetailsSection').style.display = 'none';
+      return; 
+    }
 
     const uniqueDwgs = [...new Set(masterData.map(d => d.drawing_no).filter(Boolean))];
     const filtered = uniqueDwgs.filter(d => d.toLowerCase().includes(val));
@@ -163,11 +168,14 @@
     document.getElementById('fitup_drawing').value = selectedDwg;
     document.getElementById('drawingSearchResults').style.display = 'none';
 
+    // Show Remaining Options
+    document.getElementById('fitupDetailsSection').style.display = 'block';
+
     const spools = masterData.filter(d => d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
     const spoolSelect = document.getElementById('fitup_spool');
 
     if (spools.length > 0) {
-      spoolSelect.innerHTML = '<option value="">-- Spool પસંદ કરો --</option>' + 
+      spoolSelect.innerHTML = '<option value="">-- પસંદ કરો --</option>' + 
         spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}" data-rev="${s.rev_no || '0'}">${s.spool_number}</option>`).join('');
       if (spools.length === 1) {
         spoolSelect.selectedIndex = 1;
@@ -193,6 +201,10 @@
       document.getElementById('fitup_rev_no').value = '';
       document.getElementById('current_joint_size').value = '';
     }
+  }
+
+  function syncJointSize(val) {
+    document.getElementById('current_joint_size').value = val;
   }
 
   function addCurrentJointToList() {
@@ -273,9 +285,10 @@
         msg.textContent = `✅ ${data.count} જોઈન્ટ્સ સફળતાપૂર્વક સેવ થઈ ગયા!`;
         msg.className = 'msg success';
         document.getElementById('fitupForm').reset();
+        document.getElementById('fitupDetailsSection').style.display = 'none';
         addedJointsQueue = [];
         renderAddedJoints();
-        document.getElementById('fitup_spool').innerHTML = '<option value="">-- પહેલા Drawing No પસંદ કરો --</option>';
+        loadMasterSpools();
       } else {
         msg.textContent = '❌ એરર: ' + data.error;
         msg.className = 'msg error';
