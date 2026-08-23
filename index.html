@@ -24,9 +24,9 @@
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: #fff; }
     input[readonly] { background-color: #f1f5f9; cursor: not-allowed; }
-    .search-results { max-height: 140px; overflow-y: auto; border: 1px solid #cbd5e1; border-top: none; border-radius: 0 0 6px 6px; background: white; display: none; margin-bottom: 8px; }
-    .search-item { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13px; cursor: pointer; }
-    .search-item:hover, .search-item:active { background: #eff6ff; color: #1e40af; font-weight: 600; }
+    .search-results { max-height: 160px; overflow-y: auto; border: 1px solid #94a3b8; border-top: none; border-radius: 0 0 6px 6px; background: #ffffff; display: none; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .search-item { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; cursor: pointer; color: #1e293b; }
+    .search-item:active, .search-item:hover { background: #dbeafe; color: #1e40af; font-weight: bold; }
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
     .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
     .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
@@ -74,8 +74,8 @@
   <div id="fitupSec" class="card">
     <h3>🔧 Fit-up Data Entry</h3>
     <form id="fitupForm">
-      <label>1. Drawing No (Type 6713, CWR etc.):</label>
-      <input type="text" id="fitup_drawing" placeholder="🔍 Type keyword..." oninput="handleDrawingSearch()" autocomplete="off" required>
+      <label>1. Drawing No (Type to search):</label>
+      <input type="text" id="fitup_drawing" placeholder="🔍 Type 6713, CWR etc..." oninput="handleDrawingSearch()" autocomplete="off" required>
       <div id="drawingSearchResults" class="search-results"></div>
 
       <label>2. Spool Number:</label>
@@ -194,13 +194,18 @@
   let fitupJoints = [];
   let allRecords = [];
 
+  // એપ ખુલતાં જ માસ્ટર ડેટા પ્રી-લોડ થશે
+  window.addEventListener('DOMContentLoaded', () => {
+    loadMasterSpools();
+  });
+
   function openSection(secId) {
     document.getElementById('logoHeader').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'none';
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
     document.getElementById(secId).classList.add('active');
     
-    if (secId === 'fitupSec') loadMasterSpools();
+    if (secId === 'fitupSec' && masterData.length === 0) loadMasterSpools();
     if (secId === 'weldSec') loadFitupCompleted();
     if (secId === 'viewDataSec') loadAllRecords();
   }
@@ -225,17 +230,20 @@
     try {
       const res = await fetch('/api/master-spools');
       const json = await res.json();
-      if (json.success) {
+      if (json.success && json.data) {
         masterData = json.data;
+        console.log("Master data loaded successfully:", masterData.length);
       }
     } catch(err) {
-      console.error(err);
+      console.error('Failed to load master spools:', err);
     }
   }
 
   function handleDrawingSearch() {
-    const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
+    const rawVal = document.getElementById('fitup_drawing').value;
+    const val = rawVal.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
+    
     if (!val) {
       resultBox.style.display = 'none';
       return;
@@ -245,7 +253,7 @@
     const filtered = uniqueDwgs.filter(d => d.toLowerCase().includes(val));
 
     if (filtered.length > 0) {
-      resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectDrawing('${d}')">${d}</div>`).join('');
+      resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectDrawing('${encodeURIComponent(d)}')">${d}</div>`).join('');
       resultBox.style.display = 'block';
     } else {
       resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">કોઈ ડ્રોઇંગ મળ્યું નથી</div>';
@@ -253,12 +261,13 @@
     }
   }
 
-  function selectDrawing(selectedDwg) {
+  function selectDrawing(encodedDwg) {
+    const selectedDwg = decodeURIComponent(encodedDwg);
     document.getElementById('fitup_drawing').value = selectedDwg;
     document.getElementById('drawingSearchResults').style.display = 'none';
 
     // Filter Spools for this Drawing
-    const spools = masterData.filter(d => d.drawing_no && d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
+    const spools = masterData.filter(d => d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
     const spoolSelect = document.getElementById('fitup_spool');
 
     if (spools.length > 0) {
@@ -330,7 +339,7 @@
       fitupJoints = json.data;
       const sel = document.getElementById('weld_select');
       sel.innerHTML = '<option value="">-- જોઈન્ટ સિલેક્ટ કરો --</option>' + 
-        fitupJoints.map(j => `<option value="${j.id}">${j.Drawing_no} | ${j.Spool_number} | Joint: ${j.Joint_no}</option>`).join('');
+        fitupJoints.map(j => `<option value="${j.id}">${j.Drawing_no || j.drawing_no} | ${j.Spool_number || j.spool_number} | Joint: ${j.Joint_no || j.joint_no}</option>`).join('');
     }
   }
 
@@ -338,13 +347,13 @@
     const id = document.getElementById('weld_select').value;
     const j = fitupJoints.find(item => item.id == id);
     if (j) {
-      document.getElementById('weld_drawing').value = j.Drawing_no || '';
-      document.getElementById('weld_spool').value = j.Spool_number || '';
-      document.getElementById('weld_spool_size').value = j.Spool_size || '';
-      document.getElementById('weld_rev').value = j.Rev_no || '0';
-      document.getElementById('weld_joint').value = j.Joint_no || '';
-      document.getElementById('weld_type').value = j.Type_of_joint || '';
-      document.getElementById('weld_joint_size').value = j.Joint_size || '';
+      document.getElementById('weld_drawing').value = j.Drawing_no || j.drawing_no || '';
+      document.getElementById('weld_spool').value = j.Spool_number || j.spool_number || '';
+      document.getElementById('weld_spool_size').value = j.Spool_size || j.spool_size || '';
+      document.getElementById('weld_rev').value = j.Rev_no || j.rev_no || '0';
+      document.getElementById('weld_joint').value = j.Joint_no || j.joint_no || '';
+      document.getElementById('weld_type').value = j.Type_of_joint || j.type_of_joint || '';
+      document.getElementById('weld_joint_size').value = j.Joint_size || j.joint_size || '';
     }
   }
 
@@ -399,17 +408,17 @@
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = data.map(r => `
       <tr>
-        <td><b>${r.Drawing_no || '-'}</b></td>
-        <td>${r.Spool_number || '-'}</td>
-        <td>${r.Spool_size || '-'}</td>
-        <td>${r.Rev_no || '0'}</td>
-        <td>${r.Joint_no || '-'}</td>
-        <td>${r.Type_of_joint || '-'}</td>
-        <td>${r.Joint_size || '-'}</td>
-        <td>${r.Fit_up_date ? r.Fit_up_date.split('T')[0] : '-'}</td>
-        <td>${r.Welder_no || '-'}</td>
-        <td>${r.Wps || '-'}</td>
-        <td>${r.Weld_visual_date ? r.Weld_visual_date.split('T')[0] : '-'}</td>
+        <td><b>${r.Drawing_no || r.drawing_no || '-'}</b></td>
+        <td>${r.Spool_number || r.spool_number || '-'}</td>
+        <td>${r.Spool_size || r.spool_size || '-'}</td>
+        <td>${r.Rev_no || r.rev_no || '0'}</td>
+        <td>${r.Joint_no || r.joint_no || '-'}</td>
+        <td>${r.Type_of_joint || r.type_of_joint || '-'}</td>
+        <td>${r.Joint_size || r.joint_size || '-'}</td>
+        <td>${r.Fit_up_date || r.fit_up_date ? (r.Fit_up_date || r.fit_up_date).split('T')[0] : '-'}</td>
+        <td>${r.Welder_no || r.welder_no || '-'}</td>
+        <td>${r.Wps || r.wps || '-'}</td>
+        <td>${r.Weld_visual_date || r.weld_visual_date ? (r.Weld_visual_date || r.weld_visual_date).split('T')[0] : '-'}</td>
         <td><span class="badge ${r.status === 'Welding Completed' ? 'badge-weld' : 'badge-fitup'}">${r.status || '-'}</span></td>
       </tr>
     `).join('');
@@ -417,13 +426,18 @@
 
   function filterTable() {
     const term = document.getElementById('tableSearch').value.toLowerCase();
-    const filtered = allRecords.filter(r => 
-      (r.Drawing_no && r.Drawing_no.toLowerCase().includes(term)) ||
-      (r.Spool_number && r.Spool_number.toLowerCase().includes(term)) ||
-      (r.Joint_no && r.Joint_no.toLowerCase().includes(term)) ||
-      (r.Welder_no && r.Welder_no.toLowerCase().includes(term)) ||
-      (r.status && r.status.toLowerCase().includes(term))
-    );
+    const filtered = allRecords.filter(r => {
+      const dwg = r.Drawing_no || r.drawing_no || '';
+      const spl = r.Spool_number || r.spool_number || '';
+      const jnt = r.Joint_no || r.joint_no || '';
+      const wld = r.Welder_no || r.welder_no || '';
+      const st = r.status || '';
+      return dwg.toLowerCase().includes(term) ||
+             spl.toLowerCase().includes(term) ||
+             jnt.toLowerCase().includes(term) ||
+             wld.toLowerCase().includes(term) ||
+             st.toLowerCase().includes(term);
+    });
     renderTable(filtered);
   }
 </script>

@@ -18,20 +18,24 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ૧. Master Spools Data
+// ૧. સર્વ-ગ્રાહી માસ્ટર સ્પૂલ API
 app.get('/api/master-spools', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT 
-        COALESCE("Drawing_no", drawing_no) as drawing_no,
-        COALESCE("Spool_number", spool_number) as spool_number,
-        COALESCE("Spool_size", spool_size) as spool_size,
-        COALESCE("Rev_no", rev_no) as rev_no
-      FROM master_spools 
-      ORDER BY 1, 2
-    `);
-    res.json({ success: true, data: result.rows });
+    const result = await pool.query('SELECT * FROM master_spools');
+    const normalized = result.rows.map(r => {
+      const keys = Object.keys(r);
+      const findKey = (name) => keys.find(k => k.toLowerCase() === name.toLowerCase());
+      return {
+        drawing_no: String(r[findKey('drawing_no')] || ''),
+        spool_number: String(r[findKey('spool_number')] || ''),
+        spool_size: String(r[findKey('spool_size')] || ''),
+        rev_no: String(r[findKey('rev_no')] || '0')
+      };
+    }).filter(item => item.drawing_no.trim() !== '');
+
+    res.json({ success: true, data: normalized });
   } catch (err) {
+    console.error('Master fetch error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -63,7 +67,7 @@ app.post('/api/fitup', async (req, res) => {
   }
 });
 
-// ૪. Fit-up થયેલા Joints Welding માટે
+// ૪. Welding માટે Fit-up થયેલા Joints
 app.get('/api/fitup-joints', async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM piping_joints WHERE status = 'Fit-Up Completed' ORDER BY id DESC");
