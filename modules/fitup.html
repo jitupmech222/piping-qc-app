@@ -1,8 +1,6 @@
-cat << 'EOF' > modules/fitup.html
 <div class="card active">
   <h3>🔧 Fit-up Data Entry (Bulk Joints)</h3>
   <form id="fitupForm">
-    <!-- 1. Header Information -->
     <label>1. Drawing No (Type to search):</label>
     <input type="text" id="fitup_drawing" placeholder="🔍 Type 6713, CWR etc..." oninput="handleDrawingSearch()" autocomplete="off" required>
     <div id="drawingSearchResults" class="search-results"></div>
@@ -23,7 +21,6 @@ cat << 'EOF' > modules/fitup.html
       </div>
     </div>
 
-    <!-- Active Input Row (Top Side) -->
     <div style="background: #eff6ff; border: 1.5px dashed #3b82f6; border-radius: 8px; padding: 12px; margin-top: 14px;">
       <div style="font-weight: bold; color: #1e40af; font-size: 13px; margin-bottom: 6px;">
         ✍️ Current Joint Entry:
@@ -53,10 +50,8 @@ cat << 'EOF' > modules/fitup.html
       </button>
     </div>
 
-    <!-- Added Joints Queue (Bottom Side of input) -->
     <div id="addedJointsList" style="margin-top: 12px;"></div>
 
-    <!-- 3. Fit-up Date (Right before Save option) -->
     <label style="margin-top: 16px; font-weight: bold; color: #1e3a8a;">
       📅 Fit-up Date (All Joints):
     </label>
@@ -67,4 +62,3 @@ cat << 'EOF' > modules/fitup.html
   </form>
   <div id="fitupMsg" class="msg"></div>
 </div>
-EOF

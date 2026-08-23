@@ -1,4 +1,3 @@
-cat << 'EOF' > index.html
 <!DOCTYPE html>
 <html lang="gu">
 <head>
@@ -61,7 +60,6 @@ cat << 'EOF' > index.html
     <p class="company-sub">PIPING FABRICATION QC</p>
   </div>
 
-  <!-- 7 Main Buttons Menu -->
   <div id="mainMenu" class="menu-grid">
     <button class="menu-btn" onclick="loadModule('fitup')">1. 🔧 Fit-up</button>
     <button class="menu-btn" onclick="loadModule('welding')">2. ⚡ Welding</button>
@@ -143,7 +141,6 @@ cat << 'EOF' > index.html
     }
   }
 
-  // --- Fit-up Functions ---
   function handleDrawingSearch() {
     const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
@@ -211,7 +208,6 @@ cat << 'EOF' > index.html
     addedJointsQueue.push({ joint_no: jNo, type_of_joint: jType, joint_size: jSize });
     renderAddedJoints();
 
-    // Reset input for next entry (Top stays ready)
     document.getElementById('current_joint_no').value = '';
     document.getElementById('current_joint_no').focus();
   }
@@ -246,7 +242,6 @@ cat << 'EOF' > index.html
       e.preventDefault();
       const msg = document.getElementById('fitupMsg');
 
-      // Check if current un-added field has value, auto add it
       const currentNo = document.getElementById('current_joint_no').value.trim();
       if (currentNo) {
         addCurrentJointToList();
@@ -288,7 +283,7 @@ cat << 'EOF' > index.html
     });
   }
 
-  // --- Welding Functions ---
+  // Welding Functions
   async function loadFitupCompleted() {
     try {
       const res = await fetch('/api/fitup-joints');
@@ -406,7 +401,7 @@ cat << 'EOF' > index.html
     });
   }
 
-  // --- View Records Functions ---
+  // View Records Functions
   async function loadAllRecords() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">⏳ ડેટા લોડ થઈ રહ્યો છે...</td></tr>';
@@ -464,4 +459,3 @@ cat << 'EOF' > index.html
 
 </body>
 </html>
-EOF
