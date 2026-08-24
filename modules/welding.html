@@ -1,8 +1,8 @@
 <div class="card active">
-  <h3>⚡ Welding Data Entry</h3>
+  <h3> Welding Data Entry</h3>
   <form id="weldForm">
-    <label>1. Filter Drawing No (Fit-up Completed):</label>
-    <input type="text" id="weld_drawing_search" placeholder="🔍 Type keyword for completed drawings..." oninput="handleWeldDrawingSearch()" autocomplete="off">
+    <label>Drawing No</label>
+    <input type="text" id="weld_drawing_search" placeholder="Enter drawing No" oninput="handleWeldDrawingSearch()" autocomplete="off">
     <div id="weldDrawingResults" class="search-results"></div>
 
     <div id="weldJointsWrapper" style="display:none; margin-top:12px;">
@@ -15,7 +15,7 @@
       <button type="submit" class="btn-submit">💾 ભરેલા જોઈન્ટ્સ સેવ કરો</button>
     </div>
 
-    <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
+    <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back</button>
   </form>
   <div id="weldMsg" class="msg"></div>
 </div>

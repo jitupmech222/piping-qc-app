@@ -1,68 +1,63 @@
 <div class="card active">
-  <h3>Fit-up Data Entry</h3>
+  <h3> Fit-up Data Entry </h3>
   <form id="fitupForm">
-    <!-- ૧. ફક્ત Drawing No જ પહેલા દેખાશે -->
     <label>Drawing No</label>
     <input type="text" id="fitup_drawing" placeholder="Enter Drawing No." oninput="handleDrawingSearch()" autocomplete="off" required>
     <div id="drawingSearchResults" class="search-results"></div>
 
-    <!-- ૨. Drawing No સિલેક્ટ થયા પછી જ આ આખો ભાગ ખુલશે -->
-    <div id="fitupDetailsSection" style="display: none;">
-      <label style="margin-top: 10px;">Spool Number:</label>
-      <select id="fitup_spool" onchange="autoFillSpoolDetails()" required>
-        <option value="">-- પસંદ કરો --</option>
-      </select>
+    <label>Spool Number:</label>
+    <select id="fitup_spool" onchange="autoFillSpoolDetails()" required>
+      <option value="">-- પહેલા Drawing No પસંદ કરો --</option>
+    </select>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <div>
-          <label>Spool Size (Editable):</label>
-          <input type="text" id="fitup_spool_size" placeholder="Spool Size" oninput="syncJointSize(this.value)" required>
-        </div>
-        <div>
-          <label>Rev No (Editable):</label>
-          <input type="text" id="fitup_rev_no" placeholder="Rev No" required>
-        </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+      <div>
+        <label>Spool Size (Auto):</label>
+        <input type="text" id="fitup_spool_size" placeholder="Auto-filled" readonly>
       </div>
-
-      <div style="background: #eff6ff; border: 1.5px dashed #3b82f6; border-radius: 8px; padding: 12px; margin-top: 14px;">
-        <div style="font-weight: bold; color: #1e40af; font-size: 13px; margin-bottom: 6px;">
-          Fill Joint No:
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
-          <div>
-            <label style="font-size:11px; margin-top:0;">Joint No:</label>
-            <input type="text" id="current_joint_no" placeholder="e.g. J-01">
-          </div>
-          <div>
-            <label style="font-size:11px; margin-top:0;">Type:</label>
-            <select id="current_joint_type">
-              <option value="BW">BW</option>
-              <option value="SOF">SOF</option>
-              <option value="SOB">SOB</option>
-              <option value="LET">LET</option>
-              <option value="SW">SW</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size:11px; margin-top:0;">Size:</label>
-            <input type="text" id="current_joint_size" placeholder="e.g. 4">
-          </div>
-        </div>
-        <button type="button" class="btn-add-joint" style="margin-top: 10px;" onclick="addCurrentJointToList()">
-          ➕ Add More Joint
-        </button>
+      <div>
+        <label>Rev No (Auto):</label>
+        <input type="text" id="fitup_rev_no" placeholder="Auto-filled" readonly>
       </div>
-
-      <div id="addedJointsList" style="margin-top: 12px;"></div>
-
-      <label style="margin-top: 16px; font-weight: bold; color: #1e3a8a;">
-        Fit-up Date
-      </label>
-      <input type="date" id="fitup_date" required>
-
-      <button type="submit" class="btn-submit">💾 Save</button>
     </div>
 
+    <div style="background: #eff6ff; border: 1.5px dashed #3b82f6; border-radius: 8px; padding: 12px; margin-top: 14px;">
+      <div style="font-weight: bold; color: #1e40af; font-size: 13px; margin-bottom: 6px;">
+        Fill Joint No:
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+        <div>
+          <label style="font-size:11px; margin-top:0;">Joint No:</label>
+          <input type="text" id="current_joint_no" placeholder="e.g. J-01">
+        </div>
+        <div>
+          <label style="font-size:11px; margin-top:0;">Type:</label>
+          <select id="current_joint_type">
+            <option value="BW">BW</option>
+            <option value="SOF">SOF</option>
+            <option value="SOB">SOB</option>
+            <option value="LET">LET</option>
+            <option value="SW">SW</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px; margin-top:0;">Size:</label>
+          <input type="text" id="current_joint_size" placeholder="e.g. 4">
+        </div>
+      </div>
+      <button type="button" class="btn-add-joint" style="margin-top: 10px;" onclick="addCurrentJointToList()">
+        ➕ Add More Joint
+      </button>
+    </div>
+
+    <div id="addedJointsList" style="margin-top: 12px;"></div>
+
+    <label style="margin-top: 16px; font-weight: bold; color: #1e3a8a;">
+      Fit-up Date
+    </label>
+    <input type="date" id="fitup_date" required>
+
+    <button type="submit" class="btn-submit">💾 Save</button>
     <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back</button>
   </form>
   <div id="fitupMsg" class="msg"></div>
