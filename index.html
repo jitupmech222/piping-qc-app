@@ -11,16 +11,22 @@
     .logo-img { max-width: 130px; height: auto; border-radius: 8px; }
     .company-title { margin: 4px 0 0 0; color: #1e3a8a; font-size: 16px; font-weight: bold; }
     .company-sub { margin: 2px 0 0 0; color: #64748b; font-size: 12px; }
+    
+    /* Login Card */
+    .login-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-top: 10px; }
+    
     .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .menu-btn:active { background: #1d4ed8; }
     .btn-view-data { background: #059669; grid-column: span 2; }
+    .btn-logout { background: #ea580c; grid-column: span 2; }
     .btn-exit { background: #dc2626; grid-column: span 2; }
+    
     .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
     h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: #fff; }
-    input[readonly] { background-color: #f1f5f9; cursor: not-allowed; }
+    
     .search-results { max-height: 160px; overflow-y: auto; border: 1px solid #94a3b8; border-top: none; border-radius: 0 0 6px 6px; background: #ffffff; display: none; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .search-item { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; cursor: pointer; color: #1e293b; }
     .search-item:active, .search-item:hover { background: #dbeafe; color: #1e40af; font-weight: bold; }
@@ -60,16 +66,33 @@
     <p class="company-sub">PIPING FABRICATION QC</p>
   </div>
 
-  <div id="mainMenu" class="menu-grid">
-    <button class="menu-btn" onclick="loadModule('fitup')"> Fit-up</button>
-    <button class="menu-btn" onclick="loadModule('welding')"> Welding</button>
-    <button class="menu-btn" onclick="alert('Coming Soon!')"> Lot offer</button>
-    <button class="menu-btn" onclick="alert('Coming Soon!')"> Lot clear</button>
-    <button class="menu-btn" onclick="alert('Coming Soon!')"> NDT clear</button>
-    <button class="menu-btn" onclick="alert('Coming Soon!')"> Dispatch</button>
-    <button class="menu-btn" style="grid-column: span 2;" onclick="alert('Coming Soon!')"> RA Bill</button>
+  <!-- ૧. Login Screen -->
+  <div id="loginSection" class="login-card">
+    <h3 style="text-align: center;">🔐 User Login</h3>
+    <form id="loginForm">
+      <label>User ID:</label>
+      <input type="text" id="login_user" placeholder="Enter User ID" required autocomplete="username">
+      
+      <label>Password:</label>
+      <input type="password" id="login_pass" placeholder="Enter Password" required autocomplete="current-password">
+      
+      <button type="submit" class="btn-submit">🔓 Log In</button>
+    </form>
+    <div id="loginMsg" class="msg"></div>
+  </div>
+
+  <!-- ૨. Main Menu Screen (Hidden until login) -->
+  <div id="mainMenu" class="menu-grid" style="display: none;">
+    <button class="menu-btn" onclick="loadModule('fitup')">1. 🔧 Fit-up</button>
+    <button class="menu-btn" onclick="loadModule('welding')">2. ⚡ Welding</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">3. 📦 Lot offer</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">4. ✅ Lot clear</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">5. 🔬 NDT clear</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">6. 🚚 Dispatch</button>
+    <button class="menu-btn" style="grid-column: span 2;" onclick="alert('Coming Soon!')">7. 📑 RA Bill</button>
     <button class="menu-btn btn-view-data" onclick="loadModule('view-records')">📊 View All QC Records</button>
-    <button class="menu-btn btn-exit" onclick="closeApp()"> Exit App</button>
+    <button class="menu-btn btn-logout" onclick="logoutApp()">🔒 Log Out</button>
+    <button class="menu-btn btn-exit" onclick="closeApp()">🚪 Exit App</button>
   </div>
 
   <div id="moduleContainer"></div>
@@ -85,9 +108,54 @@
   let activeJointForModal = null;
   let weldEntryData = {};
 
+  // Check login status on page load
   window.addEventListener('DOMContentLoaded', () => {
-    loadMasterSpools();
+    if (sessionStorage.getItem('isLoggedIn') === 'true') {
+      showDashboard();
+    }
   });
+
+  // Login Form Submit Event
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = document.getElementById('login_user').value.trim();
+    const pass = document.getElementById('login_pass').value.trim();
+    const msg = document.getElementById('loginMsg');
+    
+    msg.textContent = '⏳ Checking...';
+    msg.className = 'msg';
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        sessionStorage.setItem('isLoggedIn', 'true');
+        showDashboard();
+      } else {
+        msg.textContent = '❌ ' + data.message;
+        msg.className = 'msg error';
+      }
+    } catch(err) {
+      msg.textContent = '❌ કનેક્શન એરર!';
+      msg.className = 'msg error';
+    }
+  });
+
+  function showDashboard() {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'grid';
+    loadMasterSpools();
+  }
+
+  function logoutApp() {
+    sessionStorage.removeItem('isLoggedIn');
+    location.reload();
+  }
 
   async function loadMasterSpools() {
     try {
@@ -141,7 +209,7 @@
     }
   }
 
-  // --- Fit-up Logic ---
+  // --- Fit-up Functions ---
   function handleDrawingSearch() {
     const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
@@ -167,8 +235,6 @@
     const selectedDwg = decodeURIComponent(encodedDwg);
     document.getElementById('fitup_drawing').value = selectedDwg;
     document.getElementById('drawingSearchResults').style.display = 'none';
-
-    // Show Remaining Options
     document.getElementById('fitupDetailsSection').style.display = 'block';
 
     const spools = masterData.filter(d => d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
@@ -201,10 +267,6 @@
       document.getElementById('fitup_rev_no').value = '';
       document.getElementById('current_joint_size').value = '';
     }
-  }
-
-  function syncJointSize(val) {
-    document.getElementById('current_joint_size').value = val;
   }
 
   function addCurrentJointToList() {
@@ -296,7 +358,7 @@
     });
   }
 
-  // Welding Functions
+  // --- Welding Functions ---
   async function loadFitupCompleted() {
     try {
       const res = await fetch('/api/fitup-joints');
@@ -414,7 +476,7 @@
     });
   }
 
-  // View Records Functions
+  // --- View Records Functions ---
   async function loadAllRecords() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">⏳ ડેટા લોડ થઈ રહ્યો છે...</td></tr>';

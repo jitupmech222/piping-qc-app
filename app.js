@@ -18,6 +18,16 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// ૦. Login API
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  // અહીં તમે તમારું ID અને Password બદલી શકો છો
+  if (username === 'admin' && password === '1234') {
+    return res.json({ success: true, message: 'Login successful' });
+  }
+  return res.status(401).json({ success: false, message: 'ખોટો User ID અથવા Password!' });
+});
+
 // ૧. Master Spools API
 app.get('/api/master-spools', async (req, res) => {
   try {
@@ -49,14 +59,13 @@ app.get('/api/all-joints', async (req, res) => {
   }
 });
 
-// ૩. Fit-up Bulk Insert + Master Spools Update (Both Tables)
+// ૩. Fit-up Bulk Insert + Master Spools Update
 app.post('/api/fitup-bulk', async (req, res) => {
   const client = await pool.connect();
   try {
     const { drawing_no, spool_number, spool_size, rev_no, fit_up_date, joints } = req.body;
     await client.query('BEGIN');
 
-    // Update master_spools if size or rev modified
     await client.query(
       `UPDATE master_spools 
        SET "Spool_size" = $1, "Rev_no" = $2 
@@ -64,7 +73,6 @@ app.post('/api/fitup-bulk', async (req, res) => {
       [spool_size, rev_no, drawing_no, spool_number]
     );
 
-    // Insert into piping_joints
     const inserted = [];
     for (const j of joints) {
       const result = await client.query(
@@ -80,7 +88,6 @@ app.post('/api/fitup-bulk', async (req, res) => {
     res.json({ success: true, count: inserted.length });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('Fitup Bulk Error:', err);
     res.status(500).json({ success: false, error: err.message });
   } finally {
     client.release();
