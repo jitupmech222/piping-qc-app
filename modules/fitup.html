@@ -12,7 +12,6 @@
         <option value="">--- Select Spool ---</option>
       </select>
 
-      <!-- Spool Size & Rev No (Editable & Required) -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
         <div>
           <label>સ્પૂલ સાઇઝ (Editable):</label>
@@ -24,7 +23,15 @@
         </div>
       </div>
 
-      <!-- જોઈન્ટ ઇનપુટ બોક્સ -->
+      <!-- પહેલેથી સેવ થયેલા જોઈન્ટ્સ (Rev No પછી અને Joint Input પહેલાં) -->
+      <div id="alreadyFilledJointsSection" style="display:none; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:10px; margin-top:12px;">
+        <div style="font-size:12px; font-weight:bold; color:#475569; margin-bottom:6px;">
+          📌 આ Drawing માં પહેલેથી સેવ થયેલા જોઈન્ટ્સ:
+        </div>
+        <div id="alreadyFilledJointsBadgeList" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+      </div>
+
+      <!-- સક્રિય જોઈન્ટ ઇનપુટ બોક્સ -->
       <div style="background:#eff6ff; border:1.5px dashed #3b82f6; border-radius:8px; padding:12px; margin-top:14px;">
         <div style="font-weight:bold; color:#1e40af; font-size:13px; margin-bottom:6px;">
           ✍️ જોઈન્ટ વિગત ભરો:
@@ -55,10 +62,10 @@
         </button>
       </div>
 
-      <!-- ઉમેરેલા જોઈન્ટ્સનું લિસ્ટ -->
+      <!-- નીચે ઉમેરેલા નવા જોઈન્ટ્સ (Pending Queue) -->
       <div id="addedJointsList" style="margin-top:12px;"></div>
 
-      <!-- Fit-up Date (Right before Save option) -->
+      <!-- Fit-up Date -->
       <label style="margin-top:16px; font-weight:bold; color:#1e3a8a;">
         📅 ફિટ-અપ તારીખ (તમામ જોઈન્ટ્સ માટે):
       </label>
