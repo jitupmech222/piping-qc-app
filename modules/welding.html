@@ -1,36 +1,36 @@
 <div class="card active">
-  <h3> Welding Data Entry</h3>
+  <h3>⚡ વેલ્ડીંગ ડેટા એન્ટ્રી</h3>
   <form id="weldForm">
-    <label>Drawing No</label>
-    <input type="text" id="weld_drawing_search" placeholder="Enter drawing No" oninput="handleWeldDrawingSearch()" autocomplete="off">
+    <label>૧. ડ્રોઇંગ નંબર ફિલ્ટર કરો (ફિટ-અપ પૂર્ણ થયેલા):</label>
+    <input type="text" id="weld_drawing_search" placeholder="🔍 ડ્રોઇંગ નંબર લખો..." oninput="handleWeldDrawingSearch()" autocomplete="off">
     <div id="weldDrawingResults" class="search-results"></div>
 
     <div id="weldJointsWrapper" style="display:none; margin-top:12px;">
-      <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">👉 જોઈન્ટ પર ટચ કરી WPS & Welder No ભરો:</label>
+      <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">👉 જોઈન્ટ પર ટચ કરી વેલ્ડર અને WPS ભરો:</label>
       <div id="weldJointsList"></div>
 
-      <label style="margin-top:15px;">2. Weld Visual Date (બધા ભરેલા જોઈન્ટ્સ માટે):</label>
+      <label style="margin-top:15px;">૨. વેલ્ડ વિઝ્યુઅલ તારીખ (બધા માટે):</label>
       <input type="date" id="common_weld_date" required>
 
       <button type="submit" class="btn-submit">💾 ભરેલા જોઈન્ટ્સ સેવ કરો</button>
     </div>
 
-    <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back</button>
+    <button type="button" class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button>
   </form>
   <div id="weldMsg" class="msg"></div>
 </div>
 
-<!-- Modal Popup for WPS & Welder -->
+<!-- પોપઅપ મોડલ (WPS & Welder No) -->
 <div id="weldModal" class="modal-overlay">
   <div class="modal-box">
-    <h3 style="margin-top:0; font-size:16px; color:#1e40af;" id="modalJointTitle">Joint Details</h3>
-    <label>Welder No:</label>
-    <input type="text" id="modal_welder" placeholder="e.g. W-01" required>
-    <label>WPS Number:</label>
-    <input type="text" id="modal_wps" placeholder="e.g. WPS-05" required>
+    <h3 style="margin-top:0; font-size:16px; color:#1e40af;" id="modalJointTitle">જોઈન્ટ વિગતો</h3>
+    <label>વેલ્ડર નંબર (Welder No):</label>
+    <input type="text" id="modal_welder" placeholder="દા.ત. W-01" required>
+    <label>WPS નંબર:</label>
+    <input type="text" id="modal_wps" placeholder="દા.ત. WPS-05" required>
     <div style="display:flex; gap:8px; margin-top:15px;">
-      <button type="button" class="btn-submit" style="margin-top:0;" onclick="saveModalDetails()">Done (ઓકે)</button>
-      <button type="button" class="btn-back" style="margin-top:0;" onclick="closeModal()">Cancel</button>
+      <button type="button" class="btn-submit" style="margin-top:0;" onclick="saveModalDetails()">ઓકે (Done)</button>
+      <button type="button" class="btn-back" style="margin-top:0;" onclick="closeModal()">રદ કરો</button>
     </div>
   </div>
 </div>
