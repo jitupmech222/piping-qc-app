@@ -8,7 +8,6 @@
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
     .container { max-width: 600px; margin: 0 auto; }
     
-    /* Login Card */
     .login-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-top: 20px; }
     
     .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
@@ -248,40 +247,35 @@
       const defaultSize = (selectedOpt.getAttribute('data-size') || '').replace(/[^0-9.]/g, '');
       document.getElementById('fitup_spool_size').value = defaultSize;
       document.getElementById('fitup_rev_no').value = selectedOpt.getAttribute('data-rev') || '0';
-      document.getElementById('current_joint_size').value = defaultSize;
     } else {
       document.getElementById('fitup_spool_size').value = '';
       document.getElementById('fitup_rev_no').value = '';
-      document.getElementById('current_joint_size').value = '';
     }
+    // Joint Size શરૂઆતમાં Blank જ રહેશે
+    document.getElementById('current_joint_size').value = '';
+    document.getElementById('current_joint_type').value = '';
+    document.getElementById('current_joint_no').value = '';
   }
 
-  function syncJointSize(val) {
-    document.getElementById('current_joint_size').value = val.trim();
-  }
-
-  // જોઈન્ટ વેલિડેશન ફંક્શન
+  // જોઈન્ટ વેલિડેશન
   function validateJointInput(jNo, jType, jSize) {
     if (!jNo) {
       alert('ભૂલ: Joint No ખાલી ન હોઈ શકે.');
       return false;
     }
 
-    // પોઇન્ટ-૩: Joint No Regex (J01-J09 સાથે લેટર અથવા J10+ સાથે લેટર)
     const jointRegex = /^J(0[1-9]|[1-9][0-9]+)[A-Za-z]?$/;
     if (!jointRegex.test(jNo)) {
       alert('ભૂલ: અમાન્ય Joint Number!\n\nયોગ્ય ફોર્મેટ:\n- 1 થી 9 માટે: J01, J02, J05A, J09\n- 10 પછી: J10, J11, J11A');
       return false;
     }
 
-    // પોઇન્ટ-૪: Type of Joint Dropdown
     const validTypes = ["BW", "SOB", "SOF", "LET", "EB"];
     if (!jType || !validTypes.includes(jType)) {
       alert('ભૂલ: કૃપા કરીને Type of Joint (BW/SOB/SOF/LET/EB) પસંદ કરો.');
       return false;
     }
 
-    // પોઇન્ટ-૫: Joint Size Validation
     const cleanSize = jSize.replace(/[^0-9.]/g, '');
     if (!cleanSize || !ALLOWED_SIZES.includes(cleanSize)) {
       alert('ભૂલ: અમાન્ય Joint Size!\n\nમાન્ય સાઇઝ: 0.5, 0.75, 1, 2, 3, 4, 6, 8, 10, 12, 14, 16');
@@ -305,7 +299,10 @@
     });
     renderAddedJoints();
 
+    // Joint ઉમેરાયા પછી તમામ ઇનપુટ્સ ખાલી (Blank/Reset) કરો
     document.getElementById('current_joint_no').value = '';
+    document.getElementById('current_joint_type').value = '';
+    document.getElementById('current_joint_size').value = '';
     document.getElementById('current_joint_no').focus();
   }
 
@@ -343,7 +340,6 @@
       const revNo = document.getElementById('fitup_rev_no').value.trim();
       const fitupDate = document.getElementById('fitup_date').value;
 
-      // પોઇન્ટ-૨: Spool size & Rev no blank check
       if (!spoolSize) {
         alert('ભૂલ: Spool Size ખાલી ન હોઈ શકે.');
         return;
@@ -353,7 +349,6 @@
         return;
       }
 
-      // પોઇન્ટ-૧: Fit-up date blank check
       if (!fitupDate) {
         alert('ભૂલ: કૃપા કરીને Fit-up Date પસંદ કરો.');
         return;
@@ -406,7 +401,7 @@
     });
   }
 
-  // --- વેલ્ડીંગ ફંક્શન્સ ---
+  // --- વેલ્ડીંગ લોજિક ---
   async function loadFitupCompleted() {
     try {
       const res = await fetch('/api/fitup-joints');
