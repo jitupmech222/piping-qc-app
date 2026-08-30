@@ -8,10 +8,9 @@
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
     .container { max-width: 600px; margin: 0 auto; }
     
-    /* લોગિન કાર્ડ */
+    /* Login Card */
     .login-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-top: 20px; }
     
-    /* મેનૂ બટન ગ્રીડ */
     .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
     .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .menu-btn:active { background: #1d4ed8; }
@@ -19,12 +18,10 @@
     .btn-logout { background: #ea580c; grid-column: span 2; }
     .btn-exit { background: #dc2626; grid-column: span 2; }
     
-    /* કાર્ડ અને ફિલ્ડ્સ */
     .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
     h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: #fff; }
-    input[readonly] { background-color: #f1f5f9; cursor: not-allowed; }
     
     .search-results { max-height: 160px; overflow-y: auto; border: 1px solid #94a3b8; border-top: none; border-radius: 0 0 6px 6px; background: #ffffff; display: none; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .search-item { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; cursor: pointer; color: #1e293b; }
@@ -59,7 +56,7 @@
 <body>
 
 <div class="container">
-  <!-- ૧. લોગિન સ્ક્રીન -->
+  <!-- ૧. Login Screen -->
   <div id="loginSection" class="login-card">
     <h3 style="text-align: center;">🔐 યુઝર લોગિન</h3>
     <form id="loginForm">
@@ -74,7 +71,7 @@
     <div id="loginMsg" class="msg"></div>
   </div>
 
-  <!-- ૨. મુખ્ય મેનૂ -->
+  <!-- ૨. Main Menu Screen -->
   <div id="mainMenu" class="menu-grid" style="display: none;">
     <button class="menu-btn" onclick="loadModule('fitup')">1. 🔧 ફિટ-અપ (Fit-up)</button>
     <button class="menu-btn" onclick="loadModule('welding')">2. ⚡ વેલ્ડીંગ (Welding)</button>
@@ -88,7 +85,6 @@
     <button class="menu-btn btn-exit" onclick="closeApp()">🚪 એપ બંધ કરો</button>
   </div>
 
-  <!-- ડાયનેમિક મોડ્યુલ કન્ટેનર -->
   <div id="moduleContainer"></div>
 </div>
 
@@ -102,13 +98,14 @@
   let activeJointForModal = null;
   let weldEntryData = {};
 
+  const ALLOWED_SIZES = ["0.5", "0.75", "1", "2", "3", "4", "6", "8", "10", "12", "14", "16"];
+
   window.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('isLoggedIn') === 'true') {
       showDashboard();
     }
   });
 
-  // લોગિન લોજિક
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const user = document.getElementById('login_user').value.trim();
@@ -158,7 +155,6 @@
     } catch(err) { console.error(err); }
   }
 
-  // મોડ્યુલ લોડર
   async function loadModule(moduleName) {
     document.getElementById('mainMenu').style.display = 'none';
     const container = document.getElementById('moduleContainer');
@@ -200,7 +196,7 @@
     }
   }
 
-  // ફિટ-અપ લોજિક
+  // --- ફિટ-અપ મોડ્યુલ લોજિક ---
   function handleDrawingSearch() {
     const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
@@ -232,7 +228,7 @@
     const spoolSelect = document.getElementById('fitup_spool');
 
     if (spools.length > 0) {
-      spoolSelect.innerHTML = '<option value="">-- પસંદ કરો --</option>' + 
+      spoolSelect.innerHTML = '<option value="">--- Select Spool ---</option>' + 
         spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}" data-rev="${s.rev_no || '0'}">${s.spool_number}</option>`).join('');
       if (spools.length === 1) {
         spoolSelect.selectedIndex = 1;
@@ -249,7 +245,7 @@
     const select = document.getElementById('fitup_spool');
     const selectedOpt = select.options[select.selectedIndex];
     if (selectedOpt && selectedOpt.value) {
-      const defaultSize = selectedOpt.getAttribute('data-size') || '';
+      const defaultSize = (selectedOpt.getAttribute('data-size') || '').replace(/[^0-9.]/g, '');
       document.getElementById('fitup_spool_size').value = defaultSize;
       document.getElementById('fitup_rev_no').value = selectedOpt.getAttribute('data-rev') || '0';
       document.getElementById('current_joint_size').value = defaultSize;
@@ -260,17 +256,53 @@
     }
   }
 
+  function syncJointSize(val) {
+    document.getElementById('current_joint_size').value = val.trim();
+  }
+
+  // જોઈન્ટ વેલિડેશન ફંક્શન
+  function validateJointInput(jNo, jType, jSize) {
+    if (!jNo) {
+      alert('ભૂલ: Joint No ખાલી ન હોઈ શકે.');
+      return false;
+    }
+
+    // પોઇન્ટ-૩: Joint No Regex (J01-J09 સાથે લેટર અથવા J10+ સાથે લેટર)
+    const jointRegex = /^J(0[1-9]|[1-9][0-9]+)[A-Za-z]?$/;
+    if (!jointRegex.test(jNo)) {
+      alert('ભૂલ: અમાન્ય Joint Number!\n\nયોગ્ય ફોર્મેટ:\n- 1 થી 9 માટે: J01, J02, J05A, J09\n- 10 પછી: J10, J11, J11A');
+      return false;
+    }
+
+    // પોઇન્ટ-૪: Type of Joint Dropdown
+    const validTypes = ["BW", "SOB", "SOF", "LET", "EB"];
+    if (!jType || !validTypes.includes(jType)) {
+      alert('ભૂલ: કૃપા કરીને Type of Joint (BW/SOB/SOF/LET/EB) પસંદ કરો.');
+      return false;
+    }
+
+    // પોઇન્ટ-૫: Joint Size Validation
+    const cleanSize = jSize.replace(/[^0-9.]/g, '');
+    if (!cleanSize || !ALLOWED_SIZES.includes(cleanSize)) {
+      alert('ભૂલ: અમાન્ય Joint Size!\n\nમાન્ય સાઇઝ: 0.5, 0.75, 1, 2, 3, 4, 6, 8, 10, 12, 14, 16');
+      return false;
+    }
+
+    return true;
+  }
+
   function addCurrentJointToList() {
-    const jNo = document.getElementById('current_joint_no').value.trim();
+    const jNo = document.getElementById('current_joint_no').value.trim().toUpperCase();
     const jType = document.getElementById('current_joint_type').value;
     const jSize = document.getElementById('current_joint_size').value.trim();
 
-    if (!jNo) {
-      alert('કૃપા કરીને Joint Number ભરો.');
-      return;
-    }
+    if (!validateJointInput(jNo, jType, jSize)) return;
 
-    addedJointsQueue.push({ joint_no: jNo, type_of_joint: jType, joint_size: jSize });
+    addedJointsQueue.push({ 
+      joint_no: jNo, 
+      type_of_joint: jType, 
+      joint_size: jSize.replace(/[^0-9.]/g, '') 
+    });
     renderAddedJoints();
 
     document.getElementById('current_joint_no').value = '';
@@ -291,7 +323,7 @@
       </div>
       ` + addedJointsQueue.map((j, idx) => `
       <div class="saved-joint-card">
-        <span><b>#${idx + 1}</b> Joint: <b>${j.joint_no}</b> | પ્રકાર: ${j.type_of_joint} | સાઇઝ: ${j.joint_size}</span>
+        <span><b>#${idx + 1}</b> Joint: <b>${j.joint_no}</b> | પ્રકાર: ${j.type_of_joint} | સાઇઝ: ${j.joint_size}"</span>
         <button type="button" class="btn-remove-row" onclick="removeQueueJoint(${idx})">✕</button>
       </div>
     `).join('');
@@ -306,6 +338,26 @@
     document.getElementById('fitupForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('fitupMsg');
+
+      const spoolSize = document.getElementById('fitup_spool_size').value.trim();
+      const revNo = document.getElementById('fitup_rev_no').value.trim();
+      const fitupDate = document.getElementById('fitup_date').value;
+
+      // પોઇન્ટ-૨: Spool size & Rev no blank check
+      if (!spoolSize) {
+        alert('ભૂલ: Spool Size ખાલી ન હોઈ શકે.');
+        return;
+      }
+      if (!revNo) {
+        alert('ભૂલ: Rev No ખાલી ન હોઈ શકે.');
+        return;
+      }
+
+      // પોઇન્ટ-૧: Fit-up date blank check
+      if (!fitupDate) {
+        alert('ભૂલ: કૃપા કરીને Fit-up Date પસંદ કરો.');
+        return;
+      }
 
       const currentNo = document.getElementById('current_joint_no').value.trim();
       if (currentNo) {
@@ -322,34 +374,39 @@
       const payload = {
         drawing_no: document.getElementById('fitup_drawing').value,
         spool_number: document.getElementById('fitup_spool').value,
-        spool_size: document.getElementById('fitup_spool_size').value,
-        rev_no: document.getElementById('fitup_rev_no').value,
-        fit_up_date: document.getElementById('fitup_date').value,
+        spool_size: spoolSize,
+        rev_no: revNo,
+        fit_up_date: fitupDate,
         joints: addedJointsQueue
       };
 
-      const res = await fetch('/api/fitup-bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.success) {
-        msg.textContent = `✅ ${data.count} જોઈન્ટ્સ સફળતાપૂર્વક સેવ થઈ ગયા!`;
-        msg.className = 'msg success';
-        document.getElementById('fitupForm').reset();
-        document.getElementById('fitupDetailsSection').style.display = 'none';
-        addedJointsQueue = [];
-        renderAddedJoints();
-        loadMasterSpools();
-      } else {
-        msg.textContent = '❌ એરર: ' + data.error;
+      try {
+        const res = await fetch('/api/fitup-bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          msg.textContent = `✅ ${data.count} જોઈન્ટ્સ સફળતાપૂર્વક સેવ થઈ ગયા!`;
+          msg.className = 'msg success';
+          document.getElementById('fitupForm').reset();
+          document.getElementById('fitupDetailsSection').style.display = 'none';
+          addedJointsQueue = [];
+          renderAddedJoints();
+          loadMasterSpools();
+        } else {
+          msg.textContent = '❌ એરર: ' + data.error;
+          msg.className = 'msg error';
+        }
+      } catch (err) {
+        msg.textContent = '❌ ડેટા સેવ કરવામાં એરર આવી!';
         msg.className = 'msg error';
       }
     });
   }
 
-  // વેલ્ડીંગ લોજિક
+  // --- વેલ્ડીંગ ફંક્શન્સ ---
   async function loadFitupCompleted() {
     try {
       const res = await fetch('/api/fitup-joints');
@@ -467,7 +524,7 @@
     });
   }
 
-  // તમામ રેકોર્ડ્સ લોડ કરવા
+  // --- View Records ---
   async function loadAllRecords() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">⏳ ડેટા લોડ થઈ રહ્યો છે...</td></tr>';

@@ -1,43 +1,68 @@
 <div class="card active">
   <h3>🔧 ફિટ-અપ ડેટા એન્ટ્રી (Fit-up Bulk)</h3>
   <form id="fitupForm">
+    <!-- ૧. Drawing No Search -->
     <label>૧. ડ્રોઇંગ નંબર (શોધવા માટે ટાઇપ કરો):</label>
     <input type="text" id="fitup_drawing" placeholder="🔍 દા.ત. 6713, CWR..." oninput="handleDrawingSearch()" autocomplete="off" required>
     <div id="drawingSearchResults" class="search-results"></div>
 
     <div id="fitupDetailsSection" style="display:none;">
       <label>૨. સ્પૂલ નંબર (Spool No):</label>
-      <select id="fitup_spool" onchange="autoFillSpoolDetails()" required></select>
+      <select id="fitup_spool" onchange="autoFillSpoolDetails()" required>
+        <option value="">--- Select Spool ---</option>
+      </select>
 
-      <label>સ્પૂલ સાઇઝ (ઓટો-ભરાશે):</label>
-      <input type="text" id="fitup_spool_size" readonly>
-
-      <label>રીવિઝન નંબર (Rev No):</label>
-      <input type="text" id="fitup_rev_no" readonly>
-
-      <label>૩. ફિટ-અપ તારીખ (તમામ જોઈન્ટ્સ માટે):</label>
-      <input type="date" id="fitup_date" required>
-
-      <div style="background:#f8fafc; padding:10px; border:1px solid #cbd5e1; border-radius:8px; margin-top:12px;">
-        <label style="margin-top:0;">જોઈન્ટ નંબર:</label>
-        <input type="text" id="current_joint_no" placeholder="દા.ત. J-01">
-
-        <label>જોઈન્ટ પ્રકાર:</label>
-        <select id="current_joint_type">
-          <option value="BW">BW (બટ વેલ્ડ)</option>
-          <option value="SOF">SOF (સ્લિપ ઓન ફ્લેંજ)</option>
-          <option value="SOB">SOB</option>
-          <option value="LET">LET</option>
-          <option value="SW">SW (સોકેટ વેલ્ડ)</option>
-        </select>
-
-        <label>જોઈન્ટ સાઇઝ:</label>
-        <input type="text" id="current_joint_size" placeholder="દા.ત. 4 inch">
-
-        <button type="button" class="btn-add-joint" onclick="addCurrentJointToList()">➕ જોઈન્ટ લિસ્ટમાં ઉમેરો</button>
+      <!-- Spool Size & Rev No (Editable & Required) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>
+          <label>સ્પૂલ સાઇઝ (Editable):</label>
+          <input type="text" id="fitup_spool_size" placeholder="દા.ત. 4" oninput="syncJointSize(this.value)" required>
+        </div>
+        <div>
+          <label>રીવિઝન નંબર (Editable):</label>
+          <input type="text" id="fitup_rev_no" placeholder="દા.ત. 0" required>
+        </div>
       </div>
 
-      <div id="addedJointsList" style="margin-top:10px;"></div>
+      <!-- જોઈન્ટ ઇનપુટ બોક્સ -->
+      <div style="background:#eff6ff; border:1.5px dashed #3b82f6; border-radius:8px; padding:12px; margin-top:14px;">
+        <div style="font-weight:bold; color:#1e40af; font-size:13px; margin-bottom:6px;">
+          ✍️ જોઈન્ટ વિગત ભરો:
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+          <div>
+            <label style="font-size:11px; margin-top:0;">Joint No:</label>
+            <input type="text" id="current_joint_no" placeholder="દા.ત. J01, J11A">
+          </div>
+          <div>
+            <label style="font-size:11px; margin-top:0;">Type:</label>
+            <select id="current_joint_type">
+              <option value="">--- Select ---</option>
+              <option value="BW">BW</option>
+              <option value="SOB">SOB</option>
+              <option value="SOF">SOF</option>
+              <option value="LET">LET</option>
+              <option value="EB">EB</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px; margin-top:0;">Size (Inch):</label>
+            <input type="text" id="current_joint_size" placeholder="દા.ત. 4">
+          </div>
+        </div>
+        <button type="button" class="btn-add-joint" style="margin-top:10px;" onclick="addCurrentJointToList()">
+          ➕ જોઈન્ટ લિસ્ટમાં ઉમેરો
+        </button>
+      </div>
+
+      <!-- ઉમેરેલા જોઈન્ટ્સનું લિસ્ટ -->
+      <div id="addedJointsList" style="margin-top:12px;"></div>
+
+      <!-- Fit-up Date (Right before Save option) -->
+      <label style="margin-top:16px; font-weight:bold; color:#1e3a8a;">
+        📅 ફિટ-અપ તારીખ (તમામ જોઈન્ટ્સ માટે):
+      </label>
+      <input type="date" id="fitup_date" required>
 
       <button type="submit" class="btn-submit">💾 બધા ફિટ-અપ જોઈન્ટ્સ સેવ કરો</button>
     </div>
