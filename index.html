@@ -9,33 +9,43 @@
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
     .container { max-width: 600px; margin: 0 auto; }
+    
     .login-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-top: 20px; }
+    
     .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
     .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .menu-btn:active { background: #1d4ed8; }
     .btn-view-data { background: #059669; grid-column: span 2; }
     .btn-logout { background: #ea580c; grid-column: span 2; }
     .btn-exit { background: #dc2626; grid-column: span 2; }
-    .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
+    
+    .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); margin-top: 10px; }
     h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: #fff; }
+    
     .search-results { max-height: 160px; overflow-y: auto; border: 1px solid #94a3b8; border-top: none; border-radius: 0 0 6px 6px; background: #ffffff; display: none; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .search-item { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; cursor: pointer; color: #1e293b; }
     .search-item:active, .search-item:hover { background: #dbeafe; color: #1e40af; font-weight: bold; }
+    
     .saved-joint-card { background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 8px 10px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
     .btn-remove-row { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; cursor: pointer; }
     .btn-add-joint { background: #0284c7; color: white; border: none; border-radius: 6px; width: 100%; padding: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+    
     .filled-badge { background: #e2e8f0; color: #334155; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; }
+
     .weld-joint-item { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-top: 8px; cursor: pointer; background: #ffffff; }
     .weld-joint-item.filled { background: #dcfce7 !important; border-color: #22c55e !important; }
+    
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
     .modal-box { background: white; border-radius: 12px; padding: 18px; width: 100%; max-width: 360px; }
+
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
     .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
     .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
     .success { color: #16a34a; }
     .error { color: #dc2626; }
+    
     .table-container { overflow-x: auto; margin-top: 12px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 8px 6px; white-space: nowrap; }
@@ -49,7 +59,7 @@
 <body>
 
 <div class="container">
-  <!-- ૧. લોગિન સ્ક્રીન -->
+  <!-- ૧. યુઝર લોગિન સ્ક્રીન (માત્ર ૧ જ વાર) -->
   <div id="loginSection" class="login-card">
     <h3 style="text-align: center;">🔐 યુઝર લોગિન</h3>
     <form id="loginForm">
@@ -78,13 +88,13 @@
     <button class="menu-btn btn-exit" onclick="closeApp()">🚪 એપ બંધ કરો</button>
   </div>
 
+  <!-- મોડ્યુલ કન્ટેનર (જ્યાં Fit-up, Welding લોડ થશે) -->
   <div id="moduleContainer"></div>
 </div>
 
 <script>
-  // --- સાચું SUPABASE ક્લાયન્ટ સેટઅપ ---
   const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd8TOamA_gbPPJ8mt';
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let masterData = [];
@@ -105,7 +115,7 @@
     }
   });
 
-  // Client-Side Direct Login
+  // લોગિન ફંક્શન
   document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const user = document.getElementById('login_user').value.trim();
@@ -123,6 +133,7 @@
 
   function showDashboard() {
     document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('moduleContainer').innerHTML = '';
     document.getElementById('mainMenu').style.display = 'grid';
     loadMasterSpools();
   }
@@ -154,6 +165,7 @@
   }
 
   async function loadModule(moduleName) {
+    document.getElementById('loginSection').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'none';
     const container = document.getElementById('moduleContainer');
     
@@ -179,11 +191,13 @@
 
   function backToMenu() {
     document.getElementById('moduleContainer').innerHTML = '';
+    document.getElementById('loginSection').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'grid';
   }
 
   function closeApp() {
     if (confirm("શું તમે એપ બંધ કરવા માંગો છો?")) {
+      document.getElementById('loginSection').style.display = 'none';
       document.getElementById('mainMenu').style.display = 'none';
       document.getElementById('moduleContainer').innerHTML = `
         <div class="card" style="text-align:center; padding:40px 10px;">
@@ -195,6 +209,7 @@
     }
   }
 
+  // --- Fit-up Functions ---
   function handleDrawingSearch() {
     const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
@@ -420,458 +435,7 @@
     });
   }
 
-  async function loadFitupCompleted() {
-    try {
-      const { data, error } = await db.from('piping_joints')
-        .select('*')
-        .eq('status', 'Fit-Up Completed')
-        .order('id', { ascending: false });
-
-      if (error) throw error;
-      if (data) fitupCompletedJoints = data;
-    } catch(err) { console.error('Welding fetch error:', err); }
-  }
-
-  function handleWeldDrawingSearch() {
-    const val = document.getElementById('weld_drawing_search').value.trim().toLowerCase();
-    const resultBox = document.getElementById('weldDrawingResults');
-    if (!val) { resultBox.style.display = 'none'; return; }
-
-    const uniqueDwgs = [...new Set(fitupCompletedJoints.map(j => j.Drawing_no || j.drawing_no).filter(Boolean))];
-    const filtered = uniqueDwgs.filter(d => d.toLowerCase().includes(val));
-
-    if (filtered.length > 0) {
-      resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectWeldDrawing('${encodeURIComponent(d)}')">${d}</div>`).join('');
-      resultBox.style.display = 'block';
-    } else {
-      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">કોઈ Fit-up ડ્રોઇંગ મળ્યું નથી</div>';
-      resultBox.style.display = 'blo
-
-cd /sdcard/piping-app
-
-cat << 'EOF' > index.html
-<!DOCTYPE html>
-<html lang="gu">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>પાઇપિંગ QC સિસ્ટમ</title>
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
-    .container { max-width: 600px; margin: 0 auto; }
-    .login-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-top: 20px; }
-    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-    .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .menu-btn:active { background: #1d4ed8; }
-    .btn-view-data { background: #059669; grid-column: span 2; }
-    .btn-logout { background: #ea580c; grid-column: span 2; }
-    .btn-exit { background: #dc2626; grid-column: span 2; }
-    .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
-    h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
-    label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
-    input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: #fff; }
-    .search-results { max-height: 160px; overflow-y: auto; border: 1px solid #94a3b8; border-top: none; border-radius: 0 0 6px 6px; background: #ffffff; display: none; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .search-item { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; cursor: pointer; color: #1e293b; }
-    .search-item:active, .search-item:hover { background: #dbeafe; color: #1e40af; font-weight: bold; }
-    .saved-joint-card { background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 8px 10px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-    .btn-remove-row { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; cursor: pointer; }
-    .btn-add-joint { background: #0284c7; color: white; border: none; border-radius: 6px; width: 100%; padding: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
-    .filled-badge { background: #e2e8f0; color: #334155; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; }
-    .weld-joint-item { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-top: 8px; cursor: pointer; background: #ffffff; }
-    .weld-joint-item.filled { background: #dcfce7 !important; border-color: #22c55e !important; }
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
-    .modal-box { background: white; border-radius: 12px; padding: 18px; width: 100%; max-width: 360px; }
-    .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
-    .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
-    .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
-    .success { color: #16a34a; }
-    .error { color: #dc2626; }
-    .table-container { overflow-x: auto; margin-top: 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 8px 6px; white-space: nowrap; }
-    th { background: #1e40af; color: white; font-weight: 600; }
-    tr:nth-child(even) { background: #f8fafc; }
-    .badge { padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
-    .badge-fitup { background: #fef08a; color: #854d0e; }
-    .badge-weld { background: #bbf7d0; color: #166534; }
-  </style>
-</head>
-<body>
-
-<div class="container">
-  <!-- ૧. લોગિન સ્ક્રીન -->
-  <div id="loginSection" class="login-card">
-    <h3 style="text-align: center;">🔐 યુઝર લોગિન</h3>
-    <form id="loginForm">
-      <label>યુઝર ID:</label>
-      <input type="text" id="login_user" placeholder="યુઝર ID દાખલ કરો" required autocomplete="username">
-      
-      <label>પાસવર્ડ:</label>
-      <input type="password" id="login_pass" placeholder="પાસવર્ડ દાખલ કરો" required autocomplete="current-password">
-      
-      <button type="submit" class="btn-submit">🔓 લોગ ઇન કરો</button>
-    </form>
-    <div id="loginMsg" class="msg"></div>
-  </div>
-
-  <!-- ૨. મુખ્ય મેનૂ -->
-  <div id="mainMenu" class="menu-grid" style="display: none;">
-    <button class="menu-btn" onclick="loadModule('fitup')">1. 🔧 ફિટ-અપ (Fit-up)</button>
-    <button class="menu-btn" onclick="loadModule('welding')">2. ⚡ વેલ્ડીંગ (Welding)</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">3. 📦 લોટ ઓફર</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">4. ✅ લોટ ક્લિયર</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">5. 🔬 NDT ક્લિયર</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">6. 🚚 ડિસ્પેચ</button>
-    <button class="menu-btn" style="grid-column: span 2;" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">7. 📑 RA બિલ</button>
-    <button class="menu-btn btn-view-data" onclick="loadModule('view-records')">📊 તમામ QC રેકોર્ડ્સ જુઓ</button>
-    <button class="menu-btn btn-logout" onclick="logoutApp()">🔒 લોગ આઉટ કરો</button>
-    <button class="menu-btn btn-exit" onclick="closeApp()">🚪 એપ બંધ કરો</button>
-  </div>
-
-  <div id="moduleContainer"></div>
-</div>
-
-<script>
-  // --- સાચું SUPABASE ક્લાયન્ટ સેટઅપ ---
-  const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  let masterData = [];
-  let fitupCompletedJoints = [];
-  let allRecords = [];
-  let addedJointsQueue = [];
-  let existingJointsInDb = [];
-  
-  let selectedWeldDrawing = '';
-  let activeJointForModal = null;
-  let weldEntryData = {};
-
-  const ALLOWED_SIZES = ["0.5", "0.75", "1", "2", "3", "4", "6", "8", "10", "12", "14", "16"];
-
-  window.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('isLoggedIn') === 'true') {
-      showDashboard();
-    }
-  });
-
-  // Client-Side Direct Login
-  document.getElementById('loginForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const user = document.getElementById('login_user').value.trim();
-    const pass = document.getElementById('login_pass').value.trim();
-    const msg = document.getElementById('loginMsg');
-    
-    if (user === 'admin' && pass === '1234') {
-      sessionStorage.setItem('isLoggedIn', 'true');
-      showDashboard();
-    } else {
-      msg.textContent = '❌ અમાન્ય યુઝર ID અથવા પાસવર્ડ!';
-      msg.className = 'msg error';
-    }
-  });
-
-  function showDashboard() {
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('mainMenu').style.display = 'grid';
-    loadMasterSpools();
-  }
-
-  function logoutApp() {
-    sessionStorage.removeItem('isLoggedIn');
-    location.reload();
-  }
-
-  async function loadMasterSpools() {
-    try {
-      const { data, error } = await db.from('master_spools').select('*');
-      if (error) throw error;
-      if (data) {
-        masterData = data.map(r => {
-          const keys = Object.keys(r);
-          const findKey = (name) => keys.find(k => k.toLowerCase() === name.toLowerCase());
-          return {
-            drawing_no: String(r[findKey('drawing_no')] || ''),
-            spool_number: String(r[findKey('spool_number')] || ''),
-            spool_size: String(r[findKey('spool_size')] || ''),
-            rev_no: String(r[findKey('rev_no')] || '0')
-          };
-        }).filter(item => item.drawing_no.trim() !== '');
-      }
-    } catch(err) {
-      console.error('Supabase loadMasterSpools Error:', err);
-    }
-  }
-
-  async function loadModule(moduleName) {
-    document.getElementById('mainMenu').style.display = 'none';
-    const container = document.getElementById('moduleContainer');
-    
-    try {
-      const res = await fetch(`modules/${moduleName}.html`);
-      const html = await res.text();
-      container.innerHTML = html;
-
-      if (moduleName === 'fitup') {
-        addedJointsQueue = [];
-        existingJointsInDb = [];
-        attachFitupEvents();
-      } else if (moduleName === 'welding') {
-        loadFitupCompleted();
-        attachWeldingEvents();
-      } else if (moduleName === 'view-records') {
-        loadAllRecords();
-      }
-    } catch (e) {
-      container.innerHTML = '<div class="card"><p style="color:red;">મોડ્યુલ લોડ કરવામાં ભૂલ આવી!</p><button class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button></div>';
-    }
-  }
-
-  function backToMenu() {
-    document.getElementById('moduleContainer').innerHTML = '';
-    document.getElementById('mainMenu').style.display = 'grid';
-  }
-
-  function closeApp() {
-    if (confirm("શું તમે એપ બંધ કરવા માંગો છો?")) {
-      document.getElementById('mainMenu').style.display = 'none';
-      document.getElementById('moduleContainer').innerHTML = `
-        <div class="card" style="text-align:center; padding:40px 10px;">
-          <h2 style="color:#dc2626;">🚪 એપ બંધ થઈ ગઈ છે</h2>
-          <p style="color:#64748b;">તમારા ફોનનું <b>Home</b> અથવા <b>Back</b> બટન દબાવો.</p>
-          <button class="btn-submit" onclick="location.reload()">🔄 ફરી ચાલુ કરો</button>
-        </div>`;
-      try { window.close(); } catch(e) {}
-    }
-  }
-
-  function handleDrawingSearch() {
-    const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
-    const resultBox = document.getElementById('drawingSearchResults');
-    if (!val) { 
-      resultBox.style.display = 'none'; 
-      document.getElementById('fitupDetailsSection').style.display = 'none';
-      return; 
-    }
-
-    const uniqueDwgs = [...new Set(masterData.map(d => d.drawing_no).filter(Boolean))];
-    const filtered = uniqueDwgs.filter(d => d.toLowerCase().includes(val));
-
-    if (filtered.length > 0) {
-      resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectDrawing('${encodeURIComponent(d)}')">${d}</div>`).join('');
-      resultBox.style.display = 'block';
-    } else {
-      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">કોઈ ડ્રોઇંગ મળ્યું નથી</div>';
-      resultBox.style.display = 'block';
-    }
-  }
-
-  async function selectDrawing(encodedDwg) {
-    const selectedDwg = decodeURIComponent(encodedDwg);
-    document.getElementById('fitup_drawing').value = selectedDwg;
-    document.getElementById('drawingSearchResults').style.display = 'none';
-    document.getElementById('fitupDetailsSection').style.display = 'block';
-
-    try {
-      const { data, error } = await db.from('piping_joints')
-        .select('Joint_no')
-        .ilike('Drawing_no', selectedDwg);
-
-      if (!error && data) {
-        existingJointsInDb = data.map(j => (j.Joint_no || '').toLowerCase());
-        renderAlreadyFilledJoints(existingJointsInDb);
-      }
-    } catch(err) { console.error('Existing joints error:', err); }
-
-    const spools = masterData.filter(d => d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
-    const spoolSelect = document.getElementById('fitup_spool');
-
-    if (spools.length > 0) {
-      spoolSelect.innerHTML = '<option value="">--- Select Spool ---</option>' + 
-        spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}" data-rev="${s.rev_no || '0'}">${s.spool_number}</option>`).join('');
-      if (spools.length === 1) {
-        spoolSelect.selectedIndex = 1;
-        autoFillSpoolDetails();
-      }
-    } else {
-      spoolSelect.innerHTML = '<option value="">-- કોઈ સ્પૂલ મળ્યો નથી --</option>';
-      document.getElementById('fitup_spool_size').value = '';
-      document.getElementById('fitup_rev_no').value = '';
-    }
-  }
-
-  function renderAlreadyFilledJoints(joints) {
-    const section = document.getElementById('alreadyFilledJointsSection');
-    const badgeList = document.getElementById('alreadyFilledJointsBadgeList');
-    if (!section || !badgeList) return;
-
-    if (joints && joints.length > 0) {
-      badgeList.innerHTML = joints.map(j => `<span class="filled-badge">✔ ${j.toUpperCase()}</span>`).join('');
-      section.style.display = 'block';
-    } else {
-      section.style.display = 'none';
-    }
-  }
-
-  function autoFillSpoolDetails() {
-    const select = document.getElementById('fitup_spool');
-    const selectedOpt = select.options[select.selectedIndex];
-    if (selectedOpt && selectedOpt.value) {
-      const defaultSize = (selectedOpt.getAttribute('data-size') || '').replace(/[^0-9.]/g, '');
-      document.getElementById('fitup_spool_size').value = defaultSize;
-      document.getElementById('fitup_rev_no').value = selectedOpt.getAttribute('data-rev') || '0';
-    } else {
-      document.getElementById('fitup_spool_size').value = '';
-      document.getElementById('fitup_rev_no').value = '';
-    }
-    document.getElementById('current_joint_size').value = '';
-    document.getElementById('current_joint_type').value = '';
-    document.getElementById('current_joint_no').value = '';
-  }
-
-  function validateJointInput(jNo, jType, jSize) {
-    if (!jNo) {
-      alert('ભૂલ: Joint No ખાલી ન હોઈ શકે.');
-      return false;
-    }
-
-    const jointRegex = /^J(0[1-9]|[1-9][0-9]+)[A-Za-z]?$/;
-    if (!jointRegex.test(jNo)) {
-      alert('ભૂલ: અમાન્ય Joint Number!\n\nયોગ્ય ફોર્મેટ:\n- 1 થી 9 માટે: J01, J02, J05A, J09\n- 10 પછી: J10, J11, J11A');
-      return false;
-    }
-
-    const existsInDb = existingJointsInDb.some(j => j.toLowerCase() === jNo.toLowerCase());
-    if (existsInDb) {
-      alert(`❌ એરર: જોઈન્ટ "${jNo}" આ Drawing માં પહેલેથી સેવ થયેલો છે!\n\nડુપ્લિકેટ જોઈન્ટ ઉમેરી શકાશે નહીં.`);
-      return false;
-    }
-
-    const existsInQueue = addedJointsQueue.some(j => j.joint_no.toUpperCase() === jNo.toUpperCase());
-    if (existsInQueue) {
-      alert(`❌ એરર: જોઈન્ટ "${jNo}" તમે લિસ્ટમાં પહેલેથી ઉમેરી દીધો છે!`);
-      return false;
-    }
-
-    const validTypes = ["BW", "SOB", "SOF", "LET", "EB"];
-    if (!jType || !validTypes.includes(jType)) {
-      alert('ભૂલ: કૃપા કરીને Type of Joint (BW/SOB/SOF/LET/EB) પસંદ કરો.');
-      return false;
-    }
-
-    const cleanSize = jSize.replace(/[^0-9.]/g, '');
-    if (!cleanSize || !ALLOWED_SIZES.includes(cleanSize)) {
-      alert('ભૂલ: અમાન્ય Joint Size!\n\nમાન્ય સાઇઝ: 0.5, 0.75, 1, 2, 3, 4, 6, 8, 10, 12, 14, 16');
-      return false;
-    }
-
-    return true;
-  }
-
-  function addCurrentJointToList() {
-    const jNo = document.getElementById('current_joint_no').value.trim().toUpperCase();
-    const jType = document.getElementById('current_joint_type').value;
-    const jSize = document.getElementById('current_joint_size').value.trim();
-
-    if (!validateJointInput(jNo, jType, jSize)) return;
-
-    addedJointsQueue.push({ 
-      joint_no: jNo, 
-      type_of_joint: jType, 
-      joint_size: jSize.replace(/[^0-9.]/g, '') 
-    });
-    renderAddedJoints();
-
-    document.getElementById('current_joint_no').value = '';
-    document.getElementById('current_joint_type').value = '';
-    document.getElementById('current_joint_size').value = '';
-    document.getElementById('current_joint_no').focus();
-  }
-
-  function renderAddedJoints() {
-    const container = document.getElementById('addedJointsList');
-    if (!container) return;
-    if (addedJointsQueue.length === 0) {
-      container.innerHTML = '';
-      return;
-    }
-
-    container.innerHTML = `
-      <div style="font-size:12px; font-weight:bold; color:#15803d; margin-bottom:4px;">
-        📋 ઉમેરેલા જોઈન્ટ્સ (${addedJointsQueue.length}):
-      </div>
-      ` + addedJointsQueue.map((j, idx) => `
-      <div class="saved-joint-card">
-        <span><b>#${idx + 1}</b> Joint: <b>${j.joint_no}</b> | પ્રકાર: ${j.type_of_joint} | સાઇઝ: ${j.joint_size}"</span>
-        <button type="button" class="btn-remove-row" onclick="removeQueueJoint(${idx})">✕</button>
-      </div>
-    `).join('');
-  }
-
-  function removeQueueJoint(index) {
-    addedJointsQueue.splice(index, 1);
-    renderAddedJoints();
-  }
-
-  function attachFitupEvents() {
-    document.getElementById('fitupForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const msg = document.getElementById('fitupMsg');
-
-      const dwg = document.getElementById('fitup_drawing').value.trim();
-      const spl = document.getElementById('fitup_spool').value.trim();
-      const spoolSize = document.getElementById('fitup_spool_size').value.trim();
-      const revNo = document.getElementById('fitup_rev_no').value.trim();
-      const fitupDate = document.getElementById('fitup_date').value;
-
-      if (!spoolSize || !revNo || !fitupDate) {
-        alert('ભૂલ: Spool Size, Rev No અને Fit-up Date ફરજિયાત છે.');
-        return;
-      }
-
-      const currentNo = document.getElementById('current_joint_no').value.trim();
-      if (currentNo) addCurrentJointToList();
-
-      if (addedJointsQueue.length === 0) {
-        alert('કૃપા કરીને ઓછામાં ઓછો ૧ જોઈન્ટ ઉમેરો.');
-        return;
-      }
-
-      msg.textContent = '⏳ Supabase માં સેવ થઈ રહ્યું છે...';
-
-      const insertRows = addedJointsQueue.map(j => ({
-        Drawing_no: dwg,
-        Spool_number: spl,
-        Spool_size: spoolSize,
-        Rev_no: revNo,
-        Joint_no: j.joint_no,
-        Type_of_joint: j.type_of_joint,
-        Joint_size: j.joint_size,
-        Fit_up_date: fitupDate,
-        status: 'Fit-Up Completed'
-      }));
-
-      try {
-        const { error } = await db.from('piping_joints').insert(insertRows);
-        if (error) throw error;
-
-        msg.textContent = `✅ ${insertRows.length} જોઈન્ટ્સ Supabase માં સફળતાપૂર્વક સેવ થઈ ગયા!`;
-        msg.className = 'msg success';
-        document.getElementById('fitupForm').reset();
-        document.getElementById('fitupDetailsSection').style.display = 'none';
-        addedJointsQueue = [];
-        existingJointsInDb = [];
-        renderAddedJoints();
-        loadMasterSpools();
-      } catch (err) {
-        msg.textContent = '❌ એરર: ' + err.message;
-        msg.className = 'msg error';
-      }
-    });
-  }
-
+  // --- Welding Functions ---
   async function loadFitupCompleted() {
     try {
       const { data, error } = await db.from('piping_joints')
@@ -994,6 +558,7 @@ cat << 'EOF' > index.html
     });
   }
 
+  // --- View Records ---
   async function loadAllRecords() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">⏳ Supabase માંથી ડેટા લોડ થઈ રહ્યો છે...</td></tr>';
