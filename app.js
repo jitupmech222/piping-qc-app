@@ -18,16 +18,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ૦. Login API
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  // અહીં તમે તમારું ID અને Password બદલી શકો છો
-  if (username === 'admin' && password === '1234') {
-    return res.json({ success: true, message: 'Login successful' });
-  }
-  return res.status(401).json({ success: false, message: 'ખોટો User ID અથવા Password!' });
-});
-
 // ૧. Master Spools API
 app.get('/api/master-spools', async (req, res) => {
   try {
@@ -59,20 +49,47 @@ app.get('/api/all-joints', async (req, res) => {
   }
 });
 
-// ૩. Fit-up Bulk Insert + Master Spools Update
+// ૩. ચોક્કસ ડ્રોઇંગના પહેલેથી બનેલા જોઈન્ટ્સ મેળવવા (ડુપ્લિકેટ ચેક માટે)
+app.get('/api/existing-joints/:drawing_no', async (req, res) => {
+  try {
+    const dwg = req.params.drawing_no;
+    const result = await pool.query(
+      `SELECT LOWER("Joint_no") as joint_no FROM piping_joints WHERE LOWER("Drawing_no") = LOWER($1)`,
+      [dwg]
+    );
+    res.json({ success: true, joints: result.rows.map(r => r.joint_no) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ૪. Fit-up Bulk Insert + Master Spools Update (ડુપ્લિકેટ વેલિડેશન સાથે)
 app.post('/api/fitup-bulk', async (req, res) => {
   const client = await pool.connect();
   try {
     const { drawing_no, spool_number, spool_size, rev_no, fit_up_date, joints } = req.body;
     await client.query('BEGIN');
 
+    // ડેટાબેઝમાં પહેલેથી હાજર જોઈન્ટ્સ ચેક કરો
+    for (const j of joints) {
+      const checkRes = await client.query(
+        `SELECT id FROM piping_joints WHERE LOWER("Drawing_no") = LOWER($1) AND LOWER("Joint_no") = LOWER($2)`,
+        [drawing_no, j.joint_no]
+      );
+      if (checkRes.rows.length > 0) {
+        throw new Error(`જોઈન્ટ ${j.joint_no} ડ્રોઇંગ ${drawing_no} માં પહેલેથી હાજર છે!`);
+      }
+    }
+
+    // master_spools અપડેટ કરો
     await client.query(
       `UPDATE master_spools 
        SET "Spool_size" = $1, "Rev_no" = $2 
-       WHERE "Drawing_no" = $3 AND "Spool_number" = $4`,
+       WHERE LOWER("Drawing_no") = LOWER($3) AND LOWER("Spool_number") = LOWER($4)`,
       [spool_size, rev_no, drawing_no, spool_number]
     );
 
+    // piping_joints માં ઇન્સર્ટ કરો
     const inserted = [];
     for (const j of joints) {
       const result = await client.query(
@@ -88,13 +105,13 @@ app.post('/api/fitup-bulk', async (req, res) => {
     res.json({ success: true, count: inserted.length });
   } catch (err) {
     await client.query('ROLLBACK');
-    res.status(500).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   } finally {
     client.release();
   }
 });
 
-// ૪. Welding માટે Fit-up થયેલા Joints
+// ૫. Welding માટે Fit-up થયેલા Joints
 app.get('/api/fitup-joints', async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM piping_joints WHERE status = 'Fit-Up Completed' ORDER BY id DESC");
@@ -104,7 +121,7 @@ app.get('/api/fitup-joints', async (req, res) => {
   }
 });
 
-// ૫. Welding Bulk Update
+// ૬. Welding Bulk Update
 app.post('/api/welding-bulk', async (req, res) => {
   const client = await pool.connect();
   try {
