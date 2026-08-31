@@ -8,32 +8,40 @@
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
     .container { max-width: 600px; margin: 0 auto; }
+    
     .login-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-top: 20px; }
     .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-    .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-decoration: none; display: flex; align-items: center; justify-content: center; }
     .menu-btn:active { background: #1d4ed8; }
     .btn-view-data { background: #059669; grid-column: span 2; }
     .btn-logout { background: #ea580c; grid-column: span 2; }
     .btn-exit { background: #dc2626; grid-column: span 2; }
+    
     .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); margin-top: 10px; }
     h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: #fff; }
+    
     .search-results { max-height: 180px; overflow-y: auto; border: 1.5px solid #3b82f6; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff; display: none; margin-bottom: 8px; box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
     .search-item { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; cursor: pointer; color: #0f172a; font-weight: 500; }
     .search-item:active, .search-item:hover { background: #dbeafe; color: #1e40af; font-weight: bold; }
+    
     .saved-joint-card { background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 8px 10px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
     .btn-remove-row { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; cursor: pointer; }
     .btn-add-joint { background: #0284c7; color: white; border: none; border-radius: 6px; width: 100%; padding: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+    
     .weld-joint-item { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-top: 8px; cursor: pointer; background: #ffffff; }
     .weld-joint-item.filled { background: #dcfce7 !important; border-color: #22c55e !important; }
+    
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
     .modal-box { background: white; border-radius: 12px; padding: 18px; width: 100%; max-width: 360px; }
+    
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
-    .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; text-align: center; display: block; text-decoration: none; box-sizing: border-box; }
     .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
     .success { color: #16a34a; }
     .error { color: #dc2626; }
+    
     .table-container { overflow-x: auto; margin-top: 12px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 8px 6px; white-space: nowrap; }
@@ -47,6 +55,7 @@
 <body>
 
 <div class="container">
+  <!-- ૧. લોગિન સ્ક્રીન -->
   <div id="loginSection" class="login-card">
     <h3 style="text-align: center;">🔐 યુઝર લોગિન</h3>
     <form id="loginForm">
@@ -59,19 +68,21 @@
     <div id="loginMsg" class="msg"></div>
   </div>
 
+  <!-- ૨. મુખ્ય મેનૂ (Router Links) -->
   <div id="mainMenu" class="menu-grid" style="display: none;">
-    <button class="menu-btn" onclick="loadModule('fitup')">1. 🔧 ફિટ-અપ (Fit-up)</button>
-    <button class="menu-btn" onclick="loadModule('welding')">2. ⚡ વેલ્ડીંગ (Welding)</button>
+    <a href="#fitup" class="menu-btn">1. 🔧 ફિટ-અપ (Fit-up)</a>
+    <a href="#welding" class="menu-btn">2. ⚡ વેલ્ડીંગ (Welding)</a>
     <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">3. 📦 લોટ ઓફર</button>
     <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">4. ✅ લોટ ક્લિયર</button>
     <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">5. 🔬 NDT ક્લિયર</button>
     <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">6. 🚚 ડિસ્પેચ</button>
     <button class="menu-btn" style="grid-column: span 2;" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">7. 📑 RA બિલ</button>
-    <button class="menu-btn btn-view-data" onclick="loadModule('view-records')">📊 તમામ QC રેકોર્ડ્સ જુઓ</button>
+    <a href="#view-records" class="menu-btn btn-view-data">📊 તમામ QC રેકોર્ડ્સ જુઓ</a>
     <button class="menu-btn btn-logout" onclick="logoutApp()">🔒 લોગ આઉટ કરો</button>
     <button class="menu-btn btn-exit" onclick="closeApp()">🚪 એપ બંધ કરો</button>
   </div>
 
+  <!-- ૩. મોડ્યુલ કન્ટેનર -->
   <div id="moduleContainer"></div>
 </div>
 
@@ -92,12 +103,69 @@
 
   const ALLOWED_SIZES = ["0.5", "0.75", "1", "2", "3", "4", "6", "8", "10", "12", "14", "16"];
 
+  // ================= ROUTER ENGINE ================= //
   window.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('isLoggedIn') === 'true') {
-      showDashboard();
-    }
+    checkAuthAndRoute();
   });
 
+  window.addEventListener('hashchange', () => {
+    checkAuthAndRoute();
+  });
+
+  function checkAuthAndRoute() {
+    const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('mainMenu').style.display = 'none';
+      document.getElementById('moduleContainer').innerHTML = '';
+      return;
+    }
+
+    document.getElementById('loginSection').style.display = 'none';
+    const route = window.location.hash.replace('#', '') || 'menu';
+    handleRouting(route);
+  }
+
+  async function handleRouting(route) {
+    const container = document.getElementById('moduleContainer');
+    const mainMenu = document.getElementById('mainMenu');
+
+    if (route === 'menu' || route === '') {
+      container.innerHTML = '';
+      mainMenu.style.display = 'grid';
+      if (masterData.length === 0) await loadMasterSpools();
+      return;
+    }
+
+    mainMenu.style.display = 'none';
+    try {
+      const res = await fetch(`modules/${route}.html`);
+      if (!res.ok) throw new Error('Module not found');
+      const html = await res.text();
+      container.innerHTML = html;
+
+      // મોડ્યુલ મુજબ ઇવેન્ટ્સ અને ડેટા લોડ
+      if (route === 'fitup') {
+        addedJointsQueue = [];
+        existingJointsInDb = [];
+        if (masterData.length === 0) await loadMasterSpools();
+        attachFitupEvents();
+      } else if (route === 'welding') {
+        loadFitupCompleted();
+        attachWeldingEvents();
+      } else if (route === 'view-records') {
+        loadAllRecords();
+      }
+    } catch (e) {
+      container.innerHTML = `<div class="card"><p style="color:red;">મોડ્યુલ લોડ કરવામાં ભૂલ આવી: ${route}</p><a href="#menu" class="btn-back">⬅ મુખ્ય મેનૂ પર જાઓ</a></div>`;
+    }
+  }
+
+  function navigateTo(route) {
+    window.location.hash = route;
+  }
+
+  // ================= AUTH ================= //
   document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const user = document.getElementById('login_user').value.trim();
@@ -106,25 +174,34 @@
     
     if (user === 'admin' && pass === '1234') {
       sessionStorage.setItem('isLoggedIn', 'true');
-      showDashboard();
+      navigateTo('menu');
+      checkAuthAndRoute();
     } else {
       msg.textContent = '❌ અમાન્ય યુઝર ID અથવા પાસવર્ડ!';
       msg.className = 'msg error';
     }
   });
 
-  function showDashboard() {
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('moduleContainer').innerHTML = '';
-    document.getElementById('mainMenu').style.display = 'grid';
-    loadMasterSpools();
-  }
-
   function logoutApp() {
     sessionStorage.removeItem('isLoggedIn');
+    window.location.hash = '';
     location.reload();
   }
 
+  function closeApp() {
+    if (confirm("શું તમે એપ બંધ કરવા માંગો છો?")) {
+      document.getElementById('mainMenu').style.display = 'none';
+      document.getElementById('moduleContainer').innerHTML = `
+        <div class="card" style="text-align:center; padding:40px 10px;">
+          <h2 style="color:#dc2626;">🚪 એપ બંધ થઈ ગઈ છે</h2>
+          <p style="color:#64748b;">તમારા ફોનનું <b>Home</b> અથવા <b>Back</b> બટન દબાવો.</p>
+          <button class="btn-submit" onclick="location.reload()">🔄 ફરી ચાલુ કરો</button>
+        </div>`;
+      try { window.close(); } catch(e) {}
+    }
+  }
+
+  // ================= DATA OPS ================= //
   async function loadMasterSpools() {
     try {
       const { data, error } = await db.from('master_spools').select('*');
@@ -147,52 +224,7 @@
     } catch(err) { console.error(err); }
   }
 
-  async function loadModule(moduleName) {
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('mainMenu').style.display = 'none';
-    const container = document.getElementById('moduleContainer');
-    
-    try {
-      const res = await fetch(`modules/${moduleName}.html`);
-      const html = await res.text();
-      container.innerHTML = html;
-
-      if (moduleName === 'fitup') {
-        addedJointsQueue = [];
-        existingJointsInDb = [];
-        if (masterData.length === 0) await loadMasterSpools();
-        attachFitupEvents();
-      } else if (moduleName === 'welding') {
-        loadFitupCompleted();
-        attachWeldingEvents();
-      } else if (moduleName === 'view-records') {
-        loadAllRecords();
-      }
-    } catch (e) {
-      container.innerHTML = '<div class="card"><p style="color:red;">મોડ્યુલ લોડ કરવામાં ભૂલ આવી!</p><button class="btn-back" onclick="backToMenu()">⬅ પાછા જાઓ</button></div>';
-    }
-  }
-
-  function backToMenu() {
-    document.getElementById('moduleContainer').innerHTML = '';
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('mainMenu').style.display = 'grid';
-  }
-
-  function closeApp() {
-    if (confirm("શું તમે એપ બંધ કરવા માંગો છો?")) {
-      document.getElementById('loginSection').style.display = 'none';
-      document.getElementById('mainMenu').style.display = 'none';
-      document.getElementById('moduleContainer').innerHTML = `
-        <div class="card" style="text-align:center; padding:40px 10px;">
-          <h2 style="color:#dc2626;">🚪 એપ બંધ થઈ ગઈ છે</h2>
-          <p style="color:#64748b;">તમારા ફોનનું <b>Home</b> અથવા <b>Back</b> બટન દબાવો.</p>
-          <button class="btn-submit" onclick="location.reload()">🔄 ફરી ચાલુ કરો</button>
-        </div>`;
-      try { window.close(); } catch(e) {}
-    }
-  }
-
+  // --- Fit-up Logic ---
   async function handleDrawingSearch() {
     const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
@@ -222,7 +254,6 @@
     document.getElementById('drawingSearchResults').style.display = 'none';
     document.getElementById('fitupDetailsSection').style.display = 'block';
 
-    // ૧. Supabase માંથી આ Drawing ના તમામ સેવ થયેલા જોઈન્ટ્સ ફેચ કરો
     try {
       const { data, error } = await db.from('piping_joints').select('*');
       if (!error && data) {
@@ -247,9 +278,8 @@
 
         renderAlreadyFilledJoints(existingJointsInDb);
       }
-    } catch(err) { console.error('Existing joints fetch error:', err); }
+    } catch(err) { console.error('Existing joints error:', err); }
 
-    // ૨. Spools લોડ કરો
     const spools = masterData.filter(d => d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
     const spoolSelect = document.getElementById('fitup_spool');
 
@@ -267,7 +297,6 @@
     }
   }
 
-  // ટેબલ ડિસ્પ્લે લોજિક
   function renderAlreadyFilledJoints(joints) {
     const section = document.getElementById('alreadyFilledJointsSection');
     const tableBody = document.getElementById('alreadyFilledJointsTableBody');
@@ -308,37 +337,31 @@
       alert('ભૂલ: Joint No ખાલી ન હોઈ શકે.');
       return false;
     }
-
     const jointRegex = /^J(0[1-9]|[1-9][0-9]+)[A-Za-z]?$/;
     if (!jointRegex.test(jNo)) {
       alert('ભૂલ: અમાન્ય Joint Number!\n\nયોગ્ય ફોર્મેટ:\n- 1 થી 9 માટે: J01, J02, J05A, J09\n- 10 પછી: J10, J11, J11A');
       return false;
     }
-
     const existsInDb = existingJointsInDb.some(j => j.joint_no.toLowerCase() === jNo.toLowerCase());
     if (existsInDb) {
       alert(`❌ એરર: જોઈન્ટ "${jNo}" આ Drawing માં પહેલેથી સેવ થયેલો છે!\n\nડુપ્લિકેટ જોઈન્ટ ઉમેરી શકાશે નહીં.`);
       return false;
     }
-
     const existsInQueue = addedJointsQueue.some(j => j.joint_no.toUpperCase() === jNo.toUpperCase());
     if (existsInQueue) {
       alert(`❌ એરર: જોઈન્ટ "${jNo}" તમે લિસ્ટમાં પહેલેથી ઉમેરી દીધો છે!`);
       return false;
     }
-
     const validTypes = ["BW", "SOB", "SOF", "LET", "EB"];
     if (!jType || !validTypes.includes(jType)) {
-      alert('ભૂલ: કૃપા કરીને Type of Joint (BW/SOB/SOF/LET/EB) પસંદ કરો.');
+      alert('ભૂલ: કૃપા કરીને Type of Joint પસંદ કરો.');
       return false;
     }
-
     const cleanSize = jSize.replace(/[^0-9.]/g, '');
     if (!cleanSize || !ALLOWED_SIZES.includes(cleanSize)) {
-      alert('ભૂલ: અમાન્ય Joint Size!\n\nમાન્ય સાઇઝ: 0.5, 0.75, 1, 2, 3, 4, 6, 8, 10, 12, 14, 16');
+      alert('ભૂલ: અમાન્ય Joint Size!');
       return false;
     }
-
     return true;
   }
 
@@ -391,17 +414,11 @@
     document.getElementById('fitupForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('fitupMsg');
-
       const dwg = document.getElementById('fitup_drawing').value.trim();
       const spl = document.getElementById('fitup_spool').value.trim();
       const spoolSize = document.getElementById('fitup_spool_size').value.trim();
       const revNo = document.getElementById('fitup_rev_no').value.trim();
       const fitupDate = document.getElementById('fitup_date').value;
-
-      if (!spoolSize || !revNo || !fitupDate) {
-        alert('ભૂલ: Spool Size, Rev No અને Fit-up Date ફરજિયાત છે.');
-        return;
-      }
 
       const currentNo = document.getElementById('current_joint_no').value.trim();
       if (currentNo) addCurrentJointToList();
@@ -412,7 +429,6 @@
       }
 
       msg.textContent = '⏳ Supabase માં સેવ થઈ રહ્યું છે...';
-
       const insertRows = addedJointsQueue.map(j => ({
         Drawing_no: dwg,
         Spool_number: spl,
@@ -444,7 +460,7 @@
     });
   }
 
-  // --- Welding Functions ---
+  // --- Welding Logic ---
   async function loadFitupCompleted() {
     try {
       const { data, error } = await db.from('piping_joints')
@@ -534,32 +550,26 @@
       const msg = document.getElementById('weldMsg');
       const weldDate = document.getElementById('common_weld_date').value;
 
-      const updates = Object.keys(weldEntryData).map(id => ({
-        joint_id: id,
-        welder_no: weldEntryData[id].welder_no,
-        wps: weldEntryData[id].wps
-      }));
-
-      if (updates.length === 0) {
+      const jointIds = Object.keys(weldEntryData);
+      if (jointIds.length === 0) {
         alert('કૃપા કરીને ઓછામાં ઓછા ૧ જોઈન્ટ પર ટચ કરીને વેલ્ડર અને WPS વિગતો ભરો.');
         return;
       }
 
       msg.textContent = '⏳ Supabase માં સેવ થઈ રહ્યું છે...';
-
       try {
-        for (const u of updates) {
+        for (const id of jointIds) {
           const { error } = await db.from('piping_joints').update({
-            Welder_no: u.welder_no,
-            Wps: u.wps,
+            Welder_no: weldEntryData[id].welder_no,
+            Wps: weldEntryData[id].wps,
             Weld_visual_date: weldDate,
             status: 'Welding Completed'
-          }).eq('id', u.joint_id);
+          }).eq('id', id);
 
           if (error) throw error;
         }
 
-        msg.textContent = `✅ ${updates.length} જોઈન્ટ્સ માટે વેલ્ડીંગ સફળતાપૂર્વક સેવ થઈ ગયું!`;
+        msg.textContent = `✅ ${jointIds.length} જોઈન્ટ્સ માટે વેલ્ડીંગ સફળતાપૂર્વક સેવ થઈ ગયું!`;
         msg.className = 'msg success';
         document.getElementById('weldForm').reset();
         document.getElementById('weldJointsWrapper').style.display = 'none';
