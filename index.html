@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="gu">
 <head>
@@ -42,9 +43,9 @@
     .success { color: #16a34a; }
     .error { color: #dc2626; }
     
-    .table-container { overflow-x: auto; margin-top: 12px; }
+    .table-container { overflow-x: auto; margin-top: 12px; max-height: 70vh; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 8px 6px; white-space: nowrap; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; white-space: nowrap; }
     th { background: #1e40af; color: white; font-weight: 600; }
     tr:nth-child(even) { background: #f8fafc; }
     .badge { padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
@@ -68,15 +69,15 @@
     <div id="loginMsg" class="msg"></div>
   </div>
 
-  <!-- ૨. મુખ્ય મેનૂ (Router Links) -->
+  <!-- ૨. મુખ્ય મેનૂ -->
   <div id="mainMenu" class="menu-grid" style="display: none;">
     <a href="#fitup" class="menu-btn">Fit-up</a>
     <a href="#welding" class="menu-btn">Welding</a>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">Lot Offer</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">Lot Clear</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">NDT</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">Dispatch</button>
-    <button class="menu-btn" style="grid-column: span 2;" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">RA Bill</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">Lot Offer</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">Lot Clear</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">NDT</button>
+    <button class="menu-btn" onclick="alert('Coming Soon!')">Dispatch</button>
+    <button class="menu-btn" style="grid-column: span 2;" onclick="alert('Coming Soon!')">RA Bill</button>
     <a href="#view-records" class="menu-btn btn-view-data">📊 View record</a>
     <button class="menu-btn btn-logout" onclick="logoutApp()">Log Out</button>
   </div>
@@ -102,14 +103,9 @@
 
   const ALLOWED_SIZES = ["0.5", "0.75", "1", "2", "3", "4", "6", "8", "10", "12", "14", "16"];
 
-  // ================= ROUTER ENGINE ================= //
-  window.addEventListener('DOMContentLoaded', () => {
-    checkAuthAndRoute();
-  });
-
-  window.addEventListener('hashchange', () => {
-    checkAuthAndRoute();
-  });
+  // ================= ROUTER ================= //
+  window.addEventListener('DOMContentLoaded', checkAuthAndRoute);
+  window.addEventListener('hashchange', checkAuthAndRoute);
 
   function checkAuthAndRoute() {
     const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
@@ -143,7 +139,6 @@
       const html = await res.text();
       container.innerHTML = html;
 
-      // મોડ્યુલ મુજબ ઇવેન્ટ્સ અને ડેટા લોડ
       if (route === 'fitup') {
         addedJointsQueue = [];
         existingJointsInDb = [];
@@ -156,12 +151,8 @@
         loadAllRecords();
       }
     } catch (e) {
-      container.innerHTML = `<div class="card"><p style="color:red;">મોડ્યુલ લોડ કરવામાં ભૂલ આવી: ${route}</p><a href="#menu" class="btn-back">⬅ મુખ્ય મેનૂ પર જાઓ</a></div>`;
+      container.innerHTML = `<div class="card"><p style="color:red;">Error loading module: ${route}</p><a href="#menu" class="btn-back">⬅ Back to Menu</a></div>`;
     }
-  }
-
-  function navigateTo(route) {
-    window.location.hash = route;
   }
 
   // ================= AUTH ================= //
@@ -173,10 +164,10 @@
     
     if (user === 'admin' && pass === '1234') {
       sessionStorage.setItem('isLoggedIn', 'true');
-      navigateTo('menu');
+      window.location.hash = 'menu';
       checkAuthAndRoute();
     } else {
-      msg.textContent = '❌ અમાન્ય યુઝર ID અથવા પાસવર્ડ!';
+      msg.textContent = '❌ Invalid User ID or Password!';
       msg.className = 'msg error';
     }
   });
@@ -185,19 +176,6 @@
     sessionStorage.removeItem('isLoggedIn');
     window.location.hash = '';
     location.reload();
-  }
-
-  function closeApp() {
-    if (confirm("શું તમે એપ બંધ કરવા માંગો છો?")) {
-      document.getElementById('mainMenu').style.display = 'none';
-      document.getElementById('moduleContainer').innerHTML = `
-        <div class="card" style="text-align:center; padding:40px 10px;">
-          <h2 style="color:#dc2626;">🚪 એપ બંધ થઈ ગઈ છે</h2>
-          <p style="color:#64748b;">તમારા ફોનનું <b>Home</b> અથવા <b>Back</b> બટન દબાવો.</p>
-          <button class="btn-submit" onclick="location.reload()">🔄 ફરી ચાલુ કરો</button>
-        </div>`;
-      try { window.close(); } catch(e) {}
-    }
   }
 
   // ================= DATA OPS ================= //
@@ -223,7 +201,7 @@
     } catch(err) { console.error(err); }
   }
 
-  // --- Fit-up Logic ---
+  // --- Fit-up Functions ---
   async function handleDrawingSearch() {
     const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
     const resultBox = document.getElementById('drawingSearchResults');
@@ -242,7 +220,7 @@
       resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectDrawing('${encodeURIComponent(d)}')">${d}</div>`).join('');
       resultBox.style.display = 'block';
     } else {
-      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">કોઈ ડ્રોઇંગ મળ્યું નથી</div>';
+      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">No Drawing Found</div>';
       resultBox.style.display = 'block';
     }
   }
@@ -290,7 +268,7 @@
         autoFillSpoolDetails();
       }
     } else {
-      spoolSelect.innerHTML = '<option value="">-- કોઈ સ્પૂલ મળ્યો નથી --</option>';
+      spoolSelect.innerHTML = '<option value="">-- No Spool Found --</option>';
       document.getElementById('fitup_spool_size').value = '';
       document.getElementById('fitup_rev_no').value = '';
     }
@@ -333,32 +311,32 @@
 
   function validateJointInput(jNo, jType, jSize) {
     if (!jNo) {
-      alert('ભૂલ: Joint No ખાલી ન હોઈ શકે.');
+      alert('Error: Joint No cannot be empty.');
       return false;
     }
     const jointRegex = /^J(0[1-9]|[1-9][0-9]+)[A-Za-z]?$/;
     if (!jointRegex.test(jNo)) {
-      alert('ભૂલ: અમાન્ય Joint Number!\n\nયોગ્ય ફોર્મેટ:\n- 1 થી 9 માટે: J01, J02, J05A, J09\n- 10 પછી: J10, J11, J11A');
+      alert('Error: Invalid Joint Number!\n\nFormat:\n- 1 to 9: J01, J02, J05A\n- 10+: J10, J11');
       return false;
     }
     const existsInDb = existingJointsInDb.some(j => j.joint_no.toLowerCase() === jNo.toLowerCase());
     if (existsInDb) {
-      alert(`❌ એરર: જોઈન્ટ "${jNo}" આ Drawing માં પહેલેથી સેવ થયેલો છે!\n\nડુપ્લિકેટ જોઈન્ટ ઉમેરી શકાશે નહીં.`);
+      alert(`❌ Error: Joint "${jNo}" is already filled in this Drawing!`);
       return false;
     }
     const existsInQueue = addedJointsQueue.some(j => j.joint_no.toUpperCase() === jNo.toUpperCase());
     if (existsInQueue) {
-      alert(`❌ એરર: જોઈન્ટ "${jNo}" તમે લિસ્ટમાં પહેલેથી ઉમેરી દીધો છે!`);
+      alert(`❌ Error: Joint "${jNo}" is already added to queue!`);
       return false;
     }
     const validTypes = ["BW", "SOB", "SOF", "LET", "EB"];
     if (!jType || !validTypes.includes(jType)) {
-      alert('ભૂલ: કૃપા કરીને Type of Joint પસંદ કરો.');
+      alert('Error: Please select Type of Joint.');
       return false;
     }
     const cleanSize = jSize.replace(/[^0-9.]/g, '');
     if (!cleanSize || !ALLOWED_SIZES.includes(cleanSize)) {
-      alert('ભૂલ: અમાન્ય Joint Size!');
+      alert('Error: Invalid Joint Size!');
       return false;
     }
     return true;
@@ -394,11 +372,11 @@
 
     container.innerHTML = `
       <div style="font-size:12px; font-weight:bold; color:#15803d; margin-bottom:4px;">
-        📋 New Added Joint (${addedJointsQueue.length}):
+        📋 New Added Joints (${addedJointsQueue.length}):
       </div>
       ` + addedJointsQueue.map((j, idx) => `
       <div class="saved-joint-card">
-        <span><b>#${idx + 1}</b> Joint: <b>${j.joint_no}</b> | Type of Joint: ${j.type_of_joint} | Size: ${j.joint_size}"</span>
+        <span><b>#${idx + 1}</b> Joint: <b>${j.joint_no}</b> | Type: ${j.type_of_joint} | Size: ${j.joint_size}"</span>
         <button type="button" class="btn-remove-row" onclick="removeQueueJoint(${idx})">✕</button>
       </div>
     `).join('');
@@ -423,11 +401,11 @@
       if (currentNo) addCurrentJointToList();
 
       if (addedJointsQueue.length === 0) {
-        alert('Please Add 1 Joint');
+        alert('Please Add 1 Joint.');
         return;
       }
 
-      msg.textContent = '⏳ Save in Progress..';
+      msg.textContent = '⏳ Save in progress...';
       const insertRows = addedJointsQueue.map(j => ({
         Drawing_no: dwg,
         Spool_number: spl,
@@ -444,7 +422,7 @@
         const { error } = await db.from('piping_joints').insert(insertRows);
         if (error) throw error;
 
-        msg.textContent = `✅ ${insertRows.length} જોઈન્ટ્સ Supabase માં સફળતાપૂર્વક સેવ થઈ ગયા!`;
+        msg.textContent = `✅ ${insertRows.length} Joints Saved Successfully!`;
         msg.className = 'msg success';
         document.getElementById('fitupForm').reset();
         document.getElementById('fitupDetailsSection').style.display = 'none';
@@ -453,13 +431,13 @@
         renderAddedJoints();
         loadMasterSpools();
       } catch (err) {
-        msg.textContent = '❌ એરર: ' + err.message;
+        msg.textContent = '❌ Error: ' + err.message;
         msg.className = 'msg error';
       }
     });
   }
 
-  // --- Welding Logic ---
+  // --- Welding Functions ---
   async function loadFitupCompleted() {
     try {
       const { data, error } = await db.from('piping_joints')
@@ -484,7 +462,7 @@
       resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectWeldDrawing('${encodeURIComponent(d)}')">${d}</div>`).join('');
       resultBox.style.display = 'block';
     } else {
-      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">કોઈ Fit-up ડ્રોઇંગ મળ્યું નથી</div>';
+      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">No Fit-up Drawing Found</div>';
       resultBox.style.display = 'block';
     }
   }
@@ -500,8 +478,8 @@
 
     listContainer.innerHTML = joints.map(j => `
       <div class="weld-joint-item" id="weldCard_${j.id}" onclick="openWeldModal(${j.id})">
-        <div style="font-weight:bold; color:#1e3a8a;">જોઈન્ટ: ${j.Joint_no || j.joint_no} (સ્પૂલ: ${j.Spool_number || j.spool_number})</div>
-        <div style="font-size:12px; color:#64748b;">પ્રકાર: ${j.Type_of_joint || j.type_of_joint} | સાઇઝ: ${j.Joint_size || j.joint_size} | Fit-up: ${(j.Fit_up_date || j.fit_up_date || '').split('T')[0]}</div>
+        <div style="font-weight:bold; color:#1e3a8a;">Joint: ${j.Joint_no || j.joint_no} (Spool: ${j.Spool_number || j.spool_number})</div>
+        <div style="font-size:12px; color:#64748b;">Type: ${j.Type_of_joint || j.type_of_joint} | Size: ${j.Joint_size || j.joint_size} | Fit-up: ${(j.Fit_up_date || j.fit_up_date || '').split('T')[0]}</div>
         <div id="weldSummary_${j.id}" style="font-size:12px; font-weight:bold; color:#15803d; margin-top:4px; display:none;"></div>
       </div>
     `).join('');
@@ -512,7 +490,7 @@
   function openWeldModal(jointId) {
     activeJointForModal = jointId;
     const j = fitupCompletedJoints.find(item => item.id == jointId);
-    document.getElementById('modalJointTitle').innerText = `વેલ્ડીંગ વિગત: Joint ${j.Joint_no || j.joint_no}`;
+    document.getElementById('modalJointTitle').innerText = `Welding Details: Joint ${j.Joint_no || j.joint_no}`;
     
     if (weldEntryData[jointId]) {
       document.getElementById('modal_welder').value = weldEntryData[jointId].welder_no || '';
@@ -531,7 +509,7 @@
   function saveModalDetails() {
     const welder = document.getElementById('modal_welder').value.trim();
     const wps = document.getElementById('modal_wps').value.trim();
-    if (!welder || !wps) { alert('કૃપા કરીને વેલ્ડર નંબર અને WPS નંબર બંને ભરો.'); return; }
+    if (!welder || !wps) { alert('Please enter Welder No and WPS.'); return; }
 
     weldEntryData[activeJointForModal] = { welder_no: welder, wps: wps };
     const card = document.getElementById(`weldCard_${activeJointForModal}`);
@@ -551,11 +529,11 @@
 
       const jointIds = Object.keys(weldEntryData);
       if (jointIds.length === 0) {
-        alert('કૃપા કરીને ઓછામાં ઓછા ૧ જોઈન્ટ પર ટચ કરીને વેલ્ડર અને WPS વિગતો ભરો.');
+        alert('Please select at least 1 joint to enter Welder/WPS.');
         return;
       }
 
-      msg.textContent = '⏳ Supabase માં સેવ થઈ રહ્યું છે...';
+      msg.textContent = '⏳ Save in progress...';
       try {
         for (const id of jointIds) {
           const { error } = await db.from('piping_joints').update({
@@ -568,73 +546,109 @@
           if (error) throw error;
         }
 
-        msg.textContent = `✅ ${jointIds.length} જોઈન્ટ્સ માટે વેલ્ડીંગ સફળતાપૂર્વક સેવ થઈ ગયું!`;
+        msg.textContent = `✅ ${jointIds.length} Joints Welding Saved Successfully!`;
         msg.className = 'msg success';
         document.getElementById('weldForm').reset();
         document.getElementById('weldJointsWrapper').style.display = 'none';
         weldEntryData = {};
         loadFitupCompleted();
       } catch (err) {
-        msg.textContent = '❌ એરર: ' + err.message;
+        msg.textContent = '❌ Error: ' + err.message;
         msg.className = 'msg error';
       }
     });
   }
 
-  // --- View Records ---
+  // ================= VIEW RECORDS (MULTI-COLUMN FILTERING) ================= //
   async function loadAllRecords() {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">⏳ Supabase માંથી ડેટા લોડ થઈ રહ્યો છે...</td></tr>';
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:15px;">⏳ Loading data from Supabase...</td></tr>';
     try {
       const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: false });
       if (error) throw error;
 
       if (data && data.length > 0) {
-        allRecords = data;
+        allRecords = data.map(r => {
+          const keys = Object.keys(r);
+          const getVal = (names) => {
+            const k = keys.find(key => names.some(n => n.toLowerCase() === key.toLowerCase().replace(/[^a-z0-9]/g, '')));
+            return k ? String(r[k] || '').trim() : '';
+          };
+          return {
+            drawing_no: getVal(['drawingno', 'drawing_no', 'drawing']),
+            spool_number: getVal(['spoolnumber', 'spool_number', 'spoolno', 'spool']),
+            spool_size: getVal(['spoolsize', 'spool_size', 'size']),
+            rev_no: getVal(['revno', 'rev_no', 'rev']) || '0',
+            joint_no: getVal(['jointno', 'joint_no', 'joint']),
+            type_of_joint: getVal(['typeofjoint', 'type_of_joint', 'type']) || '-',
+            joint_size: getVal(['jointsize', 'joint_size']) || '-',
+            fit_up_date: getVal(['fitupdate', 'fit_up_date']) ? getVal(['fitupdate', 'fit_up_date']).split('T')[0] : '-',
+            welder_no: getVal(['welderno', 'welder_no', 'welder']) || '-',
+            wps: getVal(['wps', 'wpsno']) || '-',
+            weld_visual_date: getVal(['weldvisualdate', 'weld_visual_date', 'weld_date']) ? getVal(['weldvisualdate', 'weld_visual_date', 'weld_date']).split('T')[0] : '-',
+            status: getVal(['status']) || '-'
+          };
+        });
         renderTable(allRecords);
       } else {
-        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;">કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:15px;">No Records Found.</td></tr>';
       }
     } catch(err) {
-      tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; color:red;">ડેટા લાવવામાં એરર આવી!</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; color:red; padding:15px;">Error loading data!</td></tr>';
     }
   }
 
   function renderTable(data) {
     const tbody = document.getElementById('tableBody');
+    if (!tbody) return;
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:15px; color:#dc2626; font-weight:bold;">No Matching Results.</td></tr>';
+      return;
+    }
+
     tbody.innerHTML = data.map(r => `
       <tr>
-        <td><b>${r.Drawing_no || r.drawing_no || '-'}</b></td>
-        <td>${r.Spool_number || r.spool_number || '-'}</td>
-        <td>${r.Spool_size || r.spool_size || '-'}</td>
-        <td>${r.Rev_no || r.rev_no || '0'}</td>
-        <td>${r.Joint_no || r.joint_no || '-'}</td>
-        <td>${r.Type_of_joint || r.type_of_joint || '-'}</td>
-        <td>${r.Joint_size || r.joint_size || '-'}</td>
-        <td>${r.Fit_up_date || r.fit_up_date ? (r.Fit_up_date || r.fit_up_date).split('T')[0] : '-'}</td>
-        <td>${r.Welder_no || r.welder_no || '-'}</td>
-        <td>${r.Wps || r.wps || '-'}</td>
-        <td>${r.Weld_visual_date || r.weld_visual_date ? (r.Weld_visual_date || r.weld_visual_date).split('T')[0] : '-'}</td>
+        <td><b>${r.drawing_no || '-'}</b></td>
+        <td>${r.spool_number || '-'}</td>
+        <td>${r.spool_size || '-'}</td>
+        <td>${r.rev_no || '0'}</td>
+        <td><b>${r.joint_no || '-'}</b></td>
+        <td>${r.type_of_joint || '-'}</td>
+        <td>${r.joint_size || '-'}</td>
+        <td>${r.fit_up_date || '-'}</td>
+        <td>${r.welder_no || '-'}</td>
+        <td>${r.wps || '-'}</td>
+        <td>${r.weld_visual_date || '-'}</td>
         <td><span class="badge ${r.status === 'Welding Completed' ? 'badge-weld' : 'badge-fitup'}">${r.status || '-'}</span></td>
       </tr>
     `).join('');
   }
 
-  function filterTable() {
-    const term = document.getElementById('tableSearch').value.toLowerCase();
-    const filtered = allRecords.filter(r => {
-      const dwg = r.Drawing_no || r.drawing_no || '';
-      const spl = r.Spool_number || r.spool_number || '';
-      const jnt = r.Joint_no || r.joint_no || '';
-      const wld = r.Welder_no || r.welder_no || '';
-      const st = r.status || '';
-      return dwg.toLowerCase().includes(term) ||
-             spl.toLowerCase().includes(term) ||
-             jnt.toLowerCase().includes(term) ||
-             wld.toLowerCase().includes(term) ||
-             st.toLowerCase().includes(term);
+  function applyMultiColumnFilter() {
+    const filterInputs = document.querySelectorAll('.col-filter');
+    const filterValues = {};
+
+    filterInputs.forEach(input => {
+      const col = input.getAttribute('data-col');
+      const val = input.value.trim().toLowerCase();
+      if (val) filterValues[col] = val;
     });
+
+    const filtered = allRecords.filter(row => {
+      for (const [col, val] of Object.entries(filterValues)) {
+        const rowVal = String(row[col] || '').toLowerCase();
+        if (!rowVal.includes(val)) return false;
+      }
+      return true;
+    });
+
     renderTable(filtered);
+  }
+
+  function resetColumnFilters() {
+    document.querySelectorAll('.col-filter').forEach(input => input.value = '');
+    renderTable(allRecords);
   }
 </script>
 
