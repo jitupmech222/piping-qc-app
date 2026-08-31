@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>પાઇપિંગ QC સિસ્ટમ</title>
+  <title>Piping QC</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
@@ -78,8 +78,7 @@
     <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">Dispatch</button>
     <button class="menu-btn" style="grid-column: span 2;" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">RA Bill</button>
     <a href="#view-records" class="menu-btn btn-view-data">📊 View record</a>
-    <button class="menu-btn btn-logout" onclick="logoutApp()">🔒 લોગ આઉટ કરો</button>
-    <button class="menu-btn btn-exit" onclick="closeApp()">🚪 એપ બંધ કરો</button>
+    <button class="menu-btn btn-logout" onclick="logoutApp()">Log Out</button>
   </div>
 
   <!-- ૩. મોડ્યુલ કન્ટેનર -->
@@ -395,11 +394,11 @@
 
     container.innerHTML = `
       <div style="font-size:12px; font-weight:bold; color:#15803d; margin-bottom:4px;">
-        📋 ઉમેરેલા નવા જોઈન્ટ્સ (${addedJointsQueue.length}):
+        📋 New Added Joint (${addedJointsQueue.length}):
       </div>
       ` + addedJointsQueue.map((j, idx) => `
       <div class="saved-joint-card">
-        <span><b>#${idx + 1}</b> Joint: <b>${j.joint_no}</b> | પ્રકાર: ${j.type_of_joint} | સાઇઝ: ${j.joint_size}"</span>
+        <span><b>#${idx + 1}</b> Joint: <b>${j.joint_no}</b> | Type of Joint: ${j.type_of_joint} | Size: ${j.joint_size}"</span>
         <button type="button" class="btn-remove-row" onclick="removeQueueJoint(${idx})">✕</button>
       </div>
     `).join('');
@@ -424,11 +423,11 @@
       if (currentNo) addCurrentJointToList();
 
       if (addedJointsQueue.length === 0) {
-        alert('કૃપા કરીને ઓછામાં ઓછો ૧ જોઈન્ટ ઉમેરો.');
+        alert('Please Add 1 Joint');
         return;
       }
 
-      msg.textContent = '⏳ Supabase માં સેવ થઈ રહ્યું છે...';
+      msg.textContent = '⏳ Save in Progress..';
       const insertRows = addedJointsQueue.map(j => ({
         Drawing_no: dwg,
         Spool_number: spl,
