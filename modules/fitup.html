@@ -1,30 +1,30 @@
 <div class="card active">
-  <h3>🔧 ફિટ-અપ ડેટા એન્ટ્રી (Fit-up Bulk)</h3>
+  <h3>Fit-up Entry</h3>
   <form id="fitupForm">
-    <label>૧. ડ્રોઇંગ નંબર (શોધવા માટે ટાઇપ કરો):</label>
-    <input type="text" id="fitup_drawing" placeholder="🔍 દા.ત. 6713, CWR..." oninput="handleDrawingSearch()" autocomplete="off" required>
+    <label>Drawing No:</label>
+    <input type="text" id="fitup_drawing" placeholder="Enter Drawing No..." oninput="handleDrawingSearch()" autocomplete="off" required>
     <div id="drawingSearchResults" class="search-results"></div>
 
     <div id="fitupDetailsSection" style="display:none;">
-      <label>૨. સ્પૂલ નંબર (Spool No):</label>
+      <label>Spool No:</label>
       <select id="fitup_spool" onchange="autoFillSpoolDetails()" required>
         <option value="">--- Select Spool ---</option>
       </select>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
         <div>
-          <label>સ્પૂલ સાઇઝ (Editable):</label>
+          <label>Size:</label>
           <input type="text" id="fitup_spool_size" placeholder="દા.ત. 4" required>
         </div>
         <div>
-          <label>રીવિઝન નંબર (Editable):</label>
+          <label>Rev No:</label>
           <input type="text" id="fitup_rev_no" placeholder="દા.ત. 0" required>
         </div>
       </div>
 
       <div id="alreadyFilledJointsSection" style="display:none; margin-top:14px; background:#ffffff; border:1.5px solid #2563eb; border-radius:8px; padding:10px;">
         <div style="font-size:13px; font-weight:bold; color:#1e40af; margin-bottom:8px;">
-          📌 આ Drawing માં પહેલેથી સેવ થયેલા જોઈન્ટ્સ:
+          📌 Previous Filled Joint:
         </div>
         <div style="overflow-x:auto;">
           <table style="width:100%; border-collapse:collapse; background:#ffffff; font-size:12px; text-align:center; border:1px solid #94a3b8;">
@@ -41,11 +41,11 @@
       </div>
 
       <div style="background:#eff6ff; border:1.5px dashed #3b82f6; border-radius:8px; padding:12px; margin-top:14px;">
-        <div style="font-weight:bold; color:#1e40af; font-size:13px; margin-bottom:6px;">✍️ જોઈન્ટ વિગત ભરો:</div>
+        <div style="font-weight:bold; color:#1e40af; font-size:13px; margin-bottom:6px;">Fill the Joint:</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
           <div>
             <label style="font-size:11px; margin-top:0;">Joint No:</label>
-            <input type="text" id="current_joint_no" placeholder="દા.ત. J01, J11A">
+            <input type="text" id="current_joint_no" placeholder="J01">
           </div>
           <div>
             <label style="font-size:11px; margin-top:0;">Type:</label>
@@ -60,21 +60,21 @@
           </div>
           <div>
             <label style="font-size:11px; margin-top:0;">Size (Inch):</label>
-            <input type="text" id="current_joint_size" placeholder="દા.ત. 4">
+            <input type="text" id="current_joint_size" placeholder="4">
           </div>
         </div>
-        <button type="button" class="btn-add-joint" style="margin-top:10px;" onclick="addCurrentJointToList()">➕ જોઈન્ટ લિસ્ટમાં ઉમેરો</button>
+        <button type="button" class="btn-add-joint" style="margin-top:10px;" onclick="addCurrentJointToList()">➕ Add Joint</button>
       </div>
 
       <div id="addedJointsList" style="margin-top:12px;"></div>
 
-      <label style="margin-top:16px; font-weight:bold; color:#1e3a8a;">📅 ફિટ-અપ તારીખ (તમામ જોઈન્ટ્સ માટે):</label>
+      <label style="margin-top:16px; font-weight:bold; color:#1e3a8a;">📅 Fit-up date:</label>
       <input type="date" id="fitup_date" required>
 
-      <button type="submit" class="btn-submit">💾 બધા ફિટ-અપ જોઈન્ટ્સ સેવ કરો</button>
+      <button type="submit" class="btn-submit">💾 Save</button>
     </div>
 
-    <a href="#menu" class="btn-back">⬅ પાછા જાઓ</a>
+    <a href="#menu" class="btn-back">⬅ Back</a>
   </form>
   <div id="fitupMsg" class="msg"></div>
 </div>

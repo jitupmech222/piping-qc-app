@@ -57,13 +57,13 @@
 <div class="container">
   <!-- ૧. લોગિન સ્ક્રીન -->
   <div id="loginSection" class="login-card">
-    <h3 style="text-align: center;">🔐 યુઝર લોગિન</h3>
+    <h3 style="text-align: center;">🔐 User Login</h3>
     <form id="loginForm">
-      <label>યુઝર ID:</label>
-      <input type="text" id="login_user" placeholder="યુઝર ID દાખલ કરો" required autocomplete="username">
-      <label>પાસવર્ડ:</label>
-      <input type="password" id="login_pass" placeholder="પાસવર્ડ દાખલ કરો" required autocomplete="current-password">
-      <button type="submit" class="btn-submit">🔓 લોગ ઇન કરો</button>
+      <label>User ID:</label>
+      <input type="text" id="login_user" placeholder="Enter User ID" required autocomplete="username">
+      <label>Password:</label>
+      <input type="password" id="login_pass" placeholder="Enter Password" required autocomplete="current-password">
+      <button type="submit" class="btn-submit">🔓 Login</button>
     </form>
     <div id="loginMsg" class="msg"></div>
   </div>
@@ -71,13 +71,13 @@
   <!-- ૨. મુખ્ય મેનૂ (Router Links) -->
   <div id="mainMenu" class="menu-grid" style="display: none;">
     <a href="#fitup" class="menu-btn">Fit-up</a>
-    <a href="#welding" class="menu-btn">2. ⚡ વેલ્ડીંગ (Welding)</a>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">3. 📦 લોટ ઓફર</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">4. ✅ લોટ ક્લિયર</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">5. 🔬 NDT ક્લિયર</button>
-    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">6. 🚚 ડિસ્પેચ</button>
-    <button class="menu-btn" style="grid-column: span 2;" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">7. 📑 RA બિલ</button>
-    <a href="#view-records" class="menu-btn btn-view-data">📊 તમામ QC રેકોર્ડ્સ જુઓ</a>
+    <a href="#welding" class="menu-btn">Welding</a>
+    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">Lot Offer</button>
+    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">Lot Clear</button>
+    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">NDT</button>
+    <button class="menu-btn" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">Dispatch</button>
+    <button class="menu-btn" style="grid-column: span 2;" onclick="alert('ટૂંક સમયમાં શરૂ થશે!')">RA Bill</button>
+    <a href="#view-records" class="menu-btn btn-view-data">📊 View record</a>
     <button class="menu-btn btn-logout" onclick="logoutApp()">🔒 લોગ આઉટ કરો</button>
     <button class="menu-btn btn-exit" onclick="closeApp()">🚪 એપ બંધ કરો</button>
   </div>
