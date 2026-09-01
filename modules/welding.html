@@ -1,21 +1,21 @@
 <div class="card active">
-  <h3>⚡ વેલ્ડીંગ ડેટા એન્ટ્રી</h3>
+  <h3>Welding Entry</h3>
   <form id="weldForm">
-    <label>૧. Fit-up થયેલા ડ્રોઇંગ ફિલ્ટર કરો:</label>
-    <input type="text" id="weld_drawing_search" placeholder="🔍 ડ્રોઇંગ નંબર ટાઇપ કરો..." oninput="handleWeldDrawingSearch()" autocomplete="off">
+    <label>Drawing No:</label>
+    <input type="text" id="weld_drawing_search" placeholder="Enter Drawing No.." oninput="handleWeldDrawingSearch()" autocomplete="off">
     <div id="weldDrawingResults" class="search-results"></div>
 
     <div id="weldJointsWrapper" style="display:none; margin-top:12px;">
-      <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">👉 જોઈન્ટ પર ટચ કરી WPS & Welder No ભરો:</label>
+      <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">Fill WPS & Welder No:</label>
       <div id="weldJointsList"></div>
 
-      <label style="margin-top:15px;">૨. વેલ્ડીંગ તારીખ (બધા ભરેલા જોઈન્ટ્સ માટે):</label>
+      <label style="margin-top:15px;">Welding date:</label>
       <input type="date" id="common_weld_date" required>
 
-      <button type="submit" class="btn-submit">💾 ભરેલા જોઈન્ટ્સ સેવ કરો</button>
+      <button type="submit" class="btn-submit">💾 Save</button>
     </div>
 
-    <a href="#menu" class="btn-back">⬅ પાછા જાઓ</a>
+    <a href="#menu" class="btn-back">⬅Back</a>
   </form>
   <div id="weldMsg" class="msg"></div>
 </div>
@@ -24,11 +24,11 @@
   <div class="modal-box">
     <h3 style="margin-top:0; font-size:16px; color:#1e40af;" id="modalJointTitle">વેલ્ડીંગ વિગત</h3>
     <label>વેલ્ડર નંબર:</label>
-    <input type="text" id="modal_welder" placeholder="દા.ત. W-01" required>
+    <input type="text" id="modal_welder" placeholder="W-01" required>
     <label>WPS નંબર:</label>
-    <input type="text" id="modal_wps" placeholder="દા.ત. WPS-05" required>
+    <input type="text" id="modal_wps" placeholder="WPS-05" required>
     <div style="display:flex; gap:8px; margin-top:15px;">
-      <button type="button" class="btn-submit" style="margin-top:0;" onclick="saveModalDetails()">Done (ઓકે)</button>
+      <button type="button" class="btn-submit" style="margin-top:0;" onclick="saveModalDetails()">Save</button>
       <button type="button" class="btn-back" style="margin-top:0;" onclick="closeModal()">Cancel</button>
     </div>
   </div>
