@@ -55,7 +55,6 @@
 <body>
 
 <div class="container">
-  <!-- ૧. લોગિન સ્ક્રીન -->
   <div id="loginSection" class="login-card">
     <h3 style="text-align: center;">🔐 User Login</h3>
     <form id="loginForm">
@@ -68,7 +67,6 @@
     <div id="loginMsg" class="msg"></div>
   </div>
 
-  <!-- ૨. મુખ્ય મેનૂ -->
   <div id="mainMenu" class="menu-grid" style="display: none;">
     <a href="#fitup" class="menu-btn">Fit-up</a>
     <a href="#welding" class="menu-btn">Welding</a>
@@ -81,13 +79,12 @@
     <button class="menu-btn btn-logout" onclick="logoutApp()">Log Out</button>
   </div>
 
-  <!-- ૩. મોડ્યુલ કન્ટેનર -->
   <div id="moduleContainer"></div>
 </div>
 
 <script>
   const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd8TOamA_gbPPJ8mt';
+  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let masterData = [];
@@ -525,7 +522,7 @@
     if (!wps) { alert('Please select WPS Number.'); return; }
     if (!welder1) { alert('Please enter Welder No for Layer 1.'); return; }
 
-    // Welding Process calculation
+    // Welding Process Calculation
     let finalProcess = proc1;
     if (welder2) {
       if (proc1 === proc2) {
@@ -535,7 +532,7 @@
       }
     }
 
-    // Welder No calculation
+    // Welder No Calculation
     let finalWelder = welder1;
     if (welder2) {
       if (welder1.toUpperCase() === welder2.toUpperCase()) {
