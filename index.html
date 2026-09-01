@@ -15,7 +15,6 @@
     .menu-btn:active { background: #1d4ed8; }
     .btn-view-data { background: #059669; grid-column: span 2; }
     .btn-logout { background: #ea580c; grid-column: span 2; }
-    .btn-exit { background: #dc2626; grid-column: span 2; }
     
     .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); margin-top: 10px; }
     h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
@@ -129,7 +128,8 @@
 
     mainMenu.style.display = 'none';
     try {
-      const res = await fetch(`modules/${route}.html`);
+      // ?v= Timestamp ઉમેરીને Browser Cache ને બાયપાસ કરો
+      const res = await fetch(`modules/${route}.html?v=${Date.now()}`);
       if (!res.ok) throw new Error('Module not found');
       const html = await res.text();
       container.innerHTML = html;
@@ -179,8 +179,8 @@
       if (data && data.length > 0) {
         masterData = data.map(r => {
           const keys = Object.keys(r);
-          const getVal = (possibleNames) => {
-            const k = keys.find(key => possibleNames.some(p => p.toLowerCase() === key.toLowerCase().replace(/[^a-z0-9]/g, '')));
+          const getVal = (names) => {
+            const k = keys.find(key => names.some(p => p.toLowerCase() === key.toLowerCase().replace(/[^a-z0-9]/g, '')));
             return k ? String(r[k] || '').trim() : '';
           };
           return {
@@ -430,7 +430,7 @@
     });
   }
 
-  // --- Welding Logic with Process & Multi-Layer Logic ---
+  // --- Welding Logic with Multi-Layer Process Logic ---
   async function loadFitupCompleted() {
     try {
       const { data, error } = await db.from('piping_joints')
@@ -533,7 +533,7 @@
     }
 
     // Welder No Calculation
-    let finalWelder = welder1;
+    let finalWelder = welder1.toUpperCase();
     if (welder2) {
       if (welder1.toUpperCase() === welder2.toUpperCase()) {
         finalWelder = welder1.toUpperCase();
@@ -598,7 +598,7 @@
     });
   }
 
-  // ================= VIEW RECORDS (WITH WELDING PROCESS COLUMN) ================= //
+  // ================= VIEW RECORDS ================= //
   async function loadAllRecords() {
     const tbody = document.getElementById('tableBody');
     if (!tbody) return;

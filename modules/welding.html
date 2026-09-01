@@ -6,13 +6,13 @@
     <div id="weldDrawingResults" class="search-results"></div>
 
     <div id="weldJointsWrapper" style="display:none; margin-top:12px;">
-      <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">👉 જોઈન્ટ પર ક્લિક કરી વેલ્ડીંગ વિગત ભરો:</label>
+      <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">👉 Select Joint to Fill Welding Details:</label>
       <div id="weldJointsList"></div>
 
-      <label style="margin-top:15px; font-weight:bold; color:#1e3a8a;">📅 Weld Visual Date (બધા ભરેલા જોઈન્ટ્સ માટે):</label>
+      <label style="margin-top:15px; font-weight:bold; color:#1e3a8a;">📅 Weld Visual Date:</label>
       <input type="date" id="common_weld_date" required>
 
-      <button type="submit" class="btn-submit">💾 Save</button>
+      <button type="submit" class="btn-submit">💾 Save All Filled Joints</button>
     </div>
 
     <a href="#menu" class="btn-back">⬅ Back</a>
@@ -20,10 +20,12 @@
   <div id="weldMsg" class="msg"></div>
 </div>
 
+<!-- Welding Details Popup Modal with Layers -->
 <div id="weldModal" class="modal-overlay">
   <div class="modal-box" style="max-height: 90vh; overflow-y: auto;">
     <h3 style="margin-top:0; font-size:16px; color:#1e40af;" id="modalJointTitle">Welding Details</h3>
 
+    <!-- 1. WPS Number Dropdown -->
     <label>1. WPS No:</label>
     <select id="modal_wps" required>
       <option value="">-- Select WPS --</option>
@@ -32,8 +34,10 @@
       <option value="MPL/AIPL/WPS-08">MPL/AIPL/WPS-08</option>
     </select>
 
+    <!-- Layer 1 -->
     <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px; margin-top:10px;">
       <div style="font-weight:bold; font-size:12px; color:#1e40af; margin-bottom:4px;">🔸 Layer 1:</div>
+      
       <label style="font-size:11px; margin-top:4px;">Welding Process:</label>
       <select id="modal_proc1">
         <option value="GTAW">GTAW</option>
@@ -50,8 +54,10 @@
       <input type="text" id="modal_welder1" placeholder="e.g. W700" required>
     </div>
 
+    <!-- Layer 2 -->
     <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px; margin-top:10px;">
-      <div style="font-weight:bold; font-size:12px; color:#1e40af; margin-bottom:4px;">🔸 Layer 2 (Optional):</div>
+      <div style="font-weight:bold; font-size:12px; color:#1e40af; margin-bottom:4px;">🔸 Layer 2 (Optional / 2nd Process):</div>
+      
       <label style="font-size:11px; margin-top:4px;">Welding Process:</label>
       <select id="modal_proc2">
         <option value="SMAW">SMAW</option>
