@@ -1,32 +1,79 @@
 <div class="card active">
-  <h3>Welding Entry</h3>
+  <h3>⚡ Welding Entry</h3>
   <form id="weldForm">
-    <label>Drawing No:</label>
-    <input type="text" id="weld_drawing_search" placeholder="Enter Drawing No.." oninput="handleWeldDrawingSearch()" autocomplete="off">
+    <label>1. Filter Drawing No (Fit-up Completed):</label>
+    <input type="text" id="weld_drawing_search" placeholder="🔍 Type Drawing No..." oninput="handleWeldDrawingSearch()" autocomplete="off">
     <div id="weldDrawingResults" class="search-results"></div>
 
     <div id="weldJointsWrapper" style="display:none; margin-top:12px;">
-      <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">Fill WPS & Welder No:</label>
+      <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">👉 જોઈન્ટ પર ક્લિક કરી વેલ્ડીંગ વિગત ભરો:</label>
       <div id="weldJointsList"></div>
 
-      <label style="margin-top:15px;">Welding date:</label>
+      <label style="margin-top:15px; font-weight:bold; color:#1e3a8a;">📅 Weld Visual Date (બધા ભરેલા જોઈન્ટ્સ માટે):</label>
       <input type="date" id="common_weld_date" required>
 
       <button type="submit" class="btn-submit">💾 Save</button>
     </div>
 
-    <a href="#menu" class="btn-back">⬅Back</a>
+    <a href="#menu" class="btn-back">⬅ Back</a>
   </form>
   <div id="weldMsg" class="msg"></div>
 </div>
 
+<!-- Welding Details Popup Modal -->
 <div id="weldModal" class="modal-overlay">
-  <div class="modal-box">
-    <h3 style="margin-top:0; font-size:16px; color:#1e40af;" id="modalJointTitle">વેલ્ડીંગ વિગત</h3>
-    <label>વેલ્ડર નંબર:</label>
-    <input type="text" id="modal_welder" placeholder="W-01" required>
-    <label>WPS નંબર:</label>
-    <input type="text" id="modal_wps" placeholder="WPS-05" required>
+  <div class="modal-box" style="max-height: 90vh; overflow-y: auto;">
+    <h3 style="margin-top:0; font-size:16px; color:#1e40af;" id="modalJointTitle">Welding Details</h3>
+
+    <!-- 1. WPS Number -->
+    <label>1. WPS No:</label>
+    <select id="modal_wps" required>
+      <option value="">-- Select WPS --</option>
+      <option value="MPL/AIPL/WPS-01">MPL/AIPL/WPS-01</option>
+      <option value="MPL/AIPL/WPS-02">MPL/AIPL/WPS-02</option>
+      <option value="MPL/AIPL/WPS-08">MPL/AIPL/WPS-08</option>
+    </select>
+
+    <!-- Layer 1 (Root) -->
+    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px; margin-top:10px;">
+      <div style="font-weight:bold; font-size:12px; color:#1e40af; margin-bottom:4px;">🔸 Layer 1:</div>
+      
+      <label style="font-size:11px; margin-top:4px;">Welding Process:</label>
+      <select id="modal_proc1">
+        <option value="GTAW">GTAW</option>
+        <option value="SMAW">SMAW</option>
+      </select>
+
+      <label style="font-size:11px; margin-top:4px;">Weld Layer:</label>
+      <select id="modal_layer1">
+        <option value="Root">Root</option>
+        <option value="Cap">Cap</option>
+      </select>
+
+      <label style="font-size:11px; margin-top:4px;">Welder No:</label>
+      <input type="text" id="modal_welder1" placeholder="e.g. W700" required>
+    </div>
+
+    <!-- Layer 2 (Cap) -->
+    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px; margin-top:10px;">
+      <div style="font-weight:bold; font-size:12px; color:#1e40af; margin-bottom:4px;">🔸 Layer 2 (Optional / Second Process):</div>
+      
+      <label style="font-size:11px; margin-top:4px;">Welding Process:</label>
+      <select id="modal_proc2">
+        <option value="GTAW">GTAW</option>
+        <option value="SMAW">SMAW</option>
+      </select>
+
+      <label style="font-size:11px; margin-top:4px;">Weld Layer:</label>
+      <select id="modal_layer2">
+        <option value="Cap">Cap</option>
+        <option value="Root">Root</option>
+      </select>
+
+      <label style="font-size:11px; margin-top:4px;">Welder No:</label>
+      <input type="text" id="modal_welder2" placeholder="e.g. W700 or W710">
+    </div>
+
     <div style="display:flex; gap:8px; margin-top:15px;">
       <button type="button" class="btn-submit" style="margin-top:0;" onclick="saveModalDetails()">Save</button>
       <button type="button" class="btn-back" style="margin-top:0;" onclick="closeModal()">Cancel</button>

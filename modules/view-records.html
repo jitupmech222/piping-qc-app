@@ -1,13 +1,12 @@
 <div class="card active">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
     <h3 style="margin:0; border:none; padding:0;">📊 તમામ Piping QC રેકોર્ડ્સ</h3>
-    <button type="button" class="btn-remove-row" style="background:#2563eb; padding:5px 10px; font-size:12px;" onclick="resetColumnFilters()">🔄 રીસેટ ફિલ્ટર</button>
+    <button type="button" class="btn-remove-row" style="background:#2563eb; padding:5px 10px; font-size:12px;" onclick="resetColumnFilters()">🔄 Reset Filters</button>
   </div>
 
-  <div class="table-container" style="max-height: 70vh; overflow: auto; border: 1px solid #cbd5e1; border-radius: 8px;">
-    <table id="qcDataTable" style="width:100%; border-collapse:collapse; font-size:12px;">
+  <div class="table-container">
+    <table id="qcDataTable">
       <thead style="position: sticky; top: 0; z-index: 5;">
-        <!-- Header Names -->
         <tr style="background:#1e40af; color:white;">
           <th style="min-width: 140px;">Drawing No</th>
           <th style="min-width: 90px;">Spool No</th>
@@ -17,12 +16,12 @@
           <th style="min-width: 70px;">Type</th>
           <th style="min-width: 75px;">Joint Size</th>
           <th style="min-width: 95px;">Fit-up Date</th>
+          <th style="min-width: 100px;">Welding Process</th>
           <th style="min-width: 85px;">Welder No</th>
-          <th style="min-width: 80px;">WPS</th>
+          <th style="min-width: 130px;">WPS</th>
           <th style="min-width: 95px;">Weld Date</th>
           <th style="min-width: 110px;">Status</th>
         </tr>
-        <!-- Header Filters Row -->
         <tr style="background:#f1f5f9;">
           <th style="padding:4px;"><input type="text" class="col-filter" data-col="drawing_no" placeholder="🔍 Drawing..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
           <th style="padding:4px;"><input type="text" class="col-filter" data-col="spool_number" placeholder="🔍 Spool..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
@@ -32,12 +31,13 @@
           <th style="padding:4px;"><input type="text" class="col-filter" data-col="type_of_joint" placeholder="🔍 Type..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
           <th style="padding:4px;"><input type="text" class="col-filter" data-col="joint_size" placeholder="🔍 Size..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
           <th style="padding:4px;"><input type="text" class="col-filter" data-col="fit_up_date" placeholder="🔍 Date..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
+          <th style="padding:4px;"><input type="text" class="col-filter" data-col="welding_process" placeholder="🔍 Process..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
           <th style="padding:4px;"><input type="text" class="col-filter" data-col="welder_no" placeholder="🔍 Welder..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
           <th style="padding:4px;"><input type="text" class="col-filter" data-col="wps" placeholder="🔍 WPS..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
           <th style="padding:4px;"><input type="text" class="col-filter" data-col="weld_visual_date" placeholder="🔍 Date..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
           <th style="padding:4px;">
             <select class="col-filter" data-col="status" onchange="applyMultiColumnFilter()" style="margin:0; padding:4px 2px; font-size:11px;">
-              <option value="">બધા (All)</option>
+              <option value="">All</option>
               <option value="Fit-Up Completed">Fit-Up Completed</option>
               <option value="Welding Completed">Welding Completed</option>
             </select>
@@ -45,9 +45,9 @@
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="12" style="text-align:center; padding:15px;">⏳ ડેટા લોડ થઈ રહ્યો છે...</td></tr>
+        <tr><td colspan="13" style="text-align:center; padding:15px;">⏳ Loading...</td></tr>
       </tbody>
     </table>
   </div>
-  <a href="#menu" class="btn-back" style="margin-top:12px;">⬅ પાછા જાઓ</a>
+  <a href="#menu" class="btn-back" style="margin-top:12px;">⬅ Back</a>
 </div>
