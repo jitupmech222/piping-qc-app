@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
-    .container { max-width: 1000px; margin: 0 auto; }
+    .container { max-width: 1100px; margin: 0 auto; }
     .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); margin-top: 10px; }
     h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
@@ -20,18 +20,24 @@
     .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; text-align: center; display: block; text-decoration: none; box-sizing: border-box; }
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
     
-    .metric-banner { background: #dbeafe; border: 1.5px solid #3b82f6; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; justify-content: space-around; font-weight: bold; color: #1e3a8a; font-size: 13.5px; }
-    .metric-val { color: #dc2626; font-size: 16px; font-weight: 800; }
+    .metric-banner { background: #dbeafe; border: 1.5px solid #3b82f6; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; justify-content: space-around; font-weight: bold; color: #1e3a8a; font-size: 14px; }
+    .metric-val { color: #dc2626; font-size: 18px; font-weight: 800; }
 
-    .sub-btn-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; margin-bottom: 10px; }
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; color: #1e293b; }
     .sub-filter-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
 
-    .spool-list-box { max-height: 320px; overflow-y: auto; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 8px; margin-top: 8px; background: #fafafa; }
-    .spool-item { background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
-    .spool-item input[type="checkbox"] { width: auto; margin: 0 8px 0 0; }
-    
-    .table-container { overflow: auto; margin-top: 12px; max-height: 75vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
+    /* Search Dropdown / Result List */
+    .search-results-box { max-height: 180px; overflow-y: auto; border: 1.5px solid #3b82f6; border-radius: 6px; background: #ffffff; margin-top: 4px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .search-row-item { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .search-row-item:hover { background: #eff6ff; color: #1e40af; font-weight: bold; }
+
+    /* Selected Queue List */
+    .selected-queue-box { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px; margin-top: 12px; }
+    .queue-item { background: white; border: 1px solid #bbf7d0; border-radius: 6px; padding: 7px 10px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .btn-del { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; font-weight: bold; }
+
+    /* Balance Table at Bottom */
+    .table-container { overflow: auto; margin-top: 12px; max-height: 60vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 6px 8px; white-space: nowrap; }
     th { background: #1e40af; color: white; font-weight: 600; }
@@ -41,10 +47,9 @@
 <body>
 
 <div class="container">
-  <!-- Main Hub -->
+  <!-- ૧. Main Hub -->
   <div id="mainMenu" class="card">
     <h3>⚙️ Piping QC Workflow Stage Modules</h3>
-    <div id="loadingNotice" style="color: #2563eb; font-weight: bold; margin-bottom: 8px;">⏳ Loading all database records...</div>
     <div class="menu-grid">
       <button class="menu-btn" onclick="openStage('bending_issue')">1. ISSUED FOR BENDING</button>
       <button class="menu-btn" onclick="openStage('bend_entry')">2. BEND ENTRY</button>
@@ -61,7 +66,7 @@
     </div>
   </div>
 
-  <!-- Stage Detail Screen -->
+  <!-- ૨. Stage Detail Screen -->
   <div id="stageContainer" style="display: none;">
     <div class="card">
       <div class="metric-banner">
@@ -71,26 +76,60 @@
 
       <h3 id="stageTitle">Stage Title</h3>
 
-      <div id="subFilterArea" style="display: none;"></div>
+      <div id="subFilterArea" style="display: none; margin-bottom: 10px;"></div>
 
-      <label>Search Spool Number / Weld ID:</label>
-      <input type="text" id="spoolSearch" placeholder="🔍 Type to filter..." oninput="renderSpoolSelectionList()">
+      <!-- Search Section -->
+      <label>Search Spool Number / Weld ID / Drawing No:</label>
+      <input type="text" id="spoolSearch" placeholder="🔍 Type Spool or Weld ID..." oninput="handleSearchInput()" autocomplete="off">
+      <div id="searchResultBox" class="search-results-box"></div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-        <span style="font-size: 12px; color: #475569;" id="selectedCountText">Selected: 0</span>
-        <button type="button" class="sub-filter-btn" onclick="toggleSelectAll()">Select / Unselect All</button>
+      <!-- Selected Items Queue (Saved in bottom) -->
+      <div id="selectedQueueContainer" class="selected-queue-box">
+        <div style="font-weight: bold; color: #166534; display: flex; justify-content: space-between; align-items: center;">
+          <span>📋 Selected Spools Queue (<span id="queueCount">0</span> selected):</span>
+          <button type="button" class="btn-del" style="background:#dc2626;" onclick="clearQueue()">Clear All</button>
+        </div>
+        <div id="queueList" style="margin-top: 6px;">
+          <div style="color: #64748b; font-size: 12px;">No spools selected yet. Search above and click to add here.</div>
+        </div>
       </div>
 
-      <div id="spoolListBox" class="spool-list-box"></div>
+      <!-- Specific inputs per stage -->
+      <div id="customInputsArea" style="margin-top: 12px;"></div>
 
-      <div id="customInputsArea" style="margin-top: 10px;"></div>
-
-      <button type="button" class="btn-submit" onclick="submitCurrentStage()">💾 Save Updates</button>
+      <button type="button" class="btn-submit" onclick="submitCurrentStage()">💾 Save Updates for All Selected Spools</button>
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
+    </div>
+
+    <!-- ૩. Balance Data Table (Shown at bottom after Back to Menu) -->
+    <div class="card" style="margin-top: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 Balance Pending Records in this Stage (<span id="tableTotalCount">0</span>)</h3>
+        <span style="font-size: 12px; color: #64748b;">Click "+ Add" to quickly add to selection</span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead style="position: sticky; top: 0; z-index: 5;">
+            <tr style="background:#1e40af; color:white;">
+              <th style="text-align:center;">Action</th>
+              <th>Spool Unique No</th>
+              <th>WELD ID</th>
+              <th>ISO No / Drawing No</th>
+              <th>Spool Size</th>
+              <th>Rev No</th>
+              <th>Allocation</th>
+              <th>BEND QTY</th>
+            </tr>
+          </thead>
+          <tbody id="stageBalanceTableBody">
+            <tr><td colspan="8" style="text-align:center; padding:15px;">⏳ Loading records...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- View Records -->
+  <!-- ૪. View Full Register -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -123,55 +162,14 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let rawData = [];
   let currentStage = '';
   let stageFilteredRows = [];
+  let selectedQueue = []; // Accumulator Queue for multiple search additions
   let activeSubFilter = '';
-  let isDataLoaded = false;
+  let allRecordsCache = [];
 
   const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
   const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
-
-  window.addEventListener('DOMContentLoaded', async () => {
-    await fetchAllData();
-  });
-
-  // ૧,૦૦૦ ની મર્યાદા વટાવી તમામ ૩,૮૦૦+ રેકોર્ડ્સ બેચમાં લોડ કરવાનું ફંક્શન
-  async function fetchAllData() {
-    try {
-      const notice = document.getElementById('loadingNotice');
-      let allRows = [];
-      let from = 0;
-      const step = 1000;
-      let hasMore = true;
-
-      while (hasMore) {
-        if (notice) notice.innerText = `⏳ Loading records (${from} loaded)...`;
-        const { data, error } = await db.from('piping_joints')
-          .select('*')
-          .order('id', { ascending: true })
-          .range(from, from + step - 1);
-
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          allRows = allRows.concat(data);
-          from += step;
-          if (data.length < step) hasMore = false;
-        } else {
-          hasMore = false;
-        }
-      }
-
-      rawData = allRows;
-      isDataLoaded = true;
-      if (notice) notice.innerText = `✅ Database Connected: ${rawData.length} records loaded.`;
-    } catch(e) {
-      console.error("Data Load Error:", e);
-      const notice = document.getElementById('loadingNotice');
-      if (notice) notice.innerText = `❌ Error loading records: ${e.message}`;
-    }
-  }
 
   function backToMenu() {
     document.getElementById('stageContainer').style.display = 'none';
@@ -179,31 +177,21 @@
     document.getElementById('mainMenu').style.display = 'block';
   }
 
-  function isBlank(v) {
-    if (v === null || v === undefined) return true;
-    const str = String(v).trim();
-    return str === '' || str === '-' || str.toLowerCase() === 'null';
-  }
-  function isFilled(v) {
-    return !isBlank(v);
-  }
-
   async function openStage(stage) {
     currentStage = stage;
+    selectedQueue = [];
     document.getElementById('mainMenu').style.display = 'none';
-
-    if (!isDataLoaded || rawData.length === 0) {
-      await fetchAllData();
-    }
 
     if (stage === 'view_records') {
       document.getElementById('recordsContainer').style.display = 'block';
-      renderRegisterTable();
+      loadFullRegister();
       return;
     }
 
     document.getElementById('stageContainer').style.display = 'block';
     setupStageUI(stage);
+    renderQueueList();
+    await loadStageData(stage);
   }
 
   function setupStageUI(stage) {
@@ -217,13 +205,13 @@
 
     if (stage === 'bending_issue') {
       title.innerText = '1. ISSUED FOR BENDING';
-      customArea.innerHTML = `<label>📅 Issued For Bending Date:</label><input type="date" id="input_date" required>`;
+      customArea.innerHTML = `<label>📅 Issued For Bending Date (બધા પસંદ કરેલા સ્પૂલ્સ માટે):</label><input type="date" id="input_date" required>`;
     } 
     else if (stage === 'bend_entry') {
       title.innerText = '2. BEND ENTRY';
       customArea.innerHTML = `
-        <label>BEND QTY (Editable):</label><input type="text" id="input_bend_qty" placeholder="Enter Bend Qty">
-        <label>WELD ID (Editable):</label><input type="text" id="input_weld_id" placeholder="Enter Weld ID">
+        <label>BEND QTY (Optional Override):</label><input type="text" id="input_bend_qty" placeholder="Enter Bend Qty">
+        <label>WELD ID (Optional Override):</label><input type="text" id="input_weld_id" placeholder="Enter Weld ID">
         <label>📅 Bend Date:</label><input type="date" id="input_date" required>`;
     }
     else if (stage === 'fitup_issue') {
@@ -282,150 +270,174 @@
         <input type="text" id="input_dc_no" placeholder="Enter DC No" required>
         <label>📅 FD Date:</label><input type="date" id="input_date" required>`;
     }
+  }
 
-    applyStageFilters();
+  async function loadStageData(stage) {
+    document.getElementById('metricSpools').innerText = '...';
+    document.getElementById('metricWelds').innerText = '...';
+    document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#2563eb;">⏳ Loading balance records...</td></tr>';
+
+    let query = db.from('piping_joints').select('*');
+
+    if (stage === 'bending_issue') {
+      query = query.is('Bend_date', null).is('Issued_for_bending', null);
+    } else if (stage === 'bend_entry') {
+      query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
+    } else if (stage === 'fitup_issue') {
+      query = query.not('Bend_date', 'is', null).is('Issue_for_fitup', null);
+    } else if (stage === 'fitter_name') {
+      query = query.not('Issue_for_fitup', 'is', null).is('Fitter_name', null);
+    } else if (stage === 'ready_fitup') {
+      query = query.eq('Fitter_name', activeSubFilter).is('Ready_for_fitup_insp', null);
+    } else if (stage === 'fitup_entry') {
+      query = query.not('Ready_for_fitup_insp', 'is', null).is('Fit_up_date', null);
+    } else if (stage === 'welder_name') {
+      query = query.not('Fit_up_date', 'is', null).is('Welder_no', null);
+    } else if (stage === 'ready_weld') {
+      query = query.like('Welder_no', `%${activeSubFilter}%`).is('Ready_for_weld_visual', null);
+    } else if (stage === 'weld_visual') {
+      query = query.not('Ready_for_weld_visual', 'is', null).is('Weld_visual_date', null);
+    } else if (stage === 'ndt_clearance') {
+      query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
+    } else if (stage === 'fd') {
+      query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
+    }
+
+    const { data, error } = await query.order('id', { ascending: true }).limit(5000);
+
+    if (error) {
+      alert("Error loading stage data: " + error.message);
+      return;
+    }
+
+    stageFilteredRows = data || [];
+    updateMetrics();
+    renderStageBalanceTable();
   }
 
   function selectSubFilter(val, btn) {
     activeSubFilter = val;
     btn.parentNode.querySelectorAll('.sub-filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    applyStageFilters();
-  }
-
-  function applyStageFilters() {
-    stageFilteredRows = rawData.filter(r => {
-      const bendDate = r.Bend_date !== undefined ? r.Bend_date : r.bend_date;
-      const issuedBend = r.Issued_for_bending !== undefined ? r.Issued_for_bending : r.issued_for_bending;
-      const issueFitup = r.Issue_for_fitup !== undefined ? r.Issue_for_fitup : r.issue_for_fitup;
-      const fitterName = r.Fitter_name !== undefined ? r.Fitter_name : r.fitter_name;
-      const readyFitup = r.Ready_for_fitup_insp !== undefined ? r.Ready_for_fitup_insp : r.ready_for_fitup_insp;
-      const fitupDate = r.Fit_up_date !== undefined ? r.Fit_up_date : r.fit_up_date;
-      const welderNo = r.Welder_no !== undefined ? r.Welder_no : r.welder_no;
-      const readyWeld = r.Ready_for_weld_visual !== undefined ? r.Ready_for_weld_visual : r.ready_for_weld_visual;
-      const visualDate = r.Weld_visual_date !== undefined ? r.Weld_visual_date : r.weld_visual_date;
-      const ndtDate = r.Ndt_clearance !== undefined ? r.Ndt_clearance : r.ndt_clearance;
-      const fdDate = r.Fd_date !== undefined ? r.Fd_date : r.fd_date;
-
-      // ૧. ISSUED FOR BENDING
-      if (currentStage === 'bending_issue') {
-        return isBlank(bendDate) && isBlank(issuedBend);
-      }
-      // ૨. BEND ENTRY
-      if (currentStage === 'bend_entry') {
-        return isBlank(bendDate) && isFilled(issuedBend);
-      }
-      // ૩. ISSUE FOR FIT-UP
-      if (currentStage === 'fitup_issue') {
-        return isFilled(bendDate) && isBlank(issueFitup);
-      }
-      // ૪. FITTER NAME
-      if (currentStage === 'fitter_name') {
-        return isFilled(issueFitup) && isBlank(fitterName);
-      }
-      // ૫. READY FOR FIT-UP INSP
-      if (currentStage === 'ready_fitup') {
-        return isFilled(fitterName) && String(fitterName).trim() === activeSubFilter && isBlank(readyFitup);
-      }
-      // ૬. FIT UP ENTRY
-      if (currentStage === 'fitup_entry') {
-        return isFilled(readyFitup) && isBlank(fitupDate);
-      }
-      // ૭. WELDER NAME
-      if (currentStage === 'welder_name') {
-        return isFilled(fitupDate) && isBlank(welderNo);
-      }
-      // ૮. READY FOR WELD VISUAL
-      if (currentStage === 'ready_weld') {
-        return isFilled(welderNo) && String(welderNo).includes(activeSubFilter) && isBlank(readyWeld);
-      }
-      // ૯. WELD VISUAL
-      if (currentStage === 'weld_visual') {
-        return isFilled(readyWeld) && isBlank(visualDate);
-      }
-      // ૧૦. NDT CLEARANCE
-      if (currentStage === 'ndt_clearance') {
-        return isFilled(visualDate) && isBlank(ndtDate);
-      }
-      // ૧૧. FD & DC NO
-      if (currentStage === 'fd') {
-        return isFilled(ndtDate) && isBlank(fdDate);
-      }
-      return false;
-    });
-
-    updateMetrics();
-    renderSpoolSelectionList();
+    loadStageData(currentStage);
   }
 
   function updateMetrics() {
-    const uniqueSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
-    const uniqueWelds = stageFilteredRows.map(r => r.Weld_id || r.weld_id).filter(Boolean);
+    const uniqueSpools = new Set(stageFilteredRows.map(r => r.Spool_number).filter(Boolean));
+    const uniqueWelds = stageFilteredRows.map(r => r.Weld_id).filter(Boolean);
     document.getElementById('metricSpools').innerText = uniqueSpools.size;
     document.getElementById('metricWelds').innerText = uniqueWelds.length;
+    document.getElementById('tableTotalCount').innerText = stageFilteredRows.length;
   }
 
-  function renderSpoolSelectionList() {
-    const search = document.getElementById('spoolSearch').value.trim().toLowerCase();
-    const box = document.getElementById('spoolListBox');
-    
-    const displayList = stageFilteredRows.filter(r => {
-      const spl = String(r.Spool_number || r.spool_number || '').toLowerCase();
-      const wld = String(r.Weld_id || r.weld_id || '').toLowerCase();
-      const dwg = String(r.Drawing_no || r.drawing_no || '').toLowerCase();
-      return spl.includes(search) || wld.includes(search) || dwg.includes(search);
-    });
+  // --- SEARCH & QUEUE LOGIC (Search -> Select -> Add to Queue) ---
+  function handleSearchInput() {
+    const term = document.getElementById('spoolSearch').value.trim().toLowerCase();
+    const box = document.getElementById('searchResultBox');
 
-    if (displayList.length === 0) {
-      box.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">No Spools Available in this Stage</div>';
-      updateSelectedCounter();
+    if (!term) {
+      box.style.display = 'none';
       return;
     }
 
-    box.innerHTML = displayList.map(r => `
-      <div class="spool-item">
-        <label style="display:flex; align-items:center; margin:0; cursor:pointer; width:100%;">
-          <input type="checkbox" class="stage-row-chk" value="${r.id}" onchange="onSpoolCheck(this, '${r.id}')">
-          <span><b>${r.Spool_number || r.spool_number || 'N/A'}</b> | Weld ID: <b>${r.Weld_id || r.weld_id || '-'}</b> | Drawing: ${r.Drawing_no || r.drawing_no || '-'}</span>
-        </label>
+    const matched = stageFilteredRows.filter(r => {
+      const spl = String(r.Spool_number || '').toLowerCase();
+      const wld = String(r.Weld_id || '').toLowerCase();
+      const dwg = String(r.Drawing_no || '').toLowerCase();
+      return spl.includes(term) || wld.includes(term) || dwg.includes(term);
+    }).slice(0, 30); // Show top 30 matches
+
+    if (matched.length === 0) {
+      box.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:13px;">No matching pending spools found</div>';
+      box.style.display = 'block';
+      return;
+    }
+
+    box.innerHTML = matched.map(r => `
+      <div class="search-row-item" onclick="addToQueue(${r.id})">
+        <span><b>${r.Spool_number || 'N/A'}</b> | Weld ID: <b>${r.Weld_id || '-'}</b> | Dwg: ${r.Drawing_no || '-'}</span>
+        <button type="button" class="sub-filter-btn" style="padding:3px 8px; font-size:11px;">➕ Add</button>
       </div>
     `).join('');
-
-    updateSelectedCounter();
+    box.style.display = 'block';
   }
 
-  function onSpoolCheck(chk, id) {
-    updateSelectedCounter();
-    if (currentStage === 'bend_entry' && chk.checked) {
-      const r = rawData.find(x => x.id == id);
-      if (r) {
-        document.getElementById('input_bend_qty').value = r.Bend_qty || r.bend_qty || '';
-        document.getElementById('input_weld_id').value = r.Weld_id || r.weld_id || '';
-      }
+  function addToQueue(id) {
+    const already = selectedQueue.some(x => x.id === id);
+    if (already) {
+      alert("આ સ્પૂલ પહેલેથી લિસ્ટમાં ઉમેરેલું છે!");
+      return;
+    }
+    const item = stageFilteredRows.find(x => x.id === id);
+    if (item) {
+      selectedQueue.push(item);
+      renderQueueList();
+      document.getElementById('spoolSearch').value = '';
+      document.getElementById('searchResultBox').style.display = 'none';
+      document.getElementById('spoolSearch').focus();
     }
   }
 
-  function updateSelectedCounter() {
-    const count = document.querySelectorAll('.stage-row-chk:checked').length;
-    const txt = document.getElementById('selectedCountText');
-    if (txt) txt.innerText = `Selected: ${count}`;
+  function removeFromQueue(id) {
+    selectedQueue = selectedQueue.filter(x => x.id !== id);
+    renderQueueList();
   }
 
-  function toggleSelectAll() {
-    const chks = document.querySelectorAll('.stage-row-chk');
-    if (chks.length === 0) return;
-    const anyUnchecked = Array.from(chks).some(c => !c.checked);
-    chks.forEach(c => c.checked = anyUnchecked);
-    updateSelectedCounter();
+  function clearQueue() {
+    selectedQueue = [];
+    renderQueueList();
   }
 
-  async function submitCurrentStage() {
-    const selectedIds = Array.from(document.querySelectorAll('.stage-row-chk:checked')).map(c => parseInt(c.value));
-    if (selectedIds.length === 0) {
-      alert('કૃપા કરીને ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
+  function renderQueueList() {
+    const container = document.getElementById('queueList');
+    const countSpan = document.getElementById('queueCount');
+    countSpan.innerText = selectedQueue.length;
+
+    if (selectedQueue.length === 0) {
+      container.innerHTML = '<div style="color: #64748b; font-size: 12px; padding: 4px 0;">No spools selected yet. Search above and click to add here.</div>';
       return;
     }
 
+    container.innerHTML = selectedQueue.map((r, idx) => `
+      <div class="queue-item">
+        <span><b>#${idx + 1}</b> Spool: <b>${r.Spool_number || 'N/A'}</b> | Weld ID: <b>${r.Weld_id || '-'}</b> | Dwg: ${r.Drawing_no || '-'}</span>
+        <button type="button" class="btn-del" onclick="removeFromQueue(${r.id})">✕ Remove</button>
+      </div>
+    `).join('');
+  }
+
+  // --- BALANCE RECORDS TABLE AT BOTTOM ---
+  function renderStageBalanceTable() {
+    const tbody = document.getElementById('stageBalanceTableBody');
+    if (stageFilteredRows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#16a34a; font-weight:bold;">🎉 All spools completed in this stage!</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = stageFilteredRows.slice(0, 500).map(r => `
+      <tr>
+        <td style="text-align:center;">
+          <button type="button" class="sub-filter-btn" style="padding:2px 8px; font-size:11px;" onclick="addToQueue(${r.id})">➕ Add</button>
+        </td>
+        <td><b>${r.Spool_number || '-'}</b></td>
+        <td><b>${r.Weld_id || '-'}</b></td>
+        <td>${r.Drawing_no || '-'}</td>
+        <td>${r.Spool_size || '-'}</td>
+        <td>${r.Rev_no || '0'}</td>
+        <td>${r.Allocation || '-'}</td>
+        <td>${r.Bend_qty || '-'}</td>
+      </tr>
+    `).join('');
+  }
+
+  // --- SUBMIT UPDATES FOR ALL ACCUMULATED ITEMS IN QUEUE ---
+  async function submitCurrentStage() {
+    if (selectedQueue.length === 0) {
+      alert('કૃપા કરીને ઓછામાં ઓછો ૧ Spool સર્ચ કરીને Queue માં Add કરો.');
+      return;
+    }
+
+    const selectedIds = selectedQueue.map(x => x.id);
     const updates = {};
     const dateInput = document.getElementById('input_date');
     const enteredDate = dateInput ? dateInput.value : null;
@@ -489,20 +501,18 @@
       if (error) throw error;
 
       alert(`✅ ${selectedIds.length} Spools સફળતાપૂર્વક અપડેટ થઈ ગયા!`);
-      
-      rawData.forEach(r => {
-        if (selectedIds.includes(r.id)) {
-          Object.assign(r, updates);
-        }
-      });
-
-      applyStageFilters();
+      clearQueue();
+      loadStageData(currentStage);
     } catch(err) {
       alert('Error updating database: ' + err.message);
     }
   }
 
-  function renderRegisterTable() {
+  // --- FULL REGISTER ---
+  async function loadFullRegister() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px;">⏳ Loading full register...</td></tr>';
+    
     const theadFilter = document.getElementById('filterRow');
     const cols = [
       'drawing_no','spool_size','rev_no','allocation','spool_number','bend_qty','issued_for_bending',
@@ -510,8 +520,26 @@
       'fit_up_date','welder_no','ready_for_weld_visual','weld_visual_date','ndt_clearance','fd_date',
       'shift_dc_no','bill','remarks'
     ];
-
     theadFilter.innerHTML = cols.map(c => `<th><input type="text" class="tbl-filter" data-col="${c}" oninput="filterRegister()" placeholder="🔍"></th>`).join('');
+
+    let allRows = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+      if (error) break;
+      if (data && data.length > 0) {
+        allRows = allRows.concat(data);
+        from += step;
+        if (data.length < step) hasMore = false;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    allRecordsCache = allRows;
     filterRegister();
   }
 
@@ -522,7 +550,7 @@
       if (val) filters[i.getAttribute('data-col')] = val;
     });
 
-    const filtered = rawData.filter(r => {
+    const filtered = allRecordsCache.filter(r => {
       for (const [k, v] of Object.entries(filters)) {
         const itemVal = String(r[k] || r[k.charAt(0).toUpperCase() + k.slice(1)] || '').toLowerCase();
         if (!itemVal.includes(v)) return false;
@@ -533,28 +561,28 @@
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = filtered.slice(0, 1000).map(r => `
       <tr>
-        <td><b>${r.Drawing_no || r.drawing_no || '-'}</b></td>
-        <td>${r.Spool_size || r.spool_size || '-'}</td>
-        <td>${r.Rev_no || r.rev_no || '0'}</td>
-        <td>${r.Allocation || r.allocation || '-'}</td>
-        <td>${r.Spool_number || r.spool_number || '-'}</td>
-        <td>${r.Bend_qty || r.bend_qty || '-'}</td>
-        <td>${(r.Issued_for_bending || r.issued_for_bending || '').split('T')[0] || '-'}</td>
-        <td>${(r.Bend_date || r.bend_date || '').split('T')[0] || '-'}</td>
-        <td><b>${r.Weld_id || r.weld_id || '-'}</b></td>
-        <td>${(r.Issue_for_fitup || r.issue_for_fitup || '').split('T')[0] || '-'}</td>
-        <td>${r.Fitter_name || r.fitter_name || '-'}</td>
-        <td>${(r.Ready_for_fitup_insp || r.ready_for_fitup_insp || '').split('T')[0] || '-'}</td>
-        <td>${r.Report_no || r.report_no || '-'}</td>
-        <td>${(r.Fit_up_date || r.fit_up_date || '').split('T')[0] || '-'}</td>
-        <td>${r.Welder_no || r.welder_no || '-'}</td>
-        <td>${r.Ready_for_weld_visual || r.ready_for_weld_visual || '-'}</td>
-        <td>${(r.Weld_visual_date || r.weld_visual_date || '').split('T')[0] || '-'}</td>
-        <td>${(r.Ndt_clearance || r.ndt_clearance || '').split('T')[0] || '-'}</td>
-        <td>${(r.Fd_date || r.fd_date || '').split('T')[0] || '-'}</td>
-        <td>${r.Shift_dc_no || r.shift_dc_no || '-'}</td>
-        <td>${r.Bill || r.bill || '-'}</td>
-        <td>${r.Remarks || r.remarks || '-'}</td>
+        <td><b>${r.Drawing_no || '-'}</b></td>
+        <td>${r.Spool_size || '-'}</td>
+        <td>${r.Rev_no || '0'}</td>
+        <td>${r.Allocation || '-'}</td>
+        <td>${r.Spool_number || '-'}</td>
+        <td>${r.Bend_qty || '-'}</td>
+        <td>${(r.Issued_for_bending || '').split('T')[0] || '-'}</td>
+        <td>${(r.Bend_date || '').split('T')[0] || '-'}</td>
+        <td><b>${r.Weld_id || '-'}</b></td>
+        <td>${(r.Issue_for_fitup || '').split('T')[0] || '-'}</td>
+        <td>${r.Fitter_name || '-'}</td>
+        <td>${(r.Ready_for_fitup_insp || '').split('T')[0] || '-'}</td>
+        <td>${r.Report_no || '-'}</td>
+        <td>${(r.Fit_up_date || '').split('T')[0] || '-'}</td>
+        <td>${r.Welder_no || '-'}</td>
+        <td>${(r.Ready_for_weld_visual || '').split('T')[0] || '-'}</td>
+        <td>${(r.Weld_visual_date || '').split('T')[0] || '-'}</td>
+        <td>${(r.Ndt_clearance || '').split('T')[0] || '-'}</td>
+        <td>${(r.Fd_date || '').split('T')[0] || '-'}</td>
+        <td>${r.Shift_dc_no || '-'}</td>
+        <td>${r.Bill || '-'}</td>
+        <td>${r.Remarks || '-'}</td>
       </tr>
     `).join('');
   }
