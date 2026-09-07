@@ -6,51 +6,43 @@
   <title>Piping QC Workflow</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 16px; }
-    .container { max-width: 1150px; margin: 0 auto; }
-    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.06); margin-top: 12px; }
-    h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; font-size: 18px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
+    .container { max-width: 100%; margin: 0 auto; }
+    .card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.06); margin-top: 10px; }
+    h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 16px; }
     label { font-size: 13px; font-weight: 600; color: #334155; margin-top: 10px; display: block; }
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1.5px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13.5px; background: #fff; }
     input:focus, select:focus { outline: none; border-color: #0284c7; }
 
-    .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
-    .menu-btn { padding: 12px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 13px; cursor: pointer; text-align: center; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
-    .menu-btn:active { background: #1d4ed8; }
+    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+    .menu-btn { padding: 12px 6px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 13px; cursor: pointer; text-align: center; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
     .btn-view { background: #059669; }
-    .btn-back { background: #64748b; margin-top: 12px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; text-align: center; display: block; text-decoration: none; box-sizing: border-box; }
+    .btn-back { background: #64748b; margin-top: 12px; width: 100%; padding: 11px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; text-align: center; display: block; text-decoration: none; box-sizing: border-box; }
     .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 11px 20px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-    .btn-add-queue:hover { background: #0369a1; }
-    .btn-save-final { background: #15803d; color: white; border: none; border-radius: 6px; padding: 12px 24px; font-size: 14px; font-weight: bold; cursor: pointer; }
-    .btn-save-final:hover { background: #166534; }
+    .btn-save-final { background: #15803d; color: white; border: none; border-radius: 6px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 12px; }
 
-    .metric-banner { background: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 8px; padding: 12px; margin-bottom: 14px; display: flex; justify-content: space-around; font-weight: bold; color: #0369a1; font-size: 14.5px; }
-    .metric-val { color: #dc2626; font-size: 19px; font-weight: 800; }
+    .metric-banner { background: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; justify-content: space-around; font-weight: bold; color: #0369a1; font-size: 13.5px; }
+    .metric-val { color: #dc2626; font-size: 17px; font-weight: 800; }
 
-    /* Search Dropdown */
     .search-box-wrapper { position: relative; }
-    .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1.5px solid #0284c7; border-top: none; border-radius: 0 0 8px 8px; max-height: 220px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.12); display: none; }
-    .dropdown-row { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; }
-    .dropdown-row:hover { background: #e0f2fe; color: #0284c7; font-weight: 600; }
+    .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1.5px solid #0284c7; border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.12); display: none; }
+    .dropdown-row { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; }
 
-    /* Form Preview Card for Bend Entry */
-    .edit-form-box { background: #f8fafc; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 14px; margin-top: 12px; display: none; }
-    .edit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .edit-form-box { background: #f8fafc; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 12px; margin-top: 10px; display: none; }
+    .edit-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
 
-    /* Selected Table */
-    .selected-table-container { margin-top: 14px; border: 1.5px solid #0f172a; border-radius: 6px; overflow: hidden; }
-    .selected-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .selected-table th { background: #0f172a; color: white; padding: 10px; text-align: left; font-weight: 600; }
-    .selected-table td { padding: 9px 10px; border-bottom: 1px solid #e2e8f0; }
-    .btn-remove { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11.5px; font-weight: bold; cursor: pointer; }
+    .selected-table-container { margin-top: 10px; border: 1.5px solid #0f172a; border-radius: 6px; overflow-x: auto; }
+    .selected-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+    .selected-table th { background: #0f172a; color: white; padding: 8px; text-align: left; font-weight: 600; }
+    .selected-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+    .btn-remove { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; color: #1e293b; }
     .sub-filter-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
 
-    /* Bottom Balance Table */
-    .balance-table-container { overflow: auto; margin-top: 12px; max-height: 55vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
+    .balance-table-container { overflow: auto; margin-top: 10px; max-height: 50vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 7px 9px; white-space: nowrap; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; white-space: nowrap; }
     th { background: #1e40af; color: white; font-weight: 600; }
     tr:nth-child(even) { background: #f8fafc; }
   </style>
@@ -58,7 +50,6 @@
 <body>
 
 <div class="container">
-  <!-- Hub -->
   <div id="mainMenu" class="card">
     <h3>⚙️ Piping QC Workflow Stage Modules</h3>
     <div class="menu-grid">
@@ -77,26 +68,24 @@
     </div>
   </div>
 
-  <!-- Stage Screen -->
   <div id="stageContainer" style="display: none;">
     <div class="card">
       <div class="metric-banner">
-        <div>BALANCE SPOOL NUMBER = <span id="metricSpools" class="metric-val">0</span></div>
-        <div>BALANCE WELD ID (SUM) = <span id="metricWelds" class="metric-val">0</span></div>
+        <div>BALANCE SPOOL = <span id="metricSpools" class="metric-val">0</span></div>
+        <div>WELD ID (SUM) = <span id="metricWelds" class="metric-val">0</span></div>
       </div>
 
       <h3 id="stageTitle">Stage Title</h3>
-
       <div id="subFilterArea" style="display: none; margin-bottom: 10px;"></div>
 
-      <!-- Search Box with Live Dropdown -->
+      <!-- 1. Search Box -->
       <label>Search Spool Number / Drawing No:</label>
       <div class="search-box-wrapper">
         <input type="text" id="spoolSearch" placeholder="Type spool no (e.g. 4-416 or 6-444)..." oninput="handleSearchInput()" autocomplete="off">
         <div id="searchDropdown" class="search-dropdown"></div>
       </div>
 
-      <!-- Editable Preview Form for Bend Entry -->
+      <!-- 2. Modify Values & Add to Queue -->
       <div id="bendEditForm" class="edit-form-box">
         <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Modify Values & Add to Queue:</div>
         <div class="edit-grid">
@@ -109,88 +98,77 @@
         <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Bottom Selected List</button>
       </div>
 
-      <!-- Selected Spools Queue Section -->
-      <div style="margin-top: 22px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-          <span style="font-size: 15px; font-weight: bold; color: #0f172a;">
-            Selected Spools Queue (<span id="queueCount">0</span>)
-          </span>
-          <button type="button" class="btn-save-final" onclick="submitCurrentStage()">💾 SAVE ALL TO DATABASE</button>
-        </div>
-
-        <!-- Date / Extra Inputs Per Stage -->
-        <div id="customInputsArea" style="margin-top: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;"></div>
-
-        <!-- Selected Spools Table -->
+      <!-- 3. Selected Spools Queue List Table -->
+      <div style="margin-top: 18px;">
+        <span style="font-size: 14px; font-weight: bold; color: #0f172a;">
+          Selected Spools Queue (<span id="queueCount">0</span>)
+        </span>
         <div class="selected-table-container">
           <table class="selected-table">
             <thead>
               <tr>
-                <th style="width: 40px; text-align: center;">Sr.</th>
-                <th style="width: 160px;">Spool Unique No</th>
-                <th>ISO No / Drawing No / Line No</th>
-                <th style="width: 100px;">Bend Qty</th>
-                <th style="width: 100px;">Weld ID</th>
-                <th style="width: 80px; text-align: center;">Action</th>
+                <th style="width: 30px; text-align: center;">Sr.</th>
+                <th>Spool Unique No</th>
+                <th>Drawing No</th>
+                <th>Bend Qty</th>
+                <th>Weld ID</th>
+                <th style="text-align: center;">Action</th>
               </tr>
             </thead>
             <tbody id="selectedTableBody">
               <tr>
-                <td colspan="6" style="text-align: center; color: #64748b; padding: 16px;">No spools selected. Search and add spools above.</td>
+                <td colspan="6" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
+      <!-- 4. Date Input (Before Save) -->
+      <div id="customInputsArea" style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;"></div>
+
+      <!-- 5. In Last Save Button -->
+      <button type="button" class="btn-save-final" onclick="submitCurrentStage()">💾 SAVE ALL TO DATABASE</button>
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
-    <!-- Total Balance Table -->
-    <div class="card" style="margin-top: 14px;">
+    <div class="card" style="margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 TOTAL BALANCE DRAWING & SPOOL LIST (<span id="tableTotalCount">0</span>)</h3>
-        <span style="font-size: 12px; color: #64748b;">Pending in this stage</span>
+        <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
       </div>
       <div class="balance-table-container">
         <table>
           <thead style="position: sticky; top: 0; z-index: 5;">
             <tr style="background:#1e40af; color:white;">
-              <th style="text-align:center; width:60px;">Action</th>
-              <th>ISO No / Drawing No / Line No</th>
+              <th style="text-align:center; width:50px;">Action</th>
+              <th>Drawing No</th>
               <th>Spool Unique No</th>
               <th>WELD ID</th>
-              <th>Spool Size</th>
-              <th>Rev No</th>
-              <th>Allocation</th>
               <th>BEND QTY</th>
             </tr>
           </thead>
           <tbody id="stageBalanceTableBody">
-            <tr><td colspan="8" style="text-align:center; padding:15px; color:#2563eb;">⏳ Loading balance records...</td></tr>
+            <tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- Full Register -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0; border:none;">📊 Piping QC Master Register (22 Columns)</h3>
+        <h3 style="margin:0; border:none;">📊 Master Register</h3>
         <button type="button" class="sub-filter-btn" onclick="resetColumnFilters()">🔄 Reset</button>
       </div>
-
       <div class="balance-table-container" style="max-height: 75vh;">
         <table id="qcDataTable">
           <thead style="position: sticky; top: 0; z-index: 5;">
             <tr style="background:#1e40af; color:white;">
-              <th>ISO No/Drawing No</th><th>Spool Size</th><th>Rev No</th><th>Allocation</th>
-              <th>Spool Unique No</th><th>BEND QTY</th><th>ISSUED FOR BENDING</th><th>BEND DATE</th>
-              <th>WELD ID</th><th>ISSUE FOR FIT-UP</th><th>FITTER NAME</th><th>READY FIT-UP INSP</th>
-              <th>REPORT NO</th><th>FIT UP Date</th><th>WELDER NAME</th><th>READY WELD VISUAL</th>
-              <th>VISUAL Date</th><th>NDT CLEARANCE</th><th>FD Date</th><th>DC No</th><th>BILL</th><th>REMARKS</th>
+              <th>Drawing No</th><th>Spool Size</th><th>Rev No</th><th>Allocation</th><th>Spool Unique No</th>
+              <th>BEND QTY</th><th>ISSUED FOR BENDING</th><th>BEND DATE</th><th>WELD ID</th><th>ISSUE FOR FIT-UP</th>
+              <th>FITTER NAME</th><th>READY FIT-UP INSP</th><th>REPORT NO</th><th>FIT UP Date</th><th>WELDER NAME</th>
+              <th>READY WELD VISUAL</th><th>VISUAL Date</th><th>NDT CLEARANCE</th><th>FD Date</th><th>DC No</th><th>BILL</th><th>REMARKS</th>
             </tr>
             <tr style="background:#f1f5f9;" id="filterRow"></tr>
           </thead>
@@ -286,10 +264,8 @@
     else if (stage === 'welder_name') {
       title.innerText = '7. WELDER NAME MODULE';
       customArea.innerHTML = `
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-          <div><label style="margin-top:0;">Welder No - 1:</label><select id="input_welder1"><option value="">-- Select Welder 1 --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select></div>
-          <div><label style="margin-top:0;">Welder No - 2 (Optional):</label><select id="input_welder2"><option value="">-- Select Welder 2 (None) --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select></div>
-        </div>`;
+        <label style="margin-top:0;">Welder No - 1:</label><select id="input_welder1"><option value="">-- Select Welder 1 --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select>
+        <label style="margin-top:6px;">Welder No - 2 (Optional):</label><select id="input_welder2"><option value="">-- Select Welder 2 (None) --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select>`;
     }
     else if (stage === 'ready_weld') {
       title.innerText = '8. READY FOR WELD VISUAL MODULE';
@@ -310,17 +286,15 @@
     else if (stage === 'fd') {
       title.innerText = '11. FINAL DISPATCH & DC NO MODULE';
       customArea.innerHTML = `
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-          <div><label style="margin-top:0;">Shift to Laydown / Painting Yard DC No:</label><input type="text" id="input_dc_no" placeholder="Enter DC No" required></div>
-          <div><label style="margin-top:0;">📅 FD Date:</label><input type="date" id="input_date" required></div>
-        </div>`;
+        <label style="margin-top:0;">Shift DC No:</label><input type="text" id="input_dc_no" placeholder="Enter DC No" required>
+        <label style="margin-top:6px;">📅 FD Date:</label><input type="date" id="input_date" required>`;
     }
   }
 
   async function loadStageData(stage) {
     document.getElementById('metricSpools').innerText = '...';
     document.getElementById('metricWelds').innerText = '...';
-    document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#2563eb;">⏳ Loading balance records...</td></tr>';
+    document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>';
 
     let query = db.from('piping_joints').select('*');
 
@@ -367,7 +341,6 @@
     loadStageData(currentStage);
   }
 
-  // --- BALANCE METRICS (WELD ID SUM) ---
   function updateMetrics() {
     const uniqueSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
     
@@ -386,7 +359,6 @@
     document.getElementById('tableTotalCount').innerText = stageFilteredRows.length;
   }
 
-  // --- SEARCH & DROPDOWN ---
   function handleSearchInput() {
     const term = document.getElementById('spoolSearch').value.trim().toLowerCase();
     const dropdown = document.getElementById('searchDropdown');
@@ -404,7 +376,7 @@
     }).slice(0, 35);
 
     if (matched.length === 0) {
-      dropdown.innerHTML = '<div style="padding:12px; color:#94a3b8; font-size:13px; text-align:center;">No Pending Spools Found</div>';
+      dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:13px; text-align:center;">No Spools Found</div>';
       dropdown.style.display = 'block';
       return;
     }
@@ -413,15 +385,14 @@
       <div class="dropdown-row" onclick="onSpoolSelect(${r.id})">
         <div>
           <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
-          <span style="font-size: 11.5px; color: #0369a1; margin-left: 8px;">(Weld ID: ${r.Weld_id || '-'}, Bend: ${r.Bend_qty || '-'})</span>
+          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Weld ID: ${r.Weld_id || '-'})</span>
         </div>
-        <span style="color: #475569;">${r.Drawing_no || '-'}</span>
+        <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || '-'}</span>
       </div>
     `).join('');
     dropdown.style.display = 'block';
   }
 
-  // જ્યારે સર્ચમાંથી સ્પૂલ સિલેક્ટ થાય:
   function onSpoolSelect(id) {
     if (selectedQueue.some(x => x.id === id)) {
       alert("⚠️ આ સ્પૂલ પહેલેથી નીચેના લિસ્ટમાં ઉમેરેલું છે!");
@@ -435,7 +406,6 @@
     document.getElementById('searchDropdown').style.display = 'none';
 
     if (currentStage === 'bend_entry') {
-      // Bend Entry મોડ્યુલ માટે Preview Form બતાવો જેથી Bend Qty અને Weld ID એડિટ કરી શકાય
       document.getElementById('bendEditForm').style.display = 'block';
       document.getElementById('form_item_id').value = item.id;
       document.getElementById('form_spool_no').value = item.Spool_number || '';
@@ -444,13 +414,11 @@
       document.getElementById('form_weld_id').value = item.Weld_id || '';
       document.getElementById('form_bend_qty').focus();
     } else {
-      // અન્ય મોડ્યુલ્સ માટે સીધું Queue માં એડ કરો
       selectedQueue.push(item);
       renderSelectedTable();
     }
   }
 
-  // ફોર્મમાંથી મોડિફાય કરેલી કિંમત સાથે Queue માં એડ કરો
   function confirmAddFormToQueue() {
     const id = parseInt(document.getElementById('form_item_id').value);
     const item = stageFilteredRows.find(x => x.id === id);
@@ -467,7 +435,6 @@
 
     document.getElementById('bendEditForm').style.display = 'none';
     renderSelectedTable();
-    document.getElementById('spoolSearch').focus();
   }
 
   function removeSpoolFromQueue(id) {
@@ -475,13 +442,12 @@
     renderSelectedTable();
   }
 
-  // --- RENDER SELECTED TABLE (BOTTOM QUEUE) ---
   function renderSelectedTable() {
     const tbody = document.getElementById('selectedTableBody');
     document.getElementById('queueCount').innerText = selectedQueue.length;
 
     if (selectedQueue.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 16px;">No spools selected. Search and add spools above.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td></tr>`;
       return;
     }
 
@@ -493,37 +459,32 @@
         <td style="font-weight: bold; color: #166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td>
         <td style="font-weight: bold; color: #0284c7;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>
         <td style="text-align: center;">
-          <button type="button" class="btn-remove" onclick="removeSpoolFromQueue(${r.id})">✕ Remove</button>
+          <button type="button" class="btn-remove" onclick="removeSpoolFromQueue(${r.id})">✕</button>
         </td>
       </tr>
     `).join('');
   }
 
-  // --- TOTAL BALANCE TABLE (AT BOTTOM) ---
   function renderStageBalanceTable() {
     const tbody = document.getElementById('stageBalanceTableBody');
     if (stageFilteredRows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#16a34a; font-weight:bold;">🎉 All drawings/spools cleared in this stage!</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#16a34a; font-weight:bold;">🎉 All cleared!</td></tr>';
       return;
     }
 
     tbody.innerHTML = stageFilteredRows.slice(0, 500).map(r => `
       <tr>
         <td style="text-align:center;">
-          <button type="button" class="sub-filter-btn" style="padding:3px 8px; font-size:11px;" onclick="onSpoolSelect(${r.id})">➕ Select</button>
+          <button type="button" class="sub-filter-btn" style="padding:3px 6px; font-size:11px;" onclick="onSpoolSelect(${r.id})">➕</button>
         </td>
-        <td><b>${r.Drawing_no || '-'}</b></td>
+        <td>${r.Drawing_no || '-'}</td>
         <td><b>${r.Spool_number || '-'}</b></td>
         <td><b>${r.Weld_id || '-'}</b></td>
-        <td>${r.Spool_size || '-'}</td>
-        <td>${r.Rev_no || '0'}</td>
-        <td>${r.Allocation || '-'}</td>
         <td>${r.Bend_qty || '-'}</td>
       </tr>
     `).join('');
   }
 
-  // --- SAVE UPDATES (તમામ પસંદ કરેલા સ્પૂલ્સ માટે એકસાથે સેવ) ---
   async function submitCurrentStage() {
     if (selectedQueue.length === 0) {
       alert('કૃપા કરીને સર્ચ કરીને ઓછામાં ઓછો ૧ Spool લિસ્ટમાં Add કરો.');
@@ -535,7 +496,6 @@
 
     if (currentStage === 'bend_entry') {
       if (!enteredDate) return alert('કૃપા કરીને Bend Date પસંદ કરો.');
-      
       for (const item of selectedQueue) {
         const updateData = {
           Bend_date: enteredDate,
@@ -544,7 +504,7 @@
         };
         const { error } = await db.from('piping_joints').update(updateData).eq('id', item.id);
         if (error) {
-          alert(`Spool ${item.Spool_number} અપડેટ કરવામાં ભૂલ: ` + error.message);
+          alert(`Error updating spool ${item.Spool_number}: ` + error.message);
           return;
         }
       }
@@ -621,10 +581,9 @@
     loadStageData(currentStage);
   }
 
-  // --- FULL REGISTER ---
   async function loadFullRegister() {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px;">⏳ Loading full register...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px;">⏳ Loading...</td></tr>';
     
     const theadFilter = document.getElementById('filterRow');
     const cols = [
