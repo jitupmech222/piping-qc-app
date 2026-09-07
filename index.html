@@ -25,13 +25,13 @@
     .metric-banner { background: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 8px; padding: 12px; margin-bottom: 14px; display: flex; justify-content: space-around; font-weight: bold; color: #0369a1; font-size: 14.5px; }
     .metric-val { color: #dc2626; font-size: 19px; font-weight: 800; }
 
-    /* Search Dropdown / Suggestion List */
+    /* Search Dropdown (Reference Image 1) */
     .search-box-wrapper { position: relative; }
     .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1.5px solid #0284c7; border-top: none; border-radius: 0 0 8px 8px; max-height: 220px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.12); display: none; }
     .dropdown-row { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; }
     .dropdown-row:hover { background: #e0f2fe; color: #0284c7; font-weight: 600; }
 
-    /* Selected Table */
+    /* Selected Spools Table (Reference Image 2) */
     .selected-table-container { margin-top: 14px; border: 1.5px solid #0f172a; border-radius: 6px; overflow: hidden; }
     .selected-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .selected-table th { background: #0f172a; color: white; padding: 10px; text-align: left; font-weight: 600; }
@@ -42,7 +42,7 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; color: #1e293b; }
     .sub-filter-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
 
-    /* Total Balance Drawing Table at Bottom */
+    /* Total Balance Table at Bottom */
     .balance-table-container { overflow: auto; margin-top: 12px; max-height: 55vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 7px 9px; white-space: nowrap; }
@@ -53,7 +53,7 @@
 <body>
 
 <div class="container">
-  <!-- Main Hub -->
+  <!-- ૧. Main Hub -->
   <div id="mainMenu" class="card">
     <h3>⚙️ Piping QC Workflow Stage Modules</h3>
     <div class="menu-grid">
@@ -72,7 +72,7 @@
     </div>
   </div>
 
-  <!-- Stage Screen -->
+  <!-- ૨. Stage Screen -->
   <div id="stageContainer" style="display: none;">
     <div class="card">
       <div class="metric-banner">
@@ -350,19 +350,31 @@
     loadStageData(currentStage);
   }
 
-  // --- BALANCE METRICS WITH SUM OF WELD ID ---
+  // --- BALANCE METRICS WITH MATHEMATICAL SUM OF WELD ID ---
   function updateMetrics() {
-    const uniqueSpools = new Set(stageFilteredRows.map(r => r.Spool_number).filter(Boolean));
+    const uniqueSpools = new Set(
+      stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean)
+    );
     
-    // WELD ID નો સરવાળો (SUM)
-    const totalWeldSum = stageFilteredRows.reduce((sum, r) => {
-      const val = parseFloat(r.Weld_id);
-      return sum + (!isNaN(val) ? val : 0);
-    }, 0);
+    let totalWeldSum = 0;
+    stageFilteredRows.forEach(r => {
+      const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+        const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+        const num = parseFloat(cleaned);
+        if (!isNaN(num)) {
+          totalWeldSum += num;
+        }
+      }
+    });
 
     document.getElementById('metricSpools').innerText = uniqueSpools.size;
-    document.getElementById('metricWelds').innerText = Number.isInteger(totalWeldSum) ? totalWeldSum : totalWeldSum.toFixed(2);
-    document.getElementById('tableTotalCount').innerText = stageFilteredRows.length;
+    document.getElementById('metricWelds').innerText = Number.isInteger(totalWeldSum) 
+      ? totalWeldSum 
+      : parseFloat(totalWeldSum.toFixed(2));
+
+    const totalTbl = document.getElementById('tableTotalCount');
+    if (totalTbl) totalTbl.innerText = stageFilteredRows.length;
   }
 
   // --- SEARCH & DROPDOWN ---
