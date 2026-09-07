@@ -85,14 +85,13 @@
         <div id="searchDropdown" class="search-dropdown"></div>
       </div>
 
-      <!-- 2. Modify Values & Add to Queue -->
-      <div id="bendEditForm" class="edit-form-box">
-        <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Modify Values & Add to Queue:</div>
+      <!-- 2. Interactive Input Box for Current Selected Spool -->
+      <div id="itemEditForm" class="edit-form-box">
+        <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Selected Spool Details:</div>
         <div class="edit-grid">
           <div><label style="margin-top:0;">Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
           <div><label style="margin-top:0;">Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
-          <div><label style="margin-top:0; color:#1e40af;">BEND QTY (Editable):</label><input type="text" id="form_bend_qty" style="border-color:#2563eb; font-weight:bold;"></div>
-          <div><label style="margin-top:0; color:#1e40af;">WELD ID (Editable):</label><input type="text" id="form_weld_id" style="border-color:#2563eb; font-weight:bold;"></div>
+          <div id="dynamicFormFields"></div>
         </div>
         <input type="hidden" id="form_item_id">
         <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Bottom Selected List</button>
@@ -105,16 +104,7 @@
         </span>
         <div class="selected-table-container">
           <table class="selected-table">
-            <thead>
-              <tr>
-                <th style="width: 30px; text-align: center;">Sr.</th>
-                <th>Spool Unique No</th>
-                <th>Drawing No</th>
-                <th>Bend Qty</th>
-                <th>Weld ID</th>
-                <th style="text-align: center;">Action</th>
-              </tr>
-            </thead>
+            <thead id="selectedTableHead"></thead>
             <tbody id="selectedTableBody">
               <tr>
                 <td colspan="6" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td>
@@ -124,14 +114,15 @@
         </div>
       </div>
 
-      <!-- 4. Date Input (Before Save) -->
-      <div id="customInputsArea" style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;"></div>
+      <!-- 4. Extra Final Inputs (જેમ કે Date વગેરે) -->
+      <div id="customInputsArea" style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: none;"></div>
 
-      <!-- 5. In Last Save Button -->
+      <!-- 5. Final Save Button -->
       <button type="button" class="btn-save-final" onclick="submitCurrentStage()">💾 SAVE ALL TO DATABASE</button>
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
+    <!-- Balance List Table -->
     <div class="card" style="margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
@@ -155,6 +146,7 @@
     </div>
   </div>
 
+  <!-- Master Register -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -197,7 +189,7 @@
   function backToMenu() {
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
-    document.getElementById('bendEditForm').style.display = 'none';
+    document.getElementById('itemEditForm').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'block';
   }
 
@@ -205,7 +197,7 @@
     currentStage = stage;
     selectedQueue = [];
     document.getElementById('mainMenu').style.display = 'none';
-    document.getElementById('bendEditForm').style.display = 'none';
+    document.getElementById('itemEditForm').style.display = 'none';
 
     if (stage === 'view_records') {
       document.getElementById('recordsContainer').style.display = 'block';
@@ -226,65 +218,69 @@
     subArea.style.display = 'none';
     subArea.innerHTML = '';
     customArea.innerHTML = '';
+    customArea.style.display = 'none';
     activeSubFilter = '';
 
     if (stage === 'bending_issue') {
       title.innerText = '1. ISSUED FOR BENDING MODULE';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Issued For Bending Date:</label><input type="date" id="input_date" required>`;
+      customArea.style.display = 'block';
+      customArea.innerHTML = `<label style="margin-top:0;">📅 Issued For Bending Date (તમામ પસંદ કરેલા માટે):</label><input type="date" id="input_date" required>`;
     } 
     else if (stage === 'bend_entry') {
       title.innerText = '2. BEND ENTRY MODULE';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Bend Date (તમામ પસંદ કરેલા સ્પૂલ્સ માટે):</label><input type="date" id="input_date" required>`;
+      customArea.style.display = 'block';
+      customArea.innerHTML = `<label style="margin-top:0;">📅 Bend Date (તમામ પસંદ કરેલા માટે):</label><input type="date" id="input_date" required>`;
     }
     else if (stage === 'fitup_issue') {
       title.innerText = '3. ISSUE FOR FIT-UP MODULE';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Issue For Fit-Up Date:</label><input type="date" id="input_date" required>`;
+      customArea.style.display = 'block';
+      customArea.innerHTML = `<label style="margin-top:0;">📅 Issue For Fit-Up Date (તમામ પસંદ કરેલા માટે):</label><input type="date" id="input_date" required>`;
     }
     else if (stage === 'fitter_name') {
       title.innerText = '4. FITTER NAME MODULE';
-      customArea.innerHTML = `
-        <label style="margin-top:0;">Select Fitter Name:</label>
-        <select id="input_fitter">
-          <option value="">-- Select Fitter --</option>
-          ${FITTERS.map(f => `<option value="${f}">${f}</option>`).join('')}
-        </select>`;
+      // Fitter Name માટે ફોર્મમાં દરેક સ્પૂલ વાઇઝ સિલેક્ટ થશે, તેથી નીચે તારીખની જરૂર નથી
+      customArea.style.display = 'none';
     }
     else if (stage === 'ready_fitup') {
       title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
       subArea.style.display = 'flex';
       subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
+      customArea.style.display = 'block';
       customArea.innerHTML = `<label style="margin-top:0;">📅 Ready For Fit-Up Insp Date:</label><input type="date" id="input_date" required>`;
       activeSubFilter = FITTERS[0];
       subArea.children[0].classList.add('active');
     }
     else if (stage === 'fitup_entry') {
       title.innerText = '6. FIT UP ENTRY MODULE';
+      customArea.style.display = 'block';
       customArea.innerHTML = `<label style="margin-top:0;">📅 Fit-Up Date:</label><input type="date" id="input_date" required>`;
     }
     else if (stage === 'welder_name') {
       title.innerText = '7. WELDER NAME MODULE';
-      customArea.innerHTML = `
-        <label style="margin-top:0;">Welder No - 1:</label><select id="input_welder1"><option value="">-- Select Welder 1 --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select>
-        <label style="margin-top:6px;">Welder No - 2 (Optional):</label><select id="input_welder2"><option value="">-- Select Welder 2 (None) --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select>`;
+      customArea.style.display = 'none';
     }
     else if (stage === 'ready_weld') {
       title.innerText = '8. READY FOR WELD VISUAL MODULE';
       subArea.style.display = 'flex';
       subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
+      customArea.style.display = 'block';
       customArea.innerHTML = `<label style="margin-top:0;">📅 Ready For Weld Visual Date:</label><input type="date" id="input_date" required>`;
       activeSubFilter = WELDERS[0];
       subArea.children[0].classList.add('active');
     }
     else if (stage === 'weld_visual') {
       title.innerText = '9. WELD VISUAL MODULE';
+      customArea.style.display = 'block';
       customArea.innerHTML = `<label style="margin-top:0;">📅 Visual Date:</label><input type="date" id="input_date" required>`;
     }
     else if (stage === 'ndt_clearance') {
       title.innerText = '10. NDT CLEARANCE MODULE';
+      customArea.style.display = 'block';
       customArea.innerHTML = `<label style="margin-top:0;">📅 NDT Clearance Date:</label><input type="date" id="input_date" required>`;
     }
     else if (stage === 'fd') {
       title.innerText = '11. FINAL DISPATCH & DC NO MODULE';
+      customArea.style.display = 'block';
       customArea.innerHTML = `
         <label style="margin-top:0;">Shift DC No:</label><input type="text" id="input_dc_no" placeholder="Enter DC No" required>
         <label style="margin-top:6px;">📅 FD Date:</label><input type="date" id="input_date" required>`;
@@ -393,6 +389,7 @@
     dropdown.style.display = 'block';
   }
 
+  // સર્ચ કર્યા પછી સિલેક્ટ થાય ત્યારે એડિટ / સિલેક્ટ ફોર્મ પોપ-અપ
   function onSpoolSelect(id) {
     if (selectedQueue.some(x => x.id === id)) {
       alert("⚠️ આ સ્પૂલ પહેલેથી નીચેના લિસ્ટમાં ઉમેરેલું છે!");
@@ -405,36 +402,91 @@
     document.getElementById('spoolSearch').value = '';
     document.getElementById('searchDropdown').style.display = 'none';
 
+    document.getElementById('itemEditForm').style.display = 'block';
+    document.getElementById('form_item_id').value = item.id;
+    document.getElementById('form_spool_no').value = item.Spool_number || '';
+    document.getElementById('form_drawing_no').value = item.Drawing_no || '';
+
+    const dynArea = document.getElementById('dynamicFormFields');
+    dynArea.innerHTML = '';
+
     if (currentStage === 'bend_entry') {
-      document.getElementById('bendEditForm').style.display = 'block';
-      document.getElementById('form_item_id').value = item.id;
-      document.getElementById('form_spool_no').value = item.Spool_number || '';
-      document.getElementById('form_drawing_no').value = item.Drawing_no || '';
-      document.getElementById('form_bend_qty').value = item.Bend_qty || '';
-      document.getElementById('form_weld_id').value = item.Weld_id || '';
-      document.getElementById('form_bend_qty').focus();
-    } else {
-      selectedQueue.push(item);
-      renderSelectedTable();
+      dynArea.innerHTML = `
+        <div><label style="margin-top:0; color:#1e40af;">BEND QTY (Editable):</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
+        <div><label style="margin-top:0; color:#1e40af;">WELD ID (Editable):</label><input type="text" id="form_weld_id" value="${item.Weld_id || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
+      `;
+    } 
+    else if (currentStage === 'fitter_name') {
+      dynArea.innerHTML = `
+        <div>
+          <label style="margin-top:0; color:#1e40af;">Select Fitter Name:</label>
+          <select id="form_fitter_val" style="border-color:#2563eb; font-weight:bold;">
+            <option value="">-- Select Fitter --</option>
+            ${FITTERS.map(f => `<option value="${f}">${f}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    }
+    else if (currentStage === 'welder_name') {
+      dynArea.innerHTML = `
+        <div>
+          <label style="margin-top:0; color:#1e40af;">Welder No 1:</label>
+          <select id="form_welder_1" style="border-color:#2563eb; font-weight:bold;">
+            <option value="">-- Welder 1 --</option>
+            ${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}
+          </select>
+          <label style="margin-top:6px; color:#1e40af;">Welder No 2 (Optional):</label>
+          <select id="form_welder_2">
+            <option value="">-- Welder 2 (None) --</option>
+            ${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    }
+    else {
+      // અન્ય સ્ટેજ માટે કોઈ વધારાનું ફિલ્ડ જરૂર ન હોય તો સીધું બટન
+      dynArea.innerHTML = `<div style="color:#059669; font-weight:bold; font-size:12px;">✅ Spool Ready to Add to Queue</div>`;
     }
   }
 
+  // બોટમ લિસ્ટમાં જમા કરવા માટેનું બટન
   function confirmAddFormToQueue() {
     const id = parseInt(document.getElementById('form_item_id').value);
     const item = stageFilteredRows.find(x => x.id === id);
     if (!item) return;
 
-    const modifiedBendQty = document.getElementById('form_bend_qty').value.trim();
-    const modifiedWeldId = document.getElementById('form_weld_id').value.trim();
+    let extraData = {};
+
+    if (currentStage === 'bend_entry') {
+      extraData.final_bend_qty = document.getElementById('form_bend_qty').value.trim();
+      extraData.final_weld_id = document.getElementById('form_weld_id').value.trim();
+    } 
+    else if (currentStage === 'fitter_name') {
+      const fName = document.getElementById('form_fitter_val').value;
+      if (!fName) {
+        alert("કૃપા કરીને Fitter Name પસંદ કરો!");
+        return;
+      }
+      extraData.final_fitter = fName;
+    }
+    else if (currentStage === 'welder_name') {
+      const w1 = document.getElementById('form_welder_1').value;
+      const w2 = document.getElementById('form_welder_2').value;
+      if (!w1) {
+        alert("કૃપા કરીને Welder 1 પસંદ કરો!");
+        return;
+      }
+      extraData.final_welder = w2 ? `${w1}/${w2}` : w1;
+    }
 
     selectedQueue.push({
       ...item,
-      final_bend_qty: modifiedBendQty,
-      final_weld_id: modifiedWeldId
+      ...extraData
     });
 
-    document.getElementById('bendEditForm').style.display = 'none';
+    document.getElementById('itemEditForm').style.display = 'none';
     renderSelectedTable();
+    document.getElementById('spoolSearch').focus();
   }
 
   function removeSpoolFromQueue(id) {
@@ -443,26 +495,50 @@
   }
 
   function renderSelectedTable() {
+    const thead = document.getElementById('selectedTableHead');
     const tbody = document.getElementById('selectedTableBody');
     document.getElementById('queueCount').innerText = selectedQueue.length;
+
+    // હેડર સેટિંગ
+    if (currentStage === 'fitter_name') {
+      thead.innerHTML = `<tr><th style="width:30px;">Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Assigned Fitter</th><th style="text-align:center;">Action</th></tr>`;
+    } else if (currentStage === 'welder_name') {
+      thead.innerHTML = `<tr><th style="width:30px;">Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Assigned Welder</th><th style="text-align:center;">Action</th></tr>`;
+    } else if (currentStage === 'bend_entry') {
+      thead.innerHTML = `<tr><th style="width:30px;">Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center;">Action</th></tr>`;
+    } else {
+      thead.innerHTML = `<tr><th style="width:30px;">Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Weld ID</th><th style="text-align:center;">Action</th></tr>`;
+    }
 
     if (selectedQueue.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = selectedQueue.map((r, idx) => `
-      <tr>
-        <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
-        <td style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</td>
-        <td style="color: #334155;">${r.Drawing_no || '-'}</td>
-        <td style="font-weight: bold; color: #166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td>
-        <td style="font-weight: bold; color: #0284c7;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>
-        <td style="text-align: center;">
-          <button type="button" class="btn-remove" onclick="removeSpoolFromQueue(${r.id})">✕</button>
-        </td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = selectedQueue.map((r, idx) => {
+      let customCol = '';
+      if (currentStage === 'fitter_name') {
+        customCol = `<td style="font-weight:bold; color:#1e40af;">${r.final_fitter || '-'}</td>`;
+      } else if (currentStage === 'welder_name') {
+        customCol = `<td style="font-weight:bold; color:#1e40af;">${r.final_welder || '-'}</td>`;
+      } else if (currentStage === 'bend_entry') {
+        customCol = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td><td style="font-weight:bold; color:#0284c7;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>`;
+      } else {
+        customCol = `<td style="font-weight:bold; color:#0284c7;">${r.Weld_id || '-'}</td>`;
+      }
+
+      return `
+        <tr>
+          <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+          <td style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</td>
+          <td style="color: #334155;">${r.Drawing_no || '-'}</td>
+          ${customCol}
+          <td style="text-align: center;">
+            <button type="button" class="btn-remove" onclick="removeSpoolFromQueue(${r.id})">✕</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
   }
 
   function renderStageBalanceTable() {
@@ -485,6 +561,7 @@
     `).join('');
   }
 
+  // છેલ્લે બધા માટે એકસાથે સેવ
   async function submitCurrentStage() {
     if (selectedQueue.length === 0) {
       alert('કૃપા કરીને સર્ચ કરીને ઓછામાં ઓછો ૧ Spool લિસ્ટમાં Add કરો.');
@@ -494,7 +571,26 @@
     const dateInput = document.getElementById('input_date');
     const enteredDate = dateInput ? dateInput.value : null;
 
-    if (currentStage === 'bend_entry') {
+    if (currentStage === 'fitter_name') {
+      // પ્રત્યેક સ્પૂલ પોતાના ફિટર સાથે અપડેટ થશે
+      for (const item of selectedQueue) {
+        const { error } = await db.from('piping_joints').update({ Fitter_name: item.final_fitter }).eq('id', item.id);
+        if (error) {
+          alert(`Error updating spool ${item.Spool_number}: ` + error.message);
+          return;
+        }
+      }
+    }
+    else if (currentStage === 'welder_name') {
+      for (const item of selectedQueue) {
+        const { error } = await db.from('piping_joints').update({ Welder_no: item.final_welder }).eq('id', item.id);
+        if (error) {
+          alert(`Error updating spool ${item.Spool_number}: ` + error.message);
+          return;
+        }
+      }
+    }
+    else if (currentStage === 'bend_entry') {
       if (!enteredDate) return alert('કૃપા કરીને Bend Date પસંદ કરો.');
       for (const item of selectedQueue) {
         const updateData = {
@@ -521,13 +617,6 @@
       const { error } = await db.from('piping_joints').update({ Issue_for_fitup: enteredDate }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
     }
-    else if (currentStage === 'fitter_name') {
-      const fVal = document.getElementById('input_fitter').value;
-      if (!fVal) return alert('કૃપા કરીને Fitter Name પસંદ કરો.');
-      const selectedIds = selectedQueue.map(x => x.id);
-      const { error } = await db.from('piping_joints').update({ Fitter_name: fVal }).in('id', selectedIds);
-      if (error) return alert("Error: " + error.message);
-    }
     else if (currentStage === 'ready_fitup') {
       if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
@@ -538,15 +627,6 @@
       if (!enteredDate) return alert('કૃપા કરીને તારીખ પસંદ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
       const { error } = await db.from('piping_joints').update({ Fit_up_date: enteredDate }).in('id', selectedIds);
-      if (error) return alert("Error: " + error.message);
-    }
-    else if (currentStage === 'welder_name') {
-      const w1 = document.getElementById('input_welder1').value;
-      const w2 = document.getElementById('input_welder2').value;
-      if (!w1) return alert('Welder No 1 પસંદ કરો.');
-      const wVal = w2 ? `${w1}/${w2}` : w1;
-      const selectedIds = selectedQueue.map(x => x.id);
-      const { error } = await db.from('piping_joints').update({ Welder_no: wVal }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'ready_weld') {
