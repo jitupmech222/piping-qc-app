@@ -72,7 +72,6 @@
 
   <div id="stageContainer" style="display: none;">
     <div class="card">
-      <!-- ટોપ ક્યુમ્યુલેટિવ કાઉન્ટર -->
       <div class="metric-banner">
         <div>CUMULATIVE SPOOL = <span id="metricSpools" class="metric-val">0</span></div>
         <div>CUMULATIVE WELD = <span id="metricWelds" class="metric-val">0</span></div>
@@ -80,23 +79,19 @@
 
       <h3 id="stageTitle">Stage Title</h3>
       
-      <!-- સબ-ફિલ્ટર બટન ગ્રૂપ -->
       <div id="subFilterArea" class="sub-filter-group" style="display: none;"></div>
 
-      <!-- પસંદ કરેલા ફિટર/વેલ્ડર વાઈઝ અલગ બેનર -->
       <div id="subMetricArea" class="sub-metric-banner" style="display: none;">
         <div>SELECTED FITTER SPOOL = <span id="subMetricSpools" class="metric-val">0</span></div>
         <div>SELECTED FITTER WELD = <span id="subMetricWelds" class="metric-val">0</span></div>
       </div>
 
-      <!-- સર્ચ બોક્સ -->
       <label>Search Spool Number / Drawing No:</label>
       <div class="search-box-wrapper">
         <input type="text" id="spoolSearch" placeholder="Type spool no (e.g. 4-416 or 6-444)..." oninput="handleSearchInput()" autocomplete="off">
         <div id="searchDropdown" class="search-dropdown"></div>
       </div>
 
-      <!-- એડિટ ફોર્મ -->
       <div id="itemEditForm" class="edit-form-box">
         <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Selected Spool Details:</div>
         <div class="edit-grid">
@@ -108,7 +103,6 @@
         <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Bottom Selected List</button>
       </div>
 
-      <!-- ક્યૂ ટેબલ -->
       <div style="margin-top: 18px;">
         <span style="font-size: 14px; font-weight: bold; color: #0f172a;">
           Selected Spools Queue (<span id="queueCount">0</span>)
@@ -131,7 +125,7 @@
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
-    <!-- બેલેન્સ લિસ્ટ -->
+    <!-- Balance List Table (Action Column Removed, Spool Size Added) -->
     <div class="card" style="margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
@@ -140,9 +134,9 @@
         <table>
           <thead style="position: sticky; top: 0; z-index: 5;">
             <tr style="background:#1e40af; color:white;">
-              <th style="text-align:center; width:50px;">Action</th>
               <th>Drawing No</th>
               <th>Spool Unique No</th>
+              <th>Spool Size</th>
               <th>WELD ID</th>
               <th>BEND QTY</th>
             </tr>
@@ -155,7 +149,6 @@
     </div>
   </div>
 
-  <!-- માસ્ટર રજિસ્ટર -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -187,8 +180,8 @@
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let currentStage = '';
-  let cumulativeRows = [];     // સમગ્ર સ્ટેજનો ક્યુમ્યુલેટિવ ડેટા
-  let stageFilteredRows = [];   // પસંદ કરેલા ફિટર/વેલ્ડરનો ફિલ્ટર થયેલો ડેટા
+  let cumulativeRows = [];
+  let stageFilteredRows = [];
   let selectedQueue = [];
   let activeSubFilter = '';
   let allRecordsCache = [];
@@ -307,7 +300,6 @@
 
     let query = db.from('piping_joints').select('*');
 
-    // ક્યુમ્યુલેટિવ ડેટા માટે બેઝ ક્વેરી (સમગ્ર સ્ટેજ)
     if (stage === 'bending_issue') {
       query = query.is('Bend_date', null).is('Issued_for_bending', null);
     } else if (stage === 'bend_entry') {
@@ -364,7 +356,6 @@
   }
 
   function updateMetrics() {
-    // ૧. ટોપ પર ક્યુમ્યુલેટિવ સરવાળો (બધા ફિટર્સનો ભેગો)
     const cumSpools = new Set(cumulativeRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
     let cumWeldSum = 0;
     cumulativeRows.forEach(r => {
@@ -379,7 +370,6 @@
     document.getElementById('metricSpools').innerText = cumSpools.size;
     document.getElementById('metricWelds').innerText = Number.isInteger(cumWeldSum) ? cumWeldSum : parseFloat(cumWeldSum.toFixed(2));
 
-    // ૨. સબ-ફિલ્ટર વાઈઝ (પસંદ કરેલા ફિટરનો જ સરવાળો)
     if (currentStage === 'ready_fitup' || currentStage === 'ready_weld') {
       const subSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
       let subWeldSum = 0;
@@ -425,7 +415,7 @@
       <div class="dropdown-row" onclick="onSpoolSelect(${r.id})">
         <div>
           <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
-          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Weld ID: ${r.Weld_id || '-'})</span>
+          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
         </div>
         <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || '-'}</span>
       </div>
@@ -581,6 +571,7 @@
     }).join('');
   }
 
+  // BALANCE LIST ટેબલ રેન્ડરિંગ (Action કૉલમ વગર અને Spool Size સાથે)
   function renderStageBalanceTable() {
     const tbody = document.getElementById('stageBalanceTableBody');
     if (stageFilteredRows.length === 0) {
@@ -590,11 +581,9 @@
 
     tbody.innerHTML = stageFilteredRows.slice(0, 500).map(r => `
       <tr>
-        <td style="text-align:center;">
-          <button type="button" class="sub-filter-btn" style="padding:3px 6px; font-size:11px;" onclick="onSpoolSelect(${r.id})">➕</button>
-        </td>
         <td>${r.Drawing_no || '-'}</td>
         <td><b>${r.Spool_number || '-'}</b></td>
+        <td>${r.Spool_size || '-'}</td>
         <td><b>${r.Weld_id || '-'}</b></td>
         <td>${r.Bend_qty || '-'}</td>
       </tr>
