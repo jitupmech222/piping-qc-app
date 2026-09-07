@@ -3,919 +3,479 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Piping QC</title>
+  <title>Piping QC Workflow</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
-    .container { max-width: 600px; margin: 0 auto; }
-    
-    .login-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-top: 20px; }
-    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-    .menu-btn { padding: 14px 8px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-decoration: none; display: flex; align-items: center; justify-content: center; }
-    .menu-btn:active { background: #1d4ed8; }
-    .btn-view-data { background: #059669; grid-column: span 2; }
-    .btn-logout { background: #ea580c; grid-column: span 2; }
-    
+    .container { max-width: 1000px; margin: 0 auto; }
     .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); margin-top: 10px; }
     h3 { margin-top: 0; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 17px; }
     label { font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px; display: block; }
-    input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: #fff; }
+    input, select { width: 100%; padding: 9px; margin-top: 4px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; background: #fff; }
     
-    .search-results { max-height: 180px; overflow-y: auto; border: 1.5px solid #3b82f6; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff; display: none; margin-bottom: 8px; box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-    .search-item { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; cursor: pointer; color: #0f172a; font-weight: 500; }
-    .search-item:active, .search-item:hover { background: #dbeafe; color: #1e40af; font-weight: bold; }
-    
-    .saved-joint-card { background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 8px 10px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-    .btn-remove-row { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; cursor: pointer; }
-    .btn-add-joint { background: #0284c7; color: white; border: none; border-radius: 6px; width: 100%; padding: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
-    
-    .weld-joint-item { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-top: 8px; cursor: pointer; background: #ffffff; }
-    .weld-joint-item.filled { background: #dcfce7 !important; border-color: #22c55e !important; }
-    
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 9999; padding: 15px; }
-    .modal-box { background: white; border-radius: 12px; padding: 18px; width: 100%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-    
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 10px; }
+    .menu-btn { padding: 12px 6px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 13px; cursor: pointer; text-align: center; text-decoration: none; }
+    .menu-btn:active { background: #1d4ed8; }
+    .btn-view { background: #059669; }
+    .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; text-align: center; display: block; text-decoration: none; box-sizing: border-box; }
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
-    .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 14px; font-weight: 600; text-align: center; display: block; text-decoration: none; box-sizing: border-box; }
-    .msg { margin-top: 12px; font-weight: bold; text-align: center; font-size: 14px; }
-    .success { color: #16a34a; }
-    .error { color: #dc2626; }
     
-    .table-container { overflow-x: auto; margin-top: 12px; max-height: 70vh; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; }
+    /* Metrics Top Banner */
+    .metric-banner { background: #dbeafe; border: 1.5px solid #3b82f6; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; justify-content: space-around; font-weight: bold; color: #1e3a8a; font-size: 13.5px; }
+    .metric-val { color: #dc2626; font-size: 15px; }
+
+    /* Sub-Filter Buttons */
+    .sub-btn-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; margin-bottom: 10px; }
+    .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; color: #1e293b; }
+    .sub-filter-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
+
+    /* Spool Selector List */
+    .spool-list-box { max-height: 280px; overflow-y: auto; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 8px; margin-top: 8px; background: #fafafa; }
+    .spool-item { background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+    .spool-item input[type="checkbox"] { width: auto; margin: 0 8px 0 0; }
+    
+    .table-container { overflow: auto; margin-top: 12px; max-height: 75vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 6px 8px; white-space: nowrap; }
     th { background: #1e40af; color: white; font-weight: 600; }
     tr:nth-child(even) { background: #f8fafc; }
-    .badge { padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
-    .badge-fitup { background: #fef08a; color: #854d0e; }
-    .badge-weld { background: #bbf7d0; color: #166534; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- ૧. લોગિન -->
-  <div id="loginSection" class="login-card">
-    <h3 style="text-align: center;">🔐 User Login</h3>
-    <form id="loginForm">
-      <label>User ID:</label>
-      <input type="text" id="login_user" placeholder="Enter User ID" required autocomplete="username">
-      <label>Password:</label>
-      <input type="password" id="login_pass" placeholder="Enter Password" required autocomplete="current-password">
-      <button type="submit" class="btn-submit">🔓 Login</button>
-    </form>
-    <div id="loginMsg" class="msg"></div>
-  </div>
-
-  <!-- ૨. મુખ્ય મેનૂ -->
-  <div id="mainMenu" class="menu-grid" style="display: none;">
-    <a href="#fitup" class="menu-btn">Fit-up</a>
-    <a href="#welding" class="menu-btn">Welding</a>
-    <button class="menu-btn" onclick="alert('Coming Soon!')">Lot Offer</button>
-    <button class="menu-btn" onclick="alert('Coming Soon!')">Lot Clear</button>
-    <button class="menu-btn" onclick="alert('Coming Soon!')">NDT</button>
-    <button class="menu-btn" onclick="alert('Coming Soon!')">Dispatch</button>
-    <button class="menu-btn" style="grid-column: span 2;" onclick="alert('Coming Soon!')">RA Bill</button>
-    <a href="#view-records" class="menu-btn btn-view-data">📊 View record</a>
-    <button class="menu-btn btn-logout" onclick="logoutApp()">Log Out</button>
-  </div>
-
-  <!-- ૩. મોડ્યુલ્સ કન્ટેનર -->
-  <div id="sec_fitup" style="display: none;">
-    <div class="card">
-      <h3>🔧 Fit-up Entry</h3>
-      <form id="fitupForm">
-        <label>Drawing No:</label>
-        <input type="text" id="fitup_drawing" placeholder="Enter Drawing No..." oninput="handleDrawingSearch()" autocomplete="off" required>
-        <div id="drawingSearchResults" class="search-results"></div>
-
-        <div id="fitupDetailsSection" style="display:none;">
-          <label>Spool No:</label>
-          <select id="fitup_spool" onchange="autoFillSpoolDetails()" required>
-            <option value="">--- Select Spool ---</option>
-          </select>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <div>
-              <label>Size:</label>
-              <input type="text" id="fitup_spool_size" placeholder="e.g. 4" required>
-            </div>
-            <div>
-              <label>Rev No:</label>
-              <input type="text" id="fitup_rev_no" placeholder="e.g. 0" required>
-            </div>
-          </div>
-
-          <div id="alreadyFilledJointsSection" style="display:none; margin-top:14px; background:#ffffff; border:1.5px solid #2563eb; border-radius:8px; padding:10px;">
-            <div style="font-size:13px; font-weight:bold; color:#1e40af; margin-bottom:8px;">
-              📌 Previous Filled Joint:
-            </div>
-            <div style="overflow-x:auto;">
-              <table style="width:100%; border-collapse:collapse; background:#ffffff; font-size:12px; text-align:center; border:1px solid #94a3b8;">
-                <thead>
-                  <tr style="background:#1e40af; color:#ffffff;">
-                    <th style="border:1px solid #64748b; padding:8px 6px;">Joint No</th>
-                    <th style="border:1px solid #64748b; padding:8px 6px;">Type of Joint</th>
-                    <th style="border:1px solid #64748b; padding:8px 6px;">Joint Size</th>
-                  </tr>
-                </thead>
-                <tbody id="alreadyFilledJointsTableBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div style="background:#eff6ff; border:1.5px dashed #3b82f6; border-radius:8px; padding:12px; margin-top:14px;">
-            <div style="font-weight:bold; color:#1e40af; font-size:13px; margin-bottom:6px;">Fill the Joint:</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
-              <div>
-                <label style="font-size:11px; margin-top:0;">Joint No:</label>
-                <input type="text" id="current_joint_no" placeholder="J01">
-              </div>
-              <div>
-                <label style="font-size:11px; margin-top:0;">Type:</label>
-                <select id="current_joint_type">
-                  <option value="">--- Select ---</option>
-                  <option value="BW">BW</option>
-                  <option value="SOB">SOB</option>
-                  <option value="SOF">SOF</option>
-                  <option value="LET">LET</option>
-                  <option value="EB">EB</option>
-                </select>
-              </div>
-              <div>
-                <label style="font-size:11px; margin-top:0;">Size (Inch):</label>
-                <input type="text" id="current_joint_size" placeholder="4">
-              </div>
-            </div>
-            <button type="button" class="btn-add-joint" style="margin-top:10px;" onclick="addCurrentJointToList()">➕ Add Joint</button>
-          </div>
-
-          <div id="addedJointsList" style="margin-top:12px;"></div>
-
-          <label style="margin-top:16px; font-weight:bold; color:#1e3a8a;">📅 Fit-up date:</label>
-          <input type="date" id="fitup_date" required>
-
-          <button type="submit" class="btn-submit">💾 Save</button>
-        </div>
-
-        <a href="#menu" class="btn-back">⬅ Back</a>
-      </form>
-      <div id="fitupMsg" class="msg"></div>
+  <!-- Top Navigation Hub -->
+  <div id="mainMenu" class="card">
+    <h3>⚙️ Piping QC Workflow Stage Modules</h3>
+    <div class="menu-grid">
+      <button class="menu-btn" onclick="openStage('bending_issue')">1. ISSUED FOR BENDING</button>
+      <button class="menu-btn" onclick="openStage('bend_entry')">2. BEND ENTRY</button>
+      <button class="menu-btn" onclick="openStage('fitup_issue')">3. ISSUE FOR FIT-UP</button>
+      <button class="menu-btn" onclick="openStage('fitter_name')">4. FITTER NAME</button>
+      <button class="menu-btn" onclick="openStage('ready_fitup')">5. READY FIT-UP INSP</button>
+      <button class="menu-btn" onclick="openStage('fitup_entry')">6. FIT UP ENTRY</button>
+      <button class="menu-btn" onclick="openStage('welder_name')">7. WELDER NAME</button>
+      <button class="menu-btn" onclick="openStage('ready_weld')">8. READY WELD VISUAL</button>
+      <button class="menu-btn" onclick="openStage('weld_visual')">9. WELD VISUAL</button>
+      <button class="menu-btn" onclick="openStage('ndt_clearance')">10. NDT CLEARANCE</button>
+      <button class="menu-btn" onclick="openStage('fd')">11. FD & DC NO</button>
+      <button class="menu-btn btn-view" style="grid-column: span 2;" onclick="openStage('view_records')">📊 VIEW FULL REGISTER</button>
     </div>
   </div>
 
-  <div id="sec_welding" style="display: none;">
+  <!-- Dynamic Stage Processing Screen -->
+  <div id="stageContainer" style="display: none;">
     <div class="card">
-      <h3>⚡ Welding Entry</h3>
-      <form id="weldForm">
-        <label>1. Filter Drawing No (Fit-up Completed):</label>
-        <input type="text" id="weld_drawing_search" placeholder="🔍 Type Drawing No..." oninput="handleWeldDrawingSearch()" autocomplete="off">
-        <div id="weldDrawingResults" class="search-results"></div>
+      <div class="metric-banner">
+        <div>BALANCE SPOOL NUMBER = <span id="metricSpools" class="metric-val">0</span></div>
+        <div>BALANCE WELD ID = <span id="metricWelds" class="metric-val">0</span></div>
+      </div>
 
-        <div id="weldJointsWrapper" style="display:none; margin-top:12px;">
-          <label style="color:#1e40af; font-size:14px; margin-bottom:4px;">👉 Select Joint to Fill Welding Details:</label>
-          <div id="weldJointsList"></div>
+      <h3 id="stageTitle">Stage Title</h3>
 
-          <label style="margin-top:15px; font-weight:bold; color:#1e3a8a;">📅 Weld Visual Date:</label>
-          <input type="date" id="common_weld_date" required>
+      <div id="subFilterArea" style="display: none;"></div>
 
-          <button type="submit" class="btn-submit">💾 Save All Filled Joints</button>
-        </div>
+      <label>Search Spool Number:</label>
+      <input type="text" id="spoolSearch" placeholder="🔍 Search Spool..." oninput="renderSpoolSelectionList()">
 
-        <a href="#menu" class="btn-back">⬅ Back</a>
-      </form>
-      <div id="weldMsg" class="msg"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+        <span style="font-size: 12px; color: #475569;">Select Spools for Entry:</span>
+        <button type="button" class="sub-filter-btn" onclick="toggleSelectAll()">Select / Unselect All</button>
+      </div>
+
+      <div id="spoolListBox" class="spool-list-box"></div>
+
+      <div id="customInputsArea" style="margin-top: 10px;"></div>
+
+      <button type="button" class="btn-submit" onclick="submitCurrentStage()">💾 Save Updates</button>
+      <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
   </div>
 
-  <div id="sec_records" style="display: none;">
+  <!-- View Records Register -->
+  <div id="recordsContainer" style="display: none;">
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h3 style="margin:0; border:none; padding:0;">📊 Piping QC Records</h3>
-        <button type="button" class="btn-remove-row" style="background:#2563eb; padding:5px 10px; font-size:12px;" onclick="resetColumnFilters()">🔄 Reset Filters</button>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0; border:none;">📊 Piping QC Master Register (22 Columns)</h3>
+        <button type="button" class="sub-filter-btn" onclick="resetColumnFilters()">🔄 Reset</button>
       </div>
 
       <div class="table-container">
         <table id="qcDataTable">
           <thead style="position: sticky; top: 0; z-index: 5;">
             <tr style="background:#1e40af; color:white;">
-              <th style="min-width: 140px;">Drawing No</th>
-              <th style="min-width: 90px;">Spool No</th>
-              <th style="min-width: 70px;">Spool Size</th>
-              <th style="min-width: 60px;">Rev No</th>
-              <th style="min-width: 75px;">Joint No</th>
-              <th style="min-width: 70px;">Type</th>
-              <th style="min-width: 75px;">Joint Size</th>
-              <th style="min-width: 95px;">Fit-up Date</th>
-              <th style="min-width: 110px;">Welding Process</th>
-              <th style="min-width: 95px;">Welder No</th>
-              <th style="min-width: 130px;">WPS</th>
-              <th style="min-width: 95px;">Weld Date</th>
-              <th style="min-width: 110px;">Status</th>
+              <th>ISO No/Drawing No</th><th>Spool Size</th><th>Rev No</th><th>Allocation</th>
+              <th>Spool Unique No</th><th>BEND QTY</th><th>ISSUED FOR BENDING</th><th>BEND DATE</th>
+              <th>WELD ID</th><th>ISSUE FOR FIT-UP</th><th>FITTER NAME</th><th>READY FIT-UP INSP</th>
+              <th>REPORT NO</th><th>FIT UP Date</th><th>WELDER NAME</th><th>READY WELD VISUAL</th>
+              <th>VISUAL Date</th><th>NDT CLEARANCE</th><th>FD Date</th><th>DC No</th><th>BILL</th><th>REMARKS</th>
             </tr>
-            <tr style="background:#f1f5f9;">
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="drawing_no" placeholder="🔍 Drawing..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="spool_number" placeholder="🔍 Spool..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="spool_size" placeholder="🔍 Size..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="rev_no" placeholder="🔍 Rev..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="joint_no" placeholder="🔍 Joint..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="type_of_joint" placeholder="🔍 Type..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="joint_size" placeholder="🔍 Size..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="fit_up_date" placeholder="🔍 Date..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="welding_process" placeholder="🔍 Process..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="welder_no" placeholder="🔍 Welder..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="wps" placeholder="🔍 WPS..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;"><input type="text" class="col-filter" data-col="weld_visual_date" placeholder="🔍 Date..." oninput="applyMultiColumnFilter()" style="margin:0; padding:4px 6px; font-size:11px;"></th>
-              <th style="padding:4px;">
-                <select class="col-filter" data-col="status" onchange="applyMultiColumnFilter()" style="margin:0; padding:4px 2px; font-size:11px;">
-                  <option value="">All</option>
-                  <option value="Fit-Up Completed">Fit-Up Completed</option>
-                  <option value="Welding Completed">Welding Completed</option>
-                </select>
-              </th>
-            </tr>
+            <tr style="background:#f1f5f9;" id="filterRow"></tr>
           </thead>
-          <tbody id="tableBody">
-            <tr><td colspan="13" style="text-align:center; padding:15px;">⏳ Loading...</td></tr>
-          </tbody>
+          <tbody id="tableBody"></tbody>
         </table>
       </div>
-      <a href="#menu" class="btn-back" style="margin-top:12px;">⬅ Back</a>
-    </div>
-  </div>
-</div>
-
-<!-- Welding Details Popup Modal with Layers & Dropdowns -->
-<div id="weldModal" class="modal-overlay">
-  <div class="modal-box" style="max-height: 90vh; overflow-y: auto;">
-    <h3 style="margin-top:0; font-size:16px; color:#1e40af;" id="modalJointTitle">Welding Details</h3>
-
-    <!-- 1. WPS Number Dropdown -->
-    <label>1. WPS No:</label>
-    <select id="modal_wps" required>
-      <option value="">-- Select WPS --</option>
-      <option value="MPL/AIPL/WPS-01">MPL/AIPL/WPS-01</option>
-      <option value="MPL/AIPL/WPS-02">MPL/AIPL/WPS-02</option>
-      <option value="MPL/AIPL/WPS-08">MPL/AIPL/WPS-08</option>
-    </select>
-
-    <!-- Layer 1 -->
-    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px; margin-top:10px;">
-      <div style="font-weight:bold; font-size:12px; color:#1e40af; margin-bottom:4px;">🔸 Layer 1:</div>
-      
-      <label style="font-size:11px; margin-top:4px;">Welding Process:</label>
-      <select id="modal_proc1">
-        <option value="GTAW">GTAW</option>
-        <option value="SMAW">SMAW</option>
-      </select>
-
-      <label style="font-size:11px; margin-top:4px;">Weld Layer:</label>
-      <select id="modal_layer1">
-        <option value="Root">Root</option>
-        <option value="Cap">Cap</option>
-      </select>
-
-      <label style="font-size:11px; margin-top:4px;">Welder No:</label>
-      <input type="text" id="modal_welder1" placeholder="e.g. W700" required>
-    </div>
-
-    <!-- Layer 2 -->
-    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px; margin-top:10px;">
-      <div style="font-weight:bold; font-size:12px; color:#1e40af; margin-bottom:4px;">🔸 Layer 2 (Optional):</div>
-      
-      <label style="font-size:11px; margin-top:4px;">Welding Process:</label>
-      <select id="modal_proc2">
-        <option value="SMAW">SMAW</option>
-        <option value="GTAW">GTAW</option>
-      </select>
-
-      <label style="font-size:11px; margin-top:4px;">Weld Layer:</label>
-      <select id="modal_layer2">
-        <option value="Cap">Cap</option>
-        <option value="Root">Root</option>
-      </select>
-
-      <label style="font-size:11px; margin-top:4px;">Welder No:</label>
-      <input type="text" id="modal_welder2" placeholder="e.g. W700 or W710">
-    </div>
-
-    <div style="display:flex; gap:8px; margin-top:15px;">
-      <button type="button" class="btn-submit" style="margin-top:0;" onclick="saveModalDetails()">Save</button>
-      <button type="button" class="btn-back" style="margin-top:0;" onclick="closeModal()">Cancel</button>
+      <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
   </div>
 </div>
 
 <script>
   const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd8TOamA_gbPPJ8mt';
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let masterData = [];
-  let fitupCompletedJoints = [];
-  let allRecords = [];
-  let addedJointsQueue = [];
-  let existingJointsInDb = [];
-  
-  let selectedWeldDrawing = '';
-  let activeJointForModal = null;
-  let weldEntryData = {};
+  let rawData = [];
+  let currentStage = '';
+  let stageFilteredRows = [];
+  let activeSubFilter = '';
 
-  const ALLOWED_SIZES = ["0.5", "0.75", "1", "2", "3", "4", "6", "8", "10", "12", "14", "16"];
+  const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
+  const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
 
-  window.addEventListener('DOMContentLoaded', checkAuthAndRoute);
-  window.addEventListener('hashchange', checkAuthAndRoute);
+  window.addEventListener('DOMContentLoaded', fetchAllData);
 
-  function checkAuthAndRoute() {
-    const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
-      document.getElementById('loginSection').style.display = 'block';
-      document.getElementById('mainMenu').style.display = 'none';
-      hideAllSections();
-      return;
-    }
-
-    document.getElementById('loginSection').style.display = 'none';
-    const route = window.location.hash.replace('#', '') || 'menu';
-    handleRouting(route);
+  async function fetchAllData() {
+    try {
+      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(0, 4999);
+      if (!error && data) rawData = data;
+    } catch(e) { console.error(e); }
   }
 
-  function hideAllSections() {
-    document.getElementById('sec_fitup').style.display = 'none';
-    document.getElementById('sec_welding').style.display = 'none';
-    document.getElementById('sec_records').style.display = 'none';
+  function backToMenu() {
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('recordsContainer').style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'block';
   }
 
-  async function handleRouting(route) {
-    const mainMenu = document.getElementById('mainMenu');
-    hideAllSections();
-
-    if (route === 'menu' || route === '') {
-      mainMenu.style.display = 'grid';
-      if (masterData.length === 0) await loadMasterSpools();
-      return;
-    }
-
-    mainMenu.style.display = 'none';
-
-    if (route === 'fitup') {
-      document.getElementById('sec_fitup').style.display = 'block';
-      addedJointsQueue = [];
-      existingJointsInDb = [];
-      if (masterData.length === 0) await loadMasterSpools();
-      attachFitupEvents();
-    } else if (route === 'welding') {
-      document.getElementById('sec_welding').style.display = 'block';
-      loadFitupCompleted();
-      attachWeldingEvents();
-    } else if (route === 'view-records') {
-      document.getElementById('sec_records').style.display = 'block';
-      loadAllRecords();
-    }
-  }
-
-  document.getElementById('loginForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const user = document.getElementById('login_user').value.trim();
-    const pass = document.getElementById('login_pass').value.trim();
-    const msg = document.getElementById('loginMsg');
+  function openStage(stage) {
+    currentStage = stage;
+    document.getElementById('mainMenu').style.display = 'none';
     
-    if (user === 'admin' && pass === '1234') {
-      sessionStorage.setItem('isLoggedIn', 'true');
-      window.location.hash = 'menu';
-      checkAuthAndRoute();
-    } else {
-      msg.textContent = '❌ Invalid User ID or Password!';
-      msg.className = 'msg error';
-    }
-  });
-
-  function logoutApp() {
-    sessionStorage.removeItem('isLoggedIn');
-    window.location.hash = '';
-    location.reload();
-  }
-
-  async function loadMasterSpools() {
-    try {
-      const { data, error } = await db.from('master_spools').select('*');
-      if (error) return;
-      if (data && data.length > 0) {
-        masterData = data.map(r => {
-          const keys = Object.keys(r);
-          const getVal = (names) => {
-            const k = keys.find(key => names.some(p => p.toLowerCase() === key.toLowerCase().replace(/[^a-z0-9]/g, '')));
-            return k ? String(r[k] || '').trim() : '';
-          };
-          return {
-            drawing_no: getVal(['drawingno', 'drawing_no', 'drawingnumber', 'drawing']),
-            spool_number: getVal(['spoolnumber', 'spool_number', 'spoolno', 'spool']),
-            spool_size: getVal(['spoolsize', 'spool_size', 'size']),
-            rev_no: getVal(['revno', 'rev_no', 'revision', 'rev']) || '0'
-          };
-        }).filter(item => item.drawing_no !== '');
-      }
-    } catch(err) { console.error(err); }
-  }
-
-  // --- Fit-up Logic ---
-  async function handleDrawingSearch() {
-    const val = document.getElementById('fitup_drawing').value.trim().toLowerCase();
-    const resultBox = document.getElementById('drawingSearchResults');
-    if (!val) { 
-      resultBox.style.display = 'none'; 
-      document.getElementById('fitupDetailsSection').style.display = 'none';
-      return; 
+    if (stage === 'view_records') {
+      document.getElementById('recordsContainer').style.display = 'block';
+      renderRegisterTable();
+      return;
     }
 
-    if (masterData.length === 0) await loadMasterSpools();
-
-    const uniqueDwgs = [...new Set(masterData.map(d => d.drawing_no).filter(Boolean))];
-    const filtered = uniqueDwgs.filter(d => d.toLowerCase().includes(val));
-
-    if (filtered.length > 0) {
-      resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectDrawing('${encodeURIComponent(d)}')">${d}</div>`).join('');
-      resultBox.style.display = 'block';
-    } else {
-      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">No Drawing Found</div>';
-      resultBox.style.display = 'block';
-    }
+    document.getElementById('stageContainer').style.display = 'block';
+    setupStageUI(stage);
   }
 
-  async function selectDrawing(encodedDwg) {
-    const selectedDwg = decodeURIComponent(encodedDwg);
-    document.getElementById('fitup_drawing').value = selectedDwg;
-    document.getElementById('drawingSearchResults').style.display = 'none';
-    document.getElementById('fitupDetailsSection').style.display = 'block';
+  function isBlank(v) { return !v || String(v).trim() === '' || String(v).trim() === '-'; }
+  function isFilled(v) { return !isBlank(v); }
 
-    try {
-      const { data, error } = await db.from('piping_joints').select('*');
-      if (!error && data) {
-        const matched = data.filter(r => {
-          const keys = Object.keys(r);
-          const dwgKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === 'drawingno') || 'Drawing_no';
-          return String(r[dwgKey] || '').toLowerCase() === selectedDwg.toLowerCase();
-        });
+  function setupStageUI(stage) {
+    const title = document.getElementById('stageTitle');
+    const subArea = document.getElementById('subFilterArea');
+    const customArea = document.getElementById('customInputsArea');
+    subArea.style.display = 'none';
+    subArea.innerHTML = '';
+    customArea.innerHTML = '';
+    activeSubFilter = '';
 
-        existingJointsInDb = matched.map(r => {
-          const keys = Object.keys(r);
-          const getVal = (names) => {
-            const k = keys.find(key => names.some(n => n.toLowerCase() === key.toLowerCase().replace(/[^a-z0-9]/g, '')));
-            return k ? String(r[k] || '').trim() : '';
-          };
-          return {
-            joint_no: getVal(['jointno', 'joint_no', 'joint']),
-            type_of_joint: getVal(['typeofjoint', 'type_of_joint', 'jointtype', 'type']) || 'BW',
-            joint_size: getVal(['jointsize', 'joint_size', 'size']) || '-'
-          };
-        }).filter(j => j.joint_no !== '');
-
-        renderAlreadyFilledJoints(existingJointsInDb);
-      }
-    } catch(err) { console.error('Existing joints error:', err); }
-
-    const spools = masterData.filter(d => d.drawing_no.toLowerCase() === selectedDwg.toLowerCase());
-    const spoolSelect = document.getElementById('fitup_spool');
-
-    if (spools.length > 0) {
-      spoolSelect.innerHTML = '<option value="">--- Select Spool ---</option>' + 
-        spools.map(s => `<option value="${s.spool_number}" data-size="${s.spool_size || ''}" data-rev="${s.rev_no || '0'}">${s.spool_number}</option>`).join('');
-      if (spools.length === 1) {
-        spoolSelect.selectedIndex = 1;
-        autoFillSpoolDetails();
-      }
-    } else {
-      spoolSelect.innerHTML = '<option value="">-- No Spool Found --</option>';
-      document.getElementById('fitup_spool_size').value = '';
-      document.getElementById('fitup_rev_no').value = '';
+    if (stage === 'bending_issue') {
+      title.innerText = '1. ISSUED FOR BENDING';
+      customArea.innerHTML = `<label>📅 Issued For Bending Date:</label><input type="date" id="input_date" required>`;
+    } 
+    else if (stage === 'bend_entry') {
+      title.innerText = '2. BEND ENTRY';
+      customArea.innerHTML = `
+        <label>BEND QTY (Editable):</label><input type="text" id="input_bend_qty" placeholder="Enter Bend Qty">
+        <label>WELD ID (Editable):</label><input type="text" id="input_weld_id" placeholder="Enter Weld ID">
+        <label>📅 Bend Date:</label><input type="date" id="input_date" required>`;
     }
+    else if (stage === 'fitup_issue') {
+      title.innerText = '3. ISSUE FOR FIT-UP';
+      customArea.innerHTML = `<label>📅 Issue For Fit-Up Date:</label><input type="date" id="input_date" required>`;
+    }
+    else if (stage === 'fitter_name') {
+      title.innerText = '4. FITTER NAME';
+      customArea.innerHTML = `
+        <label>Select Fitter Name:</label>
+        <select id="input_fitter">
+          <option value="">-- Select Fitter --</option>
+          ${FITTERS.map(f => `<option value="${f}">${f}</option>`).join('')}
+        </select>`;
+    }
+    else if (stage === 'ready_fitup') {
+      title.innerText = '5. READY FOR FIT-UP INSPECTION';
+      subArea.style.display = 'flex';
+      subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
+      customArea.innerHTML = `<label>📅 Ready For Fit-Up Insp Date:</label><input type="date" id="input_date" required>`;
+      activeSubFilter = FITTERS[0];
+      subArea.children[0].classList.add('active');
+    }
+    else if (stage === 'fitup_entry') {
+      title.innerText = '6. FIT UP ENTRY';
+      customArea.innerHTML = `<label>📅 Fit-Up Date:</label><input type="date" id="input_date" required>`;
+    }
+    else if (stage === 'welder_name') {
+      title.innerText = '7. WELDER NAME';
+      customArea.innerHTML = `
+        <label>Welder No - 1:</label>
+        <select id="input_welder1"><option value="">-- Select Welder 1 --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select>
+        <label>Welder No - 2 (Optional):</label>
+        <select id="input_welder2"><option value="">-- Select Welder 2 (None) --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select>`;
+    }
+    else if (stage === 'ready_weld') {
+      title.innerText = '8. READY FOR WELD VISUAL';
+      subArea.style.display = 'flex';
+      subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
+      customArea.innerHTML = `<label>📅 Ready For Weld Visual Date:</label><input type="date" id="input_date" required>`;
+      activeSubFilter = WELDERS[0];
+      subArea.children[0].classList.add('active');
+    }
+    else if (stage === 'weld_visual') {
+      title.innerText = '9. WELD VISUAL';
+      customArea.innerHTML = `<label>📅 Visual Date:</label><input type="date" id="input_date" required>`;
+    }
+    else if (stage === 'ndt_clearance') {
+      title.innerText = '10. NDT CLEARANCE';
+      customArea.innerHTML = `<label>📅 NDT Clearance Date:</label><input type="date" id="input_date" required>`;
+    }
+    else if (stage === 'fd') {
+      title.innerText = '11. FINAL DISPATCH & DC NO';
+      customArea.innerHTML = `
+        <label>Shift to Laydown / Painting Yard DC No:</label>
+        <input type="text" id="input_dc_no" placeholder="Enter DC No" required>
+        <label>📅 FD Date:</label><input type="date" id="input_date" required>`;
+    }
+
+    applyStageFilters();
   }
 
-  function renderAlreadyFilledJoints(joints) {
-    const section = document.getElementById('alreadyFilledJointsSection');
-    const tableBody = document.getElementById('alreadyFilledJointsTableBody');
-    if (!section || !tableBody) return;
-
-    if (joints && joints.length > 0) {
-      tableBody.innerHTML = joints.map(j => `
-        <tr style="background:#ffffff; border-bottom:1px solid #cbd5e1;">
-          <td style="border:1px solid #cbd5e1; padding:7px 6px; font-weight:bold; color:#1e40af;">${j.joint_no.toUpperCase()}</td>
-          <td style="border:1px solid #cbd5e1; padding:7px 6px; color:#1e293b; font-weight:600;">${j.type_of_joint}</td>
-          <td style="border:1px solid #cbd5e1; padding:7px 6px; color:#1e293b;">${j.joint_size}"</td>
-        </tr>
-      `).join('');
-      section.style.display = 'block';
-    } else {
-      section.style.display = 'none';
-    }
+  function selectSubFilter(val, btn) {
+    activeSubFilter = val;
+    btn.parentNode.querySelectorAll('.sub-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyStageFilters();
   }
 
-  function autoFillSpoolDetails() {
-    const select = document.getElementById('fitup_spool');
-    const selectedOpt = select.options[select.selectedIndex];
-    if (selectedOpt && selectedOpt.value) {
-      const defaultSize = (selectedOpt.getAttribute('data-size') || '').replace(/[^0-9.]/g, '');
-      document.getElementById('fitup_spool_size').value = defaultSize;
-      document.getElementById('fitup_rev_no').value = selectedOpt.getAttribute('data-rev') || '0';
-    } else {
-      document.getElementById('fitup_spool_size').value = '';
-      document.getElementById('fitup_rev_no').value = '';
-    }
-    document.getElementById('current_joint_size').value = '';
-    document.getElementById('current_joint_type').value = '';
-    document.getElementById('current_joint_no').value = '';
-  }
+  function applyStageFilters() {
+    stageFilteredRows = rawData.filter(r => {
+      const bendDate = r.Bend_date || r.bend_date;
+      const issuedBend = r.Issued_for_bending || r.issued_for_bending;
+      const issueFitup = r.Issue_for_fitup || r.issue_for_fitup;
+      const fitterName = r.Fitter_name || r.fitter_name;
+      const readyFitup = r.Ready_for_fitup_insp || r.ready_for_fitup_insp;
+      const fitupDate = r.Fit_up_date || r.fit_up_date;
+      const welderNo = r.Welder_no || r.welder_no;
+      const readyWeld = r.Ready_for_weld_visual || r.ready_for_weld_visual;
+      const visualDate = r.Weld_visual_date || r.weld_visual_date;
+      const ndtDate = r.Ndt_clearance || r.ndt_clearance;
+      const fdDate = r.Fd_date || r.fd_date;
 
-  function validateJointInput(jNo, jType, jSize) {
-    if (!jNo) {
-      alert('Error: Joint No cannot be empty.');
+      if (currentStage === 'bending_issue') return isBlank(bendDate) && isBlank(issuedBend);
+      if (currentStage === 'bend_entry') return isBlank(bendDate) && isFilled(issuedBend);
+      if (currentStage === 'fitup_issue') return isFilled(bendDate) && isBlank(issueFitup);
+      if (currentStage === 'fitter_name') return isFilled(issueFitup) && isBlank(fitterName);
+      if (currentStage === 'ready_fitup') return isFilled(fitterName) && fitterName === activeSubFilter && isBlank(readyFitup);
+      if (currentStage === 'fitup_entry') return isFilled(readyFitup) && isBlank(fitupDate);
+      if (currentStage === 'welder_name') return isFilled(fitupDate) && isBlank(welderNo);
+      if (currentStage === 'ready_weld') return isFilled(welderNo) && welderNo.includes(activeSubFilter) && isBlank(readyWeld);
+      if (currentStage === 'weld_visual') return isFilled(readyWeld) && isBlank(visualDate);
+      if (currentStage === 'ndt_clearance') return isFilled(visualDate) && isBlank(ndtDate);
+      if (currentStage === 'fd') return isFilled(ndtDate) && isBlank(fdDate);
       return false;
-    }
-    const jointRegex = /^J(0[1-9]|[1-9][0-9]+)[A-Za-z]?$/;
-    if (!jointRegex.test(jNo)) {
-      alert('Error: Invalid Joint Number!\n\nFormat:\n- 1 to 9: J01, J02, J05A\n- 10+: J10, J11');
-      return false;
-    }
-    const existsInDb = existingJointsInDb.some(j => j.joint_no.toLowerCase() === jNo.toLowerCase());
-    if (existsInDb) {
-      alert(`❌ Error: Joint "${jNo}" is already filled in this Drawing!`);
-      return false;
-    }
-    const existsInQueue = addedJointsQueue.some(j => j.joint_no.toUpperCase() === jNo.toUpperCase());
-    if (existsInQueue) {
-      alert(`❌ Error: Joint "${jNo}" is already added to queue!`);
-      return false;
-    }
-    const validTypes = ["BW", "SOB", "SOF", "LET", "EB"];
-    if (!jType || !validTypes.includes(jType)) {
-      alert('Error: Please select Type of Joint.');
-      return false;
-    }
-    const cleanSize = jSize.replace(/[^0-9.]/g, '');
-    if (!cleanSize || !ALLOWED_SIZES.includes(cleanSize)) {
-      alert('Error: Invalid Joint Size!');
-      return false;
-    }
-    return true;
-  }
-
-  function addCurrentJointToList() {
-    const jNo = document.getElementById('current_joint_no').value.trim().toUpperCase();
-    const jType = document.getElementById('current_joint_type').value;
-    const jSize = document.getElementById('current_joint_size').value.trim();
-
-    if (!validateJointInput(jNo, jType, jSize)) return;
-
-    addedJointsQueue.push({ 
-      joint_no: jNo, 
-      type_of_joint: jType, 
-      joint_size: jSize.replace(/[^0-9.]/g, '') 
     });
-    renderAddedJoints();
 
-    document.getElementById('current_joint_no').value = '';
-    document.getElementById('current_joint_type').value = '';
-    document.getElementById('current_joint_size').value = '';
-    document.getElementById('current_joint_no').focus();
+    updateMetrics();
+    renderSpoolSelectionList();
   }
 
-  function renderAddedJoints() {
-    const container = document.getElementById('addedJointsList');
-    if (!container) return;
-    if (addedJointsQueue.length === 0) {
-      container.innerHTML = '';
+  function updateMetrics() {
+    const uniqueSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
+    const uniqueWelds = stageFilteredRows.map(r => r.Weld_id || r.weld_id).filter(Boolean);
+    document.getElementById('metricSpools').innerText = uniqueSpools.size;
+    document.getElementById('metricWelds').innerText = uniqueWelds.length;
+  }
+
+  function renderSpoolSelectionList() {
+    const search = document.getElementById('spoolSearch').value.trim().toLowerCase();
+    const box = document.getElementById('spoolListBox');
+    
+    const displayList = stageFilteredRows.filter(r => {
+      const spl = String(r.Spool_number || r.spool_number || '').toLowerCase();
+      const wld = String(r.Weld_id || r.weld_id || '').toLowerCase();
+      return spl.includes(search) || wld.includes(search);
+    });
+
+    if (displayList.length === 0) {
+      box.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:15px;">No Spools Available in this Stage</div>';
       return;
     }
 
-    container.innerHTML = `
-      <div style="font-size:12px; font-weight:bold; color:#15803d; margin-bottom:4px;">
-        📋 New Added Joints (${addedJointsQueue.length}):
-      </div>
-      ` + addedJointsQueue.map((j, idx) => `
-      <div class="saved-joint-card">
-        <span><b>#${idx + 1}</b> Joint: <b>${j.joint_no}</b> | Type: ${j.type_of_joint} | Size: ${j.joint_size}"</span>
-        <button type="button" class="btn-remove-row" onclick="removeQueueJoint(${idx})">✕</button>
+    box.innerHTML = displayList.map(r => `
+      <div class="spool-item">
+        <label style="display:flex; align-items:center; margin:0; cursor:pointer; width:100%;">
+          <input type="checkbox" class="stage-row-chk" value="${r.id}" onchange="onSpoolCheck(this, '${r.id}')">
+          <span><b>${r.Spool_number || r.spool_number}</b> | Weld ID: <b>${r.Weld_id || r.weld_id || '-'}</b> | Drawing: ${r.Drawing_no || r.drawing_no || '-'}</span>
+        </label>
       </div>
     `).join('');
   }
 
-  function removeQueueJoint(index) {
-    addedJointsQueue.splice(index, 1);
-    renderAddedJoints();
+  function onSpoolCheck(chk, id) {
+    if (currentStage === 'bend_entry' && chk.checked) {
+      const r = rawData.find(x => x.id == id);
+      if (r) {
+        document.getElementById('input_bend_qty').value = r.Bend_qty || r.bend_qty || '';
+        document.getElementById('input_weld_id').value = r.Weld_id || r.weld_id || '';
+      }
+    }
   }
 
-  function attachFitupEvents() {
-    const form = document.getElementById('fitupForm');
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      const msg = document.getElementById('fitupMsg');
-      const dwg = document.getElementById('fitup_drawing').value.trim();
-      const spl = document.getElementById('fitup_spool').value.trim();
-      const spoolSize = document.getElementById('fitup_spool_size').value.trim();
-      const revNo = document.getElementById('fitup_rev_no').value.trim();
-      const fitupDate = document.getElementById('fitup_date').value;
-
-      const currentNo = document.getElementById('current_joint_no').value.trim();
-      if (currentNo) addCurrentJointToList();
-
-      if (addedJointsQueue.length === 0) {
-        alert('Please Add 1 Joint.');
-        return;
-      }
-
-      msg.textContent = '⏳ Save in progress...';
-      const insertRows = addedJointsQueue.map(j => ({
-        Drawing_no: dwg,
-        Spool_number: spl,
-        Spool_size: spoolSize,
-        Rev_no: revNo,
-        Joint_no: j.joint_no,
-        Type_of_joint: j.type_of_joint,
-        Joint_size: j.joint_size,
-        Fit_up_date: fitupDate,
-        status: 'Fit-Up Completed'
-      }));
-
-      try {
-        const { error } = await db.from('piping_joints').insert(insertRows);
-        if (error) throw error;
-
-        msg.textContent = `✅ ${insertRows.length} Joints Saved Successfully!`;
-        msg.className = 'msg success';
-        document.getElementById('fitupForm').reset();
-        document.getElementById('fitupDetailsSection').style.display = 'none';
-        addedJointsQueue = [];
-        existingJointsInDb = [];
-        renderAddedJoints();
-        loadMasterSpools();
-      } catch (err) {
-        msg.textContent = '❌ Error: ' + err.message;
-        msg.className = 'msg error';
-      }
-    };
+  function toggleSelectAll() {
+    const chks = document.querySelectorAll('.stage-row-chk');
+    if (chks.length === 0) return;
+    const anyUnchecked = Array.from(chks).some(c => !c.checked);
+    chks.forEach(c => c.checked = anyUnchecked);
   }
 
-  // --- Welding Logic ---
-  async function loadFitupCompleted() {
+  async function submitCurrentStage() {
+    const selectedIds = Array.from(document.querySelectorAll('.stage-row-chk:checked')).map(c => parseInt(c.value));
+    if (selectedIds.length === 0) {
+      alert('કૃપા કરીને ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
+      return;
+    }
+
+    const updates = {};
+    const dateInput = document.getElementById('input_date');
+    const enteredDate = dateInput ? dateInput.value : null;
+
+    if (currentStage === 'bending_issue') {
+      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      updates['Issued_for_bending'] = enteredDate;
+    }
+    else if (currentStage === 'bend_entry') {
+      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      updates['Bend_date'] = enteredDate;
+      const bQty = document.getElementById('input_bend_qty').value.trim();
+      const wId = document.getElementById('input_weld_id').value.trim();
+      if (bQty) updates['Bend_qty'] = bQty;
+      if (wId) updates['Weld_id'] = wId;
+    }
+    else if (currentStage === 'fitup_issue') {
+      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      updates['Issue_for_fitup'] = enteredDate;
+    }
+    else if (currentStage === 'fitter_name') {
+      const fVal = document.getElementById('input_fitter').value;
+      if (!fVal) return alert('કૃપા કરીને Fitter Name પસંદ કરો.');
+      updates['Fitter_name'] = fVal;
+    }
+    else if (currentStage === 'ready_fitup') {
+      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      updates['Ready_for_fitup_insp'] = enteredDate;
+    }
+    else if (currentStage === 'fitup_entry') {
+      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      updates['Fit_up_date'] = enteredDate;
+    }
+    else if (currentStage === 'welder_name') {
+      const w1 = document.getElementById('input_welder1').value;
+      const w2 = document.getElementById('input_welder2').value;
+      if (!w1) return alert('Welder No 1 પસંદ કરો.');
+      updates['Welder_no'] = w2 ? `${w1}/${w2}` : w1;
+    }
+    else if (currentStage === 'ready_weld') {
+      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      updates['Ready_for_weld_visual'] = enteredDate;
+    }
+    else if (currentStage === 'weld_visual') {
+      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      updates['Weld_visual_date'] = enteredDate;
+    }
+    else if (currentStage === 'ndt_clearance') {
+      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      updates['Ndt_clearance'] = enteredDate;
+    }
+    else if (currentStage === 'fd') {
+      const dcNo = document.getElementById('input_dc_no').value.trim();
+      if (!dcNo || !enteredDate) return alert('DC No અને તારીખ બંને ભરો.');
+      updates['Shift_dc_no'] = dcNo;
+      updates['Fd_date'] = enteredDate;
+    }
+
     try {
-      const { data, error } = await db.from('piping_joints')
-        .select('*')
-        .eq('status', 'Fit-Up Completed')
-        .order('id', { ascending: false });
-
+      const { error } = await db.from('piping_joints').update(updates).in('id', selectedIds);
       if (error) throw error;
-      if (data) fitupCompletedJoints = data;
-    } catch(err) { console.error(err); }
-  }
 
-  function handleWeldDrawingSearch() {
-    const val = document.getElementById('weld_drawing_search').value.trim().toLowerCase();
-    const resultBox = document.getElementById('weldDrawingResults');
-    if (!val) { resultBox.style.display = 'none'; return; }
-
-    const uniqueDwgs = [...new Set(fitupCompletedJoints.map(j => j.Drawing_no || j.drawing_no).filter(Boolean))];
-    const filtered = uniqueDwgs.filter(d => d.toLowerCase().includes(val));
-
-    if (filtered.length > 0) {
-      resultBox.innerHTML = filtered.map(d => `<div class="search-item" onclick="selectWeldDrawing('${encodeURIComponent(d)}')">${d}</div>`).join('');
-      resultBox.style.display = 'block';
-    } else {
-      resultBox.innerHTML = '<div class="search-item" style="color:#94a3b8">No Fit-up Drawing Found</div>';
-      resultBox.style.display = 'block';
-    }
-  }
-
-  function selectWeldDrawing(encodedDwg) {
-    selectedWeldDrawing = decodeURIComponent(encodedDwg);
-    document.getElementById('weld_drawing_search').value = selectedWeldDrawing;
-    document.getElementById('weldDrawingResults').style.display = 'none';
-    weldEntryData = {};
-
-    const joints = fitupCompletedJoints.filter(j => (j.Drawing_no || j.drawing_no).toLowerCase() === selectedWeldDrawing.toLowerCase());
-    const listContainer = document.getElementById('weldJointsList');
-
-    listContainer.innerHTML = joints.map(j => `
-      <div class="weld-joint-item" id="weldCard_${j.id}" onclick="openWeldModal(${j.id})">
-        <div style="font-weight:bold; color:#1e3a8a;">Joint: ${j.Joint_no || j.joint_no} (Spool: ${j.Spool_number || j.spool_number})</div>
-        <div style="font-size:12px; color:#64748b;">Type: ${j.Type_of_joint || j.type_of_joint} | Size: ${j.Joint_size || j.joint_size} | Fit-up: ${(j.Fit_up_date || j.fit_up_date || '').split('T')[0]}</div>
-        <div id="weldSummary_${j.id}" style="font-size:12px; font-weight:bold; color:#15803d; margin-top:4px; display:none;"></div>
-      </div>
-    `).join('');
-
-    document.getElementById('weldJointsWrapper').style.display = 'block';
-  }
-
-  function openWeldModal(jointId) {
-    activeJointForModal = jointId;
-    const j = fitupCompletedJoints.find(item => item.id == jointId);
-    document.getElementById('modalJointTitle').innerText = `Welding Details: Joint ${j.Joint_no || j.joint_no}`;
-    
-    if (weldEntryData[jointId]) {
-      document.getElementById('modal_wps').value = weldEntryData[jointId].wps || '';
-      document.getElementById('modal_proc1').value = weldEntryData[jointId].proc1 || 'GTAW';
-      document.getElementById('modal_layer1').value = weldEntryData[jointId].layer1 || 'Root';
-      document.getElementById('modal_welder1').value = weldEntryData[jointId].welder1 || '';
-      document.getElementById('modal_proc2').value = weldEntryData[jointId].proc2 || 'SMAW';
-      document.getElementById('modal_layer2').value = weldEntryData[jointId].layer2 || 'Cap';
-      document.getElementById('modal_welder2').value = weldEntryData[jointId].welder2 || '';
-    } else {
-      document.getElementById('modal_wps').value = '';
-      document.getElementById('modal_proc1').value = 'GTAW';
-      document.getElementById('modal_layer1').value = 'Root';
-      document.getElementById('modal_welder1').value = '';
-      document.getElementById('modal_proc2').value = 'SMAW';
-      document.getElementById('modal_layer2').value = 'Cap';
-      document.getElementById('modal_welder2').value = '';
-    }
-    document.getElementById('weldModal').style.display = 'flex';
-  }
-
-  function closeModal() {
-    document.getElementById('weldModal').style.display = 'none';
-  }
-
-  function saveModalDetails() {
-    const wps = document.getElementById('modal_wps').value.trim();
-    const proc1 = document.getElementById('modal_proc1').value;
-    const layer1 = document.getElementById('modal_layer1').value;
-    const welder1 = document.getElementById('modal_welder1').value.trim();
-
-    const proc2 = document.getElementById('modal_proc2').value;
-    const layer2 = document.getElementById('modal_layer2').value;
-    const welder2 = document.getElementById('modal_welder2').value.trim();
-
-    if (!wps) { alert('Please select WPS Number.'); return; }
-    if (!welder1) { alert('Please enter Welder No for Layer 1.'); return; }
-
-    // Welding Process Calculation
-    let finalProcess = proc1;
-    if (welder2) {
-      if (proc1 === proc2) {
-        finalProcess = proc1;
-      } else {
-        finalProcess = `${proc1}/${proc2}`;
-      }
-    }
-
-    // Welder No Calculation
-    let finalWelder = welder1.toUpperCase();
-    if (welder2) {
-      if (welder1.toUpperCase() === welder2.toUpperCase()) {
-        finalWelder = welder1.toUpperCase();
-      } else {
-        finalWelder = `${welder1.toUpperCase()}/${welder2.toUpperCase()}`;
-      }
-    }
-
-    weldEntryData[activeJointForModal] = {
-      wps: wps,
-      welding_process: finalProcess,
-      welder_no: finalWelder,
-      proc1, layer1, welder1,
-      proc2, layer2, welder2
-    };
-
-    const card = document.getElementById(`weldCard_${activeJointForModal}`);
-    card.classList.add('filled');
-    
-    const summary = document.getElementById(`weldSummary_${activeJointForModal}`);
-    summary.innerHTML = `✅ WPS: ${wps} | Process: ${finalProcess} | Welder: ${finalWelder}`;
-    summary.style.display = 'block';
-    closeModal();
-  }
-
-  function attachWeldingEvents() {
-    const form = document.getElementById('weldForm');
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      const msg = document.getElementById('weldMsg');
-      const weldDate = document.getElementById('common_weld_date').value;
-
-      const jointIds = Object.keys(weldEntryData);
-      if (jointIds.length === 0) {
-        alert('Please select at least 1 joint to enter Welder/WPS.');
-        return;
-      }
-
-      msg.textContent = '⏳ Save in progress...';
-      try {
-        for (const id of jointIds) {
-          const { error } = await db.from('piping_joints').update({
-            Welder_no: weldEntryData[id].welder_no,
-            Welding_process: weldEntryData[id].welding_process,
-            Wps: weldEntryData[id].wps,
-            Weld_visual_date: weldDate,
-            status: 'Welding Completed'
-          }).eq('id', id);
-
-          if (error) throw error;
+      alert(`✅ ${selectedIds.length} Spools સફળતાપૂર્વક અપડેટ થઈ ગયા!`);
+      
+      rawData.forEach(r => {
+        if (selectedIds.includes(r.id)) {
+          Object.assign(r, updates);
         }
+      });
 
-        msg.textContent = `✅ ${jointIds.length} Joints Welding Saved Successfully!`;
-        msg.className = 'msg success';
-        document.getElementById('weldForm').reset();
-        document.getElementById('weldJointsWrapper').style.display = 'none';
-        weldEntryData = {};
-        loadFitupCompleted();
-      } catch (err) {
-        msg.textContent = '❌ Error: ' + err.message;
-        msg.className = 'msg error';
-      }
-    };
-  }
-
-  // ================= VIEW RECORDS ================= //
-  async function loadAllRecords() {
-    const tbody = document.getElementById('tableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:15px;">⏳ Loading data from Supabase...</td></tr>';
-    try {
-      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: false });
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        allRecords = data.map(r => {
-          const keys = Object.keys(r);
-          const getVal = (names) => {
-            const k = keys.find(key => names.some(n => n.toLowerCase() === key.toLowerCase().replace(/[^a-z0-9]/g, '')));
-            return k ? String(r[k] || '').trim() : '';
-          };
-          return {
-            drawing_no: getVal(['drawingno', 'drawing_no', 'drawing']),
-            spool_number: getVal(['spoolnumber', 'spool_number', 'spoolno', 'spool']),
-            spool_size: getVal(['spoolsize', 'spool_size', 'size']),
-            rev_no: getVal(['revno', 'rev_no', 'rev']) || '0',
-            joint_no: getVal(['jointno', 'joint_no', 'joint']),
-            type_of_joint: getVal(['typeofjoint', 'type_of_joint', 'type']) || '-',
-            joint_size: getVal(['jointsize', 'joint_size']) || '-',
-            fit_up_date: getVal(['fitupdate', 'fit_up_date']) ? getVal(['fitupdate', 'fit_up_date']).split('T')[0] : '-',
-            welding_process: getVal(['weldingprocess', 'welding_process', 'process']) || '-',
-            welder_no: getVal(['welderno', 'welder_no', 'welder']) || '-',
-            wps: getVal(['wps', 'wpsno']) || '-',
-            weld_visual_date: getVal(['weldvisualdate', 'weld_visual_date', 'weld_date']) ? getVal(['weldvisualdate', 'weld_visual_date', 'weld_date']).split('T')[0] : '-',
-            status: getVal(['status']) || '-'
-          };
-        });
-        renderTable(allRecords);
-      } else {
-        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:15px;">No Records Found.</td></tr>';
-      }
+      applyStageFilters();
     } catch(err) {
-      tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; color:red; padding:15px;">Error loading data!</td></tr>';
+      alert('Error updating database: ' + err.message);
     }
   }
 
-  function renderTable(data) {
-    const tbody = document.getElementById('tableBody');
-    if (!tbody) return;
-    if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:15px; color:#dc2626; font-weight:bold;">No Matching Results.</td></tr>';
-      return;
-    }
+  function renderRegisterTable() {
+    const theadFilter = document.getElementById('filterRow');
+    const cols = [
+      'drawing_no','spool_size','rev_no','allocation','spool_number','bend_qty','issued_for_bending',
+      'bend_date','weld_id','issue_for_fitup','fitter_name','ready_for_fitup_insp','report_no',
+      'fit_up_date','welder_no','ready_for_weld_visual','weld_visual_date','ndt_clearance','fd_date',
+      'shift_dc_no','bill','remarks'
+    ];
 
-    tbody.innerHTML = data.map(r => `
-      <tr>
-        <td><b>${r.drawing_no || '-'}</b></td>
-        <td>${r.spool_number || '-'}</td>
-        <td>${r.spool_size || '-'}</td>
-        <td>${r.rev_no || '0'}</td>
-        <td><b>${r.joint_no || '-'}</b></td>
-        <td>${r.type_of_joint || '-'}</td>
-        <td>${r.joint_size || '-'}</td>
-        <td>${r.fit_up_date || '-'}</td>
-        <td style="font-weight:600; color:#0f766e;">${r.welding_process || '-'}</td>
-        <td>${r.welder_no || '-'}</td>
-        <td>${r.wps || '-'}</td>
-        <td>${r.weld_visual_date || '-'}</td>
-        <td><span class="badge ${r.status === 'Welding Completed' ? 'badge-weld' : 'badge-fitup'}">${r.status || '-'}</span></td>
-      </tr>
-    `).join('');
+    theadFilter.innerHTML = cols.map(c => `<th><input type="text" class="tbl-filter" data-col="${c}" oninput="filterRegister()" placeholder="🔍"></th>`).join('');
+    filterRegister();
   }
 
-  function applyMultiColumnFilter() {
-    const filterInputs = document.querySelectorAll('.col-filter');
-    const filterValues = {};
-
-    filterInputs.forEach(input => {
-      const col = input.getAttribute('data-col');
-      const val = input.value.trim().toLowerCase();
-      if (val) filterValues[col] = val;
+  function filterRegister() {
+    const filters = {};
+    document.querySelectorAll('.tbl-filter').forEach(i => {
+      const val = i.value.trim().toLowerCase();
+      if (val) filters[i.getAttribute('data-col')] = val;
     });
 
-    const filtered = allRecords.filter(row => {
-      for (const [col, val] of Object.entries(filterValues)) {
-        const rowVal = String(row[col] || '').toLowerCase();
-        if (!rowVal.includes(val)) return false;
+    const filtered = rawData.filter(r => {
+      for (const [k, v] of Object.entries(filters)) {
+        const itemVal = String(r[k] || r[k.charAt(0).toUpperCase() + k.slice(1)] || '').toLowerCase();
+        if (!itemVal.includes(v)) return false;
       }
       return true;
     });
 
-    renderTable(filtered);
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = filtered.slice(0, 500).map(r => `
+      <tr>
+        <td><b>${r.Drawing_no || r.drawing_no || '-'}</b></td>
+        <td>${r.Spool_size || r.spool_size || '-'}</td>
+        <td>${r.Rev_no || r.rev_no || '0'}</td>
+        <td>${r.Allocation || r.allocation || '-'}</td>
+        <td>${r.Spool_number || r.spool_number || '-'}</td>
+        <td>${r.Bend_qty || r.bend_qty || '-'}</td>
+        <td>${(r.Issued_for_bending || r.issued_for_bending || '').split('T')[0] || '-'}</td>
+        <td>${(r.Bend_date || r.bend_date || '').split('T')[0] || '-'}</td>
+        <td><b>${r.Weld_id || r.weld_id || '-'}</b></td>
+        <td>${(r.Issue_for_fitup || r.issue_for_fitup || '').split('T')[0] || '-'}</td>
+        <td>${r.Fitter_name || r.fitter_name || '-'}</td>
+        <td>${(r.Ready_for_fitup_insp || r.ready_for_fitup_insp || '').split('T')[0] || '-'}</td>
+        <td>${r.Report_no || r.report_no || '-'}</td>
+        <td>${(r.Fit_up_date || r.fit_up_date || '').split('T')[0] || '-'}</td>
+        <td>${r.Welder_no || r.welder_no || '-'}</td>
+        <td>${(r.Ready_for_weld_visual || r.ready_for_weld_visual || '').split('T')[0] || '-'}</td>
+        <td>${(r.Weld_visual_date || r.weld_visual_date || '').split('T')[0] || '-'}</td>
+        <td>${(r.Ndt_clearance || r.ndt_clearance || '').split('T')[0] || '-'}</td>
+        <td>${(r.Fd_date || r.fd_date || '').split('T')[0] || '-'}</td>
+        <td>${r.Shift_dc_no || r.shift_dc_no || '-'}</td>
+        <td>${r.Bill || r.bill || '-'}</td>
+        <td>${r.Remarks || r.remarks || '-'}</td>
+      </tr>
+    `).join('');
   }
 
   function resetColumnFilters() {
-    document.querySelectorAll('.col-filter').forEach(input => input.value = '');
-    renderTable(allRecords);
+    document.querySelectorAll('.tbl-filter').forEach(i => i.value = '');
+    filterRegister();
   }
 </script>
 
