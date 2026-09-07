@@ -44,7 +44,7 @@
   <!-- Main Hub -->
   <div id="mainMenu" class="card">
     <h3>⚙️ Piping QC Workflow Stage Modules</h3>
-    <div id="loadingNotice" style="color: #2563eb; font-weight: bold; margin-bottom: 8px;">⏳ Connecting to database & loading records...</div>
+    <div id="loadingNotice" style="color: #2563eb; font-weight: bold; margin-bottom: 8px;">⏳ Loading all database records...</div>
     <div class="menu-grid">
       <button class="menu-btn" onclick="openStage('bending_issue')">1. ISSUED FOR BENDING</button>
       <button class="menu-btn" onclick="openStage('bend_entry')">2. BEND ENTRY</button>
@@ -136,20 +136,40 @@
     await fetchAllData();
   });
 
+  // ૧,૦૦૦ ની મર્યાદા વટાવી તમામ ૩,૮૦૦+ રેકોર્ડ્સ બેચમાં લોડ કરવાનું ફંક્શન
   async function fetchAllData() {
     try {
-      const { data, error } = await db.from('piping_joints')
-        .select('*')
-        .order('id', { ascending: true })
-        .range(0, 4999);
-      if (!error && data) {
-        rawData = data;
-        isDataLoaded = true;
-        const notice = document.getElementById('loadingNotice');
-        if (notice) notice.innerText = `✅ Database Connected: ${data.length} records loaded.`;
+      const notice = document.getElementById('loadingNotice');
+      let allRows = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        if (notice) notice.innerText = `⏳ Loading records (${from} loaded)...`;
+        const { data, error } = await db.from('piping_joints')
+          .select('*')
+          .order('id', { ascending: true })
+          .range(from, from + step - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += step;
+          if (data.length < step) hasMore = false;
+        } else {
+          hasMore = false;
+        }
       }
+
+      rawData = allRows;
+      isDataLoaded = true;
+      if (notice) notice.innerText = `✅ Database Connected: ${rawData.length} records loaded.`;
     } catch(e) {
-      console.error(e);
+      console.error("Data Load Error:", e);
+      const notice = document.getElementById('loadingNotice');
+      if (notice) notice.innerText = `❌ Error loading records: ${e.message}`;
     }
   }
 
@@ -159,7 +179,6 @@
     document.getElementById('mainMenu').style.display = 'block';
   }
 
-  // ફ્લેક્સિબલ Blank/Filled ચેકિંગ
   function isBlank(v) {
     if (v === null || v === undefined) return true;
     const str = String(v).trim();
@@ -288,19 +307,19 @@
       const ndtDate = r.Ndt_clearance !== undefined ? r.Ndt_clearance : r.ndt_clearance;
       const fdDate = r.Fd_date !== undefined ? r.Fd_date : r.fd_date;
 
-      // ૧. ISSUED FOR BENDING: તમારી સ્પષ્ટ જરૂરિયાત "BEND DATE IS BLANK"
+      // ૧. ISSUED FOR BENDING
       if (currentStage === 'bending_issue') {
         return isBlank(bendDate) && isBlank(issuedBend);
       }
-      // ૨. BEND ENTRY: BEND DATE IS BLANK & ISSUED FOR BENDING IS FILLED
+      // ૨. BEND ENTRY
       if (currentStage === 'bend_entry') {
         return isBlank(bendDate) && isFilled(issuedBend);
       }
-      // ૩. ISSUE FOR FIT-UP: BEND DATE IS FILLED & ISSUED FOR FIT-UP IS BLANK
+      // ૩. ISSUE FOR FIT-UP
       if (currentStage === 'fitup_issue') {
         return isFilled(bendDate) && isBlank(issueFitup);
       }
-      // ૪. FITTER NAME: ISSUED FOR FIT-UP IS FILLED & FITTER NAME IS BLANK
+      // ૪. FITTER NAME
       if (currentStage === 'fitter_name') {
         return isFilled(issueFitup) && isBlank(fitterName);
       }
@@ -512,7 +531,7 @@
     });
 
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = filtered.slice(0, 500).map(r => `
+    tbody.innerHTML = filtered.slice(0, 1000).map(r => `
       <tr>
         <td><b>${r.Drawing_no || r.drawing_no || '-'}</b></td>
         <td>${r.Spool_size || r.spool_size || '-'}</td>
@@ -529,7 +548,7 @@
         <td>${r.Report_no || r.report_no || '-'}</td>
         <td>${(r.Fit_up_date || r.fit_up_date || '').split('T')[0] || '-'}</td>
         <td>${r.Welder_no || r.welder_no || '-'}</td>
-        <td>${(r.Ready_for_weld_visual || r.ready_for_weld_visual || '').split('T')[0] || '-'}</td>
+        <td>${r.Ready_for_weld_visual || r.ready_for_weld_visual || '-'}</td>
         <td>${(r.Weld_visual_date || r.weld_visual_date || '').split('T')[0] || '-'}</td>
         <td>${(r.Ndt_clearance || r.ndt_clearance || '').split('T')[0] || '-'}</td>
         <td>${(r.Fd_date || r.fd_date || '').split('T')[0] || '-'}</td>
