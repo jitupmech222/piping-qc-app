@@ -20,16 +20,13 @@
     .btn-back { background: #64748b; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; text-align: center; display: block; text-decoration: none; box-sizing: border-box; }
     .btn-submit { width: 100%; padding: 12px; margin-top: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
     
-    /* Metrics Top Banner */
     .metric-banner { background: #dbeafe; border: 1.5px solid #3b82f6; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; justify-content: space-around; font-weight: bold; color: #1e3a8a; font-size: 13.5px; }
-    .metric-val { color: #dc2626; font-size: 15px; }
+    .metric-val { color: #dc2626; font-size: 16px; font-weight: 800; }
 
-    /* Sub-Filter Buttons */
     .sub-btn-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; margin-bottom: 10px; }
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; color: #1e293b; }
     .sub-filter-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
 
-    /* Spool Selector List */
     .spool-list-box { max-height: 320px; overflow-y: auto; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 8px; margin-top: 8px; background: #fafafa; }
     .spool-item { background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
     .spool-item input[type="checkbox"] { width: auto; margin: 0 8px 0 0; }
@@ -44,9 +41,10 @@
 <body>
 
 <div class="container">
-  <!-- Main Stage Navigation -->
+  <!-- Main Hub -->
   <div id="mainMenu" class="card">
     <h3>⚙️ Piping QC Workflow Stage Modules</h3>
+    <div id="loadingNotice" style="color: #2563eb; font-weight: bold; margin-bottom: 8px;">⏳ Connecting to database & loading records...</div>
     <div class="menu-grid">
       <button class="menu-btn" onclick="openStage('bending_issue')">1. ISSUED FOR BENDING</button>
       <button class="menu-btn" onclick="openStage('bend_entry')">2. BEND ENTRY</button>
@@ -76,7 +74,7 @@
       <div id="subFilterArea" style="display: none;"></div>
 
       <label>Search Spool Number / Weld ID:</label>
-      <input type="text" id="spoolSearch" placeholder="🔍 Search..." oninput="renderSpoolSelectionList()">
+      <input type="text" id="spoolSearch" placeholder="🔍 Type to filter..." oninput="renderSpoolSelectionList()">
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
         <span style="font-size: 12px; color: #475569;" id="selectedCountText">Selected: 0</span>
@@ -129,11 +127,14 @@
   let currentStage = '';
   let stageFilteredRows = [];
   let activeSubFilter = '';
+  let isDataLoaded = false;
 
   const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
   const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
 
-  window.addEventListener('DOMContentLoaded', fetchAllData);
+  window.addEventListener('DOMContentLoaded', async () => {
+    await fetchAllData();
+  });
 
   async function fetchAllData() {
     try {
@@ -143,9 +144,12 @@
         .range(0, 4999);
       if (!error && data) {
         rawData = data;
+        isDataLoaded = true;
+        const notice = document.getElementById('loadingNotice');
+        if (notice) notice.innerText = `✅ Database Connected: ${data.length} records loaded.`;
       }
     } catch(e) {
-      console.error("Data load error:", e);
+      console.error(e);
     }
   }
 
@@ -155,11 +159,21 @@
     document.getElementById('mainMenu').style.display = 'block';
   }
 
+  // ફ્લેક્સિબલ Blank/Filled ચેકિંગ
+  function isBlank(v) {
+    if (v === null || v === undefined) return true;
+    const str = String(v).trim();
+    return str === '' || str === '-' || str.toLowerCase() === 'null';
+  }
+  function isFilled(v) {
+    return !isBlank(v);
+  }
+
   async function openStage(stage) {
     currentStage = stage;
     document.getElementById('mainMenu').style.display = 'none';
-    
-    if (rawData.length === 0) {
+
+    if (!isDataLoaded || rawData.length === 0) {
       await fetchAllData();
     }
 
@@ -171,16 +185,6 @@
 
     document.getElementById('stageContainer').style.display = 'block';
     setupStageUI(stage);
-  }
-
-  // મજબૂત Blank & Filled ચેક (null, undefined, '', '0', '-' બધાને હેન્ડલ કરે છે)
-  function isBlank(v) {
-    if (v === null || v === undefined) return true;
-    const str = String(v).trim();
-    return str === '' || str === '-' || str.toLowerCase() === 'null';
-  }
-  function isFilled(v) {
-    return !isBlank(v);
   }
 
   function setupStageUI(stage) {
@@ -284,47 +288,47 @@
       const ndtDate = r.Ndt_clearance !== undefined ? r.Ndt_clearance : r.ndt_clearance;
       const fdDate = r.Fd_date !== undefined ? r.Fd_date : r.fd_date;
 
-      // સ્ટેજ ૧: તમારી જરૂરિયાત મુજબ "BEND DATE IS BLANK" (અને જેનું Issued For Bending પણ બાકી છે)
+      // ૧. ISSUED FOR BENDING: તમારી સ્પષ્ટ જરૂરિયાત "BEND DATE IS BLANK"
       if (currentStage === 'bending_issue') {
         return isBlank(bendDate) && isBlank(issuedBend);
       }
-      // સ્ટેજ ૨: BEND DATE IS BLANK & ISSUED FOR BENDING IS FILLED
+      // ૨. BEND ENTRY: BEND DATE IS BLANK & ISSUED FOR BENDING IS FILLED
       if (currentStage === 'bend_entry') {
         return isBlank(bendDate) && isFilled(issuedBend);
       }
-      // સ્ટેજ ૩: BEND DATE IS FILLED & ISSUED FOR FIT-UP IS BLANK
+      // ૩. ISSUE FOR FIT-UP: BEND DATE IS FILLED & ISSUED FOR FIT-UP IS BLANK
       if (currentStage === 'fitup_issue') {
         return isFilled(bendDate) && isBlank(issueFitup);
       }
-      // સ્ટેજ ૪: ISSUED FOR FIT-UP IS FILLED & FITTER NAME IS BLANK
+      // ૪. FITTER NAME: ISSUED FOR FIT-UP IS FILLED & FITTER NAME IS BLANK
       if (currentStage === 'fitter_name') {
         return isFilled(issueFitup) && isBlank(fitterName);
       }
-      // સ્ટેજ ૫: FITTER NAME = activeSubFilter & READY FOR FIT-UP INSP IS BLANK
+      // ૫. READY FOR FIT-UP INSP
       if (currentStage === 'ready_fitup') {
         return isFilled(fitterName) && String(fitterName).trim() === activeSubFilter && isBlank(readyFitup);
       }
-      // સ્ટેજ ૬: READY FOR FIT-UP INSP IS FILLED & FIT-UP DATE IS BLANK
+      // ૬. FIT UP ENTRY
       if (currentStage === 'fitup_entry') {
         return isFilled(readyFitup) && isBlank(fitupDate);
       }
-      // સ્ટેજ ૭: FIT-UP DATE IS FILLED & WELDER NAME IS BLANK
+      // ૭. WELDER NAME
       if (currentStage === 'welder_name') {
         return isFilled(fitupDate) && isBlank(welderNo);
       }
-      // સ્ટેજ ૮: WELDER NAME MATCH & READY FOR WELD VISUAL IS BLANK
+      // ૮. READY FOR WELD VISUAL
       if (currentStage === 'ready_weld') {
         return isFilled(welderNo) && String(welderNo).includes(activeSubFilter) && isBlank(readyWeld);
       }
-      // સ્ટેજ ૯: READY FOR WELD VISUAL IS FILLED & VISUAL DATE IS BLANK
+      // ૯. WELD VISUAL
       if (currentStage === 'weld_visual') {
         return isFilled(readyWeld) && isBlank(visualDate);
       }
-      // સ્ટેજ ૧૦: VISUAL DATE IS FILLED & NDT CLEARANCE IS BLANK
+      // ૧૦. NDT CLEARANCE
       if (currentStage === 'ndt_clearance') {
         return isFilled(visualDate) && isBlank(ndtDate);
       }
-      // સ્ટેજ ૧૧: NDT CLEARANCE IS FILLED & FD DATE IS BLANK
+      // ૧૧. FD & DC NO
       if (currentStage === 'fd') {
         return isFilled(ndtDate) && isBlank(fdDate);
       }
@@ -525,7 +529,7 @@
         <td>${r.Report_no || r.report_no || '-'}</td>
         <td>${(r.Fit_up_date || r.fit_up_date || '').split('T')[0] || '-'}</td>
         <td>${r.Welder_no || r.welder_no || '-'}</td>
-        <td>${r.Ready_for_weld_visual || r.ready_for_weld_visual || '-'}</td>
+        <td>${(r.Ready_for_weld_visual || r.ready_for_weld_visual || '').split('T')[0] || '-'}</td>
         <td>${(r.Weld_visual_date || r.weld_visual_date || '').split('T')[0] || '-'}</td>
         <td>${(r.Ndt_clearance || r.ndt_clearance || '').split('T')[0] || '-'}</td>
         <td>${(r.Fd_date || r.fd_date || '').split('T')[0] || '-'}</td>
