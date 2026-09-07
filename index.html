@@ -30,7 +30,7 @@
     .sub-filter-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
 
     /* Spool Selector List */
-    .spool-list-box { max-height: 280px; overflow-y: auto; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 8px; margin-top: 8px; background: #fafafa; }
+    .spool-list-box { max-height: 320px; overflow-y: auto; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 8px; margin-top: 8px; background: #fafafa; }
     .spool-item { background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
     .spool-item input[type="checkbox"] { width: auto; margin: 0 8px 0 0; }
     
@@ -44,7 +44,7 @@
 <body>
 
 <div class="container">
-  <!-- Top Navigation Hub -->
+  <!-- Main Stage Navigation -->
   <div id="mainMenu" class="card">
     <h3>⚙️ Piping QC Workflow Stage Modules</h3>
     <div class="menu-grid">
@@ -63,7 +63,7 @@
     </div>
   </div>
 
-  <!-- Dynamic Stage Processing Screen -->
+  <!-- Stage Detail Screen -->
   <div id="stageContainer" style="display: none;">
     <div class="card">
       <div class="metric-banner">
@@ -75,11 +75,11 @@
 
       <div id="subFilterArea" style="display: none;"></div>
 
-      <label>Search Spool Number:</label>
-      <input type="text" id="spoolSearch" placeholder="🔍 Search Spool..." oninput="renderSpoolSelectionList()">
+      <label>Search Spool Number / Weld ID:</label>
+      <input type="text" id="spoolSearch" placeholder="🔍 Search..." oninput="renderSpoolSelectionList()">
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-        <span style="font-size: 12px; color: #475569;">Select Spools for Entry:</span>
+        <span style="font-size: 12px; color: #475569;" id="selectedCountText">Selected: 0</span>
         <button type="button" class="sub-filter-btn" onclick="toggleSelectAll()">Select / Unselect All</button>
       </div>
 
@@ -92,7 +92,7 @@
     </div>
   </div>
 
-  <!-- View Records Register -->
+  <!-- View Records -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -137,9 +137,16 @@
 
   async function fetchAllData() {
     try {
-      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(0, 4999);
-      if (!error && data) rawData = data;
-    } catch(e) { console.error(e); }
+      const { data, error } = await db.from('piping_joints')
+        .select('*')
+        .order('id', { ascending: true })
+        .range(0, 4999);
+      if (!error && data) {
+        rawData = data;
+      }
+    } catch(e) {
+      console.error("Data load error:", e);
+    }
   }
 
   function backToMenu() {
@@ -148,10 +155,14 @@
     document.getElementById('mainMenu').style.display = 'block';
   }
 
-  function openStage(stage) {
+  async function openStage(stage) {
     currentStage = stage;
     document.getElementById('mainMenu').style.display = 'none';
     
+    if (rawData.length === 0) {
+      await fetchAllData();
+    }
+
     if (stage === 'view_records') {
       document.getElementById('recordsContainer').style.display = 'block';
       renderRegisterTable();
@@ -162,8 +173,15 @@
     setupStageUI(stage);
   }
 
-  function isBlank(v) { return !v || String(v).trim() === '' || String(v).trim() === '-'; }
-  function isFilled(v) { return !isBlank(v); }
+  // મજબૂત Blank & Filled ચેક (null, undefined, '', '0', '-' બધાને હેન્ડલ કરે છે)
+  function isBlank(v) {
+    if (v === null || v === undefined) return true;
+    const str = String(v).trim();
+    return str === '' || str === '-' || str.toLowerCase() === 'null';
+  }
+  function isFilled(v) {
+    return !isBlank(v);
+  }
 
   function setupStageUI(stage) {
     const title = document.getElementById('stageTitle');
@@ -254,29 +272,62 @@
 
   function applyStageFilters() {
     stageFilteredRows = rawData.filter(r => {
-      const bendDate = r.Bend_date || r.bend_date;
-      const issuedBend = r.Issued_for_bending || r.issued_for_bending;
-      const issueFitup = r.Issue_for_fitup || r.issue_for_fitup;
-      const fitterName = r.Fitter_name || r.fitter_name;
-      const readyFitup = r.Ready_for_fitup_insp || r.ready_for_fitup_insp;
-      const fitupDate = r.Fit_up_date || r.fit_up_date;
-      const welderNo = r.Welder_no || r.welder_no;
-      const readyWeld = r.Ready_for_weld_visual || r.ready_for_weld_visual;
-      const visualDate = r.Weld_visual_date || r.weld_visual_date;
-      const ndtDate = r.Ndt_clearance || r.ndt_clearance;
-      const fdDate = r.Fd_date || r.fd_date;
+      const bendDate = r.Bend_date !== undefined ? r.Bend_date : r.bend_date;
+      const issuedBend = r.Issued_for_bending !== undefined ? r.Issued_for_bending : r.issued_for_bending;
+      const issueFitup = r.Issue_for_fitup !== undefined ? r.Issue_for_fitup : r.issue_for_fitup;
+      const fitterName = r.Fitter_name !== undefined ? r.Fitter_name : r.fitter_name;
+      const readyFitup = r.Ready_for_fitup_insp !== undefined ? r.Ready_for_fitup_insp : r.ready_for_fitup_insp;
+      const fitupDate = r.Fit_up_date !== undefined ? r.Fit_up_date : r.fit_up_date;
+      const welderNo = r.Welder_no !== undefined ? r.Welder_no : r.welder_no;
+      const readyWeld = r.Ready_for_weld_visual !== undefined ? r.Ready_for_weld_visual : r.ready_for_weld_visual;
+      const visualDate = r.Weld_visual_date !== undefined ? r.Weld_visual_date : r.weld_visual_date;
+      const ndtDate = r.Ndt_clearance !== undefined ? r.Ndt_clearance : r.ndt_clearance;
+      const fdDate = r.Fd_date !== undefined ? r.Fd_date : r.fd_date;
 
-      if (currentStage === 'bending_issue') return isBlank(bendDate) && isBlank(issuedBend);
-      if (currentStage === 'bend_entry') return isBlank(bendDate) && isFilled(issuedBend);
-      if (currentStage === 'fitup_issue') return isFilled(bendDate) && isBlank(issueFitup);
-      if (currentStage === 'fitter_name') return isFilled(issueFitup) && isBlank(fitterName);
-      if (currentStage === 'ready_fitup') return isFilled(fitterName) && fitterName === activeSubFilter && isBlank(readyFitup);
-      if (currentStage === 'fitup_entry') return isFilled(readyFitup) && isBlank(fitupDate);
-      if (currentStage === 'welder_name') return isFilled(fitupDate) && isBlank(welderNo);
-      if (currentStage === 'ready_weld') return isFilled(welderNo) && welderNo.includes(activeSubFilter) && isBlank(readyWeld);
-      if (currentStage === 'weld_visual') return isFilled(readyWeld) && isBlank(visualDate);
-      if (currentStage === 'ndt_clearance') return isFilled(visualDate) && isBlank(ndtDate);
-      if (currentStage === 'fd') return isFilled(ndtDate) && isBlank(fdDate);
+      // સ્ટેજ ૧: તમારી જરૂરિયાત મુજબ "BEND DATE IS BLANK" (અને જેનું Issued For Bending પણ બાકી છે)
+      if (currentStage === 'bending_issue') {
+        return isBlank(bendDate) && isBlank(issuedBend);
+      }
+      // સ્ટેજ ૨: BEND DATE IS BLANK & ISSUED FOR BENDING IS FILLED
+      if (currentStage === 'bend_entry') {
+        return isBlank(bendDate) && isFilled(issuedBend);
+      }
+      // સ્ટેજ ૩: BEND DATE IS FILLED & ISSUED FOR FIT-UP IS BLANK
+      if (currentStage === 'fitup_issue') {
+        return isFilled(bendDate) && isBlank(issueFitup);
+      }
+      // સ્ટેજ ૪: ISSUED FOR FIT-UP IS FILLED & FITTER NAME IS BLANK
+      if (currentStage === 'fitter_name') {
+        return isFilled(issueFitup) && isBlank(fitterName);
+      }
+      // સ્ટેજ ૫: FITTER NAME = activeSubFilter & READY FOR FIT-UP INSP IS BLANK
+      if (currentStage === 'ready_fitup') {
+        return isFilled(fitterName) && String(fitterName).trim() === activeSubFilter && isBlank(readyFitup);
+      }
+      // સ્ટેજ ૬: READY FOR FIT-UP INSP IS FILLED & FIT-UP DATE IS BLANK
+      if (currentStage === 'fitup_entry') {
+        return isFilled(readyFitup) && isBlank(fitupDate);
+      }
+      // સ્ટેજ ૭: FIT-UP DATE IS FILLED & WELDER NAME IS BLANK
+      if (currentStage === 'welder_name') {
+        return isFilled(fitupDate) && isBlank(welderNo);
+      }
+      // સ્ટેજ ૮: WELDER NAME MATCH & READY FOR WELD VISUAL IS BLANK
+      if (currentStage === 'ready_weld') {
+        return isFilled(welderNo) && String(welderNo).includes(activeSubFilter) && isBlank(readyWeld);
+      }
+      // સ્ટેજ ૯: READY FOR WELD VISUAL IS FILLED & VISUAL DATE IS BLANK
+      if (currentStage === 'weld_visual') {
+        return isFilled(readyWeld) && isBlank(visualDate);
+      }
+      // સ્ટેજ ૧૦: VISUAL DATE IS FILLED & NDT CLEARANCE IS BLANK
+      if (currentStage === 'ndt_clearance') {
+        return isFilled(visualDate) && isBlank(ndtDate);
+      }
+      // સ્ટેજ ૧૧: NDT CLEARANCE IS FILLED & FD DATE IS BLANK
+      if (currentStage === 'fd') {
+        return isFilled(ndtDate) && isBlank(fdDate);
+      }
       return false;
     });
 
@@ -298,11 +349,13 @@
     const displayList = stageFilteredRows.filter(r => {
       const spl = String(r.Spool_number || r.spool_number || '').toLowerCase();
       const wld = String(r.Weld_id || r.weld_id || '').toLowerCase();
-      return spl.includes(search) || wld.includes(search);
+      const dwg = String(r.Drawing_no || r.drawing_no || '').toLowerCase();
+      return spl.includes(search) || wld.includes(search) || dwg.includes(search);
     });
 
     if (displayList.length === 0) {
-      box.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:15px;">No Spools Available in this Stage</div>';
+      box.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">No Spools Available in this Stage</div>';
+      updateSelectedCounter();
       return;
     }
 
@@ -310,13 +363,16 @@
       <div class="spool-item">
         <label style="display:flex; align-items:center; margin:0; cursor:pointer; width:100%;">
           <input type="checkbox" class="stage-row-chk" value="${r.id}" onchange="onSpoolCheck(this, '${r.id}')">
-          <span><b>${r.Spool_number || r.spool_number}</b> | Weld ID: <b>${r.Weld_id || r.weld_id || '-'}</b> | Drawing: ${r.Drawing_no || r.drawing_no || '-'}</span>
+          <span><b>${r.Spool_number || r.spool_number || 'N/A'}</b> | Weld ID: <b>${r.Weld_id || r.weld_id || '-'}</b> | Drawing: ${r.Drawing_no || r.drawing_no || '-'}</span>
         </label>
       </div>
     `).join('');
+
+    updateSelectedCounter();
   }
 
   function onSpoolCheck(chk, id) {
+    updateSelectedCounter();
     if (currentStage === 'bend_entry' && chk.checked) {
       const r = rawData.find(x => x.id == id);
       if (r) {
@@ -326,11 +382,18 @@
     }
   }
 
+  function updateSelectedCounter() {
+    const count = document.querySelectorAll('.stage-row-chk:checked').length;
+    const txt = document.getElementById('selectedCountText');
+    if (txt) txt.innerText = `Selected: ${count}`;
+  }
+
   function toggleSelectAll() {
     const chks = document.querySelectorAll('.stage-row-chk');
     if (chks.length === 0) return;
     const anyUnchecked = Array.from(chks).some(c => !c.checked);
     chks.forEach(c => c.checked = anyUnchecked);
+    updateSelectedCounter();
   }
 
   async function submitCurrentStage() {
@@ -345,11 +408,11 @@
     const enteredDate = dateInput ? dateInput.value : null;
 
     if (currentStage === 'bending_issue') {
-      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
       updates['Issued_for_bending'] = enteredDate;
     }
     else if (currentStage === 'bend_entry') {
-      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
       updates['Bend_date'] = enteredDate;
       const bQty = document.getElementById('input_bend_qty').value.trim();
       const wId = document.getElementById('input_weld_id').value.trim();
@@ -357,7 +420,7 @@
       if (wId) updates['Weld_id'] = wId;
     }
     else if (currentStage === 'fitup_issue') {
-      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
       updates['Issue_for_fitup'] = enteredDate;
     }
     else if (currentStage === 'fitter_name') {
@@ -366,11 +429,11 @@
       updates['Fitter_name'] = fVal;
     }
     else if (currentStage === 'ready_fitup') {
-      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
       updates['Ready_for_fitup_insp'] = enteredDate;
     }
     else if (currentStage === 'fitup_entry') {
-      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
       updates['Fit_up_date'] = enteredDate;
     }
     else if (currentStage === 'welder_name') {
@@ -380,20 +443,20 @@
       updates['Welder_no'] = w2 ? `${w1}/${w2}` : w1;
     }
     else if (currentStage === 'ready_weld') {
-      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
       updates['Ready_for_weld_visual'] = enteredDate;
     }
     else if (currentStage === 'weld_visual') {
-      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
       updates['Weld_visual_date'] = enteredDate;
     }
     else if (currentStage === 'ndt_clearance') {
-      if (!enteredDate) return alert('તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
       updates['Ndt_clearance'] = enteredDate;
     }
     else if (currentStage === 'fd') {
       const dcNo = document.getElementById('input_dc_no').value.trim();
-      if (!dcNo || !enteredDate) return alert('DC No અને તારીખ બંને ભરો.');
+      if (!dcNo || !enteredDate) return alert('DC No અને તારીખ બંને દાખલ કરો.');
       updates['Shift_dc_no'] = dcNo;
       updates['Fd_date'] = enteredDate;
     }
@@ -462,7 +525,7 @@
         <td>${r.Report_no || r.report_no || '-'}</td>
         <td>${(r.Fit_up_date || r.fit_up_date || '').split('T')[0] || '-'}</td>
         <td>${r.Welder_no || r.welder_no || '-'}</td>
-        <td>${(r.Ready_for_weld_visual || r.ready_for_weld_visual || '').split('T')[0] || '-'}</td>
+        <td>${r.Ready_for_weld_visual || r.ready_for_weld_visual || '-'}</td>
         <td>${(r.Weld_visual_date || r.weld_visual_date || '').split('T')[0] || '-'}</td>
         <td>${(r.Ndt_clearance || r.ndt_clearance || '').split('T')[0] || '-'}</td>
         <td>${(r.Fd_date || r.fd_date || '').split('T')[0] || '-'}</td>
