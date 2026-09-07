@@ -22,6 +22,7 @@
     .btn-save-final { background: #15803d; color: white; border: none; border-radius: 6px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 12px; }
 
     .metric-banner { background: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; justify-content: space-around; font-weight: bold; color: #0369a1; font-size: 13.5px; }
+    .sub-metric-banner { background: #fefce8; border: 1.5px solid #eab308; border-radius: 8px; padding: 8px; margin-top: 8px; margin-bottom: 10px; display: flex; justify-content: space-around; font-weight: bold; color: #854d0e; font-size: 13px; }
     .metric-val { color: #dc2626; font-size: 17px; font-weight: 800; }
 
     .search-box-wrapper { position: relative; }
@@ -37,8 +38,9 @@
     .selected-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
     .btn-remove { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
-    .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; color: #1e293b; }
-    .sub-filter-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
+    .sub-filter-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; margin-bottom: 6px; }
+    .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; flex: 1; text-align: center; }
+    .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
     .balance-table-container { overflow: auto; margin-top: 10px; max-height: 50vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
@@ -70,22 +72,31 @@
 
   <div id="stageContainer" style="display: none;">
     <div class="card">
+      <!-- ટોપ ક્યુમ્યુલેટિવ કાઉન્ટર -->
       <div class="metric-banner">
-        <div>BALANCE SPOOL = <span id="metricSpools" class="metric-val">0</span></div>
-        <div>WELD ID (SUM) = <span id="metricWelds" class="metric-val">0</span></div>
+        <div>CUMULATIVE SPOOL = <span id="metricSpools" class="metric-val">0</span></div>
+        <div>CUMULATIVE WELD = <span id="metricWelds" class="metric-val">0</span></div>
       </div>
 
       <h3 id="stageTitle">Stage Title</h3>
-      <div id="subFilterArea" style="display: none; margin-bottom: 10px;"></div>
+      
+      <!-- સબ-ફિલ્ટર બટન ગ્રૂપ -->
+      <div id="subFilterArea" class="sub-filter-group" style="display: none;"></div>
 
-      <!-- 1. Search Box -->
+      <!-- પસંદ કરેલા ફિટર/વેલ્ડર વાઈઝ અલગ બેનર -->
+      <div id="subMetricArea" class="sub-metric-banner" style="display: none;">
+        <div>SELECTED FITTER SPOOL = <span id="subMetricSpools" class="metric-val">0</span></div>
+        <div>SELECTED FITTER WELD = <span id="subMetricWelds" class="metric-val">0</span></div>
+      </div>
+
+      <!-- સર્ચ બોક્સ -->
       <label>Search Spool Number / Drawing No:</label>
       <div class="search-box-wrapper">
         <input type="text" id="spoolSearch" placeholder="Type spool no (e.g. 4-416 or 6-444)..." oninput="handleSearchInput()" autocomplete="off">
         <div id="searchDropdown" class="search-dropdown"></div>
       </div>
 
-      <!-- 2. Interactive Input Box for Current Selected Spool -->
+      <!-- એડિટ ફોર્મ -->
       <div id="itemEditForm" class="edit-form-box">
         <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Selected Spool Details:</div>
         <div class="edit-grid">
@@ -97,7 +108,7 @@
         <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Bottom Selected List</button>
       </div>
 
-      <!-- 3. Selected Spools Queue List Table -->
+      <!-- ક્યૂ ટેબલ -->
       <div style="margin-top: 18px;">
         <span style="font-size: 14px; font-weight: bold; color: #0f172a;">
           Selected Spools Queue (<span id="queueCount">0</span>)
@@ -114,15 +125,13 @@
         </div>
       </div>
 
-      <!-- 4. Extra Final Inputs (જેમ કે Date વગેરે) -->
       <div id="customInputsArea" style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: none;"></div>
 
-      <!-- 5. Final Save Button -->
       <button type="button" class="btn-save-final" onclick="submitCurrentStage()">💾 SAVE ALL TO DATABASE</button>
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
-    <!-- Balance List Table -->
+    <!-- બેલેન્સ લિસ્ટ -->
     <div class="card" style="margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
@@ -146,7 +155,7 @@
     </div>
   </div>
 
-  <!-- Master Register -->
+  <!-- માસ્ટર રજિસ્ટર -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -178,7 +187,8 @@
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let currentStage = '';
-  let stageFilteredRows = [];
+  let cumulativeRows = [];     // સમગ્ર સ્ટેજનો ક્યુમ્યુલેટિવ ડેટા
+  let stageFilteredRows = [];   // પસંદ કરેલા ફિટર/વેલ્ડરનો ફિલ્ટર થયેલો ડેટા
   let selectedQueue = [];
   let activeSubFilter = '';
   let allRecordsCache = [];
@@ -214,9 +224,11 @@
   function setupStageUI(stage) {
     const title = document.getElementById('stageTitle');
     const subArea = document.getElementById('subFilterArea');
+    const subMetric = document.getElementById('subMetricArea');
     const customArea = document.getElementById('customInputsArea');
     subArea.style.display = 'none';
     subArea.innerHTML = '';
+    subMetric.style.display = 'none';
     customArea.innerHTML = '';
     customArea.style.display = 'none';
     activeSubFilter = '';
@@ -224,7 +236,7 @@
     if (stage === 'bending_issue') {
       title.innerText = '1. ISSUED FOR BENDING MODULE';
       customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Issued For Bending Date (તમામ પસંદ કરેલા માટે):</label><input type="date" id="input_date" required>`;
+      customArea.innerHTML = `<label style="margin-top:0;">📅 Issued For Bending Date:</label><input type="date" id="input_date" required>`;
     } 
     else if (stage === 'bend_entry') {
       title.innerText = '2. BEND ENTRY MODULE';
@@ -234,16 +246,16 @@
     else if (stage === 'fitup_issue') {
       title.innerText = '3. ISSUE FOR FIT-UP MODULE';
       customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Issue For Fit-Up Date (તમામ પસંદ કરેલા માટે):</label><input type="date" id="input_date" required>`;
+      customArea.innerHTML = `<label style="margin-top:0;">📅 Issue For Fit-Up Date:</label><input type="date" id="input_date" required>`;
     }
     else if (stage === 'fitter_name') {
       title.innerText = '4. FITTER NAME MODULE';
-      // Fitter Name માટે ફોર્મમાં દરેક સ્પૂલ વાઇઝ સિલેક્ટ થશે, તેથી નીચે તારીખની જરૂર નથી
       customArea.style.display = 'none';
     }
     else if (stage === 'ready_fitup') {
       title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
       subArea.style.display = 'flex';
+      subMetric.style.display = 'flex';
       subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
       customArea.style.display = 'block';
       customArea.innerHTML = `<label style="margin-top:0;">📅 Ready For Fit-Up Insp Date:</label><input type="date" id="input_date" required>`;
@@ -262,6 +274,7 @@
     else if (stage === 'ready_weld') {
       title.innerText = '8. READY FOR WELD VISUAL MODULE';
       subArea.style.display = 'flex';
+      subMetric.style.display = 'flex';
       subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
       customArea.style.display = 'block';
       customArea.innerHTML = `<label style="margin-top:0;">📅 Ready For Weld Visual Date:</label><input type="date" id="input_date" required>`;
@@ -294,6 +307,7 @@
 
     let query = db.from('piping_joints').select('*');
 
+    // ક્યુમ્યુલેટિવ ડેટા માટે બેઝ ક્વેરી (સમગ્ર સ્ટેજ)
     if (stage === 'bending_issue') {
       query = query.is('Bend_date', null).is('Issued_for_bending', null);
     } else if (stage === 'bend_entry') {
@@ -303,13 +317,13 @@
     } else if (stage === 'fitter_name') {
       query = query.not('Issue_for_fitup', 'is', null).is('Fitter_name', null);
     } else if (stage === 'ready_fitup') {
-      query = query.eq('Fitter_name', activeSubFilter).is('Ready_for_fitup_insp', null);
+      query = query.not('Fitter_name', 'is', null).is('Ready_for_fitup_insp', null);
     } else if (stage === 'fitup_entry') {
       query = query.not('Ready_for_fitup_insp', 'is', null).is('Fit_up_date', null);
     } else if (stage === 'welder_name') {
       query = query.not('Fit_up_date', 'is', null).is('Welder_no', null);
     } else if (stage === 'ready_weld') {
-      query = query.like('Welder_no', `%${activeSubFilter}%`).is('Ready_for_weld_visual', null);
+      query = query.not('Welder_no', 'is', null).is('Ready_for_weld_visual', null);
     } else if (stage === 'weld_visual') {
       query = query.not('Ready_for_weld_visual', 'is', null).is('Weld_visual_date', null);
     } else if (stage === 'ndt_clearance') {
@@ -325,33 +339,63 @@
       return;
     }
 
-    stageFilteredRows = data || [];
-    updateMetrics();
-    renderStageBalanceTable();
+    cumulativeRows = data || [];
+    filterBySubStage();
   }
 
   function selectSubFilter(val, btn) {
     activeSubFilter = val;
     btn.parentNode.querySelectorAll('.sub-filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    loadStageData(currentStage);
+    filterBySubStage();
+  }
+
+  function filterBySubStage() {
+    if (currentStage === 'ready_fitup') {
+      stageFilteredRows = cumulativeRows.filter(r => String(r.Fitter_name || '').trim() === activeSubFilter);
+    } else if (currentStage === 'ready_weld') {
+      stageFilteredRows = cumulativeRows.filter(r => String(r.Welder_no || '').includes(activeSubFilter));
+    } else {
+      stageFilteredRows = cumulativeRows;
+    }
+
+    updateMetrics();
+    renderStageBalanceTable();
   }
 
   function updateMetrics() {
-    const uniqueSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
-    
-    let totalWeldSum = 0;
-    stageFilteredRows.forEach(r => {
+    // ૧. ટોપ પર ક્યુમ્યુલેટિવ સરવાળો (બધા ફિટર્સનો ભેગો)
+    const cumSpools = new Set(cumulativeRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
+    let cumWeldSum = 0;
+    cumulativeRows.forEach(r => {
       const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
       if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
         const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
         const num = parseFloat(cleaned);
-        if (!isNaN(num)) totalWeldSum += num;
+        if (!isNaN(num)) cumWeldSum += num;
       }
     });
 
-    document.getElementById('metricSpools').innerText = uniqueSpools.size;
-    document.getElementById('metricWelds').innerText = Number.isInteger(totalWeldSum) ? totalWeldSum : parseFloat(totalWeldSum.toFixed(2));
+    document.getElementById('metricSpools').innerText = cumSpools.size;
+    document.getElementById('metricWelds').innerText = Number.isInteger(cumWeldSum) ? cumWeldSum : parseFloat(cumWeldSum.toFixed(2));
+
+    // ૨. સબ-ફિલ્ટર વાઈઝ (પસંદ કરેલા ફિટરનો જ સરવાળો)
+    if (currentStage === 'ready_fitup' || currentStage === 'ready_weld') {
+      const subSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
+      let subWeldSum = 0;
+      stageFilteredRows.forEach(r => {
+        const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+        if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+          const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+          const num = parseFloat(cleaned);
+          if (!isNaN(num)) subWeldSum += num;
+        }
+      });
+
+      document.getElementById('subMetricSpools').innerText = subSpools.size;
+      document.getElementById('subMetricWelds').innerText = Number.isInteger(subWeldSum) ? subWeldSum : parseFloat(subWeldSum.toFixed(2));
+    }
+
     document.getElementById('tableTotalCount').innerText = stageFilteredRows.length;
   }
 
@@ -389,7 +433,6 @@
     dropdown.style.display = 'block';
   }
 
-  // સર્ચ કર્યા પછી સિલેક્ટ થાય ત્યારે એડિટ / સિલેક્ટ ફોર્મ પોપ-અપ
   function onSpoolSelect(id) {
     if (selectedQueue.some(x => x.id === id)) {
       alert("⚠️ આ સ્પૂલ પહેલેથી નીચેના લિસ્ટમાં ઉમેરેલું છે!");
@@ -444,12 +487,10 @@
       `;
     }
     else {
-      // અન્ય સ્ટેજ માટે કોઈ વધારાનું ફિલ્ડ જરૂર ન હોય તો સીધું બટન
       dynArea.innerHTML = `<div style="color:#059669; font-weight:bold; font-size:12px;">✅ Spool Ready to Add to Queue</div>`;
     }
   }
 
-  // બોટમ લિસ્ટમાં જમા કરવા માટેનું બટન
   function confirmAddFormToQueue() {
     const id = parseInt(document.getElementById('form_item_id').value);
     const item = stageFilteredRows.find(x => x.id === id);
@@ -499,7 +540,6 @@
     const tbody = document.getElementById('selectedTableBody');
     document.getElementById('queueCount').innerText = selectedQueue.length;
 
-    // હેડર સેટિંગ
     if (currentStage === 'fitter_name') {
       thead.innerHTML = `<tr><th style="width:30px;">Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Assigned Fitter</th><th style="text-align:center;">Action</th></tr>`;
     } else if (currentStage === 'welder_name') {
@@ -561,7 +601,6 @@
     `).join('');
   }
 
-  // છેલ્લે બધા માટે એકસાથે સેવ
   async function submitCurrentStage() {
     if (selectedQueue.length === 0) {
       alert('કૃપા કરીને સર્ચ કરીને ઓછામાં ઓછો ૧ Spool લિસ્ટમાં Add કરો.');
@@ -572,7 +611,6 @@
     const enteredDate = dateInput ? dateInput.value : null;
 
     if (currentStage === 'fitter_name') {
-      // પ્રત્યેક સ્પૂલ પોતાના ફિટર સાથે અપડેટ થશે
       for (const item of selectedQueue) {
         const { error } = await db.from('piping_joints').update({ Fitter_name: item.final_fitter }).eq('id', item.id);
         if (error) {
