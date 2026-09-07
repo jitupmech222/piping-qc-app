@@ -34,7 +34,7 @@
 
     .selected-table-container { margin-top: 10px; border: 1.5px solid #0f172a; border-radius: 6px; overflow-x: auto; }
     .selected-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
-    .selected-table th { background: #0f172a; color: white; padding: 8px; text-align: left; font-weight: 600; }
+    .selected-table th { background: #0f172a; color: white; padding: 8px; text-align: left; font-weight: 600; font-size: 13px; }
     .selected-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
     .btn-remove { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
@@ -42,10 +42,15 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; flex: 1; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
+    /* Tables & Bigger Headers */
     .balance-table-container { overflow: auto; margin-top: 10px; max-height: 50vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; white-space: nowrap; }
-    th { background: #1e40af; color: white; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; }
+    
+    /* Bigger Header with Integrated Filter Input */
+    th { background: #1e40af; color: white; font-weight: 700; font-size: 14px; vertical-align: top; }
+    .th-content { display: flex; flex-direction: column; gap: 4px; }
+    .header-filter-input { width: 100%; min-width: 80px; padding: 4px 6px; font-size: 11.5px; border: 1px solid #93c5fd; border-radius: 4px; color: #0f172a; background: #fff; box-sizing: border-box; }
     tr:nth-child(even) { background: #f8fafc; }
   </style>
 </head>
@@ -55,17 +60,17 @@
   <div id="mainMenu" class="card">
     <h3>⚙️ Piping Work Progress Console</h3>
     <div class="menu-grid">
-      <button class="menu-btn" onclick="openStage('bending_issue')">ISSUED FOR BENDING</button>
-      <button class="menu-btn" onclick="openStage('bend_entry')">BEND COMPLETED </button>
-      <button class="menu-btn" onclick="openStage('fitup_issue')">ISSUED FOR FIT-UP</button>
-      <button class="menu-btn" onclick="openStage('fitter_name')">ISSUED TO FITTER</button>
-      <button class="menu-btn" onclick="openStage('ready_fitup')">READY TO FIT-UP </button>
-      <button class="menu-btn" onclick="openStage('fitup_entry')">FIT UP COMPLETED</button>
-      <button class="menu-btn" onclick="openStage('welder_name')">ISSUED TO WELDER</button>
-      <button class="menu-btn" onclick="openStage('ready_weld')">READY TO WELD VISUAL</button>
-      <button class="menu-btn" onclick="openStage('weld_visual')">WELD VISUAL COMPLETED</button>
-      <button class="menu-btn" onclick="openStage('ndt_clearance')">NDT CLEARANCE</button>
-      <button class="menu-btn" onclick="openStage('fd')">FD & DC NO</button>
+      <button class="menu-btn" onclick="openStage('bending_issue')">1. ISSUED FOR BENDING</button>
+      <button class="menu-btn" onclick="openStage('bend_entry')">2. BEND ENTRY</button>
+      <button class="menu-btn" onclick="openStage('fitup_issue')">3. ISSUE FOR FIT-UP</button>
+      <button class="menu-btn" onclick="openStage('fitter_name')">4. FITTER NAME</button>
+      <button class="menu-btn" onclick="openStage('ready_fitup')">5. READY FIT-UP INSP</button>
+      <button class="menu-btn" onclick="openStage('fitup_entry')">6. FIT UP ENTRY</button>
+      <button class="menu-btn" onclick="openStage('welder_name')">7. WELDER NAME</button>
+      <button class="menu-btn" onclick="openStage('ready_weld')">8. READY WELD VISUAL</button>
+      <button class="menu-btn" onclick="openStage('weld_visual')">9. WELD VISUAL</button>
+      <button class="menu-btn" onclick="openStage('ndt_clearance')">10. NDT CLEARANCE</button>
+      <button class="menu-btn" onclick="openStage('fd')">11. FD & DC NO</button>
       <button class="menu-btn btn-view" style="grid-column: span 2;" onclick="openStage('view_records')">📊 VIEW FULL REGISTER</button>
     </div>
   </div>
@@ -74,7 +79,7 @@
     <div class="card">
       <div class="metric-banner">
         <div>TOTAL SPOOL = <span id="metricSpools" class="metric-val">0</span></div>
-        <div>TOTAL WELD ID= <span id="metricWelds" class="metric-val">0</span></div>
+        <div>TOTAL WELD ID = <span id="metricWelds" class="metric-val">0</span></div>
       </div>
 
       <h3 id="stageTitle">Stage Title</h3>
@@ -125,20 +130,46 @@
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
-    <!-- Balance List Table (Action Column Removed, Spool Size Added) -->
+    <!-- Balance List Table with In-Header Filter Inputs -->
     <div class="card" style="margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
+        <button type="button" class="sub-filter-btn" style="padding: 4px 8px; flex: initial;" onclick="resetBalanceFilters()">🔄 Clear Filter</button>
       </div>
       <div class="balance-table-container">
         <table>
           <thead style="position: sticky; top: 0; z-index: 5;">
             <tr style="background:#1e40af; color:white;">
-              <th>Drawing No</th>
-              <th>Spool Unique No</th>
-              <th>Spool Size</th>
-              <th>WELD ID</th>
-              <th>BEND QTY</th>
+              <th>
+                <div class="th-content">
+                  <span>Drawing No</span>
+                  <input type="text" class="header-filter-input bal-flt" data-field="Drawing_no" oninput="applyBalanceListFilter()" placeholder="🔍">
+                </div>
+              </th>
+              <th>
+                <div class="th-content">
+                  <span>Spool Unique No</span>
+                  <input type="text" class="header-filter-input bal-flt" data-field="Spool_number" oninput="applyBalanceListFilter()" placeholder="🔍">
+                </div>
+              </th>
+              <th>
+                <div class="th-content">
+                  <span>Spool Size</span>
+                  <input type="text" class="header-filter-input bal-flt" data-field="Spool_size" oninput="applyBalanceListFilter()" placeholder="🔍">
+                </div>
+              </th>
+              <th>
+                <div class="th-content">
+                  <span>WELD ID</span>
+                  <input type="text" class="header-filter-input bal-flt" data-field="Weld_id" oninput="applyBalanceListFilter()" placeholder="🔍">
+                </div>
+              </th>
+              <th>
+                <div class="th-content">
+                  <span>BEND QTY</span>
+                  <input type="text" class="header-filter-input bal-flt" data-field="Bend_qty" oninput="applyBalanceListFilter()" placeholder="🔍">
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody id="stageBalanceTableBody">
@@ -149,22 +180,17 @@
     </div>
   </div>
 
+  <!-- Master Register with In-Header Filter Inputs -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0; border:none;">📊 Master Register</h3>
-        <button type="button" class="sub-filter-btn" onclick="resetColumnFilters()">🔄 Reset</button>
+        <h3 style="margin:0; border:none; font-size:16px;">📊 Master Register</h3>
+        <button type="button" class="sub-filter-btn" style="padding:4px 10px; flex:initial;" onclick="resetColumnFilters()">🔄 Clear Filter</button>
       </div>
       <div class="balance-table-container" style="max-height: 75vh;">
         <table id="qcDataTable">
           <thead style="position: sticky; top: 0; z-index: 5;">
-            <tr style="background:#1e40af; color:white;">
-              <th>Drawing No</th><th>Spool Size</th><th>Rev No</th><th>Allocation</th><th>Spool Unique No</th>
-              <th>BEND QTY</th><th>ISSUED FOR BENDING</th><th>BEND DATE</th><th>WELD ID</th><th>ISSUE FOR FIT-UP</th>
-              <th>FITTER NAME</th><th>READY FIT-UP INSP</th><th>REPORT NO</th><th>FIT UP Date</th><th>WELDER NAME</th>
-              <th>READY WELD VISUAL</th><th>VISUAL Date</th><th>NDT CLEARANCE</th><th>FD Date</th><th>DC No</th><th>BILL</th><th>REMARKS</th>
-            </tr>
-            <tr style="background:#f1f5f9;" id="filterRow"></tr>
+            <tr id="masterHeaderRow" style="background:#1e40af; color:white;"></tr>
           </thead>
           <tbody id="tableBody"></tbody>
         </table>
@@ -182,12 +208,38 @@
   let currentStage = '';
   let cumulativeRows = [];
   let stageFilteredRows = [];
+  let activeBalanceDisplayRows = [];
   let selectedQueue = [];
   let activeSubFilter = '';
   let allRecordsCache = [];
 
   const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
   const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
+
+  const MASTER_COLS = [
+    { key: 'Drawing_no', label: 'Drawing No' },
+    { key: 'Spool_size', label: 'Spool Size' },
+    { key: 'Rev_no', label: 'Rev No' },
+    { key: 'Allocation', label: 'Allocation' },
+    { key: 'Spool_number', label: 'Spool Unique No' },
+    { key: 'Bend_qty', label: 'BEND QTY' },
+    { key: 'Issued_for_bending', label: 'ISSUED FOR BENDING' },
+    { key: 'Bend_date', label: 'BEND DATE' },
+    { key: 'Weld_id', label: 'WELD ID' },
+    { key: 'Issue_for_fitup', label: 'ISSUE FOR FIT-UP' },
+    { key: 'Fitter_name', label: 'FITTER NAME' },
+    { key: 'Ready_for_fitup_insp', label: 'READY FIT-UP INSP' },
+    { key: 'Report_no', label: 'REPORT NO' },
+    { key: 'Fit_up_date', label: 'FIT UP Date' },
+    { key: 'Welder_no', label: 'WELDER NAME' },
+    { key: 'Ready_for_weld_visual', label: 'READY WELD VISUAL' },
+    { key: 'Weld_visual_date', label: 'VISUAL Date' },
+    { key: 'Ndt_clearance', label: 'NDT CLEARANCE' },
+    { key: 'Fd_date', label: 'FD Date' },
+    { key: 'Shift_dc_no', label: 'DC No' },
+    { key: 'Bill', label: 'BILL' },
+    { key: 'Remarks', label: 'REMARKS' }
+  ];
 
   function backToMenu() {
     document.getElementById('stageContainer').style.display = 'none';
@@ -204,6 +256,7 @@
 
     if (stage === 'view_records') {
       document.getElementById('recordsContainer').style.display = 'block';
+      buildMasterRegisterHeader();
       loadFullRegister();
       return;
     }
@@ -351,6 +404,8 @@
       stageFilteredRows = cumulativeRows;
     }
 
+    activeBalanceDisplayRows = [...stageFilteredRows];
+    resetBalanceFilters();
     updateMetrics();
     renderStageBalanceTable();
   }
@@ -386,7 +441,7 @@
       document.getElementById('subMetricWelds').innerText = Number.isInteger(subWeldSum) ? subWeldSum : parseFloat(subWeldSum.toFixed(2));
     }
 
-    document.getElementById('tableTotalCount').innerText = stageFilteredRows.length;
+    document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
   }
 
   function handleSearchInput() {
@@ -571,15 +626,41 @@
     }).join('');
   }
 
-  // BALANCE LIST ટેબલ રેન્ડરિંગ (Action કૉલમ વગર અને Spool Size સાથે)
+  // --- BALANCE LIST FILTER LOGIC (IN-HEADER) ---
+  function applyBalanceListFilter() {
+    const filters = {};
+    document.querySelectorAll('.bal-flt').forEach(i => {
+      const val = i.value.trim().toLowerCase();
+      if (val) filters[i.getAttribute('data-field')] = val;
+    });
+
+    activeBalanceDisplayRows = stageFilteredRows.filter(r => {
+      for (const [k, v] of Object.entries(filters)) {
+        const itemVal = String(r[k] || '').toLowerCase();
+        if (!itemVal.includes(v)) return false;
+      }
+      return true;
+    });
+
+    document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
+    renderStageBalanceTable();
+  }
+
+  function resetBalanceFilters() {
+    document.querySelectorAll('.bal-flt').forEach(i => i.value = '');
+    activeBalanceDisplayRows = [...stageFilteredRows];
+    document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
+    renderStageBalanceTable();
+  }
+
   function renderStageBalanceTable() {
     const tbody = document.getElementById('stageBalanceTableBody');
-    if (stageFilteredRows.length === 0) {
+    if (activeBalanceDisplayRows.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#16a34a; font-weight:bold;">🎉 All cleared!</td></tr>';
       return;
     }
 
-    tbody.innerHTML = stageFilteredRows.slice(0, 500).map(r => `
+    tbody.innerHTML = activeBalanceDisplayRows.slice(0, 500).map(r => `
       <tr>
         <td>${r.Drawing_no || '-'}</td>
         <td><b>${r.Spool_number || '-'}</b></td>
@@ -588,6 +669,93 @@
         <td>${r.Bend_qty || '-'}</td>
       </tr>
     `).join('');
+  }
+
+  // --- MASTER REGISTER (IN-HEADER INTEGRATED FILTERS) ---
+  function buildMasterRegisterHeader() {
+    const tr = document.getElementById('masterHeaderRow');
+    tr.innerHTML = MASTER_COLS.map(c => `
+      <th>
+        <div class="th-content">
+          <span>${c.label}</span>
+          <input type="text" class="header-filter-input mst-flt" data-col="${c.key}" oninput="filterRegister()" placeholder="🔍">
+        </div>
+      </th>
+    `).join('');
+  }
+
+  async function loadFullRegister() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px;">⏳ Loading Master Register...</td></tr>';
+
+    let allRows = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+      if (error) break;
+      if (data && data.length > 0) {
+        allRows = allRows.concat(data);
+        from += step;
+        if (data.length < step) hasMore = false;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    allRecordsCache = allRows;
+    filterRegister();
+  }
+
+  function filterRegister() {
+    const filters = {};
+    document.querySelectorAll('.mst-flt').forEach(i => {
+      const val = i.value.trim().toLowerCase();
+      if (val) filters[i.getAttribute('data-col')] = val;
+    });
+
+    const filtered = allRecordsCache.filter(r => {
+      for (const [k, v] of Object.entries(filters)) {
+        const itemVal = String(r[k] || r[k.toLowerCase()] || '').toLowerCase();
+        if (!itemVal.includes(v)) return false;
+      }
+      return true;
+    });
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = filtered.slice(0, 1000).map(r => `
+      <tr>
+        <td><b>${r.Drawing_no || '-'}</b></td>
+        <td>${r.Spool_size || '-'}</td>
+        <td>${r.Rev_no || '0'}</td>
+        <td>${r.Allocation || '-'}</td>
+        <td>${r.Spool_number || '-'}</td>
+        <td>${r.Bend_qty || '-'}</td>
+        <td>${(r.Issued_for_bending || '').split('T')[0] || '-'}</td>
+        <td>${(r.Bend_date || '').split('T')[0] || '-'}</td>
+        <td><b>${r.Weld_id || '-'}</b></td>
+        <td>${(r.Issue_for_fitup || '').split('T')[0] || '-'}</td>
+        <td>${r.Fitter_name || '-'}</td>
+        <td>${(r.Ready_for_fitup_insp || '').split('T')[0] || '-'}</td>
+        <td>${r.Report_no || '-'}</td>
+        <td>${(r.Fit_up_date || '').split('T')[0] || '-'}</td>
+        <td>${r.Welder_no || '-'}</td>
+        <td>${(r.Ready_for_weld_visual || '').split('T')[0] || '-'}</td>
+        <td>${(r.Weld_visual_date || '').split('T')[0] || '-'}</td>
+        <td>${(r.Ndt_clearance || '').split('T')[0] || '-'}</td>
+        <td>${(r.Fd_date || '').split('T')[0] || '-'}</td>
+        <td>${r.Shift_dc_no || '-'}</td>
+        <td>${r.Bill || '-'}</td>
+        <td>${r.Remarks || '-'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function resetColumnFilters() {
+    document.querySelectorAll('.mst-flt').forEach(i => i.value = '');
+    filterRegister();
   }
 
   async function submitCurrentStage() {
@@ -686,89 +854,6 @@
     selectedQueue = [];
     renderSelectedTable();
     loadStageData(currentStage);
-  }
-
-  async function loadFullRegister() {
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px;">⏳ Loading...</td></tr>';
-    
-    const theadFilter = document.getElementById('filterRow');
-    const cols = [
-      'drawing_no','spool_size','rev_no','allocation','spool_number','bend_qty','issued_for_bending',
-      'bend_date','weld_id','issue_for_fitup','fitter_name','ready_for_fitup_insp','report_no',
-      'fit_up_date','welder_no','ready_for_weld_visual','weld_visual_date','ndt_clearance','fd_date',
-      'shift_dc_no','bill','remarks'
-    ];
-    theadFilter.innerHTML = cols.map(c => `<th><input type="text" class="tbl-filter" data-col="${c}" oninput="filterRegister()" placeholder="🔍"></th>`).join('');
-
-    let allRows = [];
-    let from = 0;
-    const step = 1000;
-    let hasMore = true;
-
-    while (hasMore) {
-      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
-      if (error) break;
-      if (data && data.length > 0) {
-        allRows = allRows.concat(data);
-        from += step;
-        if (data.length < step) hasMore = false;
-      } else {
-        hasMore = false;
-      }
-    }
-
-    allRecordsCache = allRows;
-    filterRegister();
-  }
-
-  function filterRegister() {
-    const filters = {};
-    document.querySelectorAll('.tbl-filter').forEach(i => {
-      const val = i.value.trim().toLowerCase();
-      if (val) filters[i.getAttribute('data-col')] = val;
-    });
-
-    const filtered = allRecordsCache.filter(r => {
-      for (const [k, v] of Object.entries(filters)) {
-        const itemVal = String(r[k] || r[k.charAt(0).toUpperCase() + k.slice(1)] || '').toLowerCase();
-        if (!itemVal.includes(v)) return false;
-      }
-      return true;
-    });
-
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = filtered.slice(0, 1000).map(r => `
-      <tr>
-        <td><b>${r.Drawing_no || '-'}</b></td>
-        <td>${r.Spool_size || '-'}</td>
-        <td>${r.Rev_no || '0'}</td>
-        <td>${r.Allocation || '-'}</td>
-        <td>${r.Spool_number || '-'}</td>
-        <td>${r.Bend_qty || '-'}</td>
-        <td>${(r.Issued_for_bending || '').split('T')[0] || '-'}</td>
-        <td>${(r.Bend_date || '').split('T')[0] || '-'}</td>
-        <td><b>${r.Weld_id || '-'}</b></td>
-        <td>${(r.Issue_for_fitup || '').split('T')[0] || '-'}</td>
-        <td>${r.Fitter_name || '-'}</td>
-        <td>${(r.Ready_for_fitup_insp || '').split('T')[0] || '-'}</td>
-        <td>${r.Report_no || '-'}</td>
-        <td>${(r.Fit_up_date || '').split('T')[0] || '-'}</td>
-        <td>${r.Welder_no || '-'}</td>
-        <td>${(r.Ready_for_weld_visual || '').split('T')[0] || '-'}</td>
-        <td>${(r.Weld_visual_date || '').split('T')[0] || '-'}</td>
-        <td>${(r.Ndt_clearance || '').split('T')[0] || '-'}</td>
-        <td>${(r.Fd_date || '').split('T')[0] || '-'}</td>
-        <td>${r.Shift_dc_no || '-'}</td>
-        <td>${r.Bill || '-'}</td>
-        <td>${r.Remarks || '-'}</td>
-      </tr>
-    `).join('');
-  }
-
-  function resetColumnFilters() {
-    document.querySelectorAll('.tbl-filter').forEach(i => i.value = '');
-    filterRegister();
   }
 
   document.addEventListener('click', (e) => {
