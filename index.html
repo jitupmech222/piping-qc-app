@@ -179,7 +179,7 @@
 
     .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
 
-    /* Compact Top-Right Save Action Button matching reference */
+    /* Compact Top-Right Save Action Button */
     .btn-save-action {
       background: #15803d;
       color: white;
@@ -385,7 +385,7 @@
           <div id="searchDropdown" class="search-dropdown"></div>
         </div>
 
-        <!-- Only for complex stages like Fitter/Welder/Bend Qty Edit -->
+        <!-- Edit Form for specific stages -->
         <div id="itemEditForm" class="edit-form-box">
           <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Edit Details:</div>
           <div class="edit-grid">
@@ -397,9 +397,8 @@
           <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Selected List</button>
         </div>
 
-        <!-- Selected Spools Card (Matching Reference 2 & 3) -->
+        <!-- Selected Spools Card -->
         <div style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px;">
-          <!-- Top Row: Title + Save Button -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">
               Selected Spools (<span id="queueCount">0</span>)
@@ -409,10 +408,8 @@
             </button>
           </div>
 
-          <!-- Inputs Area (Date & DC No) as per reference 2 and 3 -->
           <div id="customInputsArea" style="margin-bottom: 12px;"></div>
 
-          <!-- Queue Table -->
           <div class="selected-table-container">
             <table class="selected-table">
               <thead id="selectedTableHead"></thead>
@@ -582,8 +579,9 @@
   let masterColumnFilters = {};
   let currentPopupContext = { targetTable: '', colKey: '', colLabel: '', allValues: [] };
 
-  const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
-  const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
+  // NA Added in FITTERS and WELDERS List
+  const FITTERS = ["NA", "PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
+  const WELDERS = ["NA", "770", "815", "625", "853", "711", "625/1200", "770/1200"];
 
   const MASTER_COLS = [
     { key: 'Drawing_no', label: 'Drawing No' },
@@ -645,7 +643,6 @@
     await loadStageData(stage);
   }
 
-  // --- MASTER REGISTER VIEW / EDIT CONTROLS ---
   function setMasterMode(mode) {
     if (mode === 'view') {
       isMasterEditMode = false;
@@ -717,7 +714,6 @@
     }
   }
 
-  // --- STAGE UI SETUP (LAYOUT MATCHING REFERENCE 2 & 3) ---
   function setupStageUI(stage) {
     const title = document.getElementById('stageTitle');
     const subArea = document.getElementById('subFilterArea');
@@ -733,7 +729,6 @@
     customArea.innerHTML = '';
     activeSubFilter = '';
 
-    // 1. ISSUED FOR BENDING ENTRY
     if (stage === 'bending_issue') {
       title.innerText = 'ISSUED FOR BENDING ENTRY';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED FOR BENDING';
@@ -747,7 +742,6 @@
         </div>
       `;
     } 
-    // 2. BEND COMPLETED (Editable bend qty/weld id)
     else if (stage === 'bend_entry') {
       title.innerText = '2. BEND ENTRY MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: BEND COMPLETED';
@@ -761,7 +755,6 @@
         </div>
       `;
     }
-    // 3. ISSUE FOR FIT-UP MODULE (Direct Add as per reference 2)
     else if (stage === 'fitup_issue') {
       title.innerText = '3. ISSUE FOR FIT-UP MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUE FOR FIT-UP';
@@ -791,14 +784,14 @@
       btnSaveLabel.innerText = 'SAVE INSPECTION ENTRY';
       subArea.style.display = 'flex';
       subMetric.style.display = 'flex';
-      subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
+      subArea.innerHTML = FITTERS.filter(f => f !== 'NA').map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
       customArea.innerHTML = `
         <div style="max-width: 250px;">
           <label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Fit-Up Date:</label>
           <input type="date" id="input_date" required>
         </div>
       `;
-      activeSubFilter = FITTERS[0];
+      activeSubFilter = FITTERS[1];
       subArea.children[0].classList.add('active');
     }
     else if (stage === 'fitup_entry') {
@@ -830,14 +823,14 @@
       btnSaveLabel.innerText = 'SAVE VISUAL ENTRY';
       subArea.style.display = 'flex';
       subMetric.style.display = 'flex';
-      subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
+      subArea.innerHTML = WELDERS.filter(w => w !== 'NA').map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
       customArea.innerHTML = `
         <div style="max-width: 250px;">
           <label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Visual Date:</label>
           <input type="date" id="input_date" required>
         </div>
       `;
-      activeSubFilter = WELDERS[0];
+      activeSubFilter = WELDERS[1];
       subArea.children[0].classList.add('active');
     }
     else if (stage === 'weld_visual') {
@@ -866,14 +859,12 @@
         </div>
       `;
     }
-    // 11. FINAL DISPATCH & DC NO MODULE (Matching Reference 3)
     else if (stage === 'fd') {
       title.innerText = '11. FINAL DISPATCH & DC NO MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: FINAL DISPATCH & DC NO';
       searchLabel.innerText = 'Search & Select Spool for DC:';
       queueHeading.innerHTML = 'Selected Spools for DC (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE DC ENTRY';
-      // Dual layout as per reference image 3
       customArea.innerHTML = `
         <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
           <div style="width: 240px;">
@@ -1020,7 +1011,6 @@
     dropdown.style.display = 'block';
   }
 
-  // DIRECT SELECTION (NO CONFIRMATION BOX FOR DIRECT STAGES)
   function onSpoolSelect(id) {
     if (selectedQueue.some(x => x.id === id)) {
       alert("⚠️ આ સ્પૂલ પહેલેથી નીચેના લિસ્ટમાં ઉમેરેલું છે!");
@@ -1033,7 +1023,6 @@
     document.getElementById('spoolSearch').value = '';
     document.getElementById('searchDropdown').style.display = 'none';
 
-    // Direct Stages: "bending_issue", "fitup_issue", "fd" (as requested) & others without individual inputs
     const isDirectStage = ['bending_issue', 'fitup_issue', 'fd', 'ready_fitup', 'fitup_entry', 'ready_weld', 'weld_visual', 'ndt_clearance'].includes(currentStage);
 
     if (isDirectStage) {
@@ -1044,7 +1033,6 @@
       return;
     }
 
-    // Otherwise show prompt for stages requiring input (bend_entry, fitter_name, welder_name)
     document.getElementById('itemEditForm').style.display = 'block';
     document.getElementById('form_item_id').value = item.id;
     document.getElementById('form_spool_no').value = item.Spool_number || '';
@@ -1101,14 +1089,14 @@
     } 
     else if (currentStage === 'fitter_name') {
       const fName = document.getElementById('form_fitter_val').value;
-      if (!fName) return alert("કૃપા કરીને Fitter Name પસંદ કરો!");
+      if (!fName) return alert("કૃપા કરીને Fitter Name અથવા NA પસંદ કરો!");
       extraData.final_fitter = fName;
     }
     else if (currentStage === 'welder_name') {
       const w1 = document.getElementById('form_welder_1').value;
       const w2 = document.getElementById('form_welder_2').value;
-      if (!w1) return alert("કૃપા કરીને Welder 1 પસંદ કરો!");
-      extraData.final_welder = w2 ? `${w1}/${w2}` : w1;
+      if (!w1) return alert("કૃપા કરીને Welder 1 અથવા NA પસંદ કરો!");
+      extraData.final_welder = (w2 && w2 !== 'NA') ? `${w1}/${w2}` : w1;
     }
 
     selectedQueue.push({ ...item, ...extraData });
@@ -1122,7 +1110,6 @@
     renderSelectedTable();
   }
 
-  // QUEUE TABLE RENDER (MATCHING REFERENCE 2 & 3: Sr., Spool Unique No, ISO No / Drawing No, Action)
   function renderSelectedTable() {
     const thead = document.getElementById('selectedTableHead');
     const tbody = document.getElementById('selectedTableBody');
@@ -1136,7 +1123,6 @@
     } else if (currentStage === 'bend_entry') {
       thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No / Line No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center; width:90px;">Action</th></tr>`;
     } else {
-      // Clean header matching reference 2 & 3
       thead.innerHTML = `<tr><th style="width:50px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No / Line No</th><th style="text-align:center; width:100px;">Action</th></tr>`;
     }
 
@@ -1169,7 +1155,7 @@
     }).join('');
   }
 
-  // --- EXCEL-LIKE POPUP FILTER SYSTEM ---
+  // --- EXCEL FILTER MODAL ---
   function openExcelFilter(e, targetTable, colKey, colLabel) {
     e.stopPropagation();
     const popup = document.getElementById('excelFilterPopup');
@@ -1396,7 +1382,6 @@
           ${MASTER_COLS.map(c => {
             let val = r[c.key] !== undefined ? r[c.key] : (r[c.key.toLowerCase()] !== undefined ? r[c.key.toLowerCase()] : '');
             if (val === null || val === undefined) val = '';
-            
             let displayVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
 
             if (isMasterEditMode) {
@@ -1410,7 +1395,7 @@
     }).join('');
   }
 
-  // SAVE SUBMISSION FOR CURRENT STAGE
+  // --- STAGE DATA SAVING LOGIC ---
   async function submitCurrentStage() {
     if (selectedQueue.length === 0) {
       alert('કૃપા કરીને સર્ચ કરીને ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
