@@ -298,7 +298,7 @@
     <div id="mainMenu" class="card">
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
         <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">Fabrication & QC Tracking Dashboard</h3>
-        <span style="font-size: 12px; font-weight: 600; color: #64748b;">Hostinger Cloud System</span>
+        <span style="font-size: 12px; font-weight: 600; color: #64748b;" id="dashboardUserBadge">Hostinger Cloud System</span>
       </div>
 
       <div class="menu-grid">
@@ -398,12 +398,12 @@
         </div>
 
         <!-- Selected Spools Card -->
-        <div style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+        <div id="selectedCardArea" style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">
               Selected Spools (<span id="queueCount">0</span>)
             </span>
-            <button type="button" class="btn-save-action" onclick="submitCurrentStage()">
+            <button type="button" class="btn-save-action" id="btnSaveAction" onclick="submitCurrentStage()">
               💾 <span id="btnSaveLabel">SAVE ENTRY</span>
             </button>
           </div>
@@ -513,21 +513,54 @@
 </div>
 
 <script>
-  // USER SECURITY CONFIG
-  const AUTH_CREDENTIALS = {
-    username: "admin",
-    password: "pipe@6038"
+  // USER ROLES & PERMISSIONS DEFINITION
+  const USER_ROLES = {
+    "admin": {
+      pass: "pipe@6038",
+      name: "Admin",
+      allowed: ["all"]
+    },
+    "bending": {
+      pass: "bend@123",
+      name: "Bending Team",
+      allowed: ["bending_issue", "bend_entry", "fitup_issue"] // Stages 01, 02, 03
+    },
+    "fitup": {
+      pass: "fitup@123",
+      name: "Fit-up Team",
+      allowed: ["fitter_name", "ready_fitup", "fitup_entry"] // Stages 04, 05, 06
+    },
+    "welding": {
+      pass: "weld@123",
+      name: "Welding Team",
+      allowed: ["welder_name", "ready_weld", "weld_visual"] // Stages 07, 08, 09
+    },
+    "qc": {
+      pass: "qc@123",
+      name: "Quality Team",
+      allowed: ["ndt_clearance", "fd"] // Stages 10, 11
+    },
+    "viewer": {
+      pass: "view@123",
+      name: "Viewer",
+      allowed: [] // Only View Mode
+    }
   };
 
   const EDIT_MODE_PASSWORD = "edit@6038";
 
+  let currentUser = null;
   let isMasterEditMode = false;
   let masterPendingUpdates = new Map();
 
   function checkSessionAuth() {
-    if (sessionStorage.getItem('piping_app_auth') === 'logged_in') {
+    const sessionData = sessionStorage.getItem('piping_app_auth');
+    if (sessionData) {
+      currentUser = JSON.parse(sessionData);
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('appContent').style.display = 'block';
+      document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
+      document.getElementById('dashboardUserBadge').innerText = `Logged in: ${currentUser.name}`;
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
@@ -536,16 +569,19 @@
   }
 
   function verifyLogin() {
-    const u = document.getElementById('loginUser').value.trim();
+    const u = document.getElementById('loginUser').value.trim().toLowerCase();
     const p = document.getElementById('loginPass').value.trim();
     const err = document.getElementById('loginError');
 
-    if (u === AUTH_CREDENTIALS.username && p === AUTH_CREDENTIALS.password) {
-      sessionStorage.setItem('piping_app_auth', 'logged_in');
+    if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
+      currentUser = { username: u, ...USER_ROLES[u] };
+      sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
       err.style.display = 'none';
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('appContent').style.display = 'block';
       document.getElementById('loginPass').value = '';
+      document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
+      document.getElementById('dashboardUserBadge').innerText = `Logged in: ${currentUser.name}`;
     } else {
       err.style.display = 'block';
     }
@@ -554,6 +590,7 @@
   function userLogout() {
     if (confirm("શું તમે ખરેખર Logout કરવા માંગો છો?")) {
       sessionStorage.removeItem('piping_app_auth');
+      currentUser = null;
       isMasterEditMode = false;
       masterPendingUpdates.clear();
       checkSessionAuth();
@@ -617,7 +654,7 @@
     document.getElementById('itemEditForm').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'block';
     document.getElementById('btnTopDashboard').style.display = 'none';
-    document.getElementById('navSubTitle').innerText = '| Progress Tracking';
+    document.getElementById('navSubTitle').innerText = currentUser ? `| ${currentUser.name}` : '| Progress Tracking';
   }
 
   async function openStage(stage) {
@@ -629,7 +666,7 @@
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
 
     if (stage === 'view_records') {
-      document.getElementById('navSubTitle').innerText = '| 📊 Master Live Register';
+      document.getElementById('navSubTitle').innerText = `| 📊 Master Live Register (${currentUser.name})`;
       document.getElementById('recordsContainer').style.display = 'block';
       setMasterMode('view');
       buildMasterRegisterHeader();
@@ -641,6 +678,36 @@
     setupStageUI(stage);
     renderSelectedTable();
     await loadStageData(stage);
+    enforceRolePermissions(stage);
+  }
+
+  // --- ROLE BASED ACCESS ENFORCEMENT ---
+  function enforceRolePermissions(stage) {
+    if (!currentUser) return;
+    const isAllowed = currentUser.allowed.includes("all") || currentUser.allowed.includes(stage);
+
+    const searchInput = document.getElementById('spoolSearch');
+    const saveBtn = document.getElementById('btnSaveAction');
+    const selectedArea = document.getElementById('selectedCardArea');
+    const editForm = document.getElementById('itemEditForm');
+
+    if (!isAllowed) {
+      if (searchInput) {
+        searchInput.disabled = true;
+        searchInput.value = '';
+        searchInput.placeholder = `🔒 View Only Mode (${currentUser.name} has no edit permission here)`;
+      }
+      if (saveBtn) saveBtn.style.display = 'none';
+      if (selectedArea) selectedArea.style.display = 'none';
+      if (editForm) editForm.style.display = 'none';
+    } else {
+      if (searchInput) {
+        searchInput.disabled = false;
+        searchInput.placeholder = 'Type spool no...';
+      }
+      if (saveBtn) saveBtn.style.display = 'inline-flex';
+      if (selectedArea) selectedArea.style.display = 'block';
+    }
   }
 
   function setMasterMode(mode) {
@@ -660,6 +727,10 @@
   }
 
   function requestEditMode() {
+    if (currentUser.username !== 'admin') {
+      alert("⚠️ માત્ર Admin પાસે જ Master Register Edit કરવાની પરમિશન છે!");
+      return;
+    }
     const inputPass = prompt("🔐 Enter Master Register Edit Password:");
     if (inputPass === null) return;
     if (inputPass === EDIT_MODE_PASSWORD) {
@@ -729,8 +800,9 @@
     customArea.innerHTML = '';
     activeSubFilter = '';
 
+    // 01. ISSUED FOR BENDING ENTRY
     if (stage === 'bending_issue') {
-      title.innerText = 'ISSUED FOR BENDING ENTRY';
+      title.innerText = '1. ISSUED FOR BENDING ENTRY';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED FOR BENDING';
       searchLabel.innerText = 'Search & Select Spool for Bending:';
       queueHeading.innerHTML = 'Selected Spools for Bending (<span id="queueCount">0</span>)';
@@ -742,6 +814,7 @@
         </div>
       `;
     } 
+    // 02. BEND COMPLETED
     else if (stage === 'bend_entry') {
       title.innerText = '2. BEND ENTRY MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: BEND COMPLETED';
@@ -755,6 +828,7 @@
         </div>
       `;
     }
+    // 03. ISSUE FOR FIT-UP MODULE
     else if (stage === 'fitup_issue') {
       title.innerText = '3. ISSUE FOR FIT-UP MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUE FOR FIT-UP';
@@ -768,6 +842,7 @@
         </div>
       `;
     }
+    // 04. ISSUED TO FITTER
     else if (stage === 'fitter_name') {
       title.innerText = '4. FITTER NAME MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO FITTER';
@@ -776,7 +851,8 @@
       btnSaveLabel.innerText = 'SAVE FITTER ENTRY';
       customArea.innerHTML = '';
     }
-   else if (stage === 'ready_fitup') {
+    // 05. READY FIT-UP FOR INSP (Includes NA button)
+    else if (stage === 'ready_fitup') {
       title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: READY FIT-UP';
       searchLabel.innerText = 'Search & Select Spool for Inspection:';
@@ -784,7 +860,6 @@
       btnSaveLabel.innerText = 'SAVE INSPECTION ENTRY';
       subArea.style.display = 'flex';
       subMetric.style.display = 'flex';
-      // NA બટન સામેલ કર્યું
       subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
       customArea.innerHTML = `
         <div style="max-width: 250px;">
@@ -792,9 +867,10 @@
           <input type="date" id="input_date" required>
         </div>
       `;
-      activeSubFilter = FITTERS[0]; // ડિફૉલ્ટ NA સિલેક્ટ થશે
+      activeSubFilter = FITTERS[0];
       subArea.children[0].classList.add('active');
     }
+    // 06. FIT UP COMPLETED
     else if (stage === 'fitup_entry') {
       title.innerText = '6. FIT UP ENTRY MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: FIT-UP COMPLETED';
@@ -808,6 +884,7 @@
         </div>
       `;
     }
+    // 07. ISSUED TO WELDER
     else if (stage === 'welder_name') {
       title.innerText = '7. WELDER NAME MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO WELDER';
@@ -816,6 +893,7 @@
       btnSaveLabel.innerText = 'SAVE WELDER ENTRY';
       customArea.innerHTML = '';
     }
+    // 08. READY FOR WELD VISUAL (Includes NA button)
     else if (stage === 'ready_weld') {
       title.innerText = '8. READY FOR WELD VISUAL MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: READY WELD VISUAL';
@@ -824,7 +902,6 @@
       btnSaveLabel.innerText = 'SAVE VISUAL ENTRY';
       subArea.style.display = 'flex';
       subMetric.style.display = 'flex';
-      // NA બટન સામેલ કર્યું
       subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
       customArea.innerHTML = `
         <div style="max-width: 250px;">
@@ -832,9 +909,10 @@
           <input type="date" id="input_date" required>
         </div>
       `;
-      activeSubFilter = WELDERS[0]; // ડિફૉલ્ટ NA સિલેક્ટ થશે
+      activeSubFilter = WELDERS[0];
       subArea.children[0].classList.add('active');
     }
+    // 09. WELD VISUAL COMPLETED
     else if (stage === 'weld_visual') {
       title.innerText = '9. WELD VISUAL MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: WELD VISUAL COMPLETED';
@@ -848,6 +926,7 @@
         </div>
       `;
     }
+    // 10. NDT CLEARANCE
     else if (stage === 'ndt_clearance') {
       title.innerText = '10. NDT CLEARANCE MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: NDT CLEARANCE';
@@ -861,6 +940,7 @@
         </div>
       `;
     }
+    // 11. FINAL DISPATCH & DC NO
     else if (stage === 'fd') {
       title.innerText = '11. FINAL DISPATCH & DC NO MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: FINAL DISPATCH & DC NO';
@@ -1014,6 +1094,11 @@
   }
 
   function onSpoolSelect(id) {
+    if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
+      alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સિલેક્ટ અથવા સેવ કરવાની પરમિશન નથી!");
+      return;
+    }
+
     if (selectedQueue.some(x => x.id === id)) {
       alert("⚠️ આ સ્પૂલ પહેલેથી નીચેના લિસ્ટમાં ઉમેરેલું છે!");
       return;
@@ -1025,6 +1110,7 @@
     document.getElementById('spoolSearch').value = '';
     document.getElementById('searchDropdown').style.display = 'none';
 
+    // Direct Stages: 01, 03, 05, 06, 08, 09, 10, 11
     const isDirectStage = ['bending_issue', 'fitup_issue', 'fd', 'ready_fitup', 'fitup_entry', 'ready_weld', 'weld_visual', 'ndt_clearance'].includes(currentStage);
 
     if (isDirectStage) {
@@ -1035,6 +1121,7 @@
       return;
     }
 
+    // Interactive Stages: 02, 04, 07
     document.getElementById('itemEditForm').style.display = 'block';
     document.getElementById('form_item_id').value = item.id;
     document.getElementById('form_spool_no').value = item.Spool_number || '';
@@ -1399,6 +1486,11 @@
 
   // --- STAGE DATA SAVING LOGIC ---
   async function submitCurrentStage() {
+    if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
+      alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
+      return;
+    }
+
     if (selectedQueue.length === 0) {
       alert('કૃપા કરીને સર્ચ કરીને ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
       return;
