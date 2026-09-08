@@ -42,21 +42,44 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; flex: 1; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
-    /* Tables & Bigger Headers */
-    .balance-table-container { overflow: auto; margin-top: 10px; max-height: 50vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
+    /* Tables & Excel Style Header */
+    .balance-table-container { overflow: auto; margin-top: 10px; max-height: 55vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; }
-    
-    /* Bigger Header with Integrated Filter Input */
-    th { background: #1e40af; color: white; font-weight: 700; font-size: 14px; vertical-align: top; }
-    .th-content { display: flex; flex-direction: column; gap: 4px; }
-    .header-filter-input { width: 100%; min-width: 80px; padding: 4px 6px; font-size: 11.5px; border: 1px solid #93c5fd; border-radius: 4px; color: #0f172a; background: #fff; box-sizing: border-box; }
+    th, td { border: 1px solid #cbd5e1; padding: 9px 10px; white-space: nowrap; }
+    th { background: #1e40af; color: white; font-weight: 700; font-size: 13.5px; user-select: none; }
     tr:nth-child(even) { background: #f8fafc; }
+
+    .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .filter-btn-icon { background: #2563eb; color: #fff; border: 1px solid #93c5fd; border-radius: 3px; padding: 2px 6px; font-size: 10.5px; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+    .filter-btn-icon:hover { background: #1d4ed8; }
+    .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
+
+    /* Excel-like Floating Popup Modal */
+    #excelFilterPopup {
+      position: absolute;
+      display: none;
+      z-index: 1000;
+      background: #ffffff;
+      border: 1.5px solid #0284c7;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      width: 260px;
+      padding: 12px;
+      font-family: inherit;
+    }
+    .popup-search { width: 100%; padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 12.5px; box-sizing: border-box; margin-bottom: 8px; }
+    .popup-options-list { max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px; margin-bottom: 10px; background: #fafafa; }
+    .popup-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #1e293b; padding: 4px 2px; }
+    .popup-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; }
+    .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .popup-btn-ok { background: #1e40af; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
   </style>
 </head>
 <body>
 
 <div class="container">
+  <!-- Hub -->
   <div id="mainMenu" class="card">
     <h3>⚙️ Piping Work Progress Console</h3>
     <div class="menu-grid">
@@ -75,6 +98,7 @@
     </div>
   </div>
 
+  <!-- Stage Screen -->
   <div id="stageContainer" style="display: none;">
     <div class="card">
       <div class="metric-banner">
@@ -130,44 +154,44 @@
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
-    <!-- Balance List Table with In-Header Filter Inputs -->
+    <!-- Balance List Table with Excel Filter Icons -->
     <div class="card" style="margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
-        <button type="button" class="sub-filter-btn" style="padding: 4px 8px; flex: initial;" onclick="resetBalanceFilters()">🔄 Clear Filter</button>
+        <button type="button" class="sub-filter-btn" style="padding: 4px 8px; flex: initial;" onclick="clearAllBalanceFilters()">🔄 Clear All Filters</button>
       </div>
       <div class="balance-table-container">
         <table>
           <thead style="position: sticky; top: 0; z-index: 5;">
             <tr style="background:#1e40af; color:white;">
               <th>
-                <div class="th-content">
+                <div class="header-cell">
                   <span>Drawing No</span>
-                  <input type="text" class="header-filter-input bal-flt" data-field="Drawing_no" oninput="applyBalanceListFilter()" placeholder="🔍">
+                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Drawing_no', 'Drawing No')">🔽</button>
                 </div>
               </th>
               <th>
-                <div class="th-content">
+                <div class="header-cell">
                   <span>Spool Unique No</span>
-                  <input type="text" class="header-filter-input bal-flt" data-field="Spool_number" oninput="applyBalanceListFilter()" placeholder="🔍">
+                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Spool_number', 'Spool Unique No')">🔽</button>
                 </div>
               </th>
               <th>
-                <div class="th-content">
+                <div class="header-cell">
                   <span>Spool Size</span>
-                  <input type="text" class="header-filter-input bal-flt" data-field="Spool_size" oninput="applyBalanceListFilter()" placeholder="🔍">
+                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Spool_size', 'Spool Size')">🔽</button>
                 </div>
               </th>
               <th>
-                <div class="th-content">
+                <div class="header-cell">
                   <span>WELD ID</span>
-                  <input type="text" class="header-filter-input bal-flt" data-field="Weld_id" oninput="applyBalanceListFilter()" placeholder="🔍">
+                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Weld_id', 'Weld ID')">🔽</button>
                 </div>
               </th>
               <th>
-                <div class="th-content">
+                <div class="header-cell">
                   <span>BEND QTY</span>
-                  <input type="text" class="header-filter-input bal-flt" data-field="Bend_qty" oninput="applyBalanceListFilter()" placeholder="🔍">
+                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Bend_qty', 'Bend Qty')">🔽</button>
                 </div>
               </th>
             </tr>
@@ -180,12 +204,12 @@
     </div>
   </div>
 
-  <!-- Master Register with In-Header Filter Inputs -->
+  <!-- Master Register with Excel Filter Icons -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0; border:none; font-size:16px;">📊 Master Register</h3>
-        <button type="button" class="sub-filter-btn" style="padding:4px 10px; flex:initial;" onclick="resetColumnFilters()">🔄 Clear Filter</button>
+        <h3 style="margin:0; border:none; font-size:16px;">📊 Master Register (<span id="masterTotalCount">0</span>)</h3>
+        <button type="button" class="sub-filter-btn" style="padding:4px 10px; flex:initial;" onclick="clearAllMasterFilters()">🔄 Clear All Filters</button>
       </div>
       <div class="balance-table-container" style="max-height: 75vh;">
         <table id="qcDataTable">
@@ -197,6 +221,20 @@
       </div>
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
+  </div>
+</div>
+
+<!-- Floating Excel-like Filter Popup Dialog -->
+<div id="excelFilterPopup">
+  <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
+  <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
+    <input type="checkbox" id="popupSelectAll" onchange="togglePopupSelectAll(this.checked)">
+    <label for="popupSelectAll" style="font-size: 12px; font-weight: bold; margin: 0; cursor: pointer;">(Select All)</label>
+  </div>
+  <div id="popupOptionsList" class="popup-options-list"></div>
+  <div class="popup-actions">
+    <button type="button" class="popup-btn-ok" onclick="applyPopupFilter()">OK</button>
+    <button type="button" class="popup-btn-clear" onclick="clearCurrentPopupFilter()">Clear</button>
   </div>
 </div>
 
@@ -212,6 +250,14 @@
   let selectedQueue = [];
   let activeSubFilter = '';
   let allRecordsCache = [];
+  let masterDisplayRows = [];
+
+  // Active Filter Sets { colKey: Set of selected string values }
+  let balanceColumnFilters = {};
+  let masterColumnFilters = {};
+
+  // Current popup context
+  let currentPopupContext = { targetTable: '', colKey: '', colLabel: '', allValues: [] };
 
   const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
   const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
@@ -242,6 +288,7 @@
   ];
 
   function backToMenu() {
+    closeExcelPopup();
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
     document.getElementById('itemEditForm').style.display = 'none';
@@ -249,6 +296,7 @@
   }
 
   async function openStage(stage) {
+    closeExcelPopup();
     currentStage = stage;
     selectedQueue = [];
     document.getElementById('mainMenu').style.display = 'none';
@@ -385,6 +433,7 @@
     }
 
     cumulativeRows = data || [];
+    balanceColumnFilters = {};
     filterBySubStage();
   }
 
@@ -404,10 +453,8 @@
       stageFilteredRows = cumulativeRows;
     }
 
-    activeBalanceDisplayRows = [...stageFilteredRows];
-    resetBalanceFilters();
+    applyBalanceDataFilters();
     updateMetrics();
-    renderStageBalanceTable();
   }
 
   function updateMetrics() {
@@ -626,18 +673,134 @@
     }).join('');
   }
 
-  // --- BALANCE LIST FILTER LOGIC (IN-HEADER) ---
-  function applyBalanceListFilter() {
-    const filters = {};
-    document.querySelectorAll('.bal-flt').forEach(i => {
-      const val = i.value.trim().toLowerCase();
-      if (val) filters[i.getAttribute('data-field')] = val;
+  // --- EXCEL-LIKE POPUP FILTER SYSTEM ---
+  function openExcelFilter(e, targetTable, colKey, colLabel) {
+    e.stopPropagation();
+    const popup = document.getElementById('excelFilterPopup');
+    
+    // Position popup near clicked icon
+    const rect = e.target.getBoundingClientRect();
+    let top = rect.bottom + window.scrollY + 6;
+    let left = rect.left + window.scrollX - 100;
+    if (left + 270 > window.innerWidth) left = window.innerWidth - 280;
+    if (left < 10) left = 10;
+
+    popup.style.top = `${top}px`;
+    popup.style.left = `${left}px`;
+    popup.style.display = 'block';
+
+    currentPopupContext.targetTable = targetTable;
+    currentPopupContext.colKey = colKey;
+    currentPopupContext.colLabel = colLabel;
+
+    // Gather distinct values and counts
+    const sourceRows = targetTable === 'balance' ? stageFilteredRows : allRecordsCache;
+    const valueMap = new Map();
+
+    sourceRows.forEach(r => {
+      let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
+      if (val === null || val === undefined) val = '';
+      val = String(val).trim();
+      const displayVal = val === '' ? '(Blank)' : val;
+      valueMap.set(displayVal, (valueMap.get(displayVal) || 0) + 1);
     });
 
+    const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    currentPopupContext.allValues = distinctSorted;
+
+    // Determine current selections
+    const activeFilters = targetTable === 'balance' ? balanceColumnFilters : masterColumnFilters;
+    const currentSelectedSet = activeFilters[colKey] || null;
+
+    document.getElementById('popupSearchInput').value = '';
+    document.getElementById('popupSearchInput').placeholder = `Search in ${colLabel}...`;
+    renderPopupCheckboxes(distinctSorted, currentSelectedSet);
+  }
+
+  function renderPopupCheckboxes(items, selectedSet) {
+    const container = document.getElementById('popupOptionsList');
+    container.innerHTML = items.map(([val, count], idx) => {
+      const isChecked = selectedSet === null || selectedSet.has(val);
+      return `
+        <div class="popup-item">
+          <input type="checkbox" id="chk_opt_${idx}" value="${escapeHtml(val)}" ${isChecked ? 'checked' : ''}>
+          <label for="chk_opt_${idx}" style="cursor:pointer; font-size:12px; margin:0;">${escapeHtml(val)} <span style="color:#64748b;">(${count})</span></label>
+        </div>
+      `;
+    }).join('');
+
+    const selectAllBox = document.getElementById('popupSelectAll');
+    selectAllBox.checked = items.every(([val]) => selectedSet === null || selectedSet.has(val));
+  }
+
+  function onPopupSearch(term) {
+    const q = term.toLowerCase().trim();
+    const filtered = currentPopupContext.allValues.filter(([val]) => val.toLowerCase().includes(q));
+    const activeFilters = currentPopupContext.targetTable === 'balance' ? balanceColumnFilters : masterColumnFilters;
+    const currentSelectedSet = activeFilters[currentPopupContext.colKey] || null;
+    renderPopupCheckboxes(filtered, currentSelectedSet);
+  }
+
+  function togglePopupSelectAll(checked) {
+    document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(chk => {
+      chk.checked = checked;
+    });
+  }
+
+  function applyPopupFilter() {
+    const selected = new Set();
+    const checkboxes = document.querySelectorAll('#popupOptionsList input[type="checkbox"]');
+    checkboxes.forEach(c => {
+      if (c.checked) selected.add(c.value);
+    });
+
+    const { targetTable, colKey, allValues } = currentPopupContext;
+    const activeFilters = targetTable === 'balance' ? balanceColumnFilters : masterColumnFilters;
+
+    if (selected.size === allValues.length) {
+      delete activeFilters[colKey];
+    } else {
+      activeFilters[colKey] = selected;
+    }
+
+    closeExcelPopup();
+
+    if (targetTable === 'balance') {
+      applyBalanceDataFilters();
+    } else {
+      applyMasterDataFilters();
+    }
+  }
+
+  function clearCurrentPopupFilter() {
+    const { targetTable, colKey } = currentPopupContext;
+    const activeFilters = targetTable === 'balance' ? balanceColumnFilters : masterColumnFilters;
+    delete activeFilters[colKey];
+    closeExcelPopup();
+
+    if (targetTable === 'balance') {
+      applyBalanceDataFilters();
+    } else {
+      applyMasterDataFilters();
+    }
+  }
+
+  function closeExcelPopup() {
+    document.getElementById('excelFilterPopup').style.display = 'none';
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // --- BALANCE LIST FILTERING ---
+  function applyBalanceDataFilters() {
     activeBalanceDisplayRows = stageFilteredRows.filter(r => {
-      for (const [k, v] of Object.entries(filters)) {
-        const itemVal = String(r[k] || '').toLowerCase();
-        if (!itemVal.includes(v)) return false;
+      for (const [colKey, allowedSet] of Object.entries(balanceColumnFilters)) {
+        let val = r[colKey] !== undefined ? r[colKey] : '';
+        val = String(val || '').trim();
+        const displayVal = val === '' ? '(Blank)' : val;
+        if (!allowedSet.has(displayVal)) return false;
       }
       return true;
     });
@@ -646,11 +809,9 @@
     renderStageBalanceTable();
   }
 
-  function resetBalanceFilters() {
-    document.querySelectorAll('.bal-flt').forEach(i => i.value = '');
-    activeBalanceDisplayRows = [...stageFilteredRows];
-    document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
-    renderStageBalanceTable();
+  function clearAllBalanceFilters() {
+    balanceColumnFilters = {};
+    applyBalanceDataFilters();
   }
 
   function renderStageBalanceTable() {
@@ -671,14 +832,14 @@
     `).join('');
   }
 
-  // --- MASTER REGISTER (IN-HEADER INTEGRATED FILTERS) ---
+  // --- MASTER REGISTER FILTERING ---
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
     tr.innerHTML = MASTER_COLS.map(c => `
       <th>
-        <div class="th-content">
+        <div class="header-cell">
           <span>${c.label}</span>
-          <input type="text" class="header-filter-input mst-flt" data-col="${c.key}" oninput="filterRegister()" placeholder="🔍">
+          <button class="filter-btn-icon" onclick="openExcelFilter(event, 'master', '${c.key}', '${c.label}')">🔽</button>
         </div>
       </th>
     `).join('');
@@ -706,26 +867,33 @@
     }
 
     allRecordsCache = allRows;
-    filterRegister();
+    masterColumnFilters = {};
+    applyMasterDataFilters();
   }
 
-  function filterRegister() {
-    const filters = {};
-    document.querySelectorAll('.mst-flt').forEach(i => {
-      const val = i.value.trim().toLowerCase();
-      if (val) filters[i.getAttribute('data-col')] = val;
-    });
-
-    const filtered = allRecordsCache.filter(r => {
-      for (const [k, v] of Object.entries(filters)) {
-        const itemVal = String(r[k] || r[k.toLowerCase()] || '').toLowerCase();
-        if (!itemVal.includes(v)) return false;
+  function applyMasterDataFilters() {
+    masterDisplayRows = allRecordsCache.filter(r => {
+      for (const [colKey, allowedSet] of Object.entries(masterColumnFilters)) {
+        let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
+        val = String(val || '').trim();
+        const displayVal = val === '' ? '(Blank)' : val;
+        if (!allowedSet.has(displayVal)) return false;
       }
       return true;
     });
 
+    document.getElementById('masterTotalCount').innerText = masterDisplayRows.length;
+    renderMasterTable();
+  }
+
+  function clearAllMasterFilters() {
+    masterColumnFilters = {};
+    applyMasterDataFilters();
+  }
+
+  function renderMasterTable() {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = filtered.slice(0, 1000).map(r => `
+    tbody.innerHTML = masterDisplayRows.slice(0, 1000).map(r => `
       <tr>
         <td><b>${r.Drawing_no || '-'}</b></td>
         <td>${r.Spool_size || '-'}</td>
@@ -751,11 +919,6 @@
         <td>${r.Remarks || '-'}</td>
       </tr>
     `).join('');
-  }
-
-  function resetColumnFilters() {
-    document.querySelectorAll('.mst-flt').forEach(i => i.value = '');
-    filterRegister();
   }
 
   async function submitCurrentStage() {
@@ -856,7 +1019,12 @@
     loadStageData(currentStage);
   }
 
+  // Close popup or dropdown on click outside
   document.addEventListener('click', (e) => {
+    const popup = document.getElementById('excelFilterPopup');
+    if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
+      closeExcelPopup();
+    }
     if (!e.target.closest('.search-box-wrapper')) {
       const drop = document.getElementById('searchDropdown');
       if (drop) drop.style.display = 'none';
