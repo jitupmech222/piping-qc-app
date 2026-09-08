@@ -10,11 +10,11 @@
     .container { width: 100%; max-width: 100%; margin: 0; padding: 10px 14px; box-sizing: border-box; }
     .card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.06); margin-top: 8px; }
     h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 16px; }
-    label { font-size: 13px; font-weight: 600; color: #334155; margin-top: 10px; display: block; }
-    input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1.5px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13.5px; background: #fff; }
+    label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 6px; display: block; }
+    input, select { width: 100%; padding: 8px 10px; margin-top: 3px; border: 1.5px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; background: #fff; }
     input:focus, select:focus { outline: none; border-color: #0284c7; }
 
-    /* Top Navigation Bar as per reference */
+    /* Top Navigation Bar */
     .top-navbar {
       background: #0f172a;
       color: white;
@@ -46,10 +46,7 @@
       gap: 6px;
       transition: all 0.2s;
     }
-    .btn-nav-dashboard:hover {
-      background: #f1f5f9;
-      color: #0284c7;
-    }
+    .btn-nav-dashboard:hover { background: #f1f5f9; color: #0284c7; }
 
     /* Login Screen Modal Overlay */
     #loginOverlay {
@@ -99,7 +96,7 @@
       cursor: pointer;
     }
 
-    /* Master Register Toolbar & Full Display */
+    /* Master Register Toolbar & Controls */
     .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
@@ -114,7 +111,6 @@
       margin-top: 14px;
     }
 
-    /* Enterprise Style Menu Cards */
     .menu-btn {
       position: relative;
       display: flex;
@@ -156,7 +152,6 @@
       color: #475569;
       flex-shrink: 0;
     }
-
     .menu-btn:hover .step-badge { background: #0284c7; color: #ffffff; }
 
     .menu-btn.stage-bend { border-left: 4px solid #3b82f6; }
@@ -176,15 +171,30 @@
       padding: 16px;
       border-radius: 10px;
     }
-
     .btn-view:hover {
       background: linear-gradient(135deg, #115e59 0%, #065f46 100%);
       color: #ffffff;
       box-shadow: 0 8px 18px rgba(5, 150, 105, 0.35);
     }
 
-    .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 11px 20px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-    .btn-save-final { background: #15803d; color: white; border: none; border-radius: 6px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 12px; }
+    .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
+
+    /* Compact Top-Right Save Action Button matching reference */
+    .btn-save-action {
+      background: #15803d;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 5px rgba(21, 128, 61, 0.3);
+    }
+    .btn-save-action:hover { background: #166534; }
 
     .metric-banner { background: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; justify-content: space-around; font-weight: bold; color: #0369a1; font-size: 13.5px; }
     .sub-metric-banner { background: #fefce8; border: 1.5px solid #eab308; border-radius: 8px; padding: 8px; margin-top: 8px; margin-bottom: 10px; display: flex; justify-content: space-around; font-weight: bold; color: #854d0e; font-size: 13px; }
@@ -193,22 +203,23 @@
     .search-box-wrapper { position: relative; }
     .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1.5px solid #0284c7; border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.12); display: none; }
     .dropdown-row { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; }
+    .dropdown-row:hover { background: #f0fdf4; }
 
     .edit-form-box { background: #f8fafc; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 12px; margin-top: 10px; display: none; }
     .edit-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
 
-    .selected-table-container { margin-top: 10px; border: 1.5px solid #0f172a; border-radius: 6px; overflow-x: auto; }
+    .selected-table-container { margin-top: 10px; border: 1px solid #0f172a; border-radius: 6px; overflow-x: auto; }
     .selected-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
-    .selected-table th { background: #0f172a; color: white; padding: 8px; text-align: left; font-weight: 600; font-size: 13px; }
-    .selected-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
-    .btn-remove { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .selected-table th { background: #0f172a; color: white; padding: 8px 10px; text-align: left; font-weight: 600; font-size: 12.5px; }
+    .selected-table td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+    .btn-remove { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
     .sub-filter-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; margin-bottom: 6px; }
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
-    /* Tables & Full Display Scrolling (Unfrozen) */
-    .balance-table-container { overflow: auto; margin-top: 10px; height: 60vh; border: 1px solid #cbd5e1; border-radius: 6px; }
+    /* Tables & Full Display Scrolling */
+    .balance-table-container { overflow: auto; margin-top: 10px; height: 55vh; border: 1px solid #cbd5e1; border-radius: 6px; }
     .master-table-container { overflow: auto; margin-top: 8px; height: calc(100vh - 130px); border: 1px solid #cbd5e1; border-radius: 6px; }
 
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
@@ -270,7 +281,7 @@
 <!-- Main App (Protected Behind Login) -->
 <div id="appContent" style="display: none;">
 
-  <!-- Universal Top Navigation Bar (Reference Layout) -->
+  <!-- Universal Top Navigation Bar -->
   <div class="top-navbar">
     <div class="top-nav-title">
       <span>⚙️ PIPING CONSOLE</span>
@@ -367,42 +378,52 @@
           <div>SELECTED FITTER WELD = <span id="subMetricWelds" class="metric-val">0</span></div>
         </div>
 
-        <label>Spool Unique Number:</label>
+        <!-- Search Spool Input -->
+        <label id="spoolSearchLabel">Spool Unique Number:</label>
         <div class="search-box-wrapper">
-          <input type="text" id="spoolSearch" placeholder="Enter Spool Unique Number.." oninput="handleSearchInput()" autocomplete="off">
+          <input type="text" id="spoolSearch" placeholder="Type spool no..." oninput="handleSearchInput()" autocomplete="off">
           <div id="searchDropdown" class="search-dropdown"></div>
         </div>
 
+        <!-- Only for complex stages like Fitter/Welder/Bend Qty Edit -->
         <div id="itemEditForm" class="edit-form-box">
-          <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Selected Spool Details:</div>
+          <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Edit Details:</div>
           <div class="edit-grid">
             <div><label style="margin-top:0;">Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
             <div><label style="margin-top:0;">Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
             <div id="dynamicFormFields"></div>
           </div>
           <input type="hidden" id="form_item_id">
-          <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Bottom Selected List</button>
+          <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Selected List</button>
         </div>
 
-        <div style="margin-top: 18px;">
-          <span style="font-size: 14px; font-weight: bold; color: #0f172a;">
-            Selected Spools Queue (<span id="queueCount">0</span>)
-          </span>
+        <!-- Selected Spools Card (Matching Reference 2 & 3) -->
+        <div style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+          <!-- Top Row: Title + Save Button -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">
+              Selected Spools (<span id="queueCount">0</span>)
+            </span>
+            <button type="button" class="btn-save-action" onclick="submitCurrentStage()">
+              💾 <span id="btnSaveLabel">SAVE ENTRY</span>
+            </button>
+          </div>
+
+          <!-- Inputs Area (Date & DC No) as per reference 2 and 3 -->
+          <div id="customInputsArea" style="margin-bottom: 12px;"></div>
+
+          <!-- Queue Table -->
           <div class="selected-table-container">
             <table class="selected-table">
               <thead id="selectedTableHead"></thead>
               <tbody id="selectedTableBody">
                 <tr>
-                  <td colspan="6" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td>
+                  <td colspan="5" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-
-        <div id="customInputsArea" style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: none;"></div>
-
-        <button type="button" class="btn-save-final" onclick="submitCurrentStage()">💾 SAVE</button>
       </div>
 
       <!-- Balance List Table -->
@@ -455,7 +476,7 @@
       </div>
     </div>
 
-    <!-- Master Register (Full Display as per reference image) -->
+    <!-- Master Register -->
     <div id="recordsContainer" style="display: none;">
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
@@ -501,7 +522,6 @@
     password: "pipe@6038"
   };
 
-  // PASSWORD FOR EDITING MASTER REGISTER
   const EDIT_MODE_PASSWORD = "edit@6038";
 
   let isMasterEditMode = false;
@@ -619,14 +639,13 @@
       return;
     }
 
-    document.getElementById('navSubTitle').innerText = `| Stage: ${stage.toUpperCase()}`;
     document.getElementById('stageContainer').style.display = 'block';
     setupStageUI(stage);
     renderSelectedTable();
     await loadStageData(stage);
   }
 
-  // --- MASTER REGISTER VIEW / EDIT MODE CONTROLS ---
+  // --- MASTER REGISTER VIEW / EDIT CONTROLS ---
   function setMasterMode(mode) {
     if (mode === 'view') {
       isMasterEditMode = false;
@@ -678,7 +697,6 @@
     saveBtn.innerText = "⏳ Saving...";
 
     let updateErrors = 0;
-
     for (const [id, rowData] of masterPendingUpdates.entries()) {
       const { error } = await db.from('piping_joints').update(rowData).eq('id', id);
       if (error) {
@@ -695,86 +713,179 @@
       masterPendingUpdates.clear();
       setMasterMode('view');
     } else {
-      alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી. કૃપા કરીને ફરી પ્રયાસ કરો.`);
+      alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી.`);
     }
   }
 
+  // --- STAGE UI SETUP (LAYOUT MATCHING REFERENCE 2 & 3) ---
   function setupStageUI(stage) {
     const title = document.getElementById('stageTitle');
     const subArea = document.getElementById('subFilterArea');
     const subMetric = document.getElementById('subMetricArea');
     const customArea = document.getElementById('customInputsArea');
+    const queueHeading = document.getElementById('queueHeading');
+    const btnSaveLabel = document.getElementById('btnSaveLabel');
+    const searchLabel = document.getElementById('spoolSearchLabel');
+
     subArea.style.display = 'none';
     subArea.innerHTML = '';
     subMetric.style.display = 'none';
     customArea.innerHTML = '';
-    customArea.style.display = 'none';
     activeSubFilter = '';
 
+    // 1. ISSUED FOR BENDING ENTRY
     if (stage === 'bending_issue') {
       title.innerText = 'ISSUED FOR BENDING ENTRY';
-      customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Issued For Bending Date:</label><input type="date" id="input_date" required>`;
+      document.getElementById('navSubTitle').innerText = '| Stage: ISSUED FOR BENDING';
+      searchLabel.innerText = 'Search & Select Spool for Bending:';
+      queueHeading.innerHTML = 'Selected Spools for Bending (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE BENDING ENTRY';
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">Bending Issue Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
     } 
+    // 2. BEND COMPLETED (Editable bend qty/weld id)
     else if (stage === 'bend_entry') {
       title.innerText = '2. BEND ENTRY MODULE';
-      customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Bend Date (તમામ પસંદ કરેલા માટે):</label><input type="date" id="input_date" required>`;
+      document.getElementById('navSubTitle').innerText = '| Stage: BEND COMPLETED';
+      searchLabel.innerText = 'Search & Select Spool for Bend Complete:';
+      queueHeading.innerHTML = 'Selected Spools for Bend (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE BEND ENTRY';
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">Bend Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
     }
+    // 3. ISSUE FOR FIT-UP MODULE (Direct Add as per reference 2)
     else if (stage === 'fitup_issue') {
       title.innerText = '3. ISSUE FOR FIT-UP MODULE';
-      customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Issue For Fit-Up Date:</label><input type="date" id="input_date" required>`;
+      document.getElementById('navSubTitle').innerText = '| Stage: ISSUE FOR FIT-UP';
+      searchLabel.innerText = 'Search & Select Spool for Fit-Up:';
+      queueHeading.innerHTML = 'Selected Spools for Fit-Up (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE FIT-UP ENTRY';
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">Fit-Up Issue Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
     }
     else if (stage === 'fitter_name') {
       title.innerText = '4. FITTER NAME MODULE';
-      customArea.style.display = 'none';
+      document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO FITTER';
+      searchLabel.innerText = 'Search & Select Spool for Fitter Allocation:';
+      queueHeading.innerHTML = 'Selected Spools for Fitter (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE FITTER ENTRY';
+      customArea.innerHTML = '';
     }
     else if (stage === 'ready_fitup') {
       title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: READY FIT-UP';
+      searchLabel.innerText = 'Search & Select Spool for Inspection:';
+      queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE INSPECTION ENTRY';
       subArea.style.display = 'flex';
       subMetric.style.display = 'flex';
       subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
-      customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Ready For Fit-Up Insp Date:</label><input type="date" id="input_date" required>`;
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Fit-Up Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
       activeSubFilter = FITTERS[0];
       subArea.children[0].classList.add('active');
     }
     else if (stage === 'fitup_entry') {
       title.innerText = '6. FIT UP ENTRY MODULE';
-      customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Fit-Up Date:</label><input type="date" id="input_date" required>`;
+      document.getElementById('navSubTitle').innerText = '| Stage: FIT-UP COMPLETED';
+      searchLabel.innerText = 'Search & Select Spool:';
+      queueHeading.innerHTML = 'Selected Spools for Fit-Up (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE FIT-UP COMPLETED';
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">Fit-Up Completed Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
     }
     else if (stage === 'welder_name') {
       title.innerText = '7. WELDER NAME MODULE';
-      customArea.style.display = 'none';
+      document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO WELDER';
+      searchLabel.innerText = 'Search & Select Spool for Welder Allocation:';
+      queueHeading.innerHTML = 'Selected Spools for Welder (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE WELDER ENTRY';
+      customArea.innerHTML = '';
     }
     else if (stage === 'ready_weld') {
       title.innerText = '8. READY FOR WELD VISUAL MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: READY WELD VISUAL';
+      searchLabel.innerText = 'Search & Select Spool:';
+      queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE VISUAL ENTRY';
       subArea.style.display = 'flex';
       subMetric.style.display = 'flex';
       subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
-      customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Ready For Weld Visual Date:</label><input type="date" id="input_date" required>`;
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Visual Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
       activeSubFilter = WELDERS[0];
       subArea.children[0].classList.add('active');
     }
     else if (stage === 'weld_visual') {
       title.innerText = '9. WELD VISUAL MODULE';
-      customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 Visual Date:</label><input type="date" id="input_date" required>`;
+      document.getElementById('navSubTitle').innerText = '| Stage: WELD VISUAL COMPLETED';
+      searchLabel.innerText = 'Search & Select Spool:';
+      queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE VISUAL COMPLETED';
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">Weld Visual Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
     }
     else if (stage === 'ndt_clearance') {
       title.innerText = '10. NDT CLEARANCE MODULE';
-      customArea.style.display = 'block';
-      customArea.innerHTML = `<label style="margin-top:0;">📅 NDT Clearance Date:</label><input type="date" id="input_date" required>`;
+      document.getElementById('navSubTitle').innerText = '| Stage: NDT CLEARANCE';
+      searchLabel.innerText = 'Search & Select Spool for NDT:';
+      queueHeading.innerHTML = 'Selected Spools for NDT (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE NDT ENTRY';
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">NDT Clearance Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
     }
+    // 11. FINAL DISPATCH & DC NO MODULE (Matching Reference 3)
     else if (stage === 'fd') {
       title.innerText = '11. FINAL DISPATCH & DC NO MODULE';
-      customArea.style.display = 'block';
+      document.getElementById('navSubTitle').innerText = '| Stage: FINAL DISPATCH & DC NO';
+      searchLabel.innerText = 'Search & Select Spool for DC:';
+      queueHeading.innerHTML = 'Selected Spools for DC (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE DC ENTRY';
+      // Dual layout as per reference image 3
       customArea.innerHTML = `
-        <label style="margin-top:0;">Shift DC No:</label><input type="text" id="input_dc_no" placeholder="Enter DC No" required>
-        <label style="margin-top:6px;">📅 FD Date:</label><input type="date" id="input_date" required>`;
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
+          <div style="width: 240px;">
+            <label style="margin-top:0; font-size:12px; color:#1e293b;">DC No (e.g. AEPL-08):</label>
+            <input type="text" id="input_dc_no" placeholder="Enter DC No" required>
+          </div>
+          <div style="width: 200px;">
+            <label style="margin-top:0; font-size:12px; color:#1e293b;">Dispatch Date:</label>
+            <input type="date" id="input_date" required>
+          </div>
+        </div>
+      `;
     }
   }
 
@@ -909,6 +1020,7 @@
     dropdown.style.display = 'block';
   }
 
+  // DIRECT SELECTION (NO CONFIRMATION BOX FOR DIRECT STAGES)
   function onSpoolSelect(id) {
     if (selectedQueue.some(x => x.id === id)) {
       alert("⚠️ આ સ્પૂલ પહેલેથી નીચેના લિસ્ટમાં ઉમેરેલું છે!");
@@ -921,6 +1033,18 @@
     document.getElementById('spoolSearch').value = '';
     document.getElementById('searchDropdown').style.display = 'none';
 
+    // Direct Stages: "bending_issue", "fitup_issue", "fd" (as requested) & others without individual inputs
+    const isDirectStage = ['bending_issue', 'fitup_issue', 'fd', 'ready_fitup', 'fitup_entry', 'ready_weld', 'weld_visual', 'ndt_clearance'].includes(currentStage);
+
+    if (isDirectStage) {
+      selectedQueue.push(item);
+      document.getElementById('itemEditForm').style.display = 'none';
+      renderSelectedTable();
+      document.getElementById('spoolSearch').focus();
+      return;
+    }
+
+    // Otherwise show prompt for stages requiring input (bend_entry, fitter_name, welder_name)
     document.getElementById('itemEditForm').style.display = 'block';
     document.getElementById('form_item_id').value = item.id;
     document.getElementById('form_spool_no').value = item.Spool_number || '';
@@ -962,9 +1086,6 @@
         </div>
       `;
     }
-    else {
-      dynArea.innerHTML = `<div style="color:#059669; font-weight:bold; font-size:12px;">✅ Spool Ready to Add to Queue</div>`;
-    }
   }
 
   function confirmAddFormToQueue() {
@@ -980,27 +1101,17 @@
     } 
     else if (currentStage === 'fitter_name') {
       const fName = document.getElementById('form_fitter_val').value;
-      if (!fName) {
-        alert("કૃપા કરીને Fitter Name પસંદ કરો!");
-        return;
-      }
+      if (!fName) return alert("કૃપા કરીને Fitter Name પસંદ કરો!");
       extraData.final_fitter = fName;
     }
     else if (currentStage === 'welder_name') {
       const w1 = document.getElementById('form_welder_1').value;
       const w2 = document.getElementById('form_welder_2').value;
-      if (!w1) {
-        alert("કૃપા કરીને Welder 1 પસંદ કરો!");
-        return;
-      }
+      if (!w1) return alert("કૃપા કરીને Welder 1 પસંદ કરો!");
       extraData.final_welder = w2 ? `${w1}/${w2}` : w1;
     }
 
-    selectedQueue.push({
-      ...item,
-      ...extraData
-    });
-
+    selectedQueue.push({ ...item, ...extraData });
     document.getElementById('itemEditForm').style.display = 'none';
     renderSelectedTable();
     document.getElementById('spoolSearch').focus();
@@ -1011,23 +1122,26 @@
     renderSelectedTable();
   }
 
+  // QUEUE TABLE RENDER (MATCHING REFERENCE 2 & 3: Sr., Spool Unique No, ISO No / Drawing No, Action)
   function renderSelectedTable() {
     const thead = document.getElementById('selectedTableHead');
     const tbody = document.getElementById('selectedTableBody');
-    document.getElementById('queueCount').innerText = selectedQueue.length;
+    const cnt = document.getElementById('queueCount');
+    if (cnt) cnt.innerText = selectedQueue.length;
 
     if (currentStage === 'fitter_name') {
-      thead.innerHTML = `<tr><th style="width:30px;">Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Assigned Fitter</th><th style="text-align:center;">Action</th></tr>`;
+      thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No / Line No</th><th>Assigned Fitter</th><th style="text-align:center; width:90px;">Action</th></tr>`;
     } else if (currentStage === 'welder_name') {
-      thead.innerHTML = `<tr><th style="width:30px;">Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Assigned Welder</th><th style="text-align:center;">Action</th></tr>`;
+      thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No / Line No</th><th>Assigned Welder</th><th style="text-align:center; width:90px;">Action</th></tr>`;
     } else if (currentStage === 'bend_entry') {
-      thead.innerHTML = `<tr><th style="width:30px;">Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center;">Action</th></tr>`;
+      thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No / Line No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center; width:90px;">Action</th></tr>`;
     } else {
-      thead.innerHTML = `<tr><th style="width:30px;">Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Weld ID</th><th style="text-align:center;">Action</th></tr>`;
+      // Clean header matching reference 2 & 3
+      thead.innerHTML = `<tr><th style="width:50px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No / Line No</th><th style="text-align:center; width:100px;">Action</th></tr>`;
     }
 
     if (selectedQueue.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">No spools selected.</td></tr>`;
       return;
     }
 
@@ -1039,8 +1153,6 @@
         customCol = `<td style="font-weight:bold; color:#1e40af;">${r.final_welder || '-'}</td>`;
       } else if (currentStage === 'bend_entry') {
         customCol = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td><td style="font-weight:bold; color:#0284c7;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>`;
-      } else {
-        customCol = `<td style="font-weight:bold; color:#0284c7;">${r.Weld_id || '-'}</td>`;
       }
 
       return `
@@ -1050,7 +1162,7 @@
           <td style="color: #334155;">${r.Drawing_no || '-'}</td>
           ${customCol}
           <td style="text-align: center;">
-            <button type="button" class="btn-remove" onclick="removeSpoolFromQueue(${r.id})">✕</button>
+            <button type="button" class="btn-remove" onclick="removeSpoolFromQueue(${r.id})">✕ Remove</button>
           </td>
         </tr>
       `;
@@ -1061,7 +1173,6 @@
   function openExcelFilter(e, targetTable, colKey, colLabel) {
     e.stopPropagation();
     const popup = document.getElementById('excelFilterPopup');
-    
     const rect = e.target.getBoundingClientRect();
     let top = rect.bottom + window.scrollY + 6;
     let left = rect.left + window.scrollX - 100;
@@ -1213,7 +1324,7 @@
     `).join('');
   }
 
-  // --- MASTER REGISTER FILTERING & RENDER (FULL DISPLAY) ---
+  // --- MASTER REGISTER FILTERING & RENDER ---
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
     tr.innerHTML = MASTER_COLS.map(c => `
@@ -1299,9 +1410,10 @@
     }).join('');
   }
 
+  // SAVE SUBMISSION FOR CURRENT STAGE
   async function submitCurrentStage() {
     if (selectedQueue.length === 0) {
-      alert('કૃપા કરીને સર્ચ કરીને ઓછામાં ઓછો ૧ Spool લિસ્ટમાં Add કરો.');
+      alert('કૃપા કરીને સર્ચ કરીને ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
       return;
     }
 
@@ -1311,19 +1423,13 @@
     if (currentStage === 'fitter_name') {
       for (const item of selectedQueue) {
         const { error } = await db.from('piping_joints').update({ Fitter_name: item.final_fitter }).eq('id', item.id);
-        if (error) {
-          alert(`Error updating spool ${item.Spool_number}: ` + error.message);
-          return;
-        }
+        if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
       }
     }
     else if (currentStage === 'welder_name') {
       for (const item of selectedQueue) {
         const { error } = await db.from('piping_joints').update({ Welder_no: item.final_welder }).eq('id', item.id);
-        if (error) {
-          alert(`Error updating spool ${item.Spool_number}: ` + error.message);
-          return;
-        }
+        if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
       }
     }
     else if (currentStage === 'bend_entry') {
@@ -1335,57 +1441,54 @@
           Weld_id: item.final_weld_id
         };
         const { error } = await db.from('piping_joints').update(updateData).eq('id', item.id);
-        if (error) {
-          alert(`Error updating spool ${item.Spool_number}: ` + error.message);
-          return;
-        }
+        if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
       }
     }
     else if (currentStage === 'bending_issue') {
-      if (!enteredDate) return alert('કૃપા કરીને તારીખ પસંદ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને Bending Issue Date પસંદ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
       const { error } = await db.from('piping_joints').update({ Issued_for_bending: enteredDate }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'fitup_issue') {
-      if (!enteredDate) return alert('કૃપા કરીને તારીખ પસંદ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને Fit-Up Issue Date પસંદ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
       const { error } = await db.from('piping_joints').update({ Issue_for_fitup: enteredDate }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'ready_fitup') {
-      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને Ready Fit-Up Date દાખલ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
       const { error } = await db.from('piping_joints').update({ Ready_for_fitup_insp: enteredDate }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'fitup_entry') {
-      if (!enteredDate) return alert('કૃપા કરીને તારીખ પસંદ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને Fit-Up Date પસંદ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
       const { error } = await db.from('piping_joints').update({ Fit_up_date: enteredDate }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'ready_weld') {
-      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને Ready Weld Date દાખલ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
       const { error } = await db.from('piping_joints').update({ Ready_for_weld_visual: enteredDate }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'weld_visual') {
-      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને Visual Date દાખલ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
       const { error } = await db.from('piping_joints').update({ Weld_visual_date: enteredDate }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'ndt_clearance') {
-      if (!enteredDate) return alert('કૃપા કરીને તારીખ દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને NDT Clearance Date દાખલ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
       const { error } = await db.from('piping_joints').update({ Ndt_clearance: enteredDate }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'fd') {
       const dcNo = document.getElementById('input_dc_no').value.trim();
-      if (!dcNo || !enteredDate) return alert('DC No અને તારીખ બંને દાખલ કરો.');
+      if (!dcNo || !enteredDate) return alert('કૃપા કરીને DC No અને Dispatch Date બંને દાખલ કરો.');
       const selectedIds = selectedQueue.map(x => x.id);
       const { error } = await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: enteredDate }).in('id', selectedIds);
       if (error) return alert("Error: " + error.message);
@@ -1397,7 +1500,7 @@
     loadStageData(currentStage);
   }
 
-  // Close popup or dropdown on click outside
+  // Dropdown close listeners
   document.addEventListener('click', (e) => {
     const popup = document.getElementById('excelFilterPopup');
     if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
