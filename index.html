@@ -175,40 +175,12 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; flex: 1; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
-    /* Tables & Freeze Columns */
+    /* Tables & Normal Scroll (No Column Freeze) */
     .balance-table-container { overflow: auto; margin-top: 10px; max-height: 60vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 9px 10px; white-space: nowrap; background-color: #fff; }
     th { background-color: #1e40af; color: white; font-weight: 700; font-size: 13.5px; user-select: none; position: sticky; top: 0; z-index: 5; }
     tr:nth-child(even) td { background-color: #f8fafc; }
-
-    /* Freeze Column 1 (Drawing No) */
-    .col-freeze-1 {
-      position: sticky !important;
-      left: 0px !important;
-      min-width: 190px;
-      max-width: 190px;
-      width: 190px;
-      box-shadow: 2px 0 3px rgba(0,0,0,0.03);
-    }
-    th.col-freeze-1 { z-index: 20 !important; background-color: #1e40af !important; }
-    td.col-freeze-1 { z-index: 10 !important; }
-    tr:nth-child(even) td.col-freeze-1 { background-color: #f1f5f9 !important; }
-    tr:nth-child(odd) td.col-freeze-1 { background-color: #ffffff !important; }
-
-    /* Freeze Column 2 (Spool Unique No) */
-    .col-freeze-2 {
-      position: sticky !important;
-      left: 190px !important;
-      min-width: 130px;
-      max-width: 130px;
-      width: 130px;
-      box-shadow: 3px 0 5px rgba(0,0,0,0.08);
-    }
-    th.col-freeze-2 { z-index: 20 !important; background-color: #1e40af !important; }
-    td.col-freeze-2 { z-index: 10 !important; }
-    tr:nth-child(even) td.col-freeze-2 { background-color: #f1f5f9 !important; }
-    tr:nth-child(odd) td.col-freeze-2 { background-color: #ffffff !important; }
 
     .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .filter-btn-icon { background: #2563eb; color: #fff; border: 1px solid #93c5fd; border-radius: 3px; padding: 2px 6px; font-size: 10.5px; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
@@ -389,7 +361,7 @@
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
-    <!-- Balance List Table (Drawing No & Spool No Fixed) -->
+    <!-- Balance List Table (Unfrozen / Standard Scrolling) -->
     <div class="card" style="margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
@@ -399,13 +371,13 @@
         <table>
           <thead>
             <tr style="background:#1e40af; color:white;">
-              <th class="col-freeze-1">
+              <th>
                 <div class="header-cell">
                   <span>Drawing No</span>
                   <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Drawing_no', 'Drawing No')">🔽</button>
                 </div>
               </th>
-              <th class="col-freeze-2">
+              <th>
                 <div class="header-cell">
                   <span>Spool Unique No</span>
                   <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Spool_number', 'Spool Unique No')">🔽</button>
@@ -439,7 +411,7 @@
     </div>
   </div>
 
-  <!-- Master Register (Drawing No & Spool No Fixed) -->
+  <!-- Master Register (Unfrozen / Standard Scrolling) -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -536,9 +508,10 @@
   const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
   const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
 
+  // All columns unfreezed
   const MASTER_COLS = [
-    { key: 'Drawing_no', label: 'Drawing No', freeze: 'col-freeze-1' },
-    { key: 'Spool_number', label: 'Spool Unique No', freeze: 'col-freeze-2' },
+    { key: 'Drawing_no', label: 'Drawing No' },
+    { key: 'Spool_number', label: 'Spool Unique No' },
     { key: 'Spool_size', label: 'Spool Size' },
     { key: 'Rev_no', label: 'Rev No' },
     { key: 'Allocation', label: 'Allocation' },
@@ -1064,7 +1037,7 @@
     return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // --- BALANCE LIST FILTERING & FREEZE COLUMNS ---
+  // --- BALANCE LIST FILTERING (UNFROZEN) ---
   function applyBalanceDataFilters() {
     activeBalanceDisplayRows = stageFilteredRows.filter(r => {
       for (const [colKey, allowedSet] of Object.entries(balanceColumnFilters)) {
@@ -1094,8 +1067,8 @@
 
     tbody.innerHTML = activeBalanceDisplayRows.slice(0, 500).map(r => `
       <tr>
-        <td class="col-freeze-1"><b>${r.Drawing_no || '-'}</b></td>
-        <td class="col-freeze-2"><b>${r.Spool_number || '-'}</b></td>
+        <td><b>${r.Drawing_no || '-'}</b></td>
+        <td><b>${r.Spool_number || '-'}</b></td>
         <td>${r.Spool_size || '-'}</td>
         <td><b>${r.Weld_id || '-'}</b></td>
         <td>${r.Bend_qty || '-'}</td>
@@ -1103,20 +1076,17 @@
     `).join('');
   }
 
-  // --- MASTER REGISTER FILTERING & FREEZE COLUMNS ---
+  // --- MASTER REGISTER FILTERING (UNFROZEN) ---
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
-    tr.innerHTML = MASTER_COLS.map(c => {
-      const freezeClass = c.freeze ? c.freeze : '';
-      return `
-        <th class="${freezeClass}">
-          <div class="header-cell">
-            <span>${c.label}</span>
-            <button class="filter-btn-icon" onclick="openExcelFilter(event, 'master', '${c.key}', '${c.label}')">🔽</button>
-          </div>
-        </th>
-      `;
-    }).join('');
+    tr.innerHTML = MASTER_COLS.map(c => `
+      <th>
+        <div class="header-cell">
+          <span>${c.label}</span>
+          <button class="filter-btn-icon" onclick="openExcelFilter(event, 'master', '${c.key}', '${c.label}')">🔽</button>
+        </div>
+      </th>
+    `).join('');
   }
 
   async function loadFullRegister() {
@@ -1169,8 +1139,8 @@
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = masterDisplayRows.slice(0, 1000).map(r => `
       <tr>
-        <td class="col-freeze-1"><b>${r.Drawing_no || '-'}</b></td>
-        <td class="col-freeze-2"><b>${r.Spool_number || '-'}</b></td>
+        <td><b>${r.Drawing_no || '-'}</b></td>
+        <td><b>${r.Spool_number || '-'}</b></td>
         <td>${r.Spool_size || '-'}</td>
         <td>${r.Rev_no || '0'}</td>
         <td>${r.Allocation || '-'}</td>
