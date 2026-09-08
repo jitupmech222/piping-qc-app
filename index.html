@@ -42,12 +42,40 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; flex: 1; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
-    /* Tables & Excel Style Header */
-    .balance-table-container { overflow: auto; margin-top: 10px; max-height: 55vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 9px 10px; white-space: nowrap; }
-    th { background: #1e40af; color: white; font-weight: 700; font-size: 13.5px; user-select: none; }
-    tr:nth-child(even) { background: #f8fafc; }
+    /* Tables & Freeze Columns */
+    .balance-table-container { overflow: auto; margin-top: 10px; max-height: 60vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
+    th, td { border: 1px solid #cbd5e1; padding: 9px 10px; white-space: nowrap; background-color: #fff; }
+    th { background-color: #1e40af; color: white; font-weight: 700; font-size: 13.5px; user-select: none; position: sticky; top: 0; z-index: 5; }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    /* Freeze Column 1 (Drawing No) */
+    .col-freeze-1 {
+      position: sticky !important;
+      left: 0px !important;
+      min-width: 190px;
+      max-width: 190px;
+      width: 190px;
+      box-shadow: 2px 0 3px rgba(0,0,0,0.03);
+    }
+    th.col-freeze-1 { z-index: 20 !important; background-color: #1e40af !important; }
+    td.col-freeze-1 { z-index: 10 !important; }
+    tr:nth-child(even) td.col-freeze-1 { background-color: #f1f5f9 !important; }
+    tr:nth-child(odd) td.col-freeze-1 { background-color: #ffffff !important; }
+
+    /* Freeze Column 2 (Spool Unique No) */
+    .col-freeze-2 {
+      position: sticky !important;
+      left: 190px !important;
+      min-width: 130px;
+      max-width: 130px;
+      width: 130px;
+      box-shadow: 3px 0 5px rgba(0,0,0,0.08);
+    }
+    th.col-freeze-2 { z-index: 20 !important; background-color: #1e40af !important; }
+    td.col-freeze-2 { z-index: 10 !important; }
+    tr:nth-child(even) td.col-freeze-2 { background-color: #f1f5f9 !important; }
+    tr:nth-child(odd) td.col-freeze-2 { background-color: #ffffff !important; }
 
     .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .filter-btn-icon { background: #2563eb; color: #fff; border: 1px solid #93c5fd; border-radius: 3px; padding: 2px 6px; font-size: 10.5px; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
@@ -154,7 +182,7 @@
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
-    <!-- Balance List Table with Excel Filter Icons -->
+    <!-- Balance List Table (Drawing No & Spool No Fixed) -->
     <div class="card" style="margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
@@ -162,15 +190,15 @@
       </div>
       <div class="balance-table-container">
         <table>
-          <thead style="position: sticky; top: 0; z-index: 5;">
+          <thead>
             <tr style="background:#1e40af; color:white;">
-              <th>
+              <th class="col-freeze-1">
                 <div class="header-cell">
                   <span>Drawing No</span>
                   <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Drawing_no', 'Drawing No')">🔽</button>
                 </div>
               </th>
-              <th>
+              <th class="col-freeze-2">
                 <div class="header-cell">
                   <span>Spool Unique No</span>
                   <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Spool_number', 'Spool Unique No')">🔽</button>
@@ -204,7 +232,7 @@
     </div>
   </div>
 
-  <!-- Master Register with Excel Filter Icons -->
+  <!-- Master Register (Drawing No & Spool No Fixed) -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -213,7 +241,7 @@
       </div>
       <div class="balance-table-container" style="max-height: 75vh;">
         <table id="qcDataTable">
-          <thead style="position: sticky; top: 0; z-index: 5;">
+          <thead>
             <tr id="masterHeaderRow" style="background:#1e40af; color:white;"></tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -224,7 +252,7 @@
   </div>
 </div>
 
-<!-- Floating Excel-like Filter Popup Dialog -->
+<!-- Floating Excel Filter Modal -->
 <div id="excelFilterPopup">
   <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
   <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
@@ -252,22 +280,20 @@
   let allRecordsCache = [];
   let masterDisplayRows = [];
 
-  // Active Filter Sets { colKey: Set of selected string values }
   let balanceColumnFilters = {};
   let masterColumnFilters = {};
-
-  // Current popup context
   let currentPopupContext = { targetTable: '', colKey: '', colLabel: '', allValues: [] };
 
   const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
   const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
 
+  // Re-ordered so Drawing_no is index 0 and Spool_number is index 1 for freeze styling
   const MASTER_COLS = [
-    { key: 'Drawing_no', label: 'Drawing No' },
+    { key: 'Drawing_no', label: 'Drawing No', freeze: 'col-freeze-1' },
+    { key: 'Spool_number', label: 'Spool Unique No', freeze: 'col-freeze-2' },
     { key: 'Spool_size', label: 'Spool Size' },
     { key: 'Rev_no', label: 'Rev No' },
     { key: 'Allocation', label: 'Allocation' },
-    { key: 'Spool_number', label: 'Spool Unique No' },
     { key: 'Bend_qty', label: 'BEND QTY' },
     { key: 'Issued_for_bending', label: 'ISSUED FOR BENDING' },
     { key: 'Bend_date', label: 'BEND DATE' },
@@ -678,7 +704,6 @@
     e.stopPropagation();
     const popup = document.getElementById('excelFilterPopup');
     
-    // Position popup near clicked icon
     const rect = e.target.getBoundingClientRect();
     let top = rect.bottom + window.scrollY + 6;
     let left = rect.left + window.scrollX - 100;
@@ -693,7 +718,6 @@
     currentPopupContext.colKey = colKey;
     currentPopupContext.colLabel = colLabel;
 
-    // Gather distinct values and counts
     const sourceRows = targetTable === 'balance' ? stageFilteredRows : allRecordsCache;
     const valueMap = new Map();
 
@@ -708,7 +732,6 @@
     const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     currentPopupContext.allValues = distinctSorted;
 
-    // Determine current selections
     const activeFilters = targetTable === 'balance' ? balanceColumnFilters : masterColumnFilters;
     const currentSelectedSet = activeFilters[colKey] || null;
 
@@ -793,7 +816,7 @@
     return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // --- BALANCE LIST FILTERING ---
+  // --- BALANCE LIST FILTERING & FREEZE COLUMNS ---
   function applyBalanceDataFilters() {
     activeBalanceDisplayRows = stageFilteredRows.filter(r => {
       for (const [colKey, allowedSet] of Object.entries(balanceColumnFilters)) {
@@ -823,8 +846,8 @@
 
     tbody.innerHTML = activeBalanceDisplayRows.slice(0, 500).map(r => `
       <tr>
-        <td>${r.Drawing_no || '-'}</td>
-        <td><b>${r.Spool_number || '-'}</b></td>
+        <td class="col-freeze-1"><b>${r.Drawing_no || '-'}</b></td>
+        <td class="col-freeze-2"><b>${r.Spool_number || '-'}</b></td>
         <td>${r.Spool_size || '-'}</td>
         <td><b>${r.Weld_id || '-'}</b></td>
         <td>${r.Bend_qty || '-'}</td>
@@ -832,17 +855,20 @@
     `).join('');
   }
 
-  // --- MASTER REGISTER FILTERING ---
+  // --- MASTER REGISTER FILTERING & FREEZE COLUMNS ---
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
-    tr.innerHTML = MASTER_COLS.map(c => `
-      <th>
-        <div class="header-cell">
-          <span>${c.label}</span>
-          <button class="filter-btn-icon" onclick="openExcelFilter(event, 'master', '${c.key}', '${c.label}')">🔽</button>
-        </div>
-      </th>
-    `).join('');
+    tr.innerHTML = MASTER_COLS.map(c => {
+      const freezeClass = c.freeze ? c.freeze : '';
+      return `
+        <th class="${freezeClass}">
+          <div class="header-cell">
+            <span>${c.label}</span>
+            <button class="filter-btn-icon" onclick="openExcelFilter(event, 'master', '${c.key}', '${c.label}')">🔽</button>
+          </div>
+        </th>
+      `;
+    }).join('');
   }
 
   async function loadFullRegister() {
@@ -895,11 +921,11 @@
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = masterDisplayRows.slice(0, 1000).map(r => `
       <tr>
-        <td><b>${r.Drawing_no || '-'}</b></td>
+        <td class="col-freeze-1"><b>${r.Drawing_no || '-'}</b></td>
+        <td class="col-freeze-2"><b>${r.Spool_number || '-'}</b></td>
         <td>${r.Spool_size || '-'}</td>
         <td>${r.Rev_no || '0'}</td>
         <td>${r.Allocation || '-'}</td>
-        <td>${r.Spool_number || '-'}</td>
         <td>${r.Bend_qty || '-'}</td>
         <td>${(r.Issued_for_bending || '').split('T')[0] || '-'}</td>
         <td>${(r.Bend_date || '').split('T')[0] || '-'}</td>
@@ -1019,7 +1045,6 @@
     loadStageData(currentStage);
   }
 
-  // Close popup or dropdown on click outside
   document.addEventListener('click', (e) => {
     const popup = document.getElementById('excelFilterPopup');
     if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
