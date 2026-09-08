@@ -14,9 +14,94 @@
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1.5px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13.5px; background: #fff; }
     input:focus, select:focus { outline: none; border-color: #0284c7; }
 
-    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
-    .menu-btn { padding: 12px 6px; border: none; border-radius: 8px; background: #1e40af; color: white; font-weight: bold; font-size: 13px; cursor: pointer; text-align: center; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
-    .btn-view { background: #059669; }
+    /* Modern Dashboard Grid */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    /* Enterprise Style Menu Cards */
+    .menu-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      text-align: left;
+      text-decoration: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .menu-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+      border-color: #94a3b8;
+      background: #ffffff;
+      color: #0f172a;
+    }
+
+    .menu-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Stage Number Badge */
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      background: #e2e8f0;
+      color: #475569;
+      flex-shrink: 0;
+    }
+
+    .menu-btn:hover .step-badge {
+      background: #0284c7;
+      color: #ffffff;
+    }
+
+    /* Stage Highlight Accents */
+    .menu-btn.stage-bend { border-left: 4px solid #3b82f6; }
+    .menu-btn.stage-fitup { border-left: 4px solid #6366f1; }
+    .menu-btn.stage-weld { border-left: 4px solid #0f766e; }
+    .menu-btn.stage-ndt { border-left: 4px solid #d97706; }
+    .menu-btn.stage-fd { border-left: 4px solid #059669; }
+
+    /* Full Register Button (Prominent Accent) */
+    .btn-view {
+      grid-column: 1 / -1;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f766e 0%, #047857 100%);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
+      font-size: 14px;
+      padding: 16px;
+      border-radius: 10px;
+    }
+
+    .btn-view:hover {
+      background: linear-gradient(135deg, #115e59 0%, #065f46 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 18px rgba(5, 150, 105, 0.35);
+    }
+
     .btn-back { background: #64748b; margin-top: 12px; width: 100%; padding: 11px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; text-align: center; display: block; text-decoration: none; box-sizing: border-box; }
     .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 11px 20px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
     .btn-save-final { background: #15803d; color: white; border: none; border-radius: 6px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 12px; }
@@ -109,20 +194,68 @@
 <div class="container">
   <!-- Hub -->
   <div id="mainMenu" class="card">
-    <h3>⚙️ Piping Work Progress Console</h3>
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+      <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">⚙️ Piping Work Progress Console</h3>
+      <span style="font-size: 12px; font-weight: 600; color: #64748b;">Fabrication & QC Tracking</span>
+    </div>
+
     <div class="menu-grid">
-      <button class="menu-btn" onclick="openStage('bending_issue')">ISSUED FOR BENDING</button>
-      <button class="menu-btn" onclick="openStage('bend_entry')">BEND COMPLETED</button>
-      <button class="menu-btn" onclick="openStage('fitup_issue')">ISSUED FOR FIT-UP</button>
-      <button class="menu-btn" onclick="openStage('fitter_name')">ISSUED TO FITTER</button>
-      <button class="menu-btn" onclick="openStage('ready_fitup')">READY FIT-UP FOR INSP</button>
-      <button class="menu-btn" onclick="openStage('fitup_entry')">FIT UP COMPLETED</button>
-      <button class="menu-btn" onclick="openStage('welder_name')">ISSUED TO WELDER</button>
-      <button class="menu-btn" onclick="openStage('ready_weld')">READY FOR WELD VISUAL</button>
-      <button class="menu-btn" onclick="openStage('weld_visual')">WELD VISUAL COMPLETED</button>
-      <button class="menu-btn" onclick="openStage('ndt_clearance')">NDT CLEARANCE</button>
-      <button class="menu-btn" onclick="openStage('fd')">FD & DC NO</button>
-      <button class="menu-btn btn-view" style="grid-column: span 2;" onclick="openStage('view_records')">📊 VIEW FULL REGISTER</button>
+      <!-- Bending Group -->
+      <button class="menu-btn stage-bend" onclick="openStage('bending_issue')">
+        <span class="step-badge">01</span>
+        <span>ISSUED FOR BENDING</span>
+      </button>
+      <button class="menu-btn stage-bend" onclick="openStage('bend_entry')">
+        <span class="step-badge">02</span>
+        <span>BEND COMPLETED</span>
+      </button>
+
+      <!-- Fit-up Group -->
+      <button class="menu-btn stage-fitup" onclick="openStage('fitup_issue')">
+        <span class="step-badge">03</span>
+        <span>ISSUED FOR FIT-UP</span>
+      </button>
+      <button class="menu-btn stage-fitup" onclick="openStage('fitter_name')">
+        <span class="step-badge">04</span>
+        <span>ISSUED TO FITTER</span>
+      </button>
+      <button class="menu-btn stage-fitup" onclick="openStage('ready_fitup')">
+        <span class="step-badge">05</span>
+        <span>READY FIT-UP FOR INSP</span>
+      </button>
+      <button class="menu-btn stage-fitup" onclick="openStage('fitup_entry')">
+        <span class="step-badge">06</span>
+        <span>FIT UP COMPLETED</span>
+      </button>
+
+      <!-- Welding Group -->
+      <button class="menu-btn stage-weld" onclick="openStage('welder_name')">
+        <span class="step-badge">07</span>
+        <span>ISSUED TO WELDER</span>
+      </button>
+      <button class="menu-btn stage-weld" onclick="openStage('ready_weld')">
+        <span class="step-badge">08</span>
+        <span>READY FOR WELD VISUAL</span>
+      </button>
+      <button class="menu-btn stage-weld" onclick="openStage('weld_visual')">
+        <span class="step-badge">09</span>
+        <span>WELD VISUAL COMPLETED</span>
+      </button>
+
+      <!-- Quality Clearance & Dispatch -->
+      <button class="menu-btn stage-ndt" onclick="openStage('ndt_clearance')">
+        <span class="step-badge">10</span>
+        <span>NDT CLEARANCE</span>
+      </button>
+      <button class="menu-btn stage-fd" onclick="openStage('fd')">
+        <span class="step-badge">11</span>
+        <span>FD & DC NO</span>
+      </button>
+
+      <!-- Full Register -->
+      <button class="menu-btn btn-view" onclick="openStage('view_records')">
+        <span>📊 VIEW MASTER REGISTER</span>
+      </button>
     </div>
   </div>
 
@@ -1045,6 +1178,7 @@
     loadStageData(currentStage);
   }
 
+  // Close popup or dropdown on click outside
   document.addEventListener('click', (e) => {
     const popup = document.getElementById('excelFilterPopup');
     if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
