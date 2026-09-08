@@ -6,13 +6,50 @@
   <title>Piping Work Progress Console</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 12px; }
-    .container { max-width: 100%; margin: 0 auto; }
-    .card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.06); margin-top: 10px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 0; }
+    .container { width: 100%; max-width: 100%; margin: 0; padding: 10px 14px; box-sizing: border-box; }
+    .card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.06); margin-top: 8px; }
     h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 16px; }
     label { font-size: 13px; font-weight: 600; color: #334155; margin-top: 10px; display: block; }
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1.5px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13.5px; background: #fff; }
     input:focus, select:focus { outline: none; border-color: #0284c7; }
+
+    /* Top Navigation Bar as per reference */
+    .top-navbar {
+      background: #0f172a;
+      color: white;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .top-nav-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-nav-dashboard {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-nav-dashboard:hover {
+      background: #f1f5f9;
+      color: #0284c7;
+    }
 
     /* Login Screen Modal Overlay */
     #loginOverlay {
@@ -56,16 +93,16 @@
       color: white;
       border: none;
       border-radius: 6px;
-      padding: 5px 10px;
+      padding: 6px 12px;
       font-size: 12px;
       font-weight: bold;
       cursor: pointer;
     }
 
-    /* Master Register Mode Buttons */
-    .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
-    .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
-    .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
+    /* Master Register Toolbar & Full Display */
+    .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
     .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
     .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
 
@@ -106,12 +143,6 @@
       color: #0f172a;
     }
 
-    .menu-btn:active {
-      transform: translateY(0);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    /* Stage Number Badge */
     .step-badge {
       display: inline-flex;
       align-items: center;
@@ -126,19 +157,14 @@
       flex-shrink: 0;
     }
 
-    .menu-btn:hover .step-badge {
-      background: #0284c7;
-      color: #ffffff;
-    }
+    .menu-btn:hover .step-badge { background: #0284c7; color: #ffffff; }
 
-    /* Stage Highlight Accents */
     .menu-btn.stage-bend { border-left: 4px solid #3b82f6; }
     .menu-btn.stage-fitup { border-left: 4px solid #6366f1; }
     .menu-btn.stage-weld { border-left: 4px solid #0f766e; }
     .menu-btn.stage-ndt { border-left: 4px solid #d97706; }
     .menu-btn.stage-fd { border-left: 4px solid #059669; }
 
-    /* Full Register Button */
     .btn-view {
       grid-column: 1 / -1;
       justify-content: center;
@@ -157,7 +183,6 @@
       box-shadow: 0 8px 18px rgba(5, 150, 105, 0.35);
     }
 
-    .btn-back { background: #64748b; margin-top: 12px; width: 100%; padding: 11px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; text-align: center; display: block; text-decoration: none; box-sizing: border-box; }
     .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 11px 20px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
     .btn-save-final { background: #15803d; color: white; border: none; border-radius: 6px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 12px; }
 
@@ -179,22 +204,24 @@
     .btn-remove { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
     .sub-filter-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; margin-bottom: 6px; }
-    .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; flex: 1; text-align: center; }
+    .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
-    /* Tables & Normal Scroll */
-    .balance-table-container { overflow: auto; margin-top: 10px; max-height: 60vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
+    /* Tables & Full Display Scrolling (Unfrozen) */
+    .balance-table-container { overflow: auto; margin-top: 10px; height: 60vh; border: 1px solid #cbd5e1; border-radius: 6px; }
+    .master-table-container { overflow: auto; margin-top: 8px; height: calc(100vh - 130px); border: 1px solid #cbd5e1; border-radius: 6px; }
+
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 9px 10px; white-space: nowrap; background-color: #fff; }
-    th { background-color: #1e40af; color: white; font-weight: 700; font-size: 13.5px; user-select: none; position: sticky; top: 0; z-index: 5; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; background-color: #fff; }
+    th { background-color: #0f4c81; color: white; font-weight: 700; font-size: 13px; user-select: none; position: sticky; top: 0; z-index: 5; }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
     .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .filter-btn-icon { background: #2563eb; color: #fff; border: 1px solid #93c5fd; border-radius: 3px; padding: 2px 6px; font-size: 10.5px; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
-    .filter-btn-icon:hover { background: #1d4ed8; }
+    .filter-btn-icon { background: #1d4ed8; color: #fff; border: 1px solid #93c5fd; border-radius: 3px; padding: 2px 6px; font-size: 10.5px; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+    .filter-btn-icon:hover { background: #2563eb; }
     .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
 
-    /* Excel-like Floating Popup Modal */
+    /* Floating Excel Filter Modal */
     #excelFilterPopup {
       position: absolute;
       display: none;
@@ -222,7 +249,7 @@
 <div id="loginOverlay">
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 16px;">
-      <h3 style="margin: 0; border: none; font-size: 18px;">User Login</h3>
+      <h3 style="margin: 0; border: none; font-size: 18px;">🔐 User Login</h3>
       <span style="font-size: 12px; color: #64748b;">Piping Console</span>
     </div>
     <div>
@@ -241,204 +268,214 @@
 </div>
 
 <!-- Main App (Protected Behind Login) -->
-<div class="container" id="appContent" style="display: none;">
-  <!-- Hub -->
-  <div id="mainMenu" class="card">
-    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">⚙️ Piping Work Progress Console</h3>
-        <span style="font-size: 12px; font-weight: 600; color: #64748b;">Fabrication & QC Tracking</span>
-      </div>
-      <button type="button" class="btn-logout" onclick="userLogout()">🚪 Logout</button>
+<div id="appContent" style="display: none;">
+
+  <!-- Universal Top Navigation Bar (Reference Layout) -->
+  <div class="top-navbar">
+    <div class="top-nav-title">
+      <span>⚙️ PIPING CONSOLE</span>
+      <span id="navSubTitle" style="font-size: 12.5px; font-weight: normal; color: #94a3b8;">| Progress Tracking</span>
     </div>
-
-    <div class="menu-grid">
-      <!-- Bending Group -->
-      <button class="menu-btn stage-bend" onclick="openStage('bending_issue')">
-        <span class="step-badge">01</span>
-        <span>ISSUED FOR BENDING</span>
-      </button>
-      <button class="menu-btn stage-bend" onclick="openStage('bend_entry')">
-        <span class="step-badge">02</span>
-        <span>BEND COMPLETED</span>
-      </button>
-
-      <!-- Fit-up Group -->
-      <button class="menu-btn stage-fitup" onclick="openStage('fitup_issue')">
-        <span class="step-badge">03</span>
-        <span>ISSUED FOR FIT-UP</span>
-      </button>
-      <button class="menu-btn stage-fitup" onclick="openStage('fitter_name')">
-        <span class="step-badge">04</span>
-        <span>ISSUED TO FITTER</span>
-      </button>
-      <button class="menu-btn stage-fitup" onclick="openStage('ready_fitup')">
-        <span class="step-badge">05</span>
-        <span>READY FIT-UP FOR INSP</span>
-      </button>
-      <button class="menu-btn stage-fitup" onclick="openStage('fitup_entry')">
-        <span class="step-badge">06</span>
-        <span>FIT UP COMPLETED</span>
-      </button>
-
-      <!-- Welding Group -->
-      <button class="menu-btn stage-weld" onclick="openStage('welder_name')">
-        <span class="step-badge">07</span>
-        <span>ISSUED TO WELDER</span>
-      </button>
-      <button class="menu-btn stage-weld" onclick="openStage('ready_weld')">
-        <span class="step-badge">08</span>
-        <span>READY FOR WELD VISUAL</span>
-      </button>
-      <button class="menu-btn stage-weld" onclick="openStage('weld_visual')">
-        <span class="step-badge">09</span>
-        <span>WELD VISUAL COMPLETED</span>
-      </button>
-
-      <!-- Quality Clearance & Dispatch -->
-      <button class="menu-btn stage-ndt" onclick="openStage('ndt_clearance')">
-        <span class="step-badge">10</span>
-        <span>NDT CLEARANCE</span>
-      </button>
-      <button class="menu-btn stage-fd" onclick="openStage('fd')">
-        <span class="step-badge">11</span>
-        <span>FD & DC NO</span>
-      </button>
-
-      <!-- Full Register -->
-      <button class="menu-btn btn-view" onclick="openStage('view_records')">
-        <span>📊 VIEW MASTER REGISTER</span>
-      </button>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button type="button" id="btnTopDashboard" class="btn-nav-dashboard" style="display: none;" onclick="backToMenu()">🖥️ Dashboard</button>
+      <button type="button" class="btn-logout" onclick="userLogout()">🚪 Logout</button>
     </div>
   </div>
 
-  <!-- Stage Screen -->
-  <div id="stageContainer" style="display: none;">
-    <div class="card">
-      <div class="metric-banner">
-        <div>TOTAL SPOOL = <span id="metricSpools" class="metric-val">0</span></div>
-        <div>TOTAL WELD ID = <span id="metricWelds" class="metric-val">0</span></div>
+  <div class="container">
+    <!-- Hub / Main Dashboard -->
+    <div id="mainMenu" class="card">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+        <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">Fabrication & QC Tracking Dashboard</h3>
+        <span style="font-size: 12px; font-weight: 600; color: #64748b;">Hostinger Cloud System</span>
       </div>
 
-      <h3 id="stageTitle">Stage Title</h3>
-      
-      <div id="subFilterArea" class="sub-filter-group" style="display: none;"></div>
+      <div class="menu-grid">
+        <!-- Bending Group -->
+        <button class="menu-btn stage-bend" onclick="openStage('bending_issue')">
+          <span class="step-badge">01</span>
+          <span>ISSUED FOR BENDING</span>
+        </button>
+        <button class="menu-btn stage-bend" onclick="openStage('bend_entry')">
+          <span class="step-badge">02</span>
+          <span>BEND COMPLETED</span>
+        </button>
 
-      <div id="subMetricArea" class="sub-metric-banner" style="display: none;">
-        <div>SELECTED FITTER SPOOL = <span id="subMetricSpools" class="metric-val">0</span></div>
-        <div>SELECTED FITTER WELD = <span id="subMetricWelds" class="metric-val">0</span></div>
+        <!-- Fit-up Group -->
+        <button class="menu-btn stage-fitup" onclick="openStage('fitup_issue')">
+          <span class="step-badge">03</span>
+          <span>ISSUED FOR FIT-UP</span>
+        </button>
+        <button class="menu-btn stage-fitup" onclick="openStage('fitter_name')">
+          <span class="step-badge">04</span>
+          <span>ISSUED TO FITTER</span>
+        </button>
+        <button class="menu-btn stage-fitup" onclick="openStage('ready_fitup')">
+          <span class="step-badge">05</span>
+          <span>READY FIT-UP FOR INSP</span>
+        </button>
+        <button class="menu-btn stage-fitup" onclick="openStage('fitup_entry')">
+          <span class="step-badge">06</span>
+          <span>FIT UP COMPLETED</span>
+        </button>
+
+        <!-- Welding Group -->
+        <button class="menu-btn stage-weld" onclick="openStage('welder_name')">
+          <span class="step-badge">07</span>
+          <span>ISSUED TO WELDER</span>
+        </button>
+        <button class="menu-btn stage-weld" onclick="openStage('ready_weld')">
+          <span class="step-badge">08</span>
+          <span>READY FOR WELD VISUAL</span>
+        </button>
+        <button class="menu-btn stage-weld" onclick="openStage('weld_visual')">
+          <span class="step-badge">09</span>
+          <span>WELD VISUAL COMPLETED</span>
+        </button>
+
+        <!-- Quality Clearance & Dispatch -->
+        <button class="menu-btn stage-ndt" onclick="openStage('ndt_clearance')">
+          <span class="step-badge">10</span>
+          <span>NDT CLEARANCE</span>
+        </button>
+        <button class="menu-btn stage-fd" onclick="openStage('fd')">
+          <span class="step-badge">11</span>
+          <span>FD & DC NO</span>
+        </button>
+
+        <!-- Full Register -->
+        <button class="menu-btn btn-view" onclick="openStage('view_records')">
+          <span>📊 VIEW MASTER REGISTER</span>
+        </button>
       </div>
+    </div>
 
-      <label>Spool Unique Number:</label>
-      <div class="search-box-wrapper">
-        <input type="text" id="spoolSearch" placeholder="Enter Spool Unique Number.." oninput="handleSearchInput()" autocomplete="off">
-        <div id="searchDropdown" class="search-dropdown"></div>
-      </div>
-
-      <div id="itemEditForm" class="edit-form-box">
-        <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Selected Spool Details:</div>
-        <div class="edit-grid">
-          <div><label style="margin-top:0;">Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
-          <div><label style="margin-top:0;">Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
-          <div id="dynamicFormFields"></div>
+    <!-- Stage Screen -->
+    <div id="stageContainer" style="display: none;">
+      <div class="card">
+        <div class="metric-banner">
+          <div>TOTAL SPOOL = <span id="metricSpools" class="metric-val">0</span></div>
+          <div>TOTAL WELD ID = <span id="metricWelds" class="metric-val">0</span></div>
         </div>
-        <input type="hidden" id="form_item_id">
-        <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Bottom Selected List</button>
+
+        <h3 id="stageTitle">Stage Title</h3>
+        
+        <div id="subFilterArea" class="sub-filter-group" style="display: none;"></div>
+
+        <div id="subMetricArea" class="sub-metric-banner" style="display: none;">
+          <div>SELECTED FITTER SPOOL = <span id="subMetricSpools" class="metric-val">0</span></div>
+          <div>SELECTED FITTER WELD = <span id="subMetricWelds" class="metric-val">0</span></div>
+        </div>
+
+        <label>Spool Unique Number:</label>
+        <div class="search-box-wrapper">
+          <input type="text" id="spoolSearch" placeholder="Enter Spool Unique Number.." oninput="handleSearchInput()" autocomplete="off">
+          <div id="searchDropdown" class="search-dropdown"></div>
+        </div>
+
+        <div id="itemEditForm" class="edit-form-box">
+          <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Selected Spool Details:</div>
+          <div class="edit-grid">
+            <div><label style="margin-top:0;">Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
+            <div><label style="margin-top:0;">Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
+            <div id="dynamicFormFields"></div>
+          </div>
+          <input type="hidden" id="form_item_id">
+          <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Bottom Selected List</button>
+        </div>
+
+        <div style="margin-top: 18px;">
+          <span style="font-size: 14px; font-weight: bold; color: #0f172a;">
+            Selected Spools Queue (<span id="queueCount">0</span>)
+          </span>
+          <div class="selected-table-container">
+            <table class="selected-table">
+              <thead id="selectedTableHead"></thead>
+              <tbody id="selectedTableBody">
+                <tr>
+                  <td colspan="6" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="customInputsArea" style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: none;"></div>
+
+        <button type="button" class="btn-save-final" onclick="submitCurrentStage()">💾 SAVE</button>
       </div>
 
-      <div style="margin-top: 18px;">
-        <span style="font-size: 14px; font-weight: bold; color: #0f172a;">
-          Selected Spools Queue (<span id="queueCount">0</span>)
-        </span>
-        <div class="selected-table-container">
-          <table class="selected-table">
-            <thead id="selectedTableHead"></thead>
-            <tbody id="selectedTableBody">
-              <tr>
-                <td colspan="6" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td>
+      <!-- Balance List Table -->
+      <div class="card" style="margin-top: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
+          <button type="button" class="sub-filter-btn" style="padding: 4px 8px; flex: initial;" onclick="clearAllBalanceFilters()">🔄 Clear All Filters</button>
+        </div>
+        <div class="balance-table-container">
+          <table>
+            <thead>
+              <tr style="background:#1e40af; color:white;">
+                <th>
+                  <div class="header-cell">
+                    <span>Drawing No</span>
+                    <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Drawing_no', 'Drawing No')">🔽</button>
+                  </div>
+                </th>
+                <th>
+                  <div class="header-cell">
+                    <span>Spool Unique No</span>
+                    <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Spool_number', 'Spool Unique No')">🔽</button>
+                  </div>
+                </th>
+                <th>
+                  <div class="header-cell">
+                    <span>Spool Size</span>
+                    <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Spool_size', 'Spool Size')">🔽</button>
+                  </div>
+                </th>
+                <th>
+                  <div class="header-cell">
+                    <span>WELD ID</span>
+                    <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Weld_id', 'Weld ID')">🔽</button>
+                  </div>
+                </th>
+                <th>
+                  <div class="header-cell">
+                    <span>BEND QTY</span>
+                    <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Bend_qty', 'Bend Qty')">🔽</button>
+                  </div>
+                </th>
               </tr>
+            </thead>
+            <tbody id="stageBalanceTableBody">
+              <tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
-
-      <div id="customInputsArea" style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: none;"></div>
-
-      <button type="button" class="btn-save-final" onclick="submitCurrentStage()">💾 SAVE</button>
-      <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
-    <!-- Balance List Table -->
-    <div class="card" style="margin-top: 12px;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
-        <button type="button" class="sub-filter-btn" style="padding: 4px 8px; flex: initial;" onclick="clearAllBalanceFilters()">🔄 Clear All Filters</button>
-      </div>
-      <div class="balance-table-container">
-        <table>
-          <thead>
-            <tr style="background:#1e40af; color:white;">
-              <th>
-                <div class="header-cell">
-                  <span>Drawing No</span>
-                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Drawing_no', 'Drawing No')">🔽</button>
-                </div>
-              </th>
-              <th>
-                <div class="header-cell">
-                  <span>Spool Unique No</span>
-                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Spool_number', 'Spool Unique No')">🔽</button>
-                </div>
-              </th>
-              <th>
-                <div class="header-cell">
-                  <span>Spool Size</span>
-                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Spool_size', 'Spool Size')">🔽</button>
-                </div>
-              </th>
-              <th>
-                <div class="header-cell">
-                  <span>WELD ID</span>
-                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Weld_id', 'Weld ID')">🔽</button>
-                </div>
-              </th>
-              <th>
-                <div class="header-cell">
-                  <span>BEND QTY</span>
-                  <button class="filter-btn-icon" onclick="openExcelFilter(event, 'balance', 'Bend_qty', 'Bend Qty')">🔽</button>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="stageBalanceTableBody">
-            <tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Master Register (View / Edit Mode with Password Protection) -->
-  <div id="recordsContainer" style="display: none;">
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <h3 style="margin:0; border:none; font-size:16px;">📊 Master Register (<span id="masterTotalCount">0</span>)</h3>
-          <button type="button" id="btnMasterView" class="btn-mode-view" onclick="setMasterMode('view')">View</button>
-          <button type="button" id="btnMasterEdit" class="btn-mode-edit" onclick="requestEditMode()">Edit</button>
-          <button type="button" id="btnMasterSave" class="btn-mode-save" onclick="saveMasterEditsToDb()">💾 SAVE CHANGES</button>
+    <!-- Master Register (Full Display as per reference image) -->
+    <div id="recordsContainer" style="display: none;">
+      <div class="card" style="padding: 10px 14px; margin-top: 4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:14.5px; font-weight: bold; color: #0f172a;">📊 Live Master Records (<span id="masterTotalCount">0</span>)</span>
+            <button type="button" id="btnMasterView" class="btn-mode-view" onclick="setMasterMode('view')">👁️ View</button>
+            <button type="button" id="btnMasterEdit" class="btn-mode-edit" onclick="requestEditMode()">✏️ Edit</button>
+            <button type="button" id="btnMasterSave" class="btn-mode-save" onclick="saveMasterEditsToDb()">💾 SAVE CHANGES</button>
+          </div>
+          <button type="button" class="sub-filter-btn" onclick="clearAllMasterFilters()">🔄 Clear Filters</button>
         </div>
-        <button type="button" class="sub-filter-btn" style="padding:4px 10px; flex:initial;" onclick="clearAllMasterFilters()">🔄 Clear All Filters</button>
+        <div class="master-table-container">
+          <table id="qcDataTable">
+            <thead>
+              <tr id="masterHeaderRow"></tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="balance-table-container" style="max-height: 75vh;">
-        <table id="qcDataTable">
-          <thead>
-            <tr id="masterHeaderRow" style="background:#1e40af; color:white;"></tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-      <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
   </div>
 </div>
@@ -468,7 +505,7 @@
   const EDIT_MODE_PASSWORD = "edit@6038";
 
   let isMasterEditMode = false;
-  let masterPendingUpdates = new Map(); // id -> { col: val }
+  let masterPendingUpdates = new Map();
 
   function checkSessionAuth() {
     if (sessionStorage.getItem('piping_app_auth') === 'logged_in') {
@@ -561,6 +598,8 @@
     document.getElementById('recordsContainer').style.display = 'none';
     document.getElementById('itemEditForm').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'block';
+    document.getElementById('btnTopDashboard').style.display = 'none';
+    document.getElementById('navSubTitle').innerText = '| Progress Tracking';
   }
 
   async function openStage(stage) {
@@ -569,8 +608,10 @@
     selectedQueue = [];
     document.getElementById('mainMenu').style.display = 'none';
     document.getElementById('itemEditForm').style.display = 'none';
+    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
 
     if (stage === 'view_records') {
+      document.getElementById('navSubTitle').innerText = '| 📊 Master Live Register';
       document.getElementById('recordsContainer').style.display = 'block';
       setMasterMode('view');
       buildMasterRegisterHeader();
@@ -578,6 +619,7 @@
       return;
     }
 
+    document.getElementById('navSubTitle').innerText = `| Stage: ${stage.toUpperCase()}`;
     document.getElementById('stageContainer').style.display = 'block';
     setupStageUI(stage);
     renderSelectedTable();
@@ -605,7 +647,7 @@
     const inputPass = prompt("🔐 Enter Master Register Edit Password:");
     if (inputPass === null) return;
     if (inputPass === EDIT_MODE_PASSWORD) {
-      alert("✅ Edit Mode Unlocked! You can now edit cells and click SAVE CHANGES.");
+      alert("✅ Edit Mode Unlocked! You can edit any cell directly.");
       setMasterMode('edit');
     } else {
       alert("❌ Incorrect Edit Password! Access Denied.");
@@ -618,7 +660,6 @@
     }
     masterPendingUpdates.get(id)[colKey] = newVal.trim() === '' ? null : newVal.trim();
 
-    // Cache update
     const item = allRecordsCache.find(x => x.id === id);
     if (item) item[colKey] = newVal.trim() === '' ? null : newVal.trim();
   }
@@ -654,7 +695,7 @@
       masterPendingUpdates.clear();
       setMasterMode('view');
     } else {
-      alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી. કૃપા કરીને તપાસો.`);
+      alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી. કૃપા કરીને ફરી પ્રયાસ કરો.`);
     }
   }
 
@@ -1172,7 +1213,7 @@
     `).join('');
   }
 
-  // --- MASTER REGISTER FILTERING & RENDER (VIEW / EDIT MODE) ---
+  // --- MASTER REGISTER FILTERING & RENDER (FULL DISPLAY) ---
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
     tr.innerHTML = MASTER_COLS.map(c => `
@@ -1187,7 +1228,7 @@
 
   async function loadFullRegister() {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px;">⏳ Loading Master Register...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>';
 
     let allRows = [];
     let from = 0;
@@ -1245,7 +1286,6 @@
             let val = r[c.key] !== undefined ? r[c.key] : (r[c.key.toLowerCase()] !== undefined ? r[c.key.toLowerCase()] : '');
             if (val === null || val === undefined) val = '';
             
-            // Format dates cleanly if ISO string
             let displayVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
 
             if (isMasterEditMode) {
