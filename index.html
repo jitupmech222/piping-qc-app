@@ -776,7 +776,7 @@
       btnSaveLabel.innerText = 'SAVE FITTER ENTRY';
       customArea.innerHTML = '';
     }
-    else if (stage === 'ready_fitup') {
+   else if (stage === 'ready_fitup') {
       title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: READY FIT-UP';
       searchLabel.innerText = 'Search & Select Spool for Inspection:';
@@ -784,14 +784,15 @@
       btnSaveLabel.innerText = 'SAVE INSPECTION ENTRY';
       subArea.style.display = 'flex';
       subMetric.style.display = 'flex';
-      subArea.innerHTML = FITTERS.filter(f => f !== 'NA').map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
+      // NA બટન સામેલ કર્યું
+      subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
       customArea.innerHTML = `
         <div style="max-width: 250px;">
           <label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Fit-Up Date:</label>
           <input type="date" id="input_date" required>
         </div>
       `;
-      activeSubFilter = FITTERS[1];
+      activeSubFilter = FITTERS[0]; // ડિફૉલ્ટ NA સિલેક્ટ થશે
       subArea.children[0].classList.add('active');
     }
     else if (stage === 'fitup_entry') {
@@ -823,14 +824,15 @@
       btnSaveLabel.innerText = 'SAVE VISUAL ENTRY';
       subArea.style.display = 'flex';
       subMetric.style.display = 'flex';
-      subArea.innerHTML = WELDERS.filter(w => w !== 'NA').map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
+      // NA બટન સામેલ કર્યું
+      subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
       customArea.innerHTML = `
         <div style="max-width: 250px;">
           <label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Visual Date:</label>
           <input type="date" id="input_date" required>
         </div>
       `;
-      activeSubFilter = WELDERS[1];
+      activeSubFilter = WELDERS[0]; // ડિફૉલ્ટ NA સિલેક્ટ થશે
       subArea.children[0].classList.add('active');
     }
     else if (stage === 'weld_visual') {
