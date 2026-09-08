@@ -14,6 +14,54 @@
     input, select { width: 100%; padding: 10px; margin-top: 4px; border: 1.5px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13.5px; background: #fff; }
     input:focus, select:focus { outline: none; border-color: #0284c7; }
 
+    /* Login Screen Modal Overlay */
+    #loginOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .login-box {
+      background: white;
+      width: 100%;
+      max-width: 380px;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .btn-login {
+      background: #0284c7;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      padding: 12px;
+      width: 100%;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+    .btn-login:hover { background: #0369a1; }
+    .btn-logout {
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     /* Modern Dashboard Grid */
     .menu-grid {
       display: grid;
@@ -83,7 +131,7 @@
     .menu-btn.stage-ndt { border-left: 4px solid #d97706; }
     .menu-btn.stage-fd { border-left: 4px solid #059669; }
 
-    /* Full Register Button (Prominent Accent) */
+    /* Full Register Button */
     .btn-view {
       grid-column: 1 / -1;
       justify-content: center;
@@ -191,12 +239,38 @@
 </head>
 <body>
 
-<div class="container">
+<!-- Login Security Modal -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div style="text-align: center; margin-bottom: 16px;">
+      <h3 style="margin: 0; border: none; font-size: 18px;">🔐 User Login</h3>
+      <span style="font-size: 12px; color: #64748b;">Piping Work Progress Console</span>
+    </div>
+    <div>
+      <label>Username:</label>
+      <input type="text" id="loginUser" placeholder="Enter username" autocomplete="off">
+    </div>
+    <div>
+      <label>Password:</label>
+      <input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter') verifyLogin()">
+    </div>
+    <div id="loginError" style="color: #dc2626; font-size: 12px; font-weight: bold; margin-top: 8px; display: none; text-align: center;">
+      ⚠️ Invalid Username or Password!
+    </div>
+    <button type="button" class="btn-login" onclick="verifyLogin()">Login to Dashboard</button>
+  </div>
+</div>
+
+<!-- Main App (Protected Behind Login) -->
+<div class="container" id="appContent" style="display: none;">
   <!-- Hub -->
   <div id="mainMenu" class="card">
     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
-      <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">⚙️ Piping Work Progress Console</h3>
-      <span style="font-size: 12px; font-weight: 600; color: #64748b;">Fabrication & QC Tracking</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">⚙️ Piping Work Progress Console</h3>
+        <span style="font-size: 12px; font-weight: 600; color: #64748b;">Fabrication & QC Tracking</span>
+      </div>
+      <button type="button" class="btn-logout" onclick="userLogout()">🚪 Logout</button>
     </div>
 
     <div class="menu-grid">
@@ -400,6 +474,48 @@
 </div>
 
 <script>
+  // USER SECURITY CONFIG
+  const AUTH_CREDENTIALS = {
+    username: "admin",
+    password: "pipe@123"
+  };
+
+  function checkSessionAuth() {
+    if (sessionStorage.getItem('piping_app_auth') === 'logged_in') {
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
+    } else {
+      document.getElementById('loginOverlay').style.display = 'flex';
+      document.getElementById('appContent').style.display = 'none';
+      document.getElementById('loginUser').focus();
+    }
+  }
+
+  function verifyLogin() {
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value.trim();
+    const err = document.getElementById('loginError');
+
+    if (u === AUTH_CREDENTIALS.username && p === AUTH_CREDENTIALS.password) {
+      sessionStorage.setItem('piping_app_auth', 'logged_in');
+      err.style.display = 'none';
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
+      document.getElementById('loginPass').value = '';
+    } else {
+      err.style.display = 'block';
+    }
+  }
+
+  function userLogout() {
+    if (confirm("શું તમે ખરેખર Logout કરવા માંગો છો?")) {
+      sessionStorage.removeItem('piping_app_auth');
+      checkSessionAuth();
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', checkSessionAuth);
+
   const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -420,7 +536,6 @@
   const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
   const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
 
-  // Re-ordered so Drawing_no is index 0 and Spool_number is index 1 for freeze styling
   const MASTER_COLS = [
     { key: 'Drawing_no', label: 'Drawing No', freeze: 'col-freeze-1' },
     { key: 'Spool_number', label: 'Spool Unique No', freeze: 'col-freeze-2' },
