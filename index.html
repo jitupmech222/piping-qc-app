@@ -62,6 +62,13 @@
       cursor: pointer;
     }
 
+    /* Master Register Mode Buttons */
+    .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
+    .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
+    .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
+
     /* Modern Dashboard Grid */
     .menu-grid {
       display: grid;
@@ -175,7 +182,7 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; flex: 1; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
-    /* Tables & Normal Scroll (No Column Freeze) */
+    /* Tables & Normal Scroll */
     .balance-table-container { overflow: auto; margin-top: 10px; max-height: 60vh; border: 1.5px solid #cbd5e1; border-radius: 8px; }
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 9px 10px; white-space: nowrap; background-color: #fff; }
@@ -216,7 +223,7 @@
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 16px;">
       <h3 style="margin: 0; border: none; font-size: 18px;">User Login</h3>
-      <span style="font-size: 12px; color: #64748b;"></span>
+      <span style="font-size: 12px; color: #64748b;">Piping Console</span>
     </div>
     <div>
       <label>Username:</label>
@@ -361,7 +368,7 @@
       <button type="button" class="btn-back" onclick="backToMenu()">⬅ Back to Menu</button>
     </div>
 
-    <!-- Balance List Table (Unfrozen / Standard Scrolling) -->
+    <!-- Balance List Table -->
     <div class="card" style="margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
@@ -411,11 +418,16 @@
     </div>
   </div>
 
-  <!-- Master Register (Unfrozen / Standard Scrolling) -->
+  <!-- Master Register (View / Edit Mode with Password Protection) -->
   <div id="recordsContainer" style="display: none;">
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0; border:none; font-size:16px;">📊 Master Register (<span id="masterTotalCount">0</span>)</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h3 style="margin:0; border:none; font-size:16px;">📊 Master Register (<span id="masterTotalCount">0</span>)</h3>
+          <button type="button" id="btnMasterView" class="btn-mode-view" onclick="setMasterMode('view')">👁️ View Mode</button>
+          <button type="button" id="btnMasterEdit" class="btn-mode-edit" onclick="requestEditMode()">✏️ Edit Mode</button>
+          <button type="button" id="btnMasterSave" class="btn-mode-save" onclick="saveMasterEditsToDb()">💾 SAVE CHANGES</button>
+        </div>
         <button type="button" class="sub-filter-btn" style="padding:4px 10px; flex:initial;" onclick="clearAllMasterFilters()">🔄 Clear All Filters</button>
       </div>
       <div class="balance-table-container" style="max-height: 75vh;">
@@ -452,6 +464,12 @@
     password: "pipe@6038"
   };
 
+  // PASSWORD FOR EDITING MASTER REGISTER
+  const EDIT_MODE_PASSWORD = "edit@6038";
+
+  let isMasterEditMode = false;
+  let masterPendingUpdates = new Map(); // id -> { col: val }
+
   function checkSessionAuth() {
     if (sessionStorage.getItem('piping_app_auth') === 'logged_in') {
       document.getElementById('loginOverlay').style.display = 'none';
@@ -482,6 +500,8 @@
   function userLogout() {
     if (confirm("શું તમે ખરેખર Logout કરવા માંગો છો?")) {
       sessionStorage.removeItem('piping_app_auth');
+      isMasterEditMode = false;
+      masterPendingUpdates.clear();
       checkSessionAuth();
     }
   }
@@ -508,7 +528,6 @@
   const FITTERS = ["PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
   const WELDERS = ["770", "815", "625", "853", "711", "625/1200", "770/1200"];
 
-  // All columns unfreezed
   const MASTER_COLS = [
     { key: 'Drawing_no', label: 'Drawing No' },
     { key: 'Spool_number', label: 'Spool Unique No' },
@@ -536,6 +555,8 @@
 
   function backToMenu() {
     closeExcelPopup();
+    isMasterEditMode = false;
+    masterPendingUpdates.clear();
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
     document.getElementById('itemEditForm').style.display = 'none';
@@ -551,6 +572,7 @@
 
     if (stage === 'view_records') {
       document.getElementById('recordsContainer').style.display = 'block';
+      setMasterMode('view');
       buildMasterRegisterHeader();
       loadFullRegister();
       return;
@@ -560,6 +582,80 @@
     setupStageUI(stage);
     renderSelectedTable();
     await loadStageData(stage);
+  }
+
+  // --- MASTER REGISTER VIEW / EDIT MODE CONTROLS ---
+  function setMasterMode(mode) {
+    if (mode === 'view') {
+      isMasterEditMode = false;
+      document.getElementById('btnMasterView').style.outline = '2px solid #0369a1';
+      document.getElementById('btnMasterEdit').style.outline = 'none';
+      document.getElementById('btnMasterSave').style.display = 'none';
+      renderMasterTable();
+    } else if (mode === 'edit') {
+      isMasterEditMode = true;
+      document.getElementById('btnMasterEdit').style.outline = '2px solid #b45309';
+      document.getElementById('btnMasterView').style.outline = 'none';
+      document.getElementById('btnMasterSave').style.display = 'inline-block';
+      renderMasterTable();
+    }
+  }
+
+  function requestEditMode() {
+    const inputPass = prompt("🔐 Enter Master Register Edit Password:");
+    if (inputPass === null) return;
+    if (inputPass === EDIT_MODE_PASSWORD) {
+      alert("✅ Edit Mode Unlocked! You can now edit cells and click SAVE CHANGES.");
+      setMasterMode('edit');
+    } else {
+      alert("❌ Incorrect Edit Password! Access Denied.");
+    }
+  }
+
+  function handleMasterCellChange(id, colKey, newVal) {
+    if (!masterPendingUpdates.has(id)) {
+      masterPendingUpdates.set(id, {});
+    }
+    masterPendingUpdates.get(id)[colKey] = newVal.trim() === '' ? null : newVal.trim();
+
+    // Cache update
+    const item = allRecordsCache.find(x => x.id === id);
+    if (item) item[colKey] = newVal.trim() === '' ? null : newVal.trim();
+  }
+
+  async function saveMasterEditsToDb() {
+    if (masterPendingUpdates.size === 0) {
+      alert("⚠️ કોઈ ફેરફાર થયેલ નથી (No changes to save).");
+      return;
+    }
+
+    const confirmSave = confirm(`શું તમે ખરેખર ${masterPendingUpdates.size} રો ના ફેરફારો Database માં Save કરવા માંગો છો?`);
+    if (!confirmSave) return;
+
+    const saveBtn = document.getElementById('btnMasterSave');
+    saveBtn.disabled = true;
+    saveBtn.innerText = "⏳ Saving...";
+
+    let updateErrors = 0;
+
+    for (const [id, rowData] of masterPendingUpdates.entries()) {
+      const { error } = await db.from('piping_joints').update(rowData).eq('id', id);
+      if (error) {
+        console.error("Update error for row " + id, error);
+        updateErrors++;
+      }
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.innerText = "💾 SAVE CHANGES";
+
+    if (updateErrors === 0) {
+      alert(`🎉 સફળતાપૂર્વક ${masterPendingUpdates.size} રેકોર્ડ્સ Database માં અપડેટ થઈ ગયા!`);
+      masterPendingUpdates.clear();
+      setMasterMode('view');
+    } else {
+      alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી. કૃપા કરીને તપાસો.`);
+    }
   }
 
   function setupStageUI(stage) {
@@ -1037,7 +1133,7 @@
     return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // --- BALANCE LIST FILTERING (UNFROZEN) ---
+  // --- BALANCE LIST FILTERING ---
   function applyBalanceDataFilters() {
     activeBalanceDisplayRows = stageFilteredRows.filter(r => {
       for (const [colKey, allowedSet] of Object.entries(balanceColumnFilters)) {
@@ -1076,7 +1172,7 @@
     `).join('');
   }
 
-  // --- MASTER REGISTER FILTERING (UNFROZEN) ---
+  // --- MASTER REGISTER FILTERING & RENDER (VIEW / EDIT MODE) ---
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
     tr.innerHTML = MASTER_COLS.map(c => `
@@ -1137,32 +1233,30 @@
 
   function renderMasterTable() {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = masterDisplayRows.slice(0, 1000).map(r => `
-      <tr>
-        <td><b>${r.Drawing_no || '-'}</b></td>
-        <td><b>${r.Spool_number || '-'}</b></td>
-        <td>${r.Spool_size || '-'}</td>
-        <td>${r.Rev_no || '0'}</td>
-        <td>${r.Allocation || '-'}</td>
-        <td>${r.Bend_qty || '-'}</td>
-        <td>${(r.Issued_for_bending || '').split('T')[0] || '-'}</td>
-        <td>${(r.Bend_date || '').split('T')[0] || '-'}</td>
-        <td><b>${r.Weld_id || '-'}</b></td>
-        <td>${(r.Issue_for_fitup || '').split('T')[0] || '-'}</td>
-        <td>${r.Fitter_name || '-'}</td>
-        <td>${(r.Ready_for_fitup_insp || '').split('T')[0] || '-'}</td>
-        <td>${r.Report_no || '-'}</td>
-        <td>${(r.Fit_up_date || '').split('T')[0] || '-'}</td>
-        <td>${r.Welder_no || '-'}</td>
-        <td>${(r.Ready_for_weld_visual || '').split('T')[0] || '-'}</td>
-        <td>${(r.Weld_visual_date || '').split('T')[0] || '-'}</td>
-        <td>${(r.Ndt_clearance || '').split('T')[0] || '-'}</td>
-        <td>${(r.Fd_date || '').split('T')[0] || '-'}</td>
-        <td>${r.Shift_dc_no || '-'}</td>
-        <td>${r.Bill || '-'}</td>
-        <td>${r.Remarks || '-'}</td>
-      </tr>
-    `).join('');
+    if (masterDisplayRows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px;">No records found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = masterDisplayRows.slice(0, 1000).map(r => {
+      return `
+        <tr>
+          ${MASTER_COLS.map(c => {
+            let val = r[c.key] !== undefined ? r[c.key] : (r[c.key.toLowerCase()] !== undefined ? r[c.key.toLowerCase()] : '');
+            if (val === null || val === undefined) val = '';
+            
+            // Format dates cleanly if ISO string
+            let displayVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+
+            if (isMasterEditMode) {
+              return `<td><input type="text" class="cell-input" value="${escapeHtml(displayVal)}" onchange="handleMasterCellChange(${r.id}, '${c.key}', this.value)"></td>`;
+            } else {
+              return `<td>${displayVal || '-'}</td>`;
+            }
+          }).join('')}
+        </tr>
+      `;
+    }).join('');
   }
 
   async function submitCurrentStage() {
