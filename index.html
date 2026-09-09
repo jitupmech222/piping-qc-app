@@ -1483,8 +1483,7 @@
       `;
     }).join('');
   }
-
-  // --- STAGE DATA SAVING LOGIC ---
+// --- STAGE DATA SAVING LOGIC ---
   async function submitCurrentStage() {
     if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
       alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
@@ -1574,7 +1573,13 @@
     }
 
     alert(`✅ ${selectedQueue.length} Spools સફળતાપૂર્વક અપડેટ થઈ ગયા!`);
+    
+    // લિસ્ટ તથા ઇનપુટ્સ સંપૂર્ણ ક્લિયર
     selectedQueue = [];
+    if (document.getElementById('input_date')) document.getElementById('input_date').value = '';
+    if (document.getElementById('input_dc_no')) document.getElementById('input_dc_no').value = '';
+    if (document.getElementById('spoolSearch')) document.getElementById('spoolSearch').value = '';
+
     renderSelectedTable();
     loadStageData(currentStage);
   }
