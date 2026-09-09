@@ -1,0 +1,58 @@
+import { USER_ROLES } from './config/roles.js';
+import { handleRoute, navigateTo } from './router.js';
+
+let currentUser = null;
+
+export function getCurrentUser() {
+  return currentUser;
+}
+
+function checkSessionAuth() {
+  const sessionData = sessionStorage.getItem('piping_app_auth');
+  if (sessionData) {
+    currentUser = JSON.parse(sessionData);
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
+    document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
+    handleRoute();
+  } else {
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('appContent').style.display = 'none';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function verifyLogin() {
+  const u = document.getElementById('loginUser').value.trim().toLowerCase();
+  const p = document.getElementById('loginPass').value.trim();
+  const err = document.getElementById('loginError');
+
+  if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
+    currentUser = { username: u, ...USER_ROLES[u] };
+    sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
+    err.style.display = 'none';
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
+    document.getElementById('loginPass').value = '';
+    handleRoute();
+  } else {
+    err.style.display = 'block';
+  }
+}
+
+function userLogout() {
+  if (confirm("શું તમે ખરેખર Logout કરવા માંગો છો?")) {
+    sessionStorage.removeItem('piping_app_auth');
+    currentUser = null;
+    window.location.hash = '';
+    checkSessionAuth();
+  }
+}
+
+document.getElementById('btnLogin').addEventListener('click', verifyLogin);
+document.getElementById('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyLogin(); });
+document.getElementById('btnLogout').addEventListener('click', userLogout);
+document.getElementById('btnTopDashboard').addEventListener('click', () => navigateTo('dashboard'));
+
+window.addEventListener('hashchange', handleRoute);
+window.addEventListener('DOMContentLoaded', checkSessionAuth);
