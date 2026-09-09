@@ -1,0 +1,3 @@
+export const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+export const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+export const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
