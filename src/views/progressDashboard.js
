@@ -1,0 +1,77 @@
+import { db } from '../config/supabase.js';
+import { calculateWeldSum } from '../utils/dateUtils.js';
+
+export async function renderProgressDashboard(container) {
+  container.innerHTML = `
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0; border:none; color:#1e3a8a;">📈 Stage-Wise Progress Analysis</h3>
+        <button type="button" class="sub-filter-btn" style="padding:4px 10px; flex:initial;" id="btnRefreshProgress">🔄 Refresh</button>
+      </div>
+      <div class="balance-table-container" style="height: auto; max-height: 75vh;">
+        <table>
+          <thead>
+            <tr style="background:#1e40af; color:white;">
+              <th style="width: 40px; text-align: center;">Stage</th>
+              <th>Stage Description</th>
+              <th style="text-align: center; background:#15803d;">Completed Spools</th>
+              <th style="text-align: center; background:#166534;">Completed Weld ID</th>
+              <th style="text-align: center; background:#c2410c;">Balance Spools</th>
+              <th style="text-align: center; background:#9a3412;">Balance Weld ID</th>
+            </tr>
+          </thead>
+          <tbody id="progressTableBody">
+            <tr><td colspan="6" style="text-align:center; padding:15px; color:#2563eb;">⏳ Calculating Progress Data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btnRefreshProgress').addEventListener('click', loadData);
+  await loadData();
+}
+
+async function loadData() {
+  const tbody = document.getElementById('progressTableBody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:15px; color:#2563eb;">⏳ Calculating Progress Data...</td></tr>';
+
+  let allRows = [];
+  let from = 0;
+  while (true) {
+    const { data } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + 999);
+    if (!data || data.length === 0) break;
+    allRows = allRows.concat(data);
+    from += 1000;
+    if (data.length < 1000) break;
+  }
+
+  const stages = [
+    { no: '01', name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending, isBal: r => !r.Bend_date && !r.Issued_for_bending },
+    { no: '02', name: 'BEND COMPLETED', isComp: r => r.Bend_date, isBal: r => !r.Bend_date && r.Issued_for_bending },
+    { no: '03', name: 'ISSUED FOR FIT-UP', isComp: r => r.Issue_for_fitup, isBal: r => r.Bend_date && !r.Issue_for_fitup },
+    { no: '04', name: 'ISSUED TO FITTER', isComp: r => r.Fitter_name, isBal: r => r.Issue_for_fitup && !r.Fitter_name },
+    { no: '05', name: 'READY FIT-UP FOR INSP', isComp: r => r.Ready_for_fitup_insp, isBal: r => r.Fitter_name && !r.Ready_for_fitup_insp },
+    { no: '06', name: 'FIT UP COMPLETED', isComp: r => r.Fit_up_date, isBal: r => r.Ready_for_fitup_insp && !r.Fit_up_date },
+    { no: '07', name: 'ISSUED TO WELDER', isComp: r => r.Welder_no, isBal: r => r.Fit_up_date && !r.Welder_no },
+    { no: '08', name: 'READY FOR WELD VISUAL', isComp: r => r.Ready_for_weld_visual, isBal: r => r.Welder_no && !r.Ready_for_weld_visual },
+    { no: '09', name: 'WELD VISUAL COMPLETED', isComp: r => r.Weld_visual_date, isBal: r => r.Ready_for_weld_visual && !r.Weld_visual_date },
+    { no: '10', name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance, isBal: r => r.Weld_visual_date && !r.Ndt_clearance },
+    { no: '11', name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date, isBal: r => r.Ndt_clearance && !r.Fd_date }
+  ];
+
+  tbody.innerHTML = stages.map(st => {
+    const comp = allRows.filter(st.isComp);
+    const bal = allRows.filter(st.isBal);
+    return `
+      <tr>
+        <td style="text-align: center; font-weight: 800; background: #f1f5f9;">${st.no}</td>
+        <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
+        <td style="text-align: center; font-weight: bold; color: #15803d; background: #f0fdf4;">${new Set(comp.map(r => r.Spool_number).filter(Boolean)).size}</td>
+        <td style="text-align: center; font-weight: bold; color: #166534; background: #f0fdf4;">${calculateWeldSum(comp)}</td>
+        <td style="text-align: center; font-weight: bold; color: #c2410c; background: #fff7ed;">${new Set(bal.map(r => r.Spool_number).filter(Boolean)).size}</td>
+        <td style="text-align: center; font-weight: bold; color: #9a3412; background: #fff7ed;">${calculateWeldSum(bal)}</td>
+      </tr>
+    `;
+  }).join('');
+}
