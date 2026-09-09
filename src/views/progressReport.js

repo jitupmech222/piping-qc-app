@@ -1,0 +1,106 @@
+import { db } from '../config/supabase.js';
+import { getCurrentUser } from '../main.js';
+import { formatDateDisplay, calculateWeldSum } from '../utils/dateUtils.js';
+
+export function renderProgressReport(container) {
+  const user = getCurrentUser();
+  const isAdmin = user && user.username === 'admin';
+  const today = new Date().toISOString().split('T')[0];
+
+  container.innerHTML = `
+    <div class="card">
+      <h3 style="color:#0369a1;">📅 Daily Progress Report Generator</h3>
+      <div style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+        <div style="width: 220px;">
+          <label style="margin-top:0;">Select Report Date:</label>
+          <input type="date" id="reportDateInput" value="${today}">
+        </div>
+        <button type="button" class="btn-save-action" id="btnGenReport" style="background:#0284c7;">📊 Generate Report</button>
+        ${isAdmin ? '<button type="button" class="btn-whatsapp-action" id="btnShareWA">📲 Share on WhatsApp</button>' : ''}
+      </div>
+
+      <div id="reportResultArea" style="display: none;">
+        <div class="metric-banner" style="background:#f0f9ff; border-color:#0284c7; margin-bottom: 12px; justify-content: center;">
+          <div style="font-size: 14.5px;">REPORT FOR DATE = <span id="reportSelectedDate" style="color:#0284c7; font-weight: 800; font-size:16px;">-</span></div>
+        </div>
+
+        <div class="balance-table-container" style="height: auto; max-height: 65vh;">
+          <table>
+            <thead>
+              <tr style="background:#0f4c81; color:white;">
+                <th style="width: 40px; text-align: center;">Stage</th>
+                <th>Stage Description</th>
+                <th style="text-align: center; background:#15803d;">Completed Spools</th>
+                <th style="text-align: center; background:#166534;">Completed Weld ID</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btnGenReport').addEventListener('click', generateReport);
+  if (isAdmin) {
+    document.getElementById('btnShareWA').addEventListener('click', shareWhatsApp);
+  }
+}
+
+async function generateReport() {
+  const selectedDate = document.getElementById('reportDateInput').value;
+  if (!selectedDate) return alert("કૃપા કરીને તારીખ પસંદ કરો!");
+
+  const tbody = document.getElementById('reportTableBody');
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#2563eb;">⏳ Calculating Daily Report...</td></tr>';
+  document.getElementById('reportResultArea').style.display = 'block';
+  document.getElementById('reportSelectedDate').innerText = formatDateDisplay(selectedDate);
+
+  const { data: allRows } = await db.from('piping_joints').select('*').limit(5000);
+  const matchDate = (val) => val && (String(val).includes('T') ? String(val).split('T')[0] : String(val)) === selectedDate;
+
+  const reportStages = [
+    { no: '01', name: 'ISSUED FOR BENDING', match: r => matchDate(r.Issued_for_bending) },
+    { no: '02', name: 'BEND COMPLETED', match: r => matchDate(r.Bend_date) },
+    { no: '03', name: 'ISSUED FOR FIT-UP', match: r => matchDate(r.Issue_for_fitup) },
+    { no: '04', name: 'ISSUED TO FITTER', match: r => matchDate(r.issued_to_fitter_date) },
+    { no: '05', name: 'READY FIT-UP FOR INSP', match: r => matchDate(r.Ready_for_fitup_insp) },
+    { no: '06', name: 'FIT UP COMPLETED', match: r => matchDate(r.Fit_up_date) },
+    { no: '07', name: 'ISSUED TO WELDER', match: r => matchDate(r.issued_to_welder_date) },
+    { no: '08', name: 'READY FOR WELD VISUAL', match: r => matchDate(r.Ready_for_weld_visual) },
+    { no: '09', name: 'WELD VISUAL COMPLETED', match: r => matchDate(r.Weld_visual_date) },
+    { no: '10', name: 'NDT CLEARANCE', match: r => matchDate(r.Ndt_clearance) },
+    { no: '11', name: 'FINAL DISPATCH & DC NO', match: r => matchDate(r.Fd_date) }
+  ];
+
+  tbody.innerHTML = reportStages.map(st => {
+    const matched = (allRows || []).filter(st.match);
+    const spools = new Set(matched.map(r => r.Spool_number).filter(Boolean)).size;
+    const welds = calculateWeldSum(matched);
+    return `
+      <tr>
+        <td style="text-align: center; font-weight: 800; background: #f8fafc;">${st.no}</td>
+        <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
+        <td style="text-align: center; font-weight: bold; color: ${spools > 0 ? '#15803d' : '#64748b'};">${spools}</td>
+        <td style="text-align: center; font-weight: bold; color: ${welds > 0 ? '#166534' : '#64748b'};">${welds}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function shareWhatsApp() {
+  const selectedDate = document.getElementById('reportDateInput').value;
+  const rows = document.querySelectorAll('#reportTableBody tr');
+  if (rows.length === 0 || rows[0].innerText.includes('Calculating')) return alert("કૃપા કરીને પહેલા રિપોર્ટ જનરેટ કરો!");
+
+  let text = `⚙️ *DAILY PIPING PROGRESS REPORT*\n📅 *તારીખ:* ${formatDateDisplay(selectedDate)}\n━━━━━━━━━━━━━━━━━━━━━\n`;
+  rows.forEach(r => {
+    const cols = r.querySelectorAll('td');
+    if (cols.length >= 4) {
+      text += `${cols[0].innerText.trim()}. *${cols[1].innerText.trim()}*\n   • Spools: *${cols[2].innerText.trim()}* | Weld ID: *${cols[3].innerText.trim()}*\n`;
+    }
+  });
+  text += `━━━━━━━━━━━━━━━━━━━━━\n🔗 *Live Portal:* https://pipeflowsys.in`;
+
+  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+}
