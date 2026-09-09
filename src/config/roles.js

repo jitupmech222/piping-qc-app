@@ -1,0 +1,39 @@
+export const USER_ROLES = {
+  "admin": { pass: "ruhi@2018", name: "Admin", allowed: ["all"] },
+  "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry", "fitup_issue"] },
+  "fitup": { pass: "rajan@456", name: "Fit-up Team", allowed: ["fitter_name", "ready_fitup", "fitup_entry"] },
+  "welding": { pass: "jagdish@789", name: "Welding Team", allowed: ["welder_name", "ready_weld", "weld_visual"] },
+  "qc/dc": { pass: "qc@6038", name: "QC/DC Team", allowed: ["ndt_clearance", "fd"] },
+  "viewer": { pass: "view@123", name: "Viewer", allowed: [] }
+};
+
+export const EDIT_MODE_PASSWORD = "edit@6038";
+export const FITTERS = ["NA", "PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
+export const WELDERS = ["NA", "770", "815", "625", "853", "711", "625/1200", "770/1200"];
+
+export const MASTER_COLS = [
+  { key: 'Drawing_no', label: 'Drawing No' },
+  { key: 'Spool_number', label: 'Spool Unique No' },
+  { key: 'Spool_size', label: 'Spool Size' },
+  { key: 'Rev_no', label: 'Rev No' },
+  { key: 'Allocation', label: 'Allocation' },
+  { key: 'Bend_qty', label: 'BEND QTY' },
+  { key: 'Issued_for_bending', label: 'ISSUED FOR BENDING' },
+  { key: 'Bend_date', label: 'BEND DATE' },
+  { key: 'Weld_id', label: 'WELD ID' },
+  { key: 'Issue_for_fitup', label: 'ISSUE FOR FIT-UP' },
+  { key: 'Fitter_name', label: 'FITTER NAME' },
+  { key: 'issued_to_fitter_date', label: 'FITTER ISSUE DATE' },
+  { key: 'Ready_for_fitup_insp', label: 'READY FIT-UP INSP' },
+  { key: 'Report_no', label: 'REPORT NO' },
+  { key: 'Fit_up_date', label: 'FIT UP Date' },
+  { key: 'Welder_no', label: 'WELDER NAME' },
+  { key: 'issued_to_welder_date', label: 'WELDER ISSUE DATE' },
+  { key: 'Ready_for_weld_visual', label: 'READY WELD VISUAL' },
+  { key: 'Weld_visual_date', label: 'VISUAL Date' },
+  { key: 'Ndt_clearance', label: 'NDT CLEARANCE' },
+  { key: 'Fd_date', label: 'FD Date' },
+  { key: 'Shift_dc_no', label: 'DC No' },
+  { key: 'Bill', label: 'BILL' },
+  { key: 'Remarks', label: 'REMARKS' }
+];
