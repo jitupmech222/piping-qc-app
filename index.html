@@ -798,10 +798,12 @@
     { key: 'Weld_id', label: 'WELD ID' },
     { key: 'Issue_for_fitup', label: 'ISSUE FOR FIT-UP' },
     { key: 'Fitter_name', label: 'FITTER NAME' },
+    { key: 'issued_to_fitter_date', label: 'FITTER ISSUE DATE' },
     { key: 'Ready_for_fitup_insp', label: 'READY FIT-UP INSP' },
     { key: 'Report_no', label: 'REPORT NO' },
     { key: 'Fit_up_date', label: 'FIT UP Date' },
     { key: 'Welder_no', label: 'WELDER NAME' },
+    { key: 'issued_to_welder_date', label: 'WELDER ISSUE DATE' },
     { key: 'Ready_for_weld_visual', label: 'READY WELD VISUAL' },
     { key: 'Weld_visual_date', label: 'VISUAL Date' },
     { key: 'Ndt_clearance', label: 'NDT CLEARANCE' },
@@ -1080,10 +1082,10 @@
       { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
       { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
       { no: '03', title: 'ISSUED FOR FIT-UP', done: Boolean(item.Issue_for_fitup), detail: `Date: ${formatDateDisplay(item.Issue_for_fitup)}` },
-      { no: '04', title: 'ISSUED TO FITTER', done: Boolean(item.Fitter_name), detail: `Fitter: ${item.Fitter_name || '-'}` },
+      { no: '04', title: 'ISSUED TO FITTER', done: Boolean(item.Fitter_name), detail: `Fitter: ${item.Fitter_name || '-'} | Date: ${formatDateDisplay(item.issued_to_fitter_date)}` },
       { no: '05', title: 'READY FIT-UP FOR INSP', done: Boolean(item.Ready_for_fitup_insp), detail: `Date: ${formatDateDisplay(item.Ready_for_fitup_insp)}` },
       { no: '06', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
-      { no: '07', title: 'ISSUED TO WELDER', done: Boolean(item.Welder_no), detail: `Welder: ${item.Welder_no || '-'}` },
+      { no: '07', title: 'ISSUED TO WELDER', done: Boolean(item.Welder_no), detail: `Welder: ${item.Welder_no || '-'} | Date: ${formatDateDisplay(item.issued_to_welder_date)}` },
       { no: '08', title: 'READY FOR WELD VISUAL', done: Boolean(item.Ready_for_weld_visual), detail: `Date: ${formatDateDisplay(item.Ready_for_weld_visual)}` },
       { no: '09', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
       { no: '10', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
@@ -1125,7 +1127,6 @@
     document.getElementById('progressReportContainer').style.display = 'block';
     document.getElementById('reportResultArea').style.display = 'none';
 
-    // Set today date as default
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('reportDateInput').value = today;
 
@@ -1147,7 +1148,6 @@
     document.getElementById('reportResultArea').style.display = 'block';
     document.getElementById('reportSelectedDate').innerText = formatDateDisplay(selectedDate);
 
-    // Fetch full data if cache is empty
     if (allRecordsCache.length === 0) {
       const { data } = await db.from('piping_joints').select('*').limit(5000);
       allRecordsCache = data || [];
@@ -1172,16 +1172,19 @@
       return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
     }
 
+    // Now Includes Fitter and Welder Issue Dates
     const reportStages = [
       { no: '01', name: 'ISSUED FOR BENDING', match: r => checkDateMatch(r.Issued_for_bending) },
       { no: '02', name: 'BEND COMPLETED', match: r => checkDateMatch(r.Bend_date) },
       { no: '03', name: 'ISSUED FOR FIT-UP', match: r => checkDateMatch(r.Issue_for_fitup) },
-      { no: '04', name: 'READY FIT-UP FOR INSP', match: r => checkDateMatch(r.Ready_for_fitup_insp) },
-      { no: '05', name: 'FIT UP COMPLETED', match: r => checkDateMatch(r.Fit_up_date) },
-      { no: '06', name: 'READY FOR WELD VISUAL', match: r => checkDateMatch(r.Ready_for_weld_visual) },
-      { no: '07', name: 'WELD VISUAL COMPLETED', match: r => checkDateMatch(r.Weld_visual_date) },
-      { no: '08', name: 'NDT CLEARANCE', match: r => checkDateMatch(r.Ndt_clearance) },
-      { no: '09', name: 'FINAL DISPATCH & DC NO', match: r => checkDateMatch(r.Fd_date) }
+      { no: '04', name: 'ISSUED TO FITTER', match: r => checkDateMatch(r.issued_to_fitter_date) },
+      { no: '05', name: 'READY FIT-UP FOR INSP', match: r => checkDateMatch(r.Ready_for_fitup_insp) },
+      { no: '06', name: 'FIT UP COMPLETED', match: r => checkDateMatch(r.Fit_up_date) },
+      { no: '07', name: 'ISSUED TO WELDER', match: r => checkDateMatch(r.issued_to_welder_date) },
+      { no: '08', name: 'READY FOR WELD VISUAL', match: r => checkDateMatch(r.Ready_for_weld_visual) },
+      { no: '09', name: 'WELD VISUAL COMPLETED', match: r => checkDateMatch(r.Weld_visual_date) },
+      { no: '10', name: 'NDT CLEARANCE', match: r => checkDateMatch(r.Ndt_clearance) },
+      { no: '11', name: 'FINAL DISPATCH & DC NO', match: r => checkDateMatch(r.Fd_date) }
     ];
 
     let grandSpoolSet = new Set();
@@ -1369,13 +1372,19 @@
         </div>
       `;
     }
+    // 04. FITTER NAME MODULE WITH DATE BUTTON
     else if (stage === 'fitter_name') {
       title.innerText = '4. FITTER NAME MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO FITTER';
       searchLabel.innerText = 'Search & Select Spool for Fitter Allocation:';
       queueHeading.innerHTML = 'Selected Spools for Fitter (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE FITTER ENTRY';
-      customArea.innerHTML = '';
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">Issued to Fitter Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
     }
     else if (stage === 'ready_fitup') {
       title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
@@ -1408,13 +1417,19 @@
         </div>
       `;
     }
+    // 07. WELDER NAME MODULE WITH DATE BUTTON
     else if (stage === 'welder_name') {
       title.innerText = '7. WELDER NAME MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO WELDER';
       searchLabel.innerText = 'Search & Select Spool for Welder Allocation:';
       queueHeading.innerHTML = 'Selected Spools for Welder (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE WELDER ENTRY';
-      customArea.innerHTML = '';
+      customArea.innerHTML = `
+        <div style="max-width: 250px;">
+          <label style="margin-top:0; font-size:12px; color:#1e293b;">Issued to Welder Date:</label>
+          <input type="date" id="input_date" required>
+        </div>
+      `;
     }
     else if (stage === 'ready_weld') {
       title.innerText = '8. READY FOR WELD VISUAL MODULE';
@@ -1933,7 +1948,7 @@
 
   async function loadFullRegister() {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="24" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>';
 
     let allRows = [];
     let from = 0;
@@ -1981,7 +1996,7 @@
   function renderMasterTable() {
     const tbody = document.getElementById('tableBody');
     if (masterDisplayRows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px;">No records found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="24" style="text-align:center; padding:15px;">No records found.</td></tr>';
       return;
     }
 
@@ -2022,15 +2037,25 @@
     const dateInput = document.getElementById('input_date');
     const enteredDate = dateInput ? dateInput.value : null;
 
+    // 04. FITTER NAME MODULE (Saves Fitter and issued_to_fitter_date)
     if (currentStage === 'fitter_name') {
+      if (!enteredDate) return alert('કૃપા કરીને Issued to Fitter Date પસંદ કરો.');
       for (const item of selectedQueue) {
-        const { error } = await db.from('piping_joints').update({ Fitter_name: item.final_fitter }).eq('id', item.id);
+        const { error } = await db.from('piping_joints').update({ 
+          Fitter_name: item.final_fitter,
+          issued_to_fitter_date: enteredDate
+        }).eq('id', item.id);
         if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
       }
     }
+    // 07. WELDER NAME MODULE (Saves Welder and issued_to_welder_date)
     else if (currentStage === 'welder_name') {
+      if (!enteredDate) return alert('કૃપા કરીને Issued to Welder Date પસંદ કરો.');
       for (const item of selectedQueue) {
-        const { error } = await db.from('piping_joints').update({ Welder_no: item.final_welder }).eq('id', item.id);
+        const { error } = await db.from('piping_joints').update({ 
+          Welder_no: item.final_welder,
+          issued_to_welder_date: enteredDate
+        }).eq('id', item.id);
         if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
       }
     }
