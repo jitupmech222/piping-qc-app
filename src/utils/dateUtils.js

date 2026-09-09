@@ -1,0 +1,28 @@
+export function formatDateDisplay(val) {
+  if (!val) return '-';
+  const str = String(val).trim();
+  if (str === '' || str.toLowerCase() === 'null') return '-';
+  const dPart = str.includes('T') ? str.split('T')[0] : str;
+  const parts = dPart.split('-');
+  if (parts.length === 3 && parts[0].length === 4) {
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  return str;
+}
+
+export function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+export function calculateWeldSum(rows) {
+  let sum = 0;
+  rows.forEach(r => {
+    const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+    if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+      const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+      const num = parseFloat(cleaned);
+      if (!isNaN(num)) sum += num;
+    }
+  });
+  return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
+}
