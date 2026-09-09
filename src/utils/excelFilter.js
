@@ -1,0 +1,97 @@
+import { formatDateDisplay, escapeHtml } from './dateUtils.js';
+
+let currentContext = { target: '', colKey: '', colLabel: '', allValues: [], activeFilters: {}, onApply: null };
+
+export function openExcelFilterModal(e, target, colKey, colLabel, sourceRows, activeFilters, onApplyCallback) {
+  e.stopPropagation();
+  const popup = document.getElementById('excelFilterPopup');
+  const rect = e.target.getBoundingClientRect();
+  let top = rect.bottom + window.scrollY + 6;
+  let left = rect.left + window.scrollX - 100;
+  if (left + 270 > window.innerWidth) left = window.innerWidth - 280;
+  if (left < 10) left = 10;
+
+  popup.style.top = `${top}px`;
+  popup.style.left = `${left}px`;
+  popup.style.display = 'block';
+
+  const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issue') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+  const valueMap = new Map();
+
+  sourceRows.forEach(r => {
+    let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
+    if (val === null || val === undefined) val = '';
+    val = String(val).trim();
+    let displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
+    valueMap.set(displayVal, (valueMap.get(displayVal) || 0) + 1);
+  });
+
+  const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  currentContext = { target, colKey, colLabel, allValues: distinctSorted, activeFilters, onApply: onApplyCallback };
+
+  const currentSelectedSet = activeFilters[colKey] || null;
+  const searchInput = document.getElementById('popupSearchInput');
+  searchInput.value = '';
+  searchInput.placeholder = `Search in ${colLabel}...`;
+
+  renderCheckboxes(distinctSorted, currentSelectedSet);
+}
+
+function renderCheckboxes(items, selectedSet) {
+  const container = document.getElementById('popupOptionsList');
+  container.innerHTML = items.map(([val, count], idx) => {
+    const isChecked = selectedSet === null || selectedSet.has(val);
+    return `
+      <div class="popup-item">
+        <input type="checkbox" id="chk_opt_${idx}" value="${escapeHtml(val)}" ${isChecked ? 'checked' : ''}>
+        <label for="chk_opt_${idx}" style="cursor:pointer; font-size:12px; margin:0;">${escapeHtml(val)} <span style="color:#64748b;">(${count})</span></label>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('popupSelectAll').checked = items.every(([val]) => selectedSet === null || selectedSet.has(val));
+}
+
+export function closeExcelFilterModal() {
+  document.getElementById('excelFilterPopup').style.display = 'none';
+}
+
+// Global modal bindings
+document.getElementById('popupSearchInput').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase().trim();
+  const filtered = currentContext.allValues.filter(([val]) => val.toLowerCase().includes(q));
+  const currentSelectedSet = currentContext.activeFilters[currentContext.colKey] || null;
+  renderCheckboxes(filtered, currentSelectedSet);
+});
+
+document.getElementById('popupSelectAll').addEventListener('change', (e) => {
+  document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(chk => chk.checked = e.target.checked);
+});
+
+document.getElementById('btnPopupOk').addEventListener('click', () => {
+  const selected = new Set();
+  document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(c => {
+    if (c.checked) selected.add(c.value);
+  });
+
+  if (selected.size === currentContext.allValues.length) {
+    delete currentContext.activeFilters[currentContext.colKey];
+  } else {
+    currentContext.activeFilters[currentContext.colKey] = selected;
+  }
+  closeExcelFilterModal();
+  if (currentContext.onApply) currentContext.onApply();
+});
+
+document.getElementById('btnPopupClear').addEventListener('click', () => {
+  delete currentContext.activeFilters[currentContext.colKey];
+  closeExcelFilterModal();
+  if (currentContext.onApply) currentContext.onApply();
+});
+
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('excelFilterPopup');
+  if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
+    closeExcelFilterModal();
+  }
+});
