@@ -1270,7 +1270,7 @@
     const sourceRows = targetTable === 'balance' ? stageFilteredRows : allRecordsCache;
     const valueMap = new Map();
 
-    const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issued') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+    const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issue') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
 
     sourceRows.forEach(r => {
       let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
@@ -1406,7 +1406,7 @@
     `).join('');
   }
 
-  // --- MASTER REGISTER FILTERING & RENDER (FULL DISPLAY & DD-MM-YYYY DATE) ---
+  // --- MASTER REGISTER FILTERING & RENDER ---
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
     tr.innerHTML = MASTER_COLS.map(c => `
@@ -1450,7 +1450,7 @@
       for (const [colKey, allowedSet] of Object.entries(masterColumnFilters)) {
         let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
         val = String(val || '').trim();
-        const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issued') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+        const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issue') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
         const displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
         if (!allowedSet.has(displayVal)) return false;
       }
@@ -1480,7 +1480,8 @@
             let val = r[c.key] !== undefined ? r[c.key] : (r[c.key.toLowerCase()] !== undefined ? r[c.key.toLowerCase()] : '');
             if (val === null || val === undefined) val = '';
             
-            const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issued') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
+            // issue_for_fitup સહિત તમામ તારીખો માટે ચેક
+            const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issue') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
             
             // Format dates as DD-MM-YYYY for display
             let displayVal = isDateCol ? formatDateDisplay(val) : String(val);
