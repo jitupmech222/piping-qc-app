@@ -177,6 +177,14 @@
     }
     .btn-track-hub:hover { background: linear-gradient(135deg, #b45309 0%, #92400e 100%); color: #fff; }
 
+    .btn-report-hub {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+    }
+    .btn-report-hub:hover { background: linear-gradient(135deg, #0369a1 0%, #075985 100%); color: #fff; }
+
     .btn-view {
       grid-column: 1 / -1;
       justify-content: center;
@@ -411,7 +419,7 @@
           <span>FD & DC NO</span>
         </button>
 
-        <!-- New Two Analytics & Tracking Modules -->
+        <!-- Analytics & Tracking & Progress Report Modules -->
         <button class="menu-btn btn-progress-hub" onclick="openProgressDashboard()">
           <span class="step-badge" style="background:#fff; color:#4338ca;">📈</span>
           <span>PROGRESS DASHBOARD</span>
@@ -419,6 +427,10 @@
         <button class="menu-btn btn-track-hub" onclick="openSpoolTracking()">
           <span class="step-badge" style="background:#fff; color:#b45309;">🔍</span>
           <span>SPOOL TRACKING</span>
+        </button>
+        <button class="menu-btn btn-report-hub" onclick="openProgressReport()">
+          <span class="step-badge" style="background:#fff; color:#0369a1;">📅</span>
+          <span>PROGRESS REPORT</span>
         </button>
 
         <!-- Full Register -->
@@ -474,6 +486,44 @@
             <div style="font-size: 13px; font-weight: bold; color: #475569;" id="trackMeta">Size: - | Weld ID: -</div>
           </div>
           <div class="timeline-container" id="timelineList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Report Screen -->
+    <div id="progressReportContainer" style="display: none;">
+      <div class="card">
+        <h3 style="color:#0369a1;">📅 Daily Progress Report Generator</h3>
+        <div style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+          <div style="width: 220px;">
+            <label style="margin-top:0;">Select Report Date:</label>
+            <input type="date" id="reportDateInput">
+          </div>
+          <button type="button" class="btn-save-action" style="background:#0284c7;" onclick="generateDailyReport()">
+            📊 Generate Report
+          </button>
+        </div>
+
+        <div id="reportResultArea" style="display: none;">
+          <div class="metric-banner" style="background:#f0f9ff; border-color:#0284c7; margin-bottom: 12px;">
+            <div>REPORT FOR DATE = <span id="reportSelectedDate" style="color:#0284c7; font-size:16px;">-</span></div>
+            <div>TOTAL COMPLETED SPOOLS = <span id="reportTotalSpool" class="metric-val">0</span></div>
+            <div>TOTAL COMPLETED WELD ID = <span id="reportTotalWeld" class="metric-val">0</span></div>
+          </div>
+
+          <div class="balance-table-container" style="height: auto; max-height: 65vh;">
+            <table>
+              <thead>
+                <tr style="background:#0f4c81; color:white;">
+                  <th style="width: 40px; text-align: center;">Stage</th>
+                  <th>Stage Description</th>
+                  <th style="text-align: center; background:#15803d;">Completed Spools</th>
+                  <th style="text-align: center; background:#166534;">Completed Weld ID</th>
+                </tr>
+              </thead>
+              <tbody id="reportTableBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -782,6 +832,7 @@
     document.getElementById('itemEditForm').style.display = 'none';
     document.getElementById('progressDashboardContainer').style.display = 'none';
     document.getElementById('spoolTrackingContainer').style.display = 'none';
+    document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'block';
     document.getElementById('btnTopDashboard').style.display = 'none';
     document.getElementById('navSubTitle').innerText = currentUser ? `| ${currentUser.name}` : '| Progress Tracking';
@@ -795,6 +846,7 @@
     document.getElementById('itemEditForm').style.display = 'none';
     document.getElementById('progressDashboardContainer').style.display = 'none';
     document.getElementById('spoolTrackingContainer').style.display = 'none';
+    document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
 
     if (stage === 'view_records') {
@@ -820,6 +872,7 @@
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
     document.getElementById('spoolTrackingContainer').style.display = 'none';
+    document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 📈 Progress Dashboard (${currentUser.name})`;
     document.getElementById('progressDashboardContainer').style.display = 'block';
@@ -957,13 +1010,14 @@
     }).join('');
   }
 
-  // --- SPOOL TRACKING MODULE (GREEN = COMPLETED, ORANGE = HOLD/PENDING) ---
+  // --- SPOOL TRACKING MODULE ---
   async function openSpoolTracking() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
     document.getElementById('progressDashboardContainer').style.display = 'none';
+    document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 🔍 Spool Tracking (${currentUser.name})`;
     document.getElementById('spoolTrackingContainer').style.display = 'block';
@@ -1058,7 +1112,106 @@
     }).join('');
   }
 
-  // Role Permissions
+  // --- PROGRESS REPORT MODULE ---
+  async function openProgressReport() {
+    closeExcelPopup();
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('recordsContainer').style.display = 'none';
+    document.getElementById('progressDashboardContainer').style.display = 'none';
+    document.getElementById('spoolTrackingContainer').style.display = 'none';
+    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
+    document.getElementById('navSubTitle').innerText = `| 📅 Progress Report (${currentUser.name})`;
+    document.getElementById('progressReportContainer').style.display = 'block';
+    document.getElementById('reportResultArea').style.display = 'none';
+
+    // Set today date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('reportDateInput').value = today;
+
+    if (allRecordsCache.length === 0) {
+      const { data } = await db.from('piping_joints').select('*').limit(5000);
+      allRecordsCache = data || [];
+    }
+  }
+
+  async function generateDailyReport() {
+    const selectedDate = document.getElementById('reportDateInput').value;
+    if (!selectedDate) {
+      alert("કૃપા કરીને તારીખ પસંદ કરો!");
+      return;
+    }
+
+    const tbody = document.getElementById('reportTableBody');
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#2563eb;">⏳ Calculating Daily Report...</td></tr>';
+    document.getElementById('reportResultArea').style.display = 'block';
+    document.getElementById('reportSelectedDate').innerText = formatDateDisplay(selectedDate);
+
+    // Fetch full data if cache is empty
+    if (allRecordsCache.length === 0) {
+      const { data } = await db.from('piping_joints').select('*').limit(5000);
+      allRecordsCache = data || [];
+    }
+
+    function checkDateMatch(val) {
+      if (!val) return false;
+      const d = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+      return d === selectedDate;
+    }
+
+    function getWeldSum(rows) {
+      let sum = 0;
+      rows.forEach(r => {
+        const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+        if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+          const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+          const num = parseFloat(cleaned);
+          if (!isNaN(num)) sum += num;
+        }
+      });
+      return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
+    }
+
+    const reportStages = [
+      { no: '01', name: 'ISSUED FOR BENDING', match: r => checkDateMatch(r.Issued_for_bending) },
+      { no: '02', name: 'BEND COMPLETED', match: r => checkDateMatch(r.Bend_date) },
+      { no: '03', name: 'ISSUED FOR FIT-UP', match: r => checkDateMatch(r.Issue_for_fitup) },
+      { no: '04', name: 'READY FIT-UP FOR INSP', match: r => checkDateMatch(r.Ready_for_fitup_insp) },
+      { no: '05', name: 'FIT UP COMPLETED', match: r => checkDateMatch(r.Fit_up_date) },
+      { no: '06', name: 'READY FOR WELD VISUAL', match: r => checkDateMatch(r.Ready_for_weld_visual) },
+      { no: '07', name: 'WELD VISUAL COMPLETED', match: r => checkDateMatch(r.Weld_visual_date) },
+      { no: '08', name: 'NDT CLEARANCE', match: r => checkDateMatch(r.Ndt_clearance) },
+      { no: '09', name: 'FINAL DISPATCH & DC NO', match: r => checkDateMatch(r.Fd_date) }
+    ];
+
+    let grandSpoolSet = new Set();
+    let grandWeldSum = 0;
+
+    const htmlRows = reportStages.map(st => {
+      const matchedRows = allRecordsCache.filter(st.match);
+      const spoolsCount = new Set(matchedRows.map(r => r.Spool_number).filter(Boolean)).size;
+      const weldsCount = getWeldSum(matchedRows);
+
+      matchedRows.forEach(r => {
+        if (r.Spool_number) grandSpoolSet.add(r.Spool_number);
+      });
+      grandWeldSum += weldsCount;
+
+      return `
+        <tr>
+          <td style="text-align: center; font-weight: 800; background: #f8fafc;">${st.no}</td>
+          <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
+          <td style="text-align: center; font-weight: bold; color: ${spoolsCount > 0 ? '#15803d' : '#64748b'}; background: ${spoolsCount > 0 ? '#f0fdf4' : '#fff'};">${spoolsCount}</td>
+          <td style="text-align: center; font-weight: bold; color: ${weldsCount > 0 ? '#166534' : '#64748b'}; background: ${weldsCount > 0 ? '#f0fdf4' : '#fff'};">${weldsCount}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = htmlRows;
+    document.getElementById('reportTotalSpool').innerText = grandSpoolSet.size;
+    document.getElementById('reportTotalWeld').innerText = Number.isInteger(grandWeldSum) ? grandWeldSum : parseFloat(grandWeldSum.toFixed(2));
+  }
+
   function enforceRolePermissions(stage) {
     if (!currentUser) return;
     const isAllowed = currentUser.allowed.includes("all") || currentUser.allowed.includes(stage);
