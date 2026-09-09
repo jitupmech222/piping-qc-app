@@ -1,0 +1,43 @@
+import { navigateTo } from '../router.js';
+import { getCurrentUser } from '../main.js';
+
+export function renderDashboard(container) {
+  const user = getCurrentUser();
+  const isAdmin = user && user.username === 'admin';
+
+  container.innerHTML = `
+    <div class="card">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+        <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">Fabrication & QC Tracking Dashboard</h3>
+        <span style="font-size: 12px; font-weight: 600; color: #64748b;">Logged in: ${user ? user.name : ''}</span>
+      </div>
+
+      <div class="menu-grid">
+        <button class="menu-btn stage-bend" data-path="stage/bending_issue"><span class="step-badge">01</span><span>ISSUED FOR BENDING</span></button>
+        <button class="menu-btn stage-bend" data-path="stage/bend_entry"><span class="step-badge">02</span><span>BEND COMPLETED</span></button>
+        <button class="menu-btn stage-fitup" data-path="stage/fitup_issue"><span class="step-badge">03</span><span>ISSUED FOR FIT-UP</span></button>
+        <button class="menu-btn stage-fitup" data-path="stage/fitter_name"><span class="step-badge">04</span><span>ISSUED TO FITTER</span></button>
+        <button class="menu-btn stage-fitup" data-path="stage/ready_fitup"><span class="step-badge">05</span><span>READY FIT-UP FOR INSP</span></button>
+        <button class="menu-btn stage-fitup" data-path="stage/fitup_entry"><span class="step-badge">06</span><span>FIT UP COMPLETED</span></button>
+        <button class="menu-btn stage-weld" data-path="stage/welder_name"><span class="step-badge">07</span><span>ISSUED TO WELDER</span></button>
+        <button class="menu-btn stage-weld" data-path="stage/ready_weld"><span class="step-badge">08</span><span>READY FOR WELD VISUAL</span></button>
+        <button class="menu-btn stage-weld" data-path="stage/weld_visual"><span class="step-badge">09</span><span>WELD VISUAL COMPLETED</span></button>
+        <button class="menu-btn stage-ndt" data-path="stage/ndt_clearance"><span class="step-badge">10</span><span>NDT CLEARANCE</span></button>
+        <button class="menu-btn stage-fd" data-path="stage/fd"><span class="step-badge">11</span><span>FD & DC NO</span></button>
+
+        <button class="menu-btn btn-progress-hub" data-path="progress-dashboard"><span class="step-badge" style="background:#fff; color:#4338ca;">📈</span><span>PROGRESS DASHBOARD</span></button>
+        <button class="menu-btn btn-track-hub" data-path="spool-tracking"><span class="step-badge" style="background:#fff; color:#b45309;">🔍</span><span>SPOOL TRACKING</span></button>
+        <button class="menu-btn btn-report-hub" data-path="progress-report"><span class="step-badge" style="background:#fff; color:#0369a1;">📅</span><span>PROGRESS REPORT</span></button>
+
+        <button class="menu-btn btn-view" data-path="master-register"><span>📊 VIEW MASTER REGISTER</span></button>
+      </div>
+    </div>
+  `;
+
+  container.querySelectorAll('.menu-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const path = btn.getAttribute('data-path');
+      navigateTo(path);
+    });
+  });
+}
