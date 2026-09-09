@@ -651,6 +651,19 @@
     { key: 'Remarks', label: 'REMARKS' }
   ];
 
+  // Helper Function for DD-MM-YYYY Date Display
+  function formatDateDisplay(val) {
+    if (!val) return '-';
+    const str = String(val).trim();
+    if (str === '' || str.toLowerCase() === 'null') return '-';
+    const dPart = str.includes('T') ? str.split('T')[0] : str;
+    const parts = dPart.split('-');
+    if (parts.length === 3 && parts[0].length === 4) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`; // Convert YYYY-MM-DD to DD-MM-YYYY
+    }
+    return str;
+  }
+
   function backToMenu() {
     closeExcelPopup();
     isMasterEditMode = false;
@@ -1257,11 +1270,13 @@
     const sourceRows = targetTable === 'balance' ? stageFilteredRows : allRecordsCache;
     const valueMap = new Map();
 
+    const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issued') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+
     sourceRows.forEach(r => {
       let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
       if (val === null || val === undefined) val = '';
       val = String(val).trim();
-      const displayVal = val === '' ? '(Blank)' : val;
+      let displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
       valueMap.set(displayVal, (valueMap.get(displayVal) || 0) + 1);
     });
 
@@ -1391,7 +1406,7 @@
     `).join('');
   }
 
-  // --- MASTER REGISTER FILTERING & RENDER ---
+  // --- MASTER REGISTER FILTERING & RENDER (FULL DISPLAY & DD-MM-YYYY DATE) ---
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
     tr.innerHTML = MASTER_COLS.map(c => `
@@ -1435,7 +1450,8 @@
       for (const [colKey, allowedSet] of Object.entries(masterColumnFilters)) {
         let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
         val = String(val || '').trim();
-        const displayVal = val === '' ? '(Blank)' : val;
+        const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issued') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+        const displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
         if (!allowedSet.has(displayVal)) return false;
       }
       return true;
@@ -1463,10 +1479,15 @@
           ${MASTER_COLS.map(c => {
             let val = r[c.key] !== undefined ? r[c.key] : (r[c.key.toLowerCase()] !== undefined ? r[c.key.toLowerCase()] : '');
             if (val === null || val === undefined) val = '';
-            let displayVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+            
+            const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issued') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
+            
+            // Format dates as DD-MM-YYYY for display
+            let displayVal = isDateCol ? formatDateDisplay(val) : String(val);
 
             if (isMasterEditMode) {
-              return `<td><input type="text" class="cell-input" value="${escapeHtml(displayVal)}" onchange="handleMasterCellChange(${r.id}, '${c.key}', this.value)"></td>`;
+              let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+              return `<td><input type="text" class="cell-input" value="${escapeHtml(editVal)}" onchange="handleMasterCellChange(${r.id}, '${c.key}', this.value)"></td>`;
             } else {
               return `<td>${displayVal || '-'}</td>`;
             }
@@ -1567,7 +1588,7 @@
 
     alert(`✅ ${selectedQueue.length} Spools સફળતાપૂર્વક અપડેટ થઈ ગયા!`);
     
-    // લિસ્ટ તથા ઇનપુટ્સ સંપૂર્ણ ક્લિયર
+    // Reset selections and form fields completely
     selectedQueue = [];
     if (document.getElementById('input_date')) document.getElementById('input_date').value = '';
     if (document.getElementById('input_dc_no')) document.getElementById('input_dc_no').value = '';
