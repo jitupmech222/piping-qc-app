@@ -221,6 +221,22 @@
     }
     .btn-save-action:hover { background: #166534; }
 
+    .btn-whatsapp-action {
+      background: #25d366;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3);
+    }
+    .btn-whatsapp-action:hover { background: #1eb857; }
+
     .metric-banner { background: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; justify-content: space-around; font-weight: bold; color: #0369a1; font-size: 13.5px; }
     .sub-metric-banner { background: #fefce8; border: 1.5px solid #eab308; border-radius: 8px; padding: 8px; margin-top: 8px; margin-bottom: 10px; display: flex; justify-content: space-around; font-weight: bold; color: #854d0e; font-size: 13px; }
     .metric-val { color: #dc2626; font-size: 17px; font-weight: 800; }
@@ -419,7 +435,7 @@
           <span>FD & DC NO</span>
         </button>
 
-        <!-- Analytics & Tracking & Progress Report Modules -->
+        <!-- Analytics & Tracking & Progress Report Modules (Open for All) -->
         <button class="menu-btn btn-progress-hub" onclick="openProgressDashboard()">
           <span class="step-badge" style="background:#fff; color:#4338ca;">📈</span>
           <span>PROGRESS DASHBOARD</span>
@@ -490,7 +506,7 @@
       </div>
     </div>
 
-    <!-- Progress Report Screen -->
+    <!-- Progress Report Screen (Report for All, Share Button for Admin) -->
     <div id="progressReportContainer" style="display: none;">
       <div class="card">
         <h3 style="color:#0369a1;">📅 Daily Progress Report Generator</h3>
@@ -501,6 +517,10 @@
           </div>
           <button type="button" class="btn-save-action" style="background:#0284c7;" onclick="generateDailyReport()">
             📊 Generate Report
+          </button>
+          <!-- WhatsApp Button visible only to Admin -->
+          <button type="button" class="btn-whatsapp-action" id="btnShareWhatsApp" style="display: none;" onclick="shareReportToWhatsApp()">
+            📲 Share on WhatsApp
           </button>
         </div>
 
@@ -718,6 +738,16 @@
   let isMasterEditMode = false;
   let masterPendingUpdates = new Map();
 
+  function updateDashboardUIForRole() {
+    if (!currentUser) return;
+    const btnShareWA = document.getElementById('btnShareWhatsApp');
+    
+    // WhatsApp Share Button is visible ONLY for Admin
+    if (btnShareWA) {
+      btnShareWA.style.display = (currentUser.username === 'admin') ? 'inline-flex' : 'none';
+    }
+  }
+
   function checkSessionAuth() {
     const sessionData = sessionStorage.getItem('piping_app_auth');
     if (sessionData) {
@@ -726,6 +756,7 @@
       document.getElementById('appContent').style.display = 'block';
       document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
       document.getElementById('dashboardUserBadge').innerText = `Logged in: ${currentUser.name}`;
+      updateDashboardUIForRole();
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
@@ -747,6 +778,7 @@
       document.getElementById('loginPass').value = '';
       document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
       document.getElementById('dashboardUserBadge').innerText = `Logged in: ${currentUser.name}`;
+      updateDashboardUIForRole();
     } else {
       err.style.display = 'block';
     }
@@ -1112,7 +1144,7 @@
     }).join('');
   }
 
-  // --- PROGRESS REPORT MODULE (SUMMARY METRICS REMOVED) ---
+  // --- PROGRESS REPORT MODULE (Viewable for All) ---
   async function openProgressReport() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
@@ -1124,6 +1156,12 @@
     document.getElementById('navSubTitle').innerText = `| 📅 Progress Report (${currentUser.name})`;
     document.getElementById('progressReportContainer').style.display = 'block';
     document.getElementById('reportResultArea').style.display = 'none';
+    
+    // Set WhatsApp Share button visibility based on whether the logged in user is admin
+    const btnShareWA = document.getElementById('btnShareWhatsApp');
+    if (btnShareWA) {
+      btnShareWA.style.display = (currentUser && currentUser.username === 'admin') ? 'inline-flex' : 'none';
+    }
 
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('reportDateInput').value = today;
@@ -1200,6 +1238,49 @@
     }).join('');
 
     tbody.innerHTML = htmlRows;
+  }
+
+  // 1-CLICK WHATSAPP SHARE (Admin Only Protection)
+  function shareReportToWhatsApp() {
+    if (!currentUser || currentUser.username !== 'admin') {
+      alert("⚠️ માત્ર Admin પાસે જ WhatsApp પર રિપોર્ટ શેર કરવાનો અધિકાર છે!");
+      return;
+    }
+
+    const selectedDate = document.getElementById('reportDateInput').value;
+    if (!selectedDate) {
+      alert("કૃપા કરીને પહેલા તારીખ પસંદ કરો!");
+      return;
+    }
+
+    const rows = document.querySelectorAll('#reportTableBody tr');
+    if (rows.length === 0 || rows[0].innerText.includes('Calculating')) {
+      alert("કૃપા કરીને પહેલા 'Generate Report' બટન દબાવીને રિપોર્ટ તૈયાર કરો!");
+      return;
+    }
+
+    let text = `⚙️ *DAILY PIPING PROGRESS REPORT*\n`;
+    text += `📅 *તારીખ:* ${formatDateDisplay(selectedDate)}\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+    rows.forEach(r => {
+      const cols = r.querySelectorAll('td');
+      if (cols.length >= 4) {
+        const no = cols[0].innerText.trim();
+        const stageName = cols[1].innerText.trim();
+        const spools = cols[2].innerText.trim();
+        const welds = cols[3].innerText.trim();
+
+        text += `${no}. *${stageName}*\n`;
+        text += `   • Spools: *${spools}* | Weld ID: *${welds}*\n`;
+      }
+    });
+
+    text += `━━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `🔗 *Live Portal:* https://pipeflowsys.in`;
+
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, '_blank');
   }
 
   function enforceRolePermissions(stage) {
@@ -2022,7 +2103,6 @@
     const dateInput = document.getElementById('input_date');
     const enteredDate = dateInput ? dateInput.value : null;
 
-    // 04. FITTER NAME MODULE (Saves Fitter and issued_to_fitter_date)
     if (currentStage === 'fitter_name') {
       if (!enteredDate) return alert('કૃપા કરીને Issued to Fitter Date પસંદ કરો.');
       for (const item of selectedQueue) {
@@ -2033,7 +2113,6 @@
         if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
       }
     }
-    // 07. WELDER NAME MODULE (Saves Welder and issued_to_welder_date)
     else if (currentStage === 'welder_name') {
       if (!enteredDate) return alert('કૃપા કરીને Issued to Welder Date પસંદ કરો.');
       for (const item of selectedQueue) {
