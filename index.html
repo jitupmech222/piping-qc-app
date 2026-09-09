@@ -505,10 +505,8 @@
         </div>
 
         <div id="reportResultArea" style="display: none;">
-          <div class="metric-banner" style="background:#f0f9ff; border-color:#0284c7; margin-bottom: 12px;">
-            <div>REPORT FOR DATE = <span id="reportSelectedDate" style="color:#0284c7; font-size:16px;">-</span></div>
-            <div>TOTAL COMPLETED SPOOLS = <span id="reportTotalSpool" class="metric-val">0</span></div>
-            <div>TOTAL COMPLETED WELD ID = <span id="reportTotalWeld" class="metric-val">0</span></div>
+          <div class="metric-banner" style="background:#f0f9ff; border-color:#0284c7; margin-bottom: 12px; justify-content: center;">
+            <div style="font-size: 14.5px;">REPORT FOR DATE = <span id="reportSelectedDate" style="color:#0284c7; font-weight: 800; font-size:16px;">-</span></div>
           </div>
 
           <div class="balance-table-container" style="height: auto; max-height: 65vh;">
@@ -1114,7 +1112,7 @@
     }).join('');
   }
 
-  // --- PROGRESS REPORT MODULE ---
+  // --- PROGRESS REPORT MODULE (SUMMARY METRICS REMOVED) ---
   async function openProgressReport() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
@@ -1172,7 +1170,6 @@
       return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
     }
 
-    // Now Includes Fitter and Welder Issue Dates
     const reportStages = [
       { no: '01', name: 'ISSUED FOR BENDING', match: r => checkDateMatch(r.Issued_for_bending) },
       { no: '02', name: 'BEND COMPLETED', match: r => checkDateMatch(r.Bend_date) },
@@ -1187,18 +1184,10 @@
       { no: '11', name: 'FINAL DISPATCH & DC NO', match: r => checkDateMatch(r.Fd_date) }
     ];
 
-    let grandSpoolSet = new Set();
-    let grandWeldSum = 0;
-
     const htmlRows = reportStages.map(st => {
       const matchedRows = allRecordsCache.filter(st.match);
       const spoolsCount = new Set(matchedRows.map(r => r.Spool_number).filter(Boolean)).size;
       const weldsCount = getWeldSum(matchedRows);
-
-      matchedRows.forEach(r => {
-        if (r.Spool_number) grandSpoolSet.add(r.Spool_number);
-      });
-      grandWeldSum += weldsCount;
 
       return `
         <tr>
@@ -1211,8 +1200,6 @@
     }).join('');
 
     tbody.innerHTML = htmlRows;
-    document.getElementById('reportTotalSpool').innerText = grandSpoolSet.size;
-    document.getElementById('reportTotalWeld').innerText = Number.isInteger(grandWeldSum) ? grandWeldSum : parseFloat(grandWeldSum.toFixed(2));
   }
 
   function enforceRolePermissions(stage) {
@@ -1372,7 +1359,6 @@
         </div>
       `;
     }
-    // 04. FITTER NAME MODULE WITH DATE BUTTON
     else if (stage === 'fitter_name') {
       title.innerText = '4. FITTER NAME MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO FITTER';
@@ -1417,7 +1403,6 @@
         </div>
       `;
     }
-    // 07. WELDER NAME MODULE WITH DATE BUTTON
     else if (stage === 'welder_name') {
       title.innerText = '7. WELDER NAME MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO WELDER';
@@ -1567,7 +1552,7 @@
       if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
         const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
         const num = parseFloat(cleaned);
-        if (!isNaN(num)) cumWeldSum += num;
+        if (!isNaN(num)) sum += num;
       }
     });
 
