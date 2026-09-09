@@ -1,0 +1,107 @@
+import { db } from '../config/supabase.js';
+import { formatDateDisplay } from '../utils/dateUtils.js';
+
+let cache = [];
+
+export async function renderSpoolTracking(container) {
+  container.innerHTML = `
+    <div class="card">
+      <h3 style="color:#b45309;">🔍 Spool Live Stage Tracker</h3>
+      <label>Enter Spool Unique Number to Track:</label>
+      <div class="search-box-wrapper" style="max-width: 500px;">
+        <input type="text" id="trackSearchInput" placeholder="Type Spool Unique Number..." autocomplete="off">
+        <div id="trackDropdown" class="search-dropdown"></div>
+      </div>
+
+      <div id="spoolDetailsHeader" style="display: none; margin-top: 14px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <span style="font-size: 16px; font-weight: 800; color: #0f172a;" id="trackSpoolNo"></span>
+            <span style="margin-left: 8px; font-size: 12px; color: #0284c7; font-weight: 600;" id="trackDwgNo"></span>
+          </div>
+          <div style="font-size: 13px; font-weight: bold; color: #475569;" id="trackMeta"></div>
+        </div>
+        <div class="timeline-container" id="timelineList"></div>
+      </div>
+    </div>
+  `;
+
+  if (cache.length === 0) {
+    const { data } = await db.from('piping_joints').select('*').limit(5000);
+    cache = data || [];
+  }
+
+  const input = document.getElementById('trackSearchInput');
+  const dropdown = document.getElementById('trackDropdown');
+
+  input.addEventListener('input', () => {
+    const term = input.value.trim().toLowerCase();
+    if (!term) return dropdown.style.display = 'none';
+
+    const matched = cache.filter(r => 
+      String(r.Spool_number || '').toLowerCase().includes(term) ||
+      String(r.Drawing_no || '').toLowerCase().includes(term)
+    ).slice(0, 30);
+
+    if (matched.length === 0) {
+      dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:13px; text-align:center;">No Spools Found</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+
+    dropdown.innerHTML = matched.map(r => `
+      <div class="dropdown-row" data-id="${r.id}">
+        <div>
+          <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
+          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
+        </div>
+        <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || '-'}</span>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+
+    dropdown.querySelectorAll('.dropdown-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const item = cache.find(x => x.id === parseInt(row.getAttribute('data-id')));
+        selectSpool(item);
+      });
+    });
+  });
+}
+
+function selectSpool(item) {
+  if (!item) return;
+  document.getElementById('trackDropdown').style.display = 'none';
+  document.getElementById('trackSearchInput').value = item.Spool_number || '';
+  document.getElementById('spoolDetailsHeader').style.display = 'block';
+
+  document.getElementById('trackSpoolNo').innerText = `Spool: ${item.Spool_number || 'N/A'}`;
+  document.getElementById('trackDwgNo').innerText = `Drawing: ${item.Drawing_no || '-'}`;
+  document.getElementById('trackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend Qty: ${item.Bend_qty || '0'}`;
+
+  const stages = [
+    { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
+    { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
+    { no: '03', title: 'ISSUED FOR FIT-UP', done: Boolean(item.Issue_for_fitup), detail: `Date: ${formatDateDisplay(item.Issue_for_fitup)}` },
+    { no: '04', title: 'ISSUED TO FITTER', done: Boolean(item.Fitter_name), detail: `Fitter: ${item.Fitter_name || '-'} | Date: ${formatDateDisplay(item.issued_to_fitter_date)}` },
+    { no: '05', title: 'READY FIT-UP FOR INSP', done: Boolean(item.Ready_for_fitup_insp), detail: `Date: ${formatDateDisplay(item.Ready_for_fitup_insp)}` },
+    { no: '06', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
+    { no: '07', title: 'ISSUED TO WELDER', done: Boolean(item.Welder_no), detail: `Welder: ${item.Welder_no || '-'} | Date: ${formatDateDisplay(item.issued_to_welder_date)}` },
+    { no: '08', title: 'READY FOR WELD VISUAL', done: Boolean(item.Ready_for_weld_visual), detail: `Date: ${formatDateDisplay(item.Ready_for_weld_visual)}` },
+    { no: '09', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
+    { no: '10', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
+    { no: '11', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
+  ];
+
+  document.getElementById('timelineList').innerHTML = stages.map(s => `
+    <div class="timeline-card ${s.done ? 'status-completed' : 'status-hold'}">
+      <div>
+        <span style="font-size: 13.5px;"><b>${s.no}. ${s.title}</b></span>
+        <div style="font-size: 12px; font-weight: normal; margin-top: 3px; color: ${s.done ? '#15803d' : '#9a3412'};">
+          ${s.done ? s.detail : 'Stage Pending / Not Reached'}
+        </div>
+      </div>
+      <span class="stage-badge-tag ${s.done ? 'tag-completed' : 'tag-hold'}">${s.done ? 'COMPLETED' : 'HOLD / PENDING'}</span>
+    </div>
+  `).join('');
+}
