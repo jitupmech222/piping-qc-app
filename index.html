@@ -256,7 +256,7 @@
 </head>
 <body>
 
-<!-- Login Security Modal -->
+<!-- Login Security Modal with User Dropdown -->
 <div id="loginOverlay">
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 16px;">
@@ -264,15 +264,22 @@
       <span style="font-size: 12px; color: #64748b;">Piping Console</span>
     </div>
     <div>
-      <label>Username:</label>
-      <input type="text" id="loginUser" placeholder="Enter username" autocomplete="off">
+      <label>Select User:</label>
+      <select id="loginUser">
+        <option value="admin">Admin</option>
+        <option value="bending">Bending</option>
+        <option value="fitup">Fit-up</option>
+        <option value="welding">Welding</option>
+        <option value="qc/dc">QC/DC</option>
+        <option value="viewer">Viewer</option>
+      </select>
     </div>
     <div>
       <label>Password:</label>
       <input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter') verifyLogin()">
     </div>
     <div id="loginError" style="color: #dc2626; font-size: 12px; font-weight: bold; margin-top: 8px; display: none; text-align: center;">
-      ⚠️ Invalid Username or Password!
+      ⚠️ Invalid Password!
     </div>
     <button type="button" class="btn-login" onclick="verifyLogin()">Login</button>
   </div>
@@ -516,34 +523,34 @@
   // USER ROLES & PERMISSIONS DEFINITION
   const USER_ROLES = {
     "admin": {
-      pass: "pipe@6038",
+      pass: "ruhi@2018",
       name: "Admin",
       allowed: ["all"]
     },
     "bending": {
-      pass: "bend@123",
+      pass: "ad@123",
       name: "Bending Team",
-      allowed: ["bending_issue", "bend_entry", "fitup_issue"] // Stages 01, 02, 03
+      allowed: ["bending_issue", "bend_entry", "fitup_issue"]
     },
     "fitup": {
-      pass: "fitup@123",
+      pass: "rajan@456",
       name: "Fit-up Team",
-      allowed: ["fitter_name", "ready_fitup", "fitup_entry"] // Stages 04, 05, 06
+      allowed: ["fitter_name", "ready_fitup", "fitup_entry"]
     },
     "welding": {
-      pass: "weld@123",
+      pass: "jagdish@789",
       name: "Welding Team",
-      allowed: ["welder_name", "ready_weld", "weld_visual"] // Stages 07, 08, 09
+      allowed: ["welder_name", "ready_weld", "weld_visual"]
     },
-    "qc": {
-      pass: "qc@123",
-      name: "Quality Team",
-      allowed: ["ndt_clearance", "fd"] // Stages 10, 11
+    "qc/dc": {
+      pass: "qc@6038",
+      name: "QC/DC Team",
+      allowed: ["ndt_clearance", "fd"]
     },
     "viewer": {
       pass: "view@123",
       name: "Viewer",
-      allowed: [] // Only View Mode
+      allowed: []
     }
   };
 
@@ -564,7 +571,7 @@
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
-      document.getElementById('loginUser').focus();
+      document.getElementById('loginPass').focus();
     }
   }
 
@@ -616,7 +623,6 @@
   let masterColumnFilters = {};
   let currentPopupContext = { targetTable: '', colKey: '', colLabel: '', allValues: [] };
 
-  // NA Added in FITTERS and WELDERS List
   const FITTERS = ["NA", "PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
   const WELDERS = ["NA", "770", "815", "625", "853", "711", "625/1200", "770/1200"];
 
@@ -681,7 +687,6 @@
     enforceRolePermissions(stage);
   }
 
-  // --- ROLE BASED ACCESS ENFORCEMENT ---
   function enforceRolePermissions(stage) {
     if (!currentUser) return;
     const isAllowed = currentUser.allowed.includes("all") || currentUser.allowed.includes(stage);
@@ -800,7 +805,6 @@
     customArea.innerHTML = '';
     activeSubFilter = '';
 
-    // 01. ISSUED FOR BENDING ENTRY
     if (stage === 'bending_issue') {
       title.innerText = '1. ISSUED FOR BENDING ENTRY';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED FOR BENDING';
@@ -814,7 +818,6 @@
         </div>
       `;
     } 
-    // 02. BEND COMPLETED
     else if (stage === 'bend_entry') {
       title.innerText = '2. BEND ENTRY MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: BEND COMPLETED';
@@ -828,7 +831,6 @@
         </div>
       `;
     }
-    // 03. ISSUE FOR FIT-UP MODULE
     else if (stage === 'fitup_issue') {
       title.innerText = '3. ISSUE FOR FIT-UP MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUE FOR FIT-UP';
@@ -842,7 +844,6 @@
         </div>
       `;
     }
-    // 04. ISSUED TO FITTER
     else if (stage === 'fitter_name') {
       title.innerText = '4. FITTER NAME MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO FITTER';
@@ -851,7 +852,6 @@
       btnSaveLabel.innerText = 'SAVE FITTER ENTRY';
       customArea.innerHTML = '';
     }
-    // 05. READY FIT-UP FOR INSP (Includes NA button)
     else if (stage === 'ready_fitup') {
       title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: READY FIT-UP';
@@ -870,7 +870,6 @@
       activeSubFilter = FITTERS[0];
       subArea.children[0].classList.add('active');
     }
-    // 06. FIT UP COMPLETED
     else if (stage === 'fitup_entry') {
       title.innerText = '6. FIT UP ENTRY MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: FIT-UP COMPLETED';
@@ -884,7 +883,6 @@
         </div>
       `;
     }
-    // 07. ISSUED TO WELDER
     else if (stage === 'welder_name') {
       title.innerText = '7. WELDER NAME MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO WELDER';
@@ -893,7 +891,6 @@
       btnSaveLabel.innerText = 'SAVE WELDER ENTRY';
       customArea.innerHTML = '';
     }
-    // 08. READY FOR WELD VISUAL (Includes NA button)
     else if (stage === 'ready_weld') {
       title.innerText = '8. READY FOR WELD VISUAL MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: READY WELD VISUAL';
@@ -912,7 +909,6 @@
       activeSubFilter = WELDERS[0];
       subArea.children[0].classList.add('active');
     }
-    // 09. WELD VISUAL COMPLETED
     else if (stage === 'weld_visual') {
       title.innerText = '9. WELD VISUAL MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: WELD VISUAL COMPLETED';
@@ -926,7 +922,6 @@
         </div>
       `;
     }
-    // 10. NDT CLEARANCE
     else if (stage === 'ndt_clearance') {
       title.innerText = '10. NDT CLEARANCE MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: NDT CLEARANCE';
@@ -940,7 +935,6 @@
         </div>
       `;
     }
-    // 11. FINAL DISPATCH & DC NO
     else if (stage === 'fd') {
       title.innerText = '11. FINAL DISPATCH & DC NO MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: FINAL DISPATCH & DC NO';
@@ -1110,7 +1104,6 @@
     document.getElementById('spoolSearch').value = '';
     document.getElementById('searchDropdown').style.display = 'none';
 
-    // Direct Stages: 01, 03, 05, 06, 08, 09, 10, 11
     const isDirectStage = ['bending_issue', 'fitup_issue', 'fd', 'ready_fitup', 'fitup_entry', 'ready_weld', 'weld_visual', 'ndt_clearance'].includes(currentStage);
 
     if (isDirectStage) {
@@ -1121,7 +1114,6 @@
       return;
     }
 
-    // Interactive Stages: 02, 04, 07
     document.getElementById('itemEditForm').style.display = 'block';
     document.getElementById('form_item_id').value = item.id;
     document.getElementById('form_spool_no').value = item.Spool_number || '';
@@ -1483,7 +1475,8 @@
       `;
     }).join('');
   }
-// --- STAGE DATA SAVING LOGIC ---
+
+  // --- STAGE DATA SAVING LOGIC ---
   async function submitCurrentStage() {
     if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
       alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
