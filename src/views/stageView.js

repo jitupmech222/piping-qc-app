@@ -1,0 +1,506 @@
+import { db } from '../config/supabase.js';
+import { getCurrentUser } from '../main.js';
+import { FITTERS, WELDERS } from '../config/roles.js';
+import { calculateWeldSum } from '../utils/dateUtils.js';
+import { openExcelFilterModal } from '../utils/excelFilter.js';
+
+let currentStage = '';
+let cumulativeRows = [];
+let stageFilteredRows = [];
+let activeBalanceDisplayRows = [];
+let selectedQueue = [];
+let activeSubFilter = '';
+let balanceColumnFilters = {};
+
+export async function renderStage(container, stage) {
+  currentStage = stage;
+  selectedQueue = [];
+  balanceColumnFilters = {};
+  activeSubFilter = '';
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="metric-banner">
+        <div>TOTAL SPOOL = <span id="metricSpools" class="metric-val">0</span></div>
+        <div>TOTAL WELD ID = <span id="metricWelds" class="metric-val">0</span></div>
+      </div>
+
+      <h3 id="stageTitle">Stage Title</h3>
+      <div id="subFilterArea" class="sub-filter-group" style="display: none;"></div>
+
+      <div id="subMetricArea" class="sub-metric-banner" style="display: none;">
+        <div>SELECTED SPOOL = <span id="subMetricSpools" class="metric-val">0</span></div>
+        <div>SELECTED WELD = <span id="subMetricWelds" class="metric-val">0</span></div>
+      </div>
+
+      <label id="spoolSearchLabel">Spool Unique Number:</label>
+      <div class="search-box-wrapper">
+        <input type="text" id="spoolSearch" placeholder="Type spool no..." autocomplete="off">
+        <div id="searchDropdown" class="search-dropdown"></div>
+      </div>
+
+      <div id="itemEditForm" class="edit-form-box">
+        <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Edit Details:</div>
+        <div class="edit-grid">
+          <div><label style="margin-top:0;">Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
+          <div><label style="margin-top:0;">Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
+          <div id="dynamicFormFields"></div>
+        </div>
+        <input type="hidden" id="form_item_id">
+        <button type="button" class="btn-add-queue" id="btnAddQueue">➕ Save to Selected List</button>
+      </div>
+
+      <div id="selectedCardArea" style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">
+            Selected Spools (<span id="queueCount">0</span>)
+          </span>
+          <button type="button" class="btn-save-action" id="btnSaveAction">💾 <span id="btnSaveLabel">SAVE ENTRY</span></button>
+        </div>
+
+        <div id="customInputsArea" style="margin-bottom: 12px;"></div>
+
+        <div class="selected-table-container">
+          <table class="selected-table">
+            <thead id="selectedTableHead"></thead>
+            <tbody id="selectedTableBody">
+              <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 12px;">No spools selected.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
+        <button type="button" class="sub-filter-btn" style="padding: 4px 8px; flex: initial;" id="btnClearFilters">🔄 Clear All Filters</button>
+      </div>
+      <div class="balance-table-container">
+        <table>
+          <thead>
+            <tr style="background:#1e40af; color:white;">
+              <th><div class="header-cell"><span>Drawing No</span><button class="filter-btn-icon" data-key="Drawing_no">🔽</button></div></th>
+              <th><div class="header-cell"><span>Spool Unique No</span><button class="filter-btn-icon" data-key="Spool_number">🔽</button></div></th>
+              <th><div class="header-cell"><span>Spool Size</span><button class="filter-btn-icon" data-key="Spool_size">🔽</button></div></th>
+              <th><div class="header-cell"><span>WELD ID</span><button class="filter-btn-icon" data-key="Weld_id">🔽</button></div></th>
+              <th><div class="header-cell"><span>BEND QTY</span><button class="filter-btn-icon" data-key="Bend_qty">🔽</button></div></th>
+            </tr>
+          </thead>
+          <tbody id="stageBalanceTableBody">
+            <tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  setupStageUI(stage);
+  bindStageEvents();
+  renderSelectedTable();
+  await loadStageData(stage);
+  enforcePermissions();
+}
+
+function setupStageUI(stage) {
+  const title = document.getElementById('stageTitle');
+  const subArea = document.getElementById('subFilterArea');
+  const subMetric = document.getElementById('subMetricArea');
+  const customArea = document.getElementById('customInputsArea');
+  const queueHeading = document.getElementById('queueHeading');
+  const btnSaveLabel = document.getElementById('btnSaveLabel');
+
+  if (stage === 'bending_issue') {
+    title.innerText = '1. ISSUED FOR BENDING ENTRY';
+    queueHeading.innerHTML = 'Selected Spools for Bending (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE BENDING ENTRY';
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">Bending Issue Date:</label><input type="date" id="input_date" required></div>`;
+  } else if (stage === 'bend_entry') {
+    title.innerText = '2. BEND ENTRY MODULE';
+    queueHeading.innerHTML = 'Selected Spools for Bend (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE BEND ENTRY';
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">Bend Date:</label><input type="date" id="input_date" required></div>`;
+  } else if (stage === 'fitup_issue') {
+    title.innerText = '3. ISSUE FOR FIT-UP MODULE';
+    queueHeading.innerHTML = 'Selected Spools for Fit-Up (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE FIT-UP ENTRY';
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">Fit-Up Issue Date:</label><input type="date" id="input_date" required></div>`;
+  } else if (stage === 'fitter_name') {
+    title.innerText = '4. FITTER NAME MODULE';
+    queueHeading.innerHTML = 'Selected Spools for Fitter (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE FITTER ENTRY';
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">Issued to Fitter Date:</label><input type="date" id="input_date" required></div>`;
+  } else if (stage === 'ready_fitup') {
+    title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
+    queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE INSPECTION ENTRY';
+    subArea.style.display = 'flex';
+    subMetric.style.display = 'flex';
+    subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" data-val="${f}">${f}</button>`).join('');
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">Ready Fit-Up Date:</label><input type="date" id="input_date" required></div>`;
+    activeSubFilter = FITTERS[0];
+    subArea.children[0].classList.add('active');
+  } else if (stage === 'fitup_entry') {
+    title.innerText = '6. FIT UP ENTRY MODULE';
+    queueHeading.innerHTML = 'Selected Spools for Fit-Up (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE FIT-UP COMPLETED';
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">Fit-Up Completed Date:</label><input type="date" id="input_date" required></div>`;
+  } else if (stage === 'welder_name') {
+    title.innerText = '7. WELDER NAME MODULE';
+    queueHeading.innerHTML = 'Selected Spools for Welder (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE WELDER ENTRY';
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">Issued to Welder Date:</label><input type="date" id="input_date" required></div>`;
+  } else if (stage === 'ready_weld') {
+    title.innerText = '8. READY FOR WELD VISUAL MODULE';
+    queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE VISUAL ENTRY';
+    subArea.style.display = 'flex';
+    subMetric.style.display = 'flex';
+    subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" data-val="${w}">${w}</button>`).join('');
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">Ready Visual Date:</label><input type="date" id="input_date" required></div>`;
+    activeSubFilter = WELDERS[0];
+    subArea.children[0].classList.add('active');
+  } else if (stage === 'weld_visual') {
+    title.innerText = '9. WELD VISUAL MODULE';
+    queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE VISUAL COMPLETED';
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">Weld Visual Date:</label><input type="date" id="input_date" required></div>`;
+  } else if (stage === 'ndt_clearance') {
+    title.innerText = '10. NDT CLEARANCE MODULE';
+    queueHeading.innerHTML = 'Selected Spools for NDT (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE NDT ENTRY';
+    customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0;">NDT Clearance Date:</label><input type="date" id="input_date" required></div>`;
+  } else if (stage === 'fd') {
+    title.innerText = '11. FINAL DISPATCH & DC NO MODULE';
+    queueHeading.innerHTML = 'Selected Spools for DC (<span id="queueCount">0</span>)';
+    btnSaveLabel.innerText = 'SAVE DC ENTRY';
+    customArea.innerHTML = `
+      <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
+        <div style="width: 240px;"><label style="margin-top:0;">DC No (e.g. AEPL-08):</label><input type="text" id="input_dc_no" placeholder="Enter DC No" required></div>
+        <div style="width: 200px;"><label style="margin-top:0;">Dispatch Date:</label><input type="date" id="input_date" required></div>
+      </div>
+    `;
+  }
+}
+
+async function loadStageData(stage) {
+  let query = db.from('piping_joints').select('*');
+
+  if (stage === 'bending_issue') query = query.is('Bend_date', null).is('Issued_for_bending', null);
+  else if (stage === 'bend_entry') query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
+  else if (stage === 'fitup_issue') query = query.not('Bend_date', 'is', null).is('Issue_for_fitup', null);
+  else if (stage === 'fitter_name') query = query.not('Issue_for_fitup', 'is', null).is('Fitter_name', null);
+  else if (stage === 'ready_fitup') query = query.not('Fitter_name', 'is', null).is('Ready_for_fitup_insp', null);
+  else if (stage === 'fitup_entry') query = query.not('Ready_for_fitup_insp', 'is', null).is('Fit_up_date', null);
+  else if (stage === 'welder_name') query = query.not('Fit_up_date', 'is', null).is('Welder_no', null);
+  else if (stage === 'ready_weld') query = query.not('Welder_no', 'is', null).is('Ready_for_weld_visual', null);
+  else if (stage === 'weld_visual') query = query.not('Ready_for_weld_visual', 'is', null).is('Weld_visual_date', null);
+  else if (stage === 'ndt_clearance') query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
+  else if (stage === 'fd') query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
+
+  const { data, error } = await query.order('id', { ascending: true }).limit(5000);
+  if (error) return alert("Error loading data: " + error.message);
+
+  cumulativeRows = data || [];
+  filterBySubStage();
+}
+
+function filterBySubStage() {
+  if (currentStage === 'ready_fitup') {
+    stageFilteredRows = cumulativeRows.filter(r => String(r.Fitter_name || '').trim() === activeSubFilter);
+  } else if (currentStage === 'ready_weld') {
+    stageFilteredRows = cumulativeRows.filter(r => String(r.Welder_no || '').includes(activeSubFilter));
+  } else {
+    stageFilteredRows = cumulativeRows;
+  }
+  applyBalanceFilters();
+  updateMetrics();
+}
+
+function updateMetrics() {
+  const cumSpools = new Set(cumulativeRows.map(r => r.Spool_number).filter(Boolean)).size;
+  const cumWelds = calculateWeldSum(cumulativeRows);
+
+  document.getElementById('metricSpools').innerText = cumSpools;
+  document.getElementById('metricWelds').innerText = cumWelds;
+
+  if (currentStage === 'ready_fitup' || currentStage === 'ready_weld') {
+    const subSpools = new Set(stageFilteredRows.map(r => r.Spool_number).filter(Boolean)).size;
+    const subWelds = calculateWeldSum(stageFilteredRows);
+    document.getElementById('subMetricSpools').innerText = subSpools;
+    document.getElementById('subMetricWelds').innerText = subWelds;
+  }
+  document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
+}
+
+function applyBalanceFilters() {
+  activeBalanceDisplayRows = stageFilteredRows.filter(r => {
+    for (const [colKey, allowedSet] of Object.entries(balanceColumnFilters)) {
+      let val = String(r[colKey] !== undefined ? r[colKey] : '').trim();
+      const displayVal = val === '' ? '(Blank)' : val;
+      if (!allowedSet.has(displayVal)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
+  renderBalanceTable();
+}
+
+function renderBalanceTable() {
+  const tbody = document.getElementById('stageBalanceTableBody');
+  if (activeBalanceDisplayRows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#16a34a; font-weight:bold;">🎉 All cleared!</td></tr>';
+    return;
+  }
+  tbody.innerHTML = activeBalanceDisplayRows.slice(0, 500).map(r => `
+    <tr>
+      <td><b>${r.Drawing_no || '-'}</b></td>
+      <td><b>${r.Spool_number || '-'}</b></td>
+      <td>${r.Spool_size || '-'}</td>
+      <td><b>${r.Weld_id || '-'}</b></td>
+      <td>${r.Bend_qty || '-'}</td>
+    </tr>
+  `).join('');
+}
+
+function renderSelectedTable() {
+  const thead = document.getElementById('selectedTableHead');
+  const tbody = document.getElementById('selectedTableBody');
+  document.getElementById('queueCount').innerText = selectedQueue.length;
+
+  if (currentStage === 'fitter_name') {
+    thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Assigned Fitter</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+  } else if (currentStage === 'welder_name') {
+    thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Assigned Welder</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+  } else if (currentStage === 'bend_entry') {
+    thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+  } else {
+    thead.innerHTML = `<tr><th style="width:50px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th style="text-align:center; width:100px;">Action</th></tr>`;
+  }
+
+  if (selectedQueue.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">No spools selected.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = selectedQueue.map((r, idx) => {
+    let custom = '';
+    if (currentStage === 'fitter_name') custom = `<td style="font-weight:bold; color:#1e40af;">${r.final_fitter || '-'}</td>`;
+    else if (currentStage === 'welder_name') custom = `<td style="font-weight:bold; color:#1e40af;">${r.final_welder || '-'}</td>`;
+    else if (currentStage === 'bend_entry') custom = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty || '-'}</td><td style="font-weight:bold; color:#0284c7;">${r.final_weld_id || '-'}</td>`;
+
+    return `
+      <tr>
+        <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+        <td style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</td>
+        <td style="color: #334155;">${r.Drawing_no || '-'}</td>
+        ${custom}
+        <td style="text-align: center;"><button type="button" class="btn-remove" data-id="${r.id}">✕ Remove</button></td>
+      </tr>
+    `;
+  }).join('');
+
+  tbody.querySelectorAll('.btn-remove').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = parseInt(b.getAttribute('data-id'));
+      selectedQueue = selectedQueue.filter(x => x.id !== id);
+      renderSelectedTable();
+    });
+  });
+}
+
+function bindStageEvents() {
+  const searchInput = document.getElementById('spoolSearch');
+  const dropdown = document.getElementById('searchDropdown');
+
+  searchInput.addEventListener('input', () => {
+    const term = searchInput.value.trim().toLowerCase();
+    if (!term) return dropdown.style.display = 'none';
+
+    const matched = stageFilteredRows.filter(r => 
+      String(r.Spool_number || '').toLowerCase().includes(term) ||
+      String(r.Drawing_no || '').toLowerCase().includes(term) ||
+      String(r.Weld_id || '').toLowerCase().includes(term)
+    ).slice(0, 35);
+
+    if (matched.length === 0) {
+      dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:13px; text-align:center;">No Spools Found</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+
+    dropdown.innerHTML = matched.map(r => `
+      <div class="dropdown-row" data-id="${r.id}">
+        <div>
+          <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
+          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
+        </div>
+        <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || '-'}</span>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+
+    dropdown.querySelectorAll('.dropdown-row').forEach(row => {
+      row.addEventListener('click', () => onSpoolSelect(parseInt(row.getAttribute('data-id'))));
+    });
+  });
+
+  document.getElementById('btnAddQueue').addEventListener('click', confirmAddFormToQueue);
+  document.getElementById('btnSaveAction').addEventListener('click', submitCurrentStage);
+  document.getElementById('btnClearFilters').addEventListener('click', () => {
+    balanceColumnFilters = {};
+    applyBalanceFilters();
+  });
+
+  document.querySelectorAll('.filter-btn-icon').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const colKey = btn.getAttribute('data-key');
+      openExcelFilterModal(e, 'balance', colKey, colKey, stageFilteredRows, balanceColumnFilters, applyBalanceFilters);
+    });
+  });
+
+  document.querySelectorAll('#subFilterArea .sub-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#subFilterArea .sub-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeSubFilter = btn.getAttribute('data-val');
+      filterBySubStage();
+    });
+  });
+}
+
+function onSpoolSelect(id) {
+  if (selectedQueue.some(x => x.id === id)) return alert("⚠️ આ સ્પૂલ પહેલેથી લિસ્ટમાં ઉમેરેલું છે!");
+  const item = stageFilteredRows.find(x => x.id === id);
+  if (!item) return;
+
+  document.getElementById('spoolSearch').value = '';
+  document.getElementById('searchDropdown').style.display = 'none';
+
+  const isDirectStage = ['bending_issue', 'fitup_issue', 'fd', 'ready_fitup', 'fitup_entry', 'ready_weld', 'weld_visual', 'ndt_clearance'].includes(currentStage);
+  if (isDirectStage) {
+    selectedQueue.push(item);
+    document.getElementById('itemEditForm').style.display = 'none';
+    renderSelectedTable();
+    document.getElementById('spoolSearch').focus();
+    return;
+  }
+
+  document.getElementById('itemEditForm').style.display = 'block';
+  document.getElementById('form_item_id').value = item.id;
+  document.getElementById('form_spool_no').value = item.Spool_number || '';
+  document.getElementById('form_drawing_no').value = item.Drawing_no || '';
+
+  const dynArea = document.getElementById('dynamicFormFields');
+  if (currentStage === 'bend_entry') {
+    dynArea.innerHTML = `
+      <div><label style="margin-top:0;">BEND QTY:</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || ''}"></div>
+      <div><label style="margin-top:0;">WELD ID:</label><input type="text" id="form_weld_id" value="${item.Weld_id || ''}"></div>
+    `;
+  } else if (currentStage === 'fitter_name') {
+    dynArea.innerHTML = `
+      <div><label style="margin-top:0;">Select Fitter:</label>
+      <select id="form_fitter_val"><option value="">-- Select --</option>${FITTERS.map(f => `<option value="${f}">${f}</option>`).join('')}</select></div>
+    `;
+  } else if (currentStage === 'welder_name') {
+    dynArea.innerHTML = `
+      <div><label style="margin-top:0;">Welder 1:</label><select id="form_welder_1"><option value="">-- Select --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select></div>
+      <div><label style="margin-top:6px;">Welder 2 (Optional):</label><select id="form_welder_2"><option value="">-- None --</option>${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}</select></div>
+    `;
+  }
+}
+
+function confirmAddFormToQueue() {
+  const id = parseInt(document.getElementById('form_item_id').value);
+  const item = stageFilteredRows.find(x => x.id === id);
+  if (!item) return;
+
+  let extraData = {};
+  if (currentStage === 'bend_entry') {
+    extraData.final_bend_qty = document.getElementById('form_bend_qty').value.trim();
+    extraData.final_weld_id = document.getElementById('form_weld_id').value.trim();
+  } else if (currentStage === 'fitter_name') {
+    const val = document.getElementById('form_fitter_val').value;
+    if (!val) return alert("કૃપા કરીને Fitter પસંદ કરો!");
+    extraData.final_fitter = val;
+  } else if (currentStage === 'welder_name') {
+    const w1 = document.getElementById('form_welder_1').value;
+    const w2 = document.getElementById('form_welder_2').value;
+    if (!w1) return alert("કૃપા કરીને Welder 1 પસંદ કરો!");
+    extraData.final_welder = (w2 && w2 !== 'NA') ? `${w1}/${w2}` : w1;
+  }
+
+  selectedQueue.push({ ...item, ...extraData });
+  document.getElementById('itemEditForm').style.display = 'none';
+  renderSelectedTable();
+  document.getElementById('spoolSearch').focus();
+}
+
+async function submitCurrentStage() {
+  if (selectedQueue.length === 0) return alert('કૃપા કરીને ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
+  const dateInput = document.getElementById('input_date');
+  const enteredDate = dateInput ? dateInput.value : null;
+
+  if (currentStage === 'fitter_name') {
+    if (!enteredDate) return alert('કૃપા કરીને Issued to Fitter Date પસંદ કરો.');
+    for (const item of selectedQueue) {
+      await db.from('piping_joints').update({ Fitter_name: item.final_fitter, issued_to_fitter_date: enteredDate }).eq('id', item.id);
+    }
+  } else if (currentStage === 'welder_name') {
+    if (!enteredDate) return alert('કૃપા કરીને Issued to Welder Date પસંદ કરો.');
+    for (const item of selectedQueue) {
+      await db.from('piping_joints').update({ Welder_no: item.final_welder, issued_to_welder_date: enteredDate }).eq('id', item.id);
+    }
+  } else if (currentStage === 'bend_entry') {
+    if (!enteredDate) return alert('કૃપા કરીને Bend Date પસંદ કરો.');
+    for (const item of selectedQueue) {
+      await db.from('piping_joints').update({ Bend_date: enteredDate, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id }).eq('id', item.id);
+    }
+  } else if (currentStage === 'bending_issue') {
+    if (!enteredDate) return alert('કૃપા કરીને Bending Issue Date પસંદ કરો.');
+    await db.from('piping_joints').update({ Issued_for_bending: enteredDate }).in('id', selectedQueue.map(x => x.id));
+  } else if (currentStage === 'fitup_issue') {
+    if (!enteredDate) return alert('કૃપા કરીને Fit-Up Issue Date પસંદ કરો.');
+    await db.from('piping_joints').update({ Issue_for_fitup: enteredDate }).in('id', selectedQueue.map(x => x.id));
+  } else if (currentStage === 'ready_fitup') {
+    if (!enteredDate) return alert('કૃપા કરીને Ready Fit-Up Date દાખલ કરો.');
+    await db.from('piping_joints').update({ Ready_for_fitup_insp: enteredDate }).in('id', selectedQueue.map(x => x.id));
+  } else if (currentStage === 'fitup_entry') {
+    if (!enteredDate) return alert('કૃપા કરીને Fit-Up Date પસંદ કરો.');
+    await db.from('piping_joints').update({ Fit_up_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
+  } else if (currentStage === 'ready_weld') {
+    if (!enteredDate) return alert('કૃપા કરીને Ready Weld Date દાખલ કરો.');
+    await db.from('piping_joints').update({ Ready_for_weld_visual: enteredDate }).in('id', selectedQueue.map(x => x.id));
+  } else if (currentStage === 'weld_visual') {
+    if (!enteredDate) return alert('કૃપા કરીને Visual Date દાખલ કરો.');
+    await db.from('piping_joints').update({ Weld_visual_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
+  } else if (currentStage === 'ndt_clearance') {
+    if (!enteredDate) return alert('કૃપા કરીને NDT Clearance Date દાખલ કરો.');
+    await db.from('piping_joints').update({ Ndt_clearance: enteredDate }).in('id', selectedQueue.map(x => x.id));
+  } else if (currentStage === 'fd') {
+    const dcNo = document.getElementById('input_dc_no').value.trim();
+    if (!dcNo || !enteredDate) return alert('કૃપા કરીને DC No અને Dispatch Date બંને દાખલ કરો.');
+    await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
+  }
+
+  alert(`✅ ${selectedQueue.length} Spools સફળતાપૂર્વક અપડેટ થઈ ગયા!`);
+  selectedQueue = [];
+  if (document.getElementById('input_date')) document.getElementById('input_date').value = '';
+  if (document.getElementById('input_dc_no')) document.getElementById('input_dc_no').value = '';
+  if (document.getElementById('spoolSearch')) document.getElementById('spoolSearch').value = '';
+  renderSelectedTable();
+  await loadStageData(currentStage);
+}
+
+function enforcePermissions() {
+  const user = getCurrentUser();
+  if (!user) return;
+  const isAllowed = user.allowed.includes("all") || user.allowed.includes(currentStage);
+  if (!isAllowed) {
+    document.getElementById('spoolSearch').disabled = true;
+    document.getElementById('spoolSearch').placeholder = `🔒 View Only Mode (${user.name})`;
+    document.getElementById('btnSaveAction').style.display = 'none';
+    document.getElementById('selectedCardArea').style.display = 'none';
+  }
+}
