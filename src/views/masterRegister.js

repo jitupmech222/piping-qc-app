@@ -1,0 +1,168 @@
+import { db } from '../config/supabase.js';
+import { getCurrentUser } from '../main.js';
+import { MASTER_COLS, EDIT_MODE_PASSWORD } from '../config/roles.js';
+import { formatDateDisplay, escapeHtml } from '../utils/dateUtils.js';
+import { openExcelFilterModal } from '../utils/excelFilter.js';
+
+let allRecords = [];
+let masterDisplayRows = [];
+let masterColumnFilters = {};
+let isMasterEditMode = false;
+let pendingUpdates = new Map();
+
+export async function renderMasterRegister(container) {
+  isMasterEditMode = false;
+  pendingUpdates.clear();
+  masterColumnFilters = {};
+
+  container.innerHTML = `
+    <div class="card" style="padding: 10px 14px; margin-top: 4px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:14.5px; font-weight: bold; color: #0f172a;">📊 Live Master Records (<span id="masterTotalCount">0</span>)</span>
+          <button type="button" id="btnMasterView" class="btn-mode-view">👁️ View</button>
+          <button type="button" id="btnMasterEdit" class="btn-mode-edit">✏️ Edit</button>
+          <button type="button" id="btnMasterSave" class="btn-mode-save">💾 SAVE CHANGES</button>
+        </div>
+        <button type="button" class="sub-filter-btn" id="btnClearMasterFilters">🔄 Clear Filters</button>
+      </div>
+      <div class="master-table-container">
+        <table id="qcDataTable">
+          <thead>
+            <tr>
+              ${MASTER_COLS.map(c => `
+                <th>
+                  <div class="header-cell">
+                    <span>${c.label}</span>
+                    <button class="filter-btn-icon" data-key="${c.key}">🔽</button>
+                  </div>
+                </th>
+              `).join('')}
+            </tr>
+          </thead>
+          <tbody id="masterTableBody">
+            <tr><td colspan="24" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  bindEvents();
+  await loadFullData();
+}
+
+async function loadFullData() {
+  let allRows = [];
+  let from = 0;
+  while (true) {
+    const { data } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + 999);
+    if (!data || data.length === 0) break;
+    allRows = allRows.concat(data);
+    from += 1000;
+    if (data.length < 1000) break;
+  }
+  allRecords = allRows;
+  applyFilters();
+}
+
+function applyFilters() {
+  masterDisplayRows = allRecords.filter(r => {
+    for (const [colKey, allowedSet] of Object.entries(masterColumnFilters)) {
+      let val = String(r[colKey] !== undefined ? r[colKey] : '').trim();
+      const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issue') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+      const displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
+      if (!allowedSet.has(displayVal)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('masterTotalCount').innerText = masterDisplayRows.length;
+  renderRows();
+}
+
+function renderRows() {
+  const tbody = document.getElementById('masterTableBody');
+  if (masterDisplayRows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="24" style="text-align:center; padding:15px;">No records found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = masterDisplayRows.slice(0, 1000).map(r => `
+    <tr>
+      ${MASTER_COLS.map(c => {
+        let val = r[c.key] !== undefined ? r[c.key] : '';
+        if (val === null) val = '';
+        const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issue') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
+        let display = isDateCol ? formatDateDisplay(val) : String(val);
+
+        if (isMasterEditMode) {
+          let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+          return `<td><input type="text" class="cell-input" value="${escapeHtml(editVal)}" data-id="${r.id}" data-key="${c.key}"></td>`;
+        }
+        return `<td>${display || '-'}</td>`;
+      }).join('')}
+    </tr>
+  `).join('');
+
+  if (isMasterEditMode) {
+    tbody.querySelectorAll('.cell-input').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const id = parseInt(inp.getAttribute('data-id'));
+        const key = inp.getAttribute('data-key');
+        if (!pendingUpdates.has(id)) pendingUpdates.set(id, {});
+        pendingUpdates.get(id)[key] = inp.value.trim() === '' ? null : inp.value.trim();
+
+        const row = allRecords.find(x => x.id === id);
+        if (row) row[key] = pendingUpdates.get(id)[key];
+      });
+    });
+  }
+}
+
+function bindEvents() {
+  document.getElementById('btnMasterView').addEventListener('click', () => {
+    isMasterEditMode = false;
+    document.getElementById('btnMasterSave').style.display = 'none';
+    renderRows();
+  });
+
+  document.getElementById('btnMasterEdit').addEventListener('click', () => {
+    const user = getCurrentUser();
+    if (!user || user.username !== 'admin') return alert("⚠️ માત્ર Admin પાસે જ Edit કરવાની પરમિશન છે!");
+    const pass = prompt("🔐 Enter Master Register Edit Password:");
+    if (pass === EDIT_MODE_PASSWORD) {
+      isMasterEditMode = true;
+      document.getElementById('btnMasterSave').style.display = 'inline-block';
+      renderRows();
+    } else if (pass !== null) {
+      alert("❌ Incorrect Edit Password!");
+    }
+  });
+
+  document.getElementById('btnMasterSave').addEventListener('click', async () => {
+    if (pendingUpdates.size === 0) return alert("⚠️ કોઈ ફેરફાર થયેલ નથી.");
+    if (!confirm(`શું તમે ${pendingUpdates.size} રો ના ફેરફારો Save કરવા માંગો છો?`)) return;
+
+    for (const [id, rowData] of pendingUpdates.entries()) {
+      await db.from('piping_joints').update(rowData).eq('id', id);
+    }
+    alert("🎉 ફેરફારો Database માં સફળતાપૂર્વક સાચવવામાં આવ્યા!");
+    pendingUpdates.clear();
+    isMasterEditMode = false;
+    document.getElementById('btnMasterSave').style.display = 'none';
+    renderRows();
+  });
+
+  document.getElementById('btnClearMasterFilters').addEventListener('click', () => {
+    masterColumnFilters = {};
+    applyFilters();
+  });
+
+  document.querySelectorAll('#qcDataTable .filter-btn-icon').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const colKey = btn.getAttribute('data-key');
+      openExcelFilterModal(e, 'master', colKey, colKey, allRecords, masterColumnFilters, applyFilters);
+    });
+  });
+}
