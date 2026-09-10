@@ -1625,6 +1625,7 @@
     updateMetrics();
   }
 
+  // ✅ સુધારેલું updateMetrics ફંક્શન
   function updateMetrics() {
     const cumSpools = new Set(cumulativeRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
     let cumWeldSum = 0;
@@ -1633,7 +1634,7 @@
       if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
         const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
         const num = parseFloat(cleaned);
-        if (!isNaN(num)) sum += num;
+        if (!isNaN(num)) cumWeldSum += num;
       }
     });
 
