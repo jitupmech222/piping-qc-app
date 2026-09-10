@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="gu">
 <head>
+  <!-- HTML ને Image માં કન્વર્ટ કરવા માટેની લાઈબ્રેરી -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piping Work Progress Console</title>
@@ -1241,47 +1243,73 @@
   }
 
   // 1-CLICK WHATSAPP SHARE (Admin Only Protection)
-  function shareReportToWhatsApp() {
-    if (!currentUser || currentUser.username !== 'admin') {
-      alert("⚠️ માત્ર Admin પાસે જ WhatsApp પર રિપોર્ટ શેર કરવાનો અધિકાર છે!");
-      return;
-    }
+async function shareReportToWhatsApp() {
+  if (!currentUser || currentUser.username !== 'admin') {
+    alert("⚠️ માત્ર Admin પાસે જ WhatsApp પર રિપોર્ટ શેર કરવાનો અધિકાર છે!");
+    return;
+  }
 
-    const selectedDate = document.getElementById('reportDateInput').value;
-    if (!selectedDate) {
-      alert("કૃપા કરીને પહેલા તારીખ પસંદ કરો!");
-      return;
-    }
+  const selectedDate = document.getElementById('reportDateInput').value;
+  if (!selectedDate) {
+    alert("કૃપા કરીને પહેલા તારીખ પસંદ કરો!");
+    return;
+  }
 
-    const rows = document.querySelectorAll('#reportTableBody tr');
-    if (rows.length === 0 || rows[0].innerText.includes('Calculating')) {
-      alert("કૃપા કરીને પહેલા 'Generate Report' બટન દબાવીને રિપોર્ટ તૈયાર કરો!");
-      return;
-    }
+  const reportArea = document.getElementById('reportResultArea');
+  if (!reportArea || reportArea.style.display === 'none') {
+    alert("કૃપા કરીને પહેલા 'Generate Report' બટન દબાવીને રિપોર્ટ તૈયાર કરો!");
+    return;
+  }
 
-    let text = `⚙️ *DAILY PIPING PROGRESS REPORT*\n`;
-    text += `📅 *તારીખ:* ${formatDateDisplay(selectedDate)}\n`;
-    text += `━━━━━━━━━━━━━━━━━━━━━\n`;
+  // બટન પર લોડિંગ બતાવો
+  const shareBtn = document.getElementById('btnShareWhatsApp');
+  const originalText = shareBtn.innerHTML;
+  shareBtn.innerHTML = '⏳ Creating Table Image...';
+  shareBtn.disabled = true;
 
-    rows.forEach(r => {
-      const cols = r.querySelectorAll('td');
-      if (cols.length >= 4) {
-        const no = cols[0].innerText.trim();
-        const stageName = cols[1].innerText.trim();
-        const spools = cols[2].innerText.trim();
-        const welds = cols[3].innerText.trim();
-
-        text += `${no}. *${stageName}*\n`;
-        text += `   • Spools: *${spools}* | Weld ID: *${welds}*\n`;
-      }
+  try {
+    // રિપોર્ટ એરિયાનો ફોટો (Canvas) બનાવો
+    const canvas = await html2canvas(reportArea, {
+      scale: 2, // હાઈ ક્વોલિટી HD ઈમેજ માટે
+      backgroundColor: '#ffffff',
+      useCORS: true
     });
 
-    text += `━━━━━━━━━━━━━━━━━━━━━\n`;
-    text += `🔗 *Live Portal:* https://pipeflowsys.in`;
+    // Canvas ને ઈમેજ ફાઈલમાં કન્વર્ટ કરો
+    canvas.toBlob(async (blob) => {
+      const fileName = `Daily_Progress_Report_${selectedDate}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
 
-    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(waUrl, '_blank');
+      // જો મોબાઈલ બ્રાઉઝર સીધું ફાઈલ શેરિંગ સપોર્ટ કરતું હોય (Web Share API)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Daily Piping Progress Report',
+          text: `⚙️ Daily Piping Progress Report: ${formatDateDisplay(selectedDate)}`
+        });
+      } else {
+        // જો બ્રાઉઝર સપોર્ટ ન કરતું હોય (જેમ કે ડેસ્કટોપ Chrome), તો ઈમેજ ડાઉનલોડ થશે અને WhatsApp Web ખૂલશે
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        alert("✅ રિપોર્ટની HD ઈમેજ ડાઉનલોડ થઈ ગઈ છે! હવે WhatsApp માં શેર કરી દો.");
+        const text = encodeURIComponent(`⚙️ *DAILY PIPING PROGRESS REPORT*\n📅 *તારીખ:* ${formatDateDisplay(selectedDate)}\n(ટેબલ ઈમેજ અટેચ કરી છે)`);
+        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+      }
+
+      shareBtn.innerHTML = originalText;
+      shareBtn.disabled = false;
+    }, 'image/png');
+
+  } catch (err) {
+    console.error(err);
+    alert("ઈમેજ બનાવવામાં ભૂલ આવી: " + err.message);
+    shareBtn.innerHTML = originalText;
+    shareBtn.disabled = false;
   }
+}
 
   function enforceRolePermissions(stage) {
     if (!currentUser) return;
