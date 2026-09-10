@@ -1261,26 +1261,47 @@ async function shareReportToWhatsApp() {
     return;
   }
 
-  // બટન પર લોડિંગ બતાવો
   const shareBtn = document.getElementById('btnShareWhatsApp');
   const originalText = shareBtn.innerHTML;
   shareBtn.innerHTML = '⏳ Creating Table Image...';
   shareBtn.disabled = true;
 
+  // અંદર રહેલા ટેબલ કન્ટેનરની સ્ક્રૉલ હટાવી આખું ટેબલ વિઝિબલ કરવું
+  const tableContainer = reportArea.querySelector('.balance-table-container');
+  const originalOverflow = tableContainer ? tableContainer.style.overflow : '';
+  const originalMaxHeight = tableContainer ? tableContainer.style.maxHeight : '';
+  const originalHeight = tableContainer ? tableContainer.style.height : '';
+
+  if (tableContainer) {
+    tableContainer.style.overflow = 'visible';
+    tableContainer.style.maxHeight = 'none';
+    tableContainer.style.height = 'auto';
+  }
+
   try {
-    // રિપોર્ટ એરિયાનો ફોટો (Canvas) બનાવો
+    // સંપૂર્ણ પહોળાઈ કેપ્ચર કરવા માટે scrollWidth સેટ કરો
+    const fullWidth = reportArea.scrollWidth || 800;
+
     const canvas = await html2canvas(reportArea, {
-      scale: 2, // હાઈ ક્વોલિટી HD ઈમેજ માટે
+      scale: 2, // શાર્પ અને HD ઈમેજ માટે
       backgroundColor: '#ffffff',
-      useCORS: true
+      useCORS: true,
+      windowWidth: fullWidth,
+      width: fullWidth
     });
 
-    // Canvas ને ઈમેજ ફાઈલમાં કન્વર્ટ કરો
+    // ટેબલ સ્ટાઇલ પાછી યથાવત કરવી
+    if (tableContainer) {
+      tableContainer.style.overflow = originalOverflow;
+      tableContainer.style.maxHeight = originalMaxHeight;
+      tableContainer.style.height = originalHeight;
+    }
+
     canvas.toBlob(async (blob) => {
       const fileName = `Daily_Progress_Report_${selectedDate}.png`;
       const file = new File([blob], fileName, { type: 'image/png' });
 
-      // જો મોબાઈલ બ્રાઉઝર સીધું ફાઈલ શેરિંગ સપોર્ટ કરતું હોય (Web Share API)
+      // મોબાઈલ ડિવાઇસ માટે ડાયરેક્ટ શેરિંગ
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -1288,14 +1309,14 @@ async function shareReportToWhatsApp() {
           text: `⚙️ Daily Piping Progress Report: ${formatDateDisplay(selectedDate)}`
         });
       } else {
-        // જો બ્રાઉઝર સપોર્ટ ન કરતું હોય (જેમ કે ડેસ્કટોપ Chrome), તો ઈમેજ ડાઉનલોડ થશે અને WhatsApp Web ખૂલશે
+        // પીસી/લેપટોપ માટે ઈમેજ ડાઉનલોડ + વોટ્સએપ વેબ
         const link = document.createElement('a');
         link.download = fileName;
         link.href = canvas.toDataURL('image/png');
         link.click();
 
-        alert("✅ રિપોર્ટની HD ઈમેજ ડાઉનલોડ થઈ ગઈ છે! હવે WhatsApp માં શેર કરી દો.");
-        const text = encodeURIComponent(`⚙️ *DAILY PIPING PROGRESS REPORT*\n📅 *તારીખ:* ${formatDateDisplay(selectedDate)}\n(ટેબલ ઈમેજ અટેચ કરી છે)`);
+        alert("✅ રિપોર્ટની સંપૂર્ણ ઈમેજ ડાઉનલોડ થઈ ગઈ છે! હવે WhatsApp માં શેર કરી દો.");
+        const text = encodeURIComponent(`⚙️ *DAILY PIPING PROGRESS REPORT*\n📅 *તારીખ:* ${formatDateDisplay(selectedDate)}\n(ટેબલ ઈમેજ અટેચ કરેલ છે)`);
         window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
       }
 
@@ -1304,13 +1325,18 @@ async function shareReportToWhatsApp() {
     }, 'image/png');
 
   } catch (err) {
+    // એરર આવે તો પણ લેઆઉટ રિસેટ કરો
+    if (tableContainer) {
+      tableContainer.style.overflow = originalOverflow;
+      tableContainer.style.maxHeight = originalMaxHeight;
+      tableContainer.style.height = originalHeight;
+    }
     console.error(err);
     alert("ઈમેજ બનાવવામાં ભૂલ આવી: " + err.message);
     shareBtn.innerHTML = originalText;
     shareBtn.disabled = false;
   }
 }
-
   function enforceRolePermissions(stage) {
     if (!currentUser) return;
     const isAllowed = currentUser.allowed.includes("all") || currentUser.allowed.includes(stage);
