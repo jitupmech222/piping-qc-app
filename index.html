@@ -1321,7 +1321,7 @@ async function shareReportToWhatsApp() {
         await navigator.share({
           files: [file],
           title: 'Daily Piping Progress Report',
-          text: `⚙️ Daily Piping Progress Report: ${formatDateDisplay(selectedDate)}`
+          text: `Daily Piping Progress Report: ${formatDateDisplay(selectedDate)}`
         });
       } else {
         // પીસી કે અન્ય બ્રાઉઝર માટે ઑટો ડાઉનલોડ + WhatsApp લિંક
