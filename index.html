@@ -1266,42 +1266,57 @@ async function shareReportToWhatsApp() {
   shareBtn.innerHTML = '⏳ Creating Table Image...';
   shareBtn.disabled = true;
 
-  // અંદર રહેલા ટેબલ કન્ટેનરની સ્ક્રૉલ હટાવી આખું ટેબલ વિઝિબલ કરવું
+  // સ્ક્રીન સ્ક્રોલ હંમેશા ડાબી બાજુ (0) લાવી દેવી જેથી શરૂઆતનો ભાગ કપાય નહીં
   const tableContainer = reportArea.querySelector('.balance-table-container');
-  const originalOverflow = tableContainer ? tableContainer.style.overflow : '';
-  const originalMaxHeight = tableContainer ? tableContainer.style.maxHeight : '';
-  const originalHeight = tableContainer ? tableContainer.style.height : '';
-
   if (tableContainer) {
-    tableContainer.style.overflow = 'visible';
-    tableContainer.style.maxHeight = 'none';
-    tableContainer.style.height = 'auto';
+    tableContainer.scrollLeft = 0;
   }
 
   try {
-    // સંપૂર્ણ પહોળાઈ કેપ્ચર કરવા માટે scrollWidth સેટ કરો
-    const fullWidth = reportArea.scrollWidth || 800;
-
     const canvas = await html2canvas(reportArea, {
-      scale: 2, // શાર્પ અને HD ઈમેજ માટે
+      scale: 2, // શાર્પ અને ચોખ્ખી HD ઈમેજ માટે
       backgroundColor: '#ffffff',
       useCORS: true,
-      windowWidth: fullWidth,
-      width: fullWidth
-    });
+      scrollX: 0,
+      scrollY: 0,
+      onclone: (clonedDoc) => {
+        // ક્લોન કરેલા ડૉક્યુમેન્ટમાં પરફેક્ટ સાઈઝ સેટ કરવી જેથી ચારેય કૉલમ સરખી ફિટ થાય
+        const clonedReport = clonedDoc.getElementById('reportResultArea');
+        const clonedContainer = clonedReport.querySelector('.balance-table-container');
+        const clonedTable = clonedReport.querySelector('table');
 
-    // ટેબલ સ્ટાઇલ પાછી યથાવત કરવી
-    if (tableContainer) {
-      tableContainer.style.overflow = originalOverflow;
-      tableContainer.style.maxHeight = originalMaxHeight;
-      tableContainer.style.height = originalHeight;
-    }
+        if (clonedReport) {
+          clonedReport.style.width = '720px';
+          clonedReport.style.maxWidth = '720px';
+          clonedReport.style.padding = '12px';
+          clonedReport.style.boxSizing = 'border-box';
+        }
+
+        if (clonedContainer) {
+          clonedContainer.style.width = '100%';
+          clonedContainer.style.overflow = 'visible';
+          clonedContainer.style.maxHeight = 'none';
+          clonedContainer.style.height = 'auto';
+        }
+
+        if (clonedTable) {
+          clonedTable.style.width = '100%';
+          clonedTable.style.tableLayout = 'auto';
+          // તમામ સેલને પૂરતી જગ્યા આપવી
+          clonedTable.querySelectorAll('th, td').forEach(cell => {
+            cell.style.whiteSpace = 'nowrap';
+            cell.style.padding = '8px 10px';
+            cell.style.fontSize = '13px';
+          });
+        }
+      }
+    });
 
     canvas.toBlob(async (blob) => {
       const fileName = `Daily_Progress_Report_${selectedDate}.png`;
       const file = new File([blob], fileName, { type: 'image/png' });
 
-      // મોબાઈલ ડિવાઇસ માટે ડાયરેક્ટ શેરિંગ
+      // મોબાઈલ ડિવાઈસ માટે ડાયરેક્ટ WhatsApp / Share Sheet
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -1309,7 +1324,7 @@ async function shareReportToWhatsApp() {
           text: `⚙️ Daily Piping Progress Report: ${formatDateDisplay(selectedDate)}`
         });
       } else {
-        // પીસી/લેપટોપ માટે ઈમેજ ડાઉનલોડ + વોટ્સએપ વેબ
+        // પીસી કે અન્ય બ્રાઉઝર માટે ઑટો ડાઉનલોડ + WhatsApp લિંક
         const link = document.createElement('a');
         link.download = fileName;
         link.href = canvas.toDataURL('image/png');
@@ -1325,19 +1340,12 @@ async function shareReportToWhatsApp() {
     }, 'image/png');
 
   } catch (err) {
-    // એરર આવે તો પણ લેઆઉટ રિસેટ કરો
-    if (tableContainer) {
-      tableContainer.style.overflow = originalOverflow;
-      tableContainer.style.maxHeight = originalMaxHeight;
-      tableContainer.style.height = originalHeight;
-    }
     console.error(err);
     alert("ઈમેજ બનાવવામાં ભૂલ આવી: " + err.message);
     shareBtn.innerHTML = originalText;
     shareBtn.disabled = false;
   }
-}
-  function enforceRolePermissions(stage) {
+}  function enforceRolePermissions(stage) {
     if (!currentUser) return;
     const isAllowed = currentUser.allowed.includes("all") || currentUser.allowed.includes(stage);
 
