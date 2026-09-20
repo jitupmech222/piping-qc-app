@@ -433,7 +433,7 @@
             <button type="button" class="sub-filter-btn" id="btnFilterIssueBal" style="background:#fef3c7; color:#b45309; border-color:#fcd34d;" onclick="viewMtoBalanceCategory('issue_bal')">👁️ Mat. Issue Bal.</button>
             <button type="button" class="sub-filter-btn" id="btnFilterAllBal" style="background:#e0e7ff; color:#4338ca; border-color:#a5b4fc;" onclick="viewMtoBalanceCategory('all_bal')">👁️ All Bal.</button>
 
-            <!-- 📥 Download Excel Button (Displays formatted excel for currently shown rows) -->
+            <!-- 📥 Download Excel Button -->
             <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px;" onclick="downloadFormattedMtoExcel()">📥 Download View Excel</button>
 
             <!-- Excel Upload Button (Admin Only) -->
@@ -766,7 +766,7 @@
     { key: 'Remarks', label: 'REMARKS' }
   ];
 
-  // 👉 MTO કૉલમ્સમાં lot_no યોગ્ય ક્રમમાં
+  // 👉 MTO કૉલમ્સમાં lot_no યોગ્ય સ્થાન પર (Material Description પછી અને MIN No પહેલાં)
   const MTO_COLS = [
     { key: 'Spool_number', label: 'Spool No' },
     { key: 'Drawing_no', label: 'Drawing No' },
@@ -1118,7 +1118,7 @@
     });
   }
 
-  // 👉 View Option: First view data on screen, then allow download
+  // 👉 View Option: પહેલાં સ્ક્રીન પર ડેટા જુઓ, ત્યારબાદ ડાઉનલોડ કરવાનો વિકલ્પ
   function viewMtoBalanceCategory(type) {
     activeMtoCategory = type;
     resetCategoryButtonStyles();
@@ -1228,7 +1228,7 @@
 
     // ૧. હેડર ઉમેરવું
     const headerRow = worksheet.addRow(columnHeaders);
-    headerRow.height = 26; // હેડર રો ની ઊંચાઈ
+    headerRow.height = 26;
 
     // ૨. હેડર સ્ટાઇલિંગ (મોટી સાઈઝ, બોલ્ડ, આછો લીલો બેકગ્રાઉન્ડ કલર #D9EAD3)
     headerRow.eachCell((cell) => {
@@ -1285,7 +1285,7 @@
     URL.revokeObjectURL(link.href);
   }
 
-  // 👉 હાલમાં સ્ક્રીન પર દેખાતી તમામ રો ને પરફેક્ટ સ્ટાઈલ્ડ એક્સેલમાં ડાઉનલોડ કરવી
+  // 👉 હાલમાં સ્ક્રીન પર દેખાતી تمام રો ને પરફેક્ટ સ્ટાઈલ્ડ એક્સેલમાં ડાઉનલોડ કરવી
   async function downloadFormattedMtoExcel() {
     if (!mtoDisplayRows || mtoDisplayRows.length === 0) {
       alert("⚠️ હાલ સ્ક્રીન પર ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
@@ -1308,6 +1308,7 @@
     await exportStyledExcelWorkbook(excelRows, headers, `${catName}_List_${today}`);
   }
 
+  // 👉 ફ્લેક્સિબલ હેડર મેચિંગ સાથે અપડેટ ફંક્શન (lot_no ગમે તે સ્થાન પર હશે તો પણ અપડેટ થશે)
   async function uploadAndApplyMtoExcel(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1323,7 +1324,9 @@
         const headers = [];
         worksheet.eachRow((row, rowNumber) => {
           if (rowNumber === 1) {
-            row.eachCell((cell, colNumber) => { headers[colNumber] = cell.value; });
+            row.eachCell((cell, colNumber) => {
+              headers[colNumber] = String(cell.value || '').trim();
+            });
           } else {
             const rowObj = {};
             row.eachCell((cell, colNumber) => {
@@ -1340,7 +1343,8 @@
           return;
         }
 
-        if (!rows[0].hasOwnProperty('id')) {
+        const hasId = rows[0].hasOwnProperty('id') || rows[0].hasOwnProperty('ID');
+        if (!hasId) {
           alert("❌ ભૂલ: Excel ફાઈલમાં 'id' કૉલમ હોવી ફરજિયાત છે! કૃપા કરીને ડાઉનલોડ કરેલી ફાઈલમાં જ એડિટ કરીને અપલોડ કરો.");
           event.target.value = '';
           return;
@@ -1359,21 +1363,37 @@
 
         for (let i = 0; i < rows.length; i += batchSize) {
           const batch = rows.slice(i, i + batchSize).map(r => {
-            const cleanObj = { id: r.id };
+            const rowId = r.id !== undefined ? r.id : r.ID;
+            const cleanObj = { id: rowId };
+
             MTO_COLS.forEach(c => {
+              let rawVal = undefined;
+
               if (r.hasOwnProperty(c.key)) {
-                let v = r[c.key];
-                if (v === '' || v === undefined || v === 'null') {
-                  v = null;
+                rawVal = r[c.key];
+              } else if (r.hasOwnProperty(c.label)) {
+                rawVal = r[c.label];
+              } else {
+                // કેસ-ઇન્સેન્સિટિવ ચેક (જેમ કે "Lot No", "lot_no", "LOT NO")
+                const matchedKey = Object.keys(r).find(k => 
+                  k.toLowerCase().replace(/[\s_-]/g, '') === c.key.toLowerCase().replace(/[\s_-]/g, '') ||
+                  k.toLowerCase().replace(/[\s_-]/g, '') === c.label.toLowerCase().replace(/[\s_-]/g, '')
+                );
+                if (matchedKey) rawVal = r[matchedKey];
+              }
+
+              if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) {
+                cleanObj[c.key] = null;
+              } else {
+                const isDateCol = c.key.toLowerCase().includes('date');
+                if (isDateCol) {
+                  cleanObj[c.key] = formatExcelDate(rawVal);
                 } else {
-                  const isDateCol = c.key.toLowerCase().includes('date');
-                  if (isDateCol) {
-                    v = formatExcelDate(v);
-                  }
+                  cleanObj[c.key] = String(rawVal).trim();
                 }
-                cleanObj[c.key] = v;
               }
             });
+
             return cleanObj;
           });
 
