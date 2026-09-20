@@ -508,11 +508,18 @@
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
           <h3 style="margin:0; border:none; color:#0f766e;">📋 MTO Register (<span id="mtoTotalCount">0</span>)</h3>
-          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <input type="text" id="mtoSearchInput" placeholder="Search Spool / Drawing..." oninput="handleMtoSearch(this.value)" style="padding:5px 8px; width:180px; font-size:12px; margin-top:0;">
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <input type="text" id="mtoSearchInput" placeholder="Search Spool / Drawing..." oninput="handleMtoSearch(this.value)" style="padding:5px 8px; width:160px; font-size:12px; margin-top:0;">
             <button type="button" class="sub-filter-btn" onclick="loadMtoData()">🔄 Refresh</button>
-            <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 12px; font-size:11.5px;" onclick="downloadMtoExcel()">📥 Download Excel</button>
-            <button type="button" class="btn-save-action" id="btnMtoUploadTrigger" style="background:#15803d; padding:6px 12px; font-size:11.5px; display:none;" onclick="document.getElementById('mtoFileInput').click()">📤 Upload & Update</button>
+            <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px;" onclick="downloadMtoExcel()">📥 Download MTO</button>
+            
+            <!-- ૩ નવા ફિલ્ટર બેલેન્સ Excel ડાઉનલોડ બટન્સ -->
+            <button type="button" class="btn-save-action" style="background:#c2410c; padding:6px 10px; font-size:11.5px;" onclick="downloadMtoBalanceExcel('min_bal')">📥 MIN Bal.</button>
+            <button type="button" class="btn-save-action" style="background:#b45309; padding:6px 10px; font-size:11.5px;" onclick="downloadMtoBalanceExcel('issue_bal')">📥 Mat. Issue Bal.</button>
+            <button type="button" class="btn-save-action" style="background:#4338ca; padding:6px 10px; font-size:11.5px;" onclick="downloadMtoBalanceExcel('all_bal')">📥 All Bal.</button>
+
+            <!-- Excel Upload Button (Admin Only) -->
+            <button type="button" class="btn-save-action" id="btnMtoUploadTrigger" style="background:#15803d; padding:6px 10px; font-size:11.5px; display:none;" onclick="document.getElementById('mtoFileInput').click()">📤 Upload & Update</button>
             <input type="file" id="mtoFileInput" accept=".xlsx, .xls" style="display:none;" onchange="uploadAndApplyMtoExcel(event)">
           </div>
         </div>
@@ -528,6 +535,7 @@
                 <th>Size 2</th>
                 <th>Unit</th>
                 <th>Material Description</th>
+                <th style="background:#065f46;">Lot No</th>
                 <th>MIN No</th>
                 <th>MIN Date</th>
                 <th>MIN Qty</th>
@@ -540,7 +548,7 @@
               </tr>
             </thead>
             <tbody id="mtoTableBody">
-              <tr><td colspan="17" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>
+              <tr><td colspan="18" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -881,6 +889,7 @@
     { key: 'Remarks', label: 'REMARKS' }
   ];
 
+  // 👉 MTO કૉલમ્સમાં Material Description પછી અને MIN No પહેલાં "lot_no" ઉમેરેલું છે
   const MTO_COLS = [
     { key: 'Spool_number', label: 'Spool No' },
     { key: 'Drawing_no', label: 'Drawing No' },
@@ -889,6 +898,7 @@
     { key: 'Size_2', label: 'Size 2' },
     { key: 'Unit', label: 'Unit' },
     { key: 'MAT_Description', label: 'Material Description' },
+    { key: 'lot_no', label: 'Lot No' },
     { key: 'MIN_No', label: 'MIN No' },
     { key: 'MIN_Date', label: 'MIN Date' },
     { key: 'MIN_qty', label: 'MIN Qty' },
@@ -914,27 +924,19 @@
     return str;
   }
 
-  // 👉 Excel સીરીયલ નંબર કે તારીખને YYYY-MM-DD માં કન્વર્ટ કરતું હેલ્પર ફંક્શન
   function formatExcelDate(val) {
     if (!val) return null;
-    
-    // જો Date ઑબ્જેક્ટ હોય
     if (val instanceof Date) {
       if (isNaN(val.getTime())) return null;
       return val.toISOString().split('T')[0];
     }
-    
-    // જો Excel Serial Number હોય (દા.ત. 46269)
     if (typeof val === 'number' || (!isNaN(val) && !String(val).includes('-') && !String(val).includes('/'))) {
       const num = parseFloat(val);
       const date = new Date(Math.round((num - 25569) * 86400 * 1000));
       return date.toISOString().split('T')[0];
     }
-    
     const str = String(val).trim();
     if (str === '' || str.toLowerCase() === 'null') return null;
-    
-    // જો DD-MM-YYYY અથવા DD/MM/YYYY ફોર્મેટ હોય
     if (str.includes('/') || str.includes('-')) {
       const delimiter = str.includes('/') ? '/' : '-';
       const parts = str.split('T')[0].split(delimiter);
@@ -943,7 +945,6 @@
         if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
       }
     }
-    
     return str;
   }
 
@@ -1177,15 +1178,29 @@
 
   async function loadMtoData() {
     const tbody = document.getElementById('mtoTableBody');
-    tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>';
 
-    const { data, error } = await db.from('mto').select('*').order('id', { ascending: true }).limit(5000);
-    if (error) {
-      tbody.innerHTML = `<tr><td colspan="17" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
-      return;
+    let allRows = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await db.from('mto').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="18" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
+        return;
+      }
+      if (data && data.length > 0) {
+        allRows = allRows.concat(data);
+        from += step;
+        if (data.length < step) hasMore = false;
+      } else {
+        hasMore = false;
+      }
     }
 
-    mtoCache = data || [];
+    mtoCache = allRows || [];
     renderMtoTable(mtoCache);
   }
 
@@ -1198,7 +1213,8 @@
     const filtered = mtoCache.filter(r => 
       String(r.Spool_number || '').toLowerCase().includes(q) ||
       String(r.Drawing_no || '').toLowerCase().includes(q) ||
-      String(r.MAT_SAP_CODE || '').toLowerCase().includes(q)
+      String(r.MAT_SAP_CODE || '').toLowerCase().includes(q) ||
+      String(r.lot_no || '').toLowerCase().includes(q)
     );
     renderMtoTable(filtered);
   }
@@ -1208,7 +1224,7 @@
     document.getElementById('mtoTotalCount').innerText = rows.length;
 
     if (rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:15px; color:#64748b;">No MTO records found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:15px; color:#64748b;">No MTO records found.</td></tr>';
       return;
     }
 
@@ -1222,6 +1238,7 @@
         <td>${r.Size_2 || '-'}</td>
         <td>${r.Unit || '-'}</td>
         <td>${r.MAT_Description || '-'}</td>
+        <td style="font-weight:bold; color:#0f766e;">${r.lot_no || '-'}</td>
         <td>${r.MIN_No || '-'}</td>
         <td>${formatDateDisplay(r.MIN_Date)}</td>
         <td>${r.MIN_qty || '-'}</td>
@@ -1237,29 +1254,13 @@
 
   async function downloadMtoExcel() {
     try {
-      let allRows = [];
-      let from = 0;
-      const step = 1000;
-      let hasMore = true;
-
-      while (hasMore) {
-        const { data, error } = await db.from('mto').select('*').order('id', { ascending: true }).range(from, from + step - 1);
-        if (error) throw error;
-        if (data && data.length > 0) {
-          allRows = allRows.concat(data);
-          from += step;
-          if (data.length < step) hasMore = false;
-        } else {
-          hasMore = false;
-        }
-      }
-
-      if (allRows.length === 0) {
+      if (mtoCache.length === 0) await loadMtoData();
+      if (mtoCache.length === 0) {
         alert("⚠️ MTO ટેબલમાં કોઈ ડેટા મળ્યો નથી!");
         return;
       }
 
-      const formatted = allRows.map(r => {
+      const formatted = mtoCache.map(r => {
         const rowObj = { id: r.id };
         MTO_COLS.forEach(c => {
           rowObj[c.key] = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
@@ -1273,9 +1274,64 @@
 
       const today = new Date().toISOString().split('T')[0];
       XLSX.writeFile(wb, `MTO_Data_${today}.xlsx`);
-      alert(`✅ ${allRows.length} MTO રેકોર્ડ્સ ડાઉનલોડ થઈ ગયા!`);
+      alert(`✅ ${mtoCache.length} MTO રેકોર્ડ્સ ડાઉનલોડ થઈ ગયા!`);
     } catch (err) {
       alert("Excel ડાઉનલોડ કરવામાં ભૂલ આવી: " + err.message);
+    }
+  }
+
+  // 👉 ૩ સ્પેશિયલ બેલેન્સ ડાઉનલોડ ફંક્શન
+  async function downloadMtoBalanceExcel(type) {
+    try {
+      if (mtoCache.length === 0) await loadMtoData();
+
+      const isBlank = val => val === null || val === undefined || String(val).trim() === '' || String(val).toLowerCase() === 'null';
+      const isFilled = val => !isBlank(val);
+
+      let filtered = [];
+      let fileName = '';
+
+      if (type === 'min_bal') {
+        // ૧. MIN no and MIN date is blank
+        filtered = mtoCache.filter(r => isBlank(r.MIN_No) && isBlank(r.MIN_Date));
+        fileName = 'MTO_MIN_Balance';
+      } else if (type === 'issue_bal') {
+        // ૨. MIN no & MIN date is filled and IGP no & IGP date is blank
+        filtered = mtoCache.filter(r => isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date));
+        fileName = 'MTO_Material_Issue_Balance';
+      } else if (type === 'all_bal') {
+        // ૩. ૧ + ૨ બંને સંયુક્ત બેલેન્સ
+        filtered = mtoCache.filter(r => 
+          (isBlank(r.MIN_No) && isBlank(r.MIN_Date)) || 
+          (isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date))
+        );
+        fileName = 'MTO_All_Balance';
+      }
+
+      if (filtered.length === 0) {
+        alert("⚠️ આ કેટેગરીમાં કોઈ બેલેન્સ ડેટા મળ્યો નથી!");
+        return;
+      }
+
+      const formatted = filtered.map((r, index) => {
+        const rowObj = { "Sr No": index + 1 };
+        MTO_COLS.forEach(c => {
+          let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+          const isDate = c.key.toLowerCase().includes('date');
+          rowObj[c.label] = isDate ? formatDateDisplay(val) : val;
+        });
+        return rowObj;
+      });
+
+      const ws = XLSX.utils.json_to_sheet(formatted);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Balance_Data");
+
+      const today = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(wb, `${fileName}_${today}.xlsx`);
+      alert(`✅ ${filtered.length} બેલેન્સ રેકોર્ડ્સ સફળતાપૂર્વક ડાઉનલોડ થઈ ગયા!`);
+    } catch (err) {
+      alert("બેલેન્સ Excel ડાઉનલોડ કરવામાં ભૂલ આવી: " + err.message);
     }
   }
 
@@ -1309,7 +1365,7 @@
         }
 
         const tbody = document.getElementById('mtoTableBody');
-        tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:20px; color:#2563eb;">⏳ Updating MTO Database...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:20px; color:#2563eb;">⏳ Updating MTO Database...</td></tr>';
 
         const batchSize = 50;
         let updatedCount = 0;
