@@ -164,6 +164,7 @@
     .menu-btn.stage-ndt { border-left: 4px solid #d97706; }
     .menu-btn.stage-fd { border-left: 4px solid #059669; }
 
+    /* Special Accent Buttons */
     .btn-progress-hub {
       background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
       color: #ffffff;
@@ -223,6 +224,7 @@
 
     .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
 
+    /* Action Buttons */
     .btn-save-action {
       background: #15803d;
       color: white;
@@ -277,6 +279,7 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
+    /* Tables & Scrolling */
     .balance-table-container { overflow: auto; margin-top: 10px; height: 55vh; border: 1px solid #cbd5e1; border-radius: 6px; }
     .master-table-container { overflow: auto; margin-top: 8px; height: calc(100vh - 145px); border: 1px solid #cbd5e1; border-radius: 6px; }
 
@@ -290,6 +293,7 @@
     .filter-btn-icon:hover { background: #2563eb; }
     .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
 
+    /* Floating Excel Filter Modal */
     #excelFilterPopup {
       position: absolute;
       display: none;
@@ -313,6 +317,7 @@
 </head>
 <body>
 
+<!-- Login Security Modal -->
 <div id="loginOverlay">
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 16px;">
@@ -341,7 +346,9 @@
   </div>
 </div>
 
+<!-- Main App -->
 <div id="appContent" style="display: none;">
+  <!-- Universal Top Navigation Bar -->
   <div class="top-navbar">
     <div class="top-nav-title">
       <span>⚙️ PIPING CONSOLE</span>
@@ -354,6 +361,7 @@
   </div>
 
   <div class="container">
+    <!-- Hub / Main Dashboard -->
     <div id="mainMenu" class="card">
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
         <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">Fabrication & QC Tracking Dashboard</h3>
@@ -377,13 +385,16 @@
         <button class="menu-btn btn-track-hub" onclick="openSpoolTracking()"><span class="step-badge" style="background:#fff; color:#b45309;">🔍</span><span>SPOOL TRACKING</span></button>
         <button class="menu-btn btn-report-hub" onclick="openProgressReport()"><span class="step-badge" style="background:#fff; color:#0369a1;">📅</span><span>PROGRESS REPORT</span></button>
 
+        <!-- MTO Register Button -->
         <button class="menu-btn btn-mto-hub" onclick="openMtoRegister()"><span class="step-badge" style="background:#fff; color:#0f766e;">📋</span><span>MTO REGISTER</span></button>
 
+        <!-- Data Update Hub (Admin Only) -->
         <button class="menu-btn btn-update-hub" id="btnDataUpdateHub" style="display: none;" onclick="openDataUpdateHub()"><span class="step-badge" style="background:#fff; color:#7c3aed;">🔄</span><span>DATA UPDATE</span></button>
         <button class="menu-btn btn-view" onclick="openStage('view_records')"><span>📊 VIEW MASTER REGISTER</span></button>
       </div>
     </div>
 
+    <!-- Data Update Screen (Admin Only) -->
     <div id="dataUpdateContainer" style="display: none;">
       <div class="card">
         <h3 style="color:#6d28d9;">🔄 Database Excel Batch Update (Admin)</h3>
@@ -404,6 +415,7 @@
       </div>
     </div>
 
+    <!-- MTO Register Screen -->
     <div id="mtoContainer" style="display: none;">
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
@@ -416,12 +428,15 @@
             <input type="text" id="mtoSearchInput" placeholder="Search in MTO..." oninput="handleMtoSearch(this.value)" style="padding:5px 8px; width:140px; font-size:12px; margin-top:0;">
             <button type="button" class="sub-filter-btn" onclick="clearAllMtoFiltersAndLoad()">🔄 Reset / All View</button>
             
+            <!-- Filter View Buttons -->
             <button type="button" class="sub-filter-btn" id="btnFilterMinBal" style="background:#ffedd5; color:#c2410c; border-color:#fdba74;" onclick="viewMtoBalanceCategory('min_bal')">👁️ MIN Bal.</button>
             <button type="button" class="sub-filter-btn" id="btnFilterIssueBal" style="background:#fef3c7; color:#b45309; border-color:#fcd34d;" onclick="viewMtoBalanceCategory('issue_bal')">👁️ Mat. Issue Bal.</button>
             <button type="button" class="sub-filter-btn" id="btnFilterAllBal" style="background:#e0e7ff; color:#4338ca; border-color:#a5b4fc;" onclick="viewMtoBalanceCategory('all_bal')">👁️ All Bal.</button>
 
+            <!-- 📥 Download Excel Button (Displays formatted excel for currently shown rows) -->
             <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px;" onclick="downloadFormattedMtoExcel()">📥 Download View Excel</button>
 
+            <!-- Excel Upload Button (Admin Only) -->
             <button type="button" class="btn-save-action" id="btnMtoUploadTrigger" style="background:#15803d; padding:6px 10px; font-size:11.5px; display:none;" onclick="document.getElementById('mtoFileInput').click()">📤 Upload & Update</button>
             <input type="file" id="mtoFileInput" accept=".xlsx, .xls" style="display:none;" onchange="uploadAndApplyMtoExcel(event)">
           </div>
@@ -440,6 +455,7 @@
       </div>
     </div>
 
+    <!-- Progress Dashboard Screen -->
     <div id="progressDashboardContainer" style="display: none;">
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -464,6 +480,7 @@
       </div>
     </div>
 
+    <!-- Spool Tracking Screen -->
     <div id="spoolTrackingContainer" style="display: none;">
       <div class="card">
         <h3 style="color:#b45309;">🔍 Spool Live Stage Tracker</h3>
@@ -485,6 +502,7 @@
       </div>
     </div>
 
+    <!-- Progress Report Screen -->
     <div id="progressReportContainer" style="display: none;">
       <div class="card">
         <h3 style="color:#0369a1;">📅 Daily Progress Report Generator</h3>
@@ -517,6 +535,7 @@
       </div>
     </div>
 
+    <!-- Stage Screen -->
     <div id="stageContainer" style="display: none;">
       <div class="card">
         <div class="metric-banner">
@@ -581,6 +600,7 @@
       </div>
     </div>
 
+    <!-- Master Register -->
     <div id="recordsContainer" style="display: none;">
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
@@ -605,6 +625,7 @@
   </div>
 </div>
 
+<!-- Floating Excel Filter Modal -->
 <div id="excelFilterPopup">
   <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
   <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
@@ -619,6 +640,7 @@
 </div>
 
 <script>
+  // USER ROLES & PERMISSIONS DEFINITION
   const USER_ROLES = {
     "admin": { pass: "ruhi@2018", name: "Admin", allowed: ["all"] },
     "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry", "fitup_issue"] },
@@ -744,7 +766,7 @@
     { key: 'Remarks', label: 'REMARKS' }
   ];
 
-  // 👉 MTO કૉલમ્સમાં ડેટાબેઝ સ્કીમા સાથે સુસંગત સ્મોલ 'lot_no' રાખેલું છે[span_4](start_span)[span_4](end_span)
+  // 👉 MTO કૉલમ્સમાં lot_no યોગ્ય ક્રમમાં
   const MTO_COLS = [
     { key: 'Spool_number', label: 'Spool No' },
     { key: 'Drawing_no', label: 'Drawing No' },
@@ -847,6 +869,7 @@
     enforceRolePermissions(stage);
   }
 
+  // --- DATA UPDATE MODULE (Admin Only) ---
   function openDataUpdateHub() {
     if (!currentUser || currentUser.username !== 'admin') {
       alert("⚠️ માત્ર Admin પાસે જ Data Update કરવાનો અધિકાર છે!");
@@ -1013,6 +1036,7 @@
     reader.readAsArrayBuffer(file);
   }
 
+  // --- MTO REGISTER MODULE ---
   function buildMtoRegisterHeader() {
     const tr = document.getElementById('mtoHeaderRow');
     tr.innerHTML = `
@@ -1094,6 +1118,7 @@
     });
   }
 
+  // 👉 View Option: First view data on screen, then allow download
   function viewMtoBalanceCategory(type) {
     activeMtoCategory = type;
     resetCategoryButtonStyles();
@@ -1196,19 +1221,22 @@
     `).join('');
   }
 
+  // 👉 PERFECT EXCEL GENERATOR (ExcelJS)
   async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sheet1', { views: [{ showGridLines: true }] });
 
+    // ૧. હેડર ઉમેરવું
     const headerRow = worksheet.addRow(columnHeaders);
-    headerRow.height = 26;
+    headerRow.height = 26; // હેડર રો ની ઊંચાઈ
 
+    // ૨. હેડર સ્ટાઇલિંગ (મોટી સાઈઝ, બોલ્ડ, આછો લીલો બેકગ્રાઉન્ડ કલર #D9EAD3)
     headerRow.eachCell((cell) => {
       cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FFD9EAD3' }
+        fgColor: { argb: 'FFD9EAD3' } // Light Green
       };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
       cell.border = {
@@ -1219,6 +1247,7 @@
       };
     });
 
+    // ૩. તમામ ડેટા રો ઉમેરવી અને બોર્ડર આપવી
     rowsData.forEach(rowItem => {
       const rowValues = columnHeaders.map(col => rowItem[col] !== undefined && rowItem[col] !== null ? rowItem[col] : '');
       const dataRow = worksheet.addRow(rowValues);
@@ -1236,6 +1265,7 @@
       });
     });
 
+    // ૪. ઓટોમેટિક યોગ્ય કૉલમ પહોળાઈ (Auto Column Width)
     worksheet.columns.forEach((column) => {
       let maxLength = 0;
       column.eachCell({ includeEmpty: true }, (cell) => {
@@ -1245,6 +1275,7 @@
       column.width = Math.max(maxLength + 4, 12);
     });
 
+    // ૫. બ્રાઉઝરમાંથી ડાઉનલોડ કરવું
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const link = document.createElement('a');
@@ -1254,6 +1285,7 @@
     URL.revokeObjectURL(link.href);
   }
 
+  // 👉 હાલમાં સ્ક્રીન પર દેખાતી તમામ રો ને પરફેક્ટ સ્ટાઈલ્ડ એક્સેલમાં ડાઉનલોડ કરવી
   async function downloadFormattedMtoExcel() {
     if (!mtoDisplayRows || mtoDisplayRows.length === 0) {
       alert("⚠️ હાલ સ્ક્રીન પર ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
@@ -1291,9 +1323,7 @@
         const headers = [];
         worksheet.eachRow((row, rowNumber) => {
           if (rowNumber === 1) {
-            row.eachCell((cell, colNumber) => {
-              headers[colNumber] = String(cell.value || '').trim();
-            });
+            row.eachCell((cell, colNumber) => { headers[colNumber] = cell.value; });
           } else {
             const rowObj = {};
             row.eachCell((cell, colNumber) => {
@@ -1310,8 +1340,7 @@
           return;
         }
 
-        const hasId = rows[0].hasOwnProperty('id') || rows[0].hasOwnProperty('ID');
-        if (!hasId) {
+        if (!rows[0].hasOwnProperty('id')) {
           alert("❌ ભૂલ: Excel ફાઈલમાં 'id' કૉલમ હોવી ફરજિયાત છે! કૃપા કરીને ડાઉનલોડ કરેલી ફાઈલમાં જ એડિટ કરીને અપલોડ કરો.");
           event.target.value = '';
           return;
@@ -1330,36 +1359,21 @@
 
         for (let i = 0; i < rows.length; i += batchSize) {
           const batch = rows.slice(i, i + batchSize).map(r => {
-            const rowId = r.id !== undefined ? r.id : r.ID;
-            const cleanObj = { id: rowId };
-
+            const cleanObj = { id: r.id };
             MTO_COLS.forEach(c => {
-              let rawVal = undefined;
-
               if (r.hasOwnProperty(c.key)) {
-                rawVal = r[c.key];
-              } else if (r.hasOwnProperty(c.label)) {
-                rawVal = r[c.label];
-              } else {
-                const matchedKey = Object.keys(r).find(k => 
-                  k.toLowerCase().replace(/[\s_-]/g, '') === c.key.toLowerCase().replace(/[\s_-]/g, '') ||
-                  k.toLowerCase().replace(/[\s_-]/g, '') === c.label.toLowerCase().replace(/[\s_-]/g, '')
-                );
-                if (matchedKey) rawVal = r[matchedKey];
-              }
-
-              if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) {
-                cleanObj[c.key] = null;
-              } else {
-                const isDateCol = c.key.toLowerCase().includes('date');
-                if (isDateCol) {
-                  cleanObj[c.key] = formatExcelDate(rawVal);
+                let v = r[c.key];
+                if (v === '' || v === undefined || v === 'null') {
+                  v = null;
                 } else {
-                  cleanObj[c.key] = String(rawVal).trim();
+                  const isDateCol = c.key.toLowerCase().includes('date');
+                  if (isDateCol) {
+                    v = formatExcelDate(v);
+                  }
                 }
+                cleanObj[c.key] = v;
               }
             });
-
             return cleanObj;
           });
 
@@ -1381,6 +1395,801 @@
     reader.readAsArrayBuffer(file);
   }
 
+  // --- PROGRESS DASHBOARD MODULE ---
+  async function openProgressDashboard() {
+    closeExcelPopup();
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('recordsContainer').style.display = 'none';
+    document.getElementById('spoolTrackingContainer').style.display = 'none';
+    document.getElementById('progressReportContainer').style.display = 'none';
+    document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
+    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
+    document.getElementById('navSubTitle').innerText = `| 📈 Progress Dashboard (${currentUser.name})`;
+    document.getElementById('progressDashboardContainer').style.display = 'block';
+    await loadProgressDashboardData();
+  }
+
+  async function loadProgressDashboardData() {
+    const tbody = document.getElementById('progressTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:15px; color:#2563eb;">⏳ Calculating Progress Data...</td></tr>';
+
+    let allRows = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+      if (error) break;
+      if (data && data.length > 0) {
+        allRows = allRows.concat(data);
+        from += step;
+        if (data.length < step) hasMore = false;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    if (allRows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:12px;">No records found in database.</td></tr>';
+      return;
+    }
+
+    function getWeldSum(rows) {
+      let sum = 0;
+      rows.forEach(r => {
+        const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+        if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+          const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+          const num = parseFloat(cleaned);
+          if (!isNaN(num)) sum += num;
+        }
+      });
+      return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
+    }
+
+    const stagesConfig = [
+      { no: '01', name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined, isBal: r => r.Bend_date === null && r.Issued_for_bending === null },
+      { no: '02', name: 'BEND COMPLETED', isComp: r => r.Bend_date !== null && r.Bend_date !== undefined, isBal: r => r.Bend_date === null && r.Issued_for_bending !== null },
+      { no: '03', name: 'ISSUED FOR FIT-UP', isComp: r => r.Issue_for_fitup !== null && r.Issue_for_fitup !== undefined, isBal: r => r.Bend_date !== null && r.Issue_for_fitup === null },
+      { no: '04', name: 'ISSUED TO FITTER', isComp: r => r.Fitter_name !== null && String(r.Fitter_name).trim() !== '', isBal: r => r.Issue_for_fitup !== null && (r.Fitter_name === null || String(r.Fitter_name).trim() === '') },
+      { no: '05', name: 'READY FIT-UP FOR INSP', isComp: r => r.Ready_for_fitup_insp !== null && r.Ready_for_fitup_insp !== undefined, isBal: r => r.Fitter_name !== null && String(r.Fitter_name).trim() !== '' && r.Ready_for_fitup_insp === null },
+      { no: '06', name: 'FIT UP COMPLETED', isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined, isBal: r => r.Ready_for_fitup_insp !== null && r.Fit_up_date === null },
+      { no: '07', name: 'ISSUED TO WELDER', isComp: r => r.Welder_no !== null && String(r.Welder_no).trim() !== '', isBal: r => r.Fit_up_date !== null && (r.Welder_no === null || String(r.Welder_no).trim() === '') },
+      { no: '08', name: 'READY FOR WELD VISUAL', isComp: r => r.Ready_for_weld_visual !== null && r.Ready_for_weld_visual !== undefined, isBal: r => r.Welder_no !== null && String(r.Welder_no).trim() !== '' && r.Ready_for_weld_visual === null },
+      { no: '09', name: 'WELD VISUAL COMPLETED', isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined, isBal: r => r.Ready_for_weld_visual !== null && r.Weld_visual_date === null },
+      { no: '10', name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined, isBal: r => r.Weld_visual_date !== null && r.Ndt_clearance === null },
+      { no: '11', name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined, isBal: r => r.Ndt_clearance !== null && r.Fd_date === null }
+    ];
+
+    tbody.innerHTML = stagesConfig.map(st => {
+      const compRows = allRows.filter(st.isComp);
+      const balRows = allRows.filter(st.isBal);
+      const compSpools = new Set(compRows.map(r => r.Spool_number).filter(Boolean)).size;
+      const compWelds = getWeldSum(compRows);
+      const balSpools = new Set(balRows.map(r => r.Spool_number).filter(Boolean)).size;
+      const balWelds = getWeldSum(balRows);
+
+      return `
+        <tr>
+          <td style="text-align: center; font-weight: 800; background: #f1f5f9;">${st.no}</td>
+          <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
+          <td style="text-align: center; font-weight: bold; color: #15803d; background: #f0fdf4;">${compSpools}</td>
+          <td style="text-align: center; font-weight: bold; color: #166534; background: #f0fdf4;">${compWelds}</td>
+          <td style="text-align: center; font-weight: bold; color: #c2410c; background: #fff7ed;">${balSpools}</td>
+          <td style="text-align: center; font-weight: bold; color: #9a3412; background: #fff7ed;">${balWelds}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // --- SPOOL TRACKING MODULE ---
+  async function openSpoolTracking() {
+    closeExcelPopup();
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('recordsContainer').style.display = 'none';
+    document.getElementById('progressDashboardContainer').style.display = 'none';
+    document.getElementById('progressReportContainer').style.display = 'none';
+    document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
+    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
+    document.getElementById('navSubTitle').innerText = `| 🔍 Spool Tracking (${currentUser.name})`;
+    document.getElementById('spoolTrackingContainer').style.display = 'block';
+    document.getElementById('spoolDetailsHeader').style.display = 'none';
+    document.getElementById('trackSearchInput').value = '';
+    document.getElementById('trackSearchInput').focus();
+
+    if (allRecordsCache.length === 0) {
+      const { data } = await db.from('piping_joints').select('*').limit(5000);
+      allRecordsCache = data || [];
+    }
+  }
+
+  function handleTrackSearchInput() {
+    const term = document.getElementById('trackSearchInput').value.trim().toLowerCase();
+    const dropdown = document.getElementById('trackDropdown');
+    if (!term) { dropdown.style.display = 'none'; return; }
+
+    const matched = allRecordsCache.filter(r => {
+      const spl = String(r.Spool_number || '').toLowerCase();
+      const dwg = String(r.Drawing_no || '').toLowerCase();
+      return spl.includes(term) || dwg.includes(term);
+    }).slice(0, 30);
+
+    if (matched.length === 0) {
+      dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:13px; text-align:center;">No Spools Found</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+
+    dropdown.innerHTML = matched.map(r => `
+      <div class="dropdown-row" onclick="selectSpoolForTracking(${r.id})">
+        <div>
+          <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
+          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
+        </div>
+        <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || '-'}</span>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+  }
+
+  function selectSpoolForTracking(id) {
+    const item = allRecordsCache.find(r => r.id === id);
+    if (!item) return;
+
+    document.getElementById('trackDropdown').style.display = 'none';
+    document.getElementById('trackSearchInput').value = item.Spool_number || '';
+    document.getElementById('spoolDetailsHeader').style.display = 'block';
+    document.getElementById('trackSpoolNo').innerText = `Spool: ${item.Spool_number || 'N/A'}`;
+    document.getElementById('trackDwgNo').innerText = `Drawing: ${item.Drawing_no || '-'}`;
+    document.getElementById('trackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend Qty: ${item.Bend_qty || '0'}`;
+
+    const stages = [
+      { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
+      { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
+      { no: '03', title: 'ISSUED FOR FIT-UP', done: Boolean(item.Issue_for_fitup), detail: `Date: ${formatDateDisplay(item.Issue_for_fitup)}` },
+      { no: '04', title: 'ISSUED TO FITTER', done: Boolean(item.Fitter_name), detail: `Fitter: ${item.Fitter_name || '-'} | Date: ${formatDateDisplay(item.issued_to_fitter_date)}` },
+      { no: '05', title: 'READY FIT-UP FOR INSP', done: Boolean(item.Ready_for_fitup_insp), detail: `Date: ${formatDateDisplay(item.Ready_for_fitup_insp)}` },
+      { no: '06', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
+      { no: '07', title: 'ISSUED TO WELDER', done: Boolean(item.Welder_no), detail: `Welder: ${item.Welder_no || '-'} | Date: ${formatDateDisplay(item.issued_to_welder_date)}` },
+      { no: '08', title: 'READY FOR WELD VISUAL', done: Boolean(item.Ready_for_weld_visual), detail: `Date: ${formatDateDisplay(item.Ready_for_weld_visual)}` },
+      { no: '09', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
+      { no: '10', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
+      { no: '11', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
+    ];
+
+    document.getElementById('timelineList').innerHTML = stages.map(s => `
+      <div class="timeline-card ${s.done ? 'status-completed' : 'status-hold'}">
+        <div>
+          <span style="font-size: 13.5px;"><b>${s.no}. ${s.title}</b></span>
+          <div style="font-size: 12px; font-weight: normal; margin-top: 3px; color: ${s.done ? '#15803d' : '#9a3412'};">${s.done ? s.detail : 'Stage Pending / Not Reached'}</div>
+        </div>
+        <span class="stage-badge-tag ${s.done ? 'tag-completed' : 'tag-hold'}">${s.done ? 'COMPLETED' : 'HOLD / PENDING'}</span>
+      </div>
+    `).join('');
+  }
+
+  // --- PROGRESS REPORT MODULE ---
+  async function openProgressReport() {
+    closeExcelPopup();
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('recordsContainer').style.display = 'none';
+    document.getElementById('progressDashboardContainer').style.display = 'none';
+    document.getElementById('spoolTrackingContainer').style.display = 'none';
+    document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
+    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
+    document.getElementById('navSubTitle').innerText = `| 📅 Progress Report (${currentUser.name})`;
+    document.getElementById('progressReportContainer').style.display = 'block';
+    document.getElementById('reportResultArea').style.display = 'none';
+    
+    const btnShareWA = document.getElementById('btnShareWhatsApp');
+    if (btnShareWA) btnShareWA.style.display = (currentUser && currentUser.username === 'admin') ? 'inline-flex' : 'none';
+
+    document.getElementById('reportDateInput').value = new Date().toISOString().split('T')[0];
+    if (allRecordsCache.length === 0) {
+      const { data } = await db.from('piping_joints').select('*').limit(5000);
+      allRecordsCache = data || [];
+    }
+  }
+
+  async function generateDailyReport() {
+    const selectedDate = document.getElementById('reportDateInput').value;
+    if (!selectedDate) return alert("કૃપા કરીને તારીખ પસંદ કરો!");
+
+    const tbody = document.getElementById('reportTableBody');
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#2563eb;">⏳ Calculating Daily Report...</td></tr>';
+    document.getElementById('reportResultArea').style.display = 'block';
+    document.getElementById('reportSelectedDate').innerText = formatDateDisplay(selectedDate);
+
+    if (allRecordsCache.length === 0) {
+      const { data } = await db.from('piping_joints').select('*').limit(5000);
+      allRecordsCache = data || [];
+    }
+
+    function checkDateMatch(val) {
+      if (!val) return false;
+      const d = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+      return d === selectedDate;
+    }
+
+    function getWeldSum(rows) {
+      let sum = 0;
+      rows.forEach(r => {
+        const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+        if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+          const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+          const num = parseFloat(cleaned);
+          if (!isNaN(num)) sum += num;
+        }
+      });
+      return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
+    }
+
+    const reportStages = [
+      { no: '01', name: 'ISSUED FOR BENDING', match: r => checkDateMatch(r.Issued_for_bending) },
+      { no: '02', name: 'BEND COMPLETED', match: r => checkDateMatch(r.Bend_date) },
+      { no: '03', name: 'ISSUED FOR FIT-UP', match: r => checkDateMatch(r.Issue_for_fitup) },
+      { no: '04', name: 'ISSUED TO FITTER', match: r => checkDateMatch(r.issued_to_fitter_date) },
+      { no: '05', name: 'READY FIT-UP FOR INSP', match: r => checkDateMatch(r.Ready_for_fitup_insp) },
+      { no: '06', name: 'FIT UP COMPLETED', match: r => checkDateMatch(r.Fit_up_date) },
+      { no: '07', name: 'ISSUED TO WELDER', match: r => checkDateMatch(r.issued_to_welder_date) },
+      { no: '08', name: 'READY FOR WELD VISUAL', match: r => checkDateMatch(r.Ready_for_weld_visual) },
+      { no: '09', name: 'WELD VISUAL COMPLETED', match: r => checkDateMatch(r.Weld_visual_date) },
+      { no: '10', name: 'NDT CLEARANCE', match: r => checkDateMatch(r.Ndt_clearance) },
+      { no: '11', name: 'FINAL DISPATCH & DC NO', match: r => checkDateMatch(r.Fd_date) }
+    ];
+
+    tbody.innerHTML = reportStages.map(st => {
+      const matchedRows = allRecordsCache.filter(st.match);
+      const spoolsCount = new Set(matchedRows.map(r => r.Spool_number).filter(Boolean)).size;
+      const weldsCount = getWeldSum(matchedRows);
+
+      return `
+        <tr>
+          <td style="text-align: center; font-weight: 800; background: #f8fafc;">${st.no}</td>
+          <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
+          <td style="text-align: center; font-weight: bold; color: ${spoolsCount > 0 ? '#15803d' : '#64748b'}; background: ${spoolsCount > 0 ? '#f0fdf4' : '#fff'};">${spoolsCount}</td>
+          <td style="text-align: center; font-weight: bold; color: ${weldsCount > 0 ? '#166534' : '#64748b'}; background: ${weldsCount > 0 ? '#f0fdf4' : '#fff'};">${weldsCount}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // 1-CLICK WHATSAPP SHARE
+  async function shareReportToWhatsApp() {
+    if (!currentUser || currentUser.username !== 'admin') {
+      alert("⚠️ માત્ર Admin પાસે જ WhatsApp પર રિપોર્ટ શેર કરવાનો અધિકાર છે!");
+      return;
+    }
+
+    const selectedDate = document.getElementById('reportDateInput').value;
+    if (!selectedDate) return alert("કૃપા કરીને પહેલા તારીખ પસંદ કરો!");
+
+    const reportArea = document.getElementById('reportResultArea');
+    if (!reportArea || reportArea.style.display === 'none') return alert("કૃપા કરીને પહેલા 'Generate Report' બટન દબાવો!");
+
+    const shareBtn = document.getElementById('btnShareWhatsApp');
+    const originalText = shareBtn.innerHTML;
+    shareBtn.innerHTML = '⏳ Creating Table Image...';
+    shareBtn.disabled = true;
+
+    const tableContainer = reportArea.querySelector('.balance-table-container');
+    if (tableContainer) tableContainer.scrollLeft = 0;
+
+    try {
+      const canvas = await html2canvas(reportArea, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: (clonedDoc) => {
+          const clonedReport = clonedDoc.getElementById('reportResultArea');
+          const clonedContainer = clonedReport.querySelector('.balance-table-container');
+          const clonedTable = clonedReport.querySelector('table');
+
+          if (clonedReport) {
+            clonedReport.style.width = '720px';
+            clonedReport.style.maxWidth = '720px';
+            clonedReport.style.padding = '12px';
+            clonedReport.style.boxSizing = 'border-box';
+          }
+          if (clonedContainer) {
+            clonedContainer.style.width = '100%';
+            clonedContainer.style.overflow = 'visible';
+            clonedContainer.style.maxHeight = 'none';
+            clonedContainer.style.height = 'auto';
+          }
+          if (clonedTable) {
+            clonedTable.style.width = '100%';
+            clonedTable.style.tableLayout = 'auto';
+            clonedTable.querySelectorAll('th, td').forEach(cell => {
+              cell.style.whiteSpace = 'nowrap';
+              cell.style.padding = '8px 10px';
+              cell.style.fontSize = '13px';
+            });
+          }
+        }
+      });
+
+      canvas.toBlob(async (blob) => {
+        const fileName = `Daily_Progress_Report_${selectedDate}.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Daily Piping Progress Report',
+            text: `Daily Piping Progress Report: ${formatDateDisplay(selectedDate)}`
+          });
+        } else {
+          const link = document.createElement('a');
+          link.download = fileName;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          alert("✅ રિપોર્ટની સંપૂર્ણ ઈમેજ ડાઉનલોડ થઈ ગઈ છે! હવે WhatsApp માં શેર કરી દો.");
+          const text = encodeURIComponent(`⚙️ *DAILY PIPING PROGRESS REPORT*\n📅 *તારીખ:* ${formatDateDisplay(selectedDate)}\n(ટેબલ ઈમેજ અટેચ કરેલ છે)`);
+          window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+        }
+
+        shareBtn.innerHTML = originalText;
+        shareBtn.disabled = false;
+      }, 'image/png');
+
+    } catch (err) {
+      console.error(err);
+      alert("ઈમેજ બનાવવામાં ભૂલ આવી: " + err.message);
+      shareBtn.innerHTML = originalText;
+      shareBtn.disabled = false;
+    }
+  }
+
+  function enforceRolePermissions(stage) {
+    if (!currentUser) return;
+    const isAllowed = currentUser.allowed.includes("all") || currentUser.allowed.includes(stage);
+    const searchInput = document.getElementById('spoolSearch');
+    const saveBtn = document.getElementById('btnSaveAction');
+    const selectedArea = document.getElementById('selectedCardArea');
+    const editForm = document.getElementById('itemEditForm');
+
+    if (!isAllowed) {
+      if (searchInput) { searchInput.disabled = true; searchInput.value = ''; searchInput.placeholder = `🔒 View Only Mode`; }
+      if (saveBtn) saveBtn.style.display = 'none';
+      if (selectedArea) selectedArea.style.display = 'none';
+      if (editForm) editForm.style.display = 'none';
+    } else {
+      if (searchInput) { searchInput.disabled = false; searchInput.placeholder = 'Type spool no...'; }
+      if (saveBtn) saveBtn.style.display = 'inline-flex';
+      if (selectedArea) selectedArea.style.display = 'block';
+    }
+  }
+
+  function setMasterMode(mode) {
+    if (mode === 'view') {
+      isMasterEditMode = false;
+      document.getElementById('btnMasterView').style.outline = '2px solid #0369a1';
+      document.getElementById('btnMasterEdit').style.outline = 'none';
+      document.getElementById('btnMasterSave').style.display = 'none';
+      renderMasterTable();
+    } else if (mode === 'edit') {
+      isMasterEditMode = true;
+      document.getElementById('btnMasterEdit').style.outline = '2px solid #b45309';
+      document.getElementById('btnMasterView').style.outline = 'none';
+      document.getElementById('btnMasterSave').style.display = 'inline-block';
+      renderMasterTable();
+    }
+  }
+
+  function requestEditMode() {
+    if (currentUser.username !== 'admin') return alert("⚠️ માત્ર Admin પાસે જ Master Register Edit કરવાની પરમિશન છે!");
+    const inputPass = prompt("🔐 Enter Master Register Edit Password:");
+    if (inputPass === null) return;
+    if (inputPass === EDIT_MODE_PASSWORD) {
+      alert("✅ Edit Mode Unlocked! You can edit any cell directly.");
+      setMasterMode('edit');
+    } else {
+      alert("❌ Incorrect Edit Password! Access Denied.");
+    }
+  }
+
+  function handleMasterCellChange(id, colKey, newVal) {
+    if (!masterPendingUpdates.has(id)) masterPendingUpdates.set(id, {});
+    masterPendingUpdates.get(id)[colKey] = newVal.trim() === '' ? null : newVal.trim();
+    const item = allRecordsCache.find(x => x.id === id);
+    if (item) item[colKey] = newVal.trim() === '' ? null : newVal.trim();
+  }
+
+  async function saveMasterEditsToDb() {
+    if (masterPendingUpdates.size === 0) return alert("⚠️ કોઈ ફેરફાર થયેલ નથી.");
+    if (!confirm(`શું તમે ખરેખર ${masterPendingUpdates.size} રો ના ફેરફારો Database માં Save કરવા માંગો છો?`)) return;
+
+    const saveBtn = document.getElementById('btnMasterSave');
+    saveBtn.disabled = true;
+    saveBtn.innerText = "⏳ Saving...";
+
+    let updateErrors = 0;
+    for (const [id, rowData] of masterPendingUpdates.entries()) {
+      const { error } = await db.from('piping_joints').update(rowData).eq('id', id);
+      if (error) { console.error("Update error for row " + id, error); updateErrors++; }
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.innerText = "💾 SAVE CHANGES";
+
+    if (updateErrors === 0) {
+      alert(`🎉 સફળતાપૂર્વક ${masterPendingUpdates.size} રેકોર્ડ્સ Database માં અપડેટ થઈ ગયા!`);
+      masterPendingUpdates.clear();
+      setMasterMode('view');
+    } else {
+      alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી.`);
+    }
+  }
+
+  function setupStageUI(stage) {
+    const title = document.getElementById('stageTitle');
+    const subArea = document.getElementById('subFilterArea');
+    const subMetric = document.getElementById('subMetricArea');
+    const customArea = document.getElementById('customInputsArea');
+    const queueHeading = document.getElementById('queueHeading');
+    const btnSaveLabel = document.getElementById('btnSaveLabel');
+    const searchLabel = document.getElementById('spoolSearchLabel');
+
+    subArea.style.display = 'none';
+    subArea.innerHTML = '';
+    subMetric.style.display = 'none';
+    customArea.innerHTML = '';
+    activeSubFilter = '';
+
+    if (stage === 'bending_issue') {
+      title.innerText = '1. ISSUED FOR BENDING ENTRY';
+      document.getElementById('navSubTitle').innerText = '| Stage: ISSUED FOR BENDING';
+      searchLabel.innerText = 'Search & Select Spool for Bending:';
+      queueHeading.innerHTML = 'Selected Spools for Bending (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE BENDING ENTRY';
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Bending Issue Date:</label><input type="date" id="input_date" required></div>`;
+    } 
+    else if (stage === 'bend_entry') {
+      title.innerText = '2. BEND ENTRY MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: BEND COMPLETED';
+      searchLabel.innerText = 'Search & Select Spool for Bend Complete:';
+      queueHeading.innerHTML = 'Selected Spools for Bend (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE BEND ENTRY';
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Bend Date:</label><input type="date" id="input_date" required></div>`;
+    }
+    else if (stage === 'fitup_issue') {
+      title.innerText = '3. ISSUE FOR FIT-UP MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: ISSUE FOR FIT-UP';
+      searchLabel.innerText = 'Search & Select Spool for Fit-Up:';
+      queueHeading.innerHTML = 'Selected Spools for Fit-Up (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE FIT-UP ENTRY';
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Fit-Up Issue Date:</label><input type="date" id="input_date" required></div>`;
+    }
+    else if (stage === 'fitter_name') {
+      title.innerText = '4. FITTER NAME MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO FITTER';
+      searchLabel.innerText = 'Search & Select Spool for Fitter Allocation:';
+      queueHeading.innerHTML = 'Selected Spools for Fitter (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE FITTER ENTRY';
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Issued to Fitter Date:</label><input type="date" id="input_date" required></div>`;
+    }
+    else if (stage === 'ready_fitup') {
+      title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: READY FIT-UP';
+      searchLabel.innerText = 'Search & Select Spool for Inspection:';
+      queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE INSPECTION ENTRY';
+      subArea.style.display = 'flex';
+      subMetric.style.display = 'flex';
+      subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Fit-Up Date:</label><input type="date" id="input_date" required></div>`;
+      activeSubFilter = FITTERS[0];
+      subArea.children[0].classList.add('active');
+    }
+    else if (stage === 'fitup_entry') {
+      title.innerText = '6. FIT UP ENTRY MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: FIT-UP COMPLETED';
+      searchLabel.innerText = 'Search & Select Spool:';
+      queueHeading.innerHTML = 'Selected Spools for Fit-Up (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE FIT-UP COMPLETED';
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Fit-Up Completed Date:</label><input type="date" id="input_date" required></div>`;
+    }
+    else if (stage === 'welder_name') {
+      title.innerText = '7. WELDER NAME MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO WELDER';
+      searchLabel.innerText = 'Search & Select Spool for Welder Allocation:';
+      queueHeading.innerHTML = 'Selected Spools for Welder (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE WELDER ENTRY';
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Issued to Welder Date:</label><input type="date" id="input_date" required></div>`;
+    }
+    else if (stage === 'ready_weld') {
+      title.innerText = '8. READY FOR WELD VISUAL MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: READY WELD VISUAL';
+      searchLabel.innerText = 'Search & Select Spool:';
+      queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE VISUAL ENTRY';
+      subArea.style.display = 'flex';
+      subMetric.style.display = 'flex';
+      subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Visual Date:</label><input type="date" id="input_date" required></div>`;
+      activeSubFilter = WELDERS[0];
+      subArea.children[0].classList.add('active');
+    }
+    else if (stage === 'weld_visual') {
+      title.innerText = '9. WELD VISUAL MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: WELD VISUAL COMPLETED';
+      searchLabel.innerText = 'Search & Select Spool:';
+      queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE VISUAL COMPLETED';
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Weld Visual Date:</label><input type="date" id="input_date" required></div>`;
+    }
+    else if (stage === 'ndt_clearance') {
+      title.innerText = '10. NDT CLEARANCE MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: NDT CLEARANCE';
+      searchLabel.innerText = 'Search & Select Spool for NDT:';
+      queueHeading.innerHTML = 'Selected Spools for NDT (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE NDT ENTRY';
+      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">NDT Clearance Date:</label><input type="date" id="input_date" required></div>`;
+    }
+    else if (stage === 'fd') {
+      title.innerText = '11. FINAL DISPATCH & DC NO MODULE';
+      document.getElementById('navSubTitle').innerText = '| Stage: FINAL DISPATCH & DC NO';
+      searchLabel.innerText = 'Search & Select Spool for DC:';
+      queueHeading.innerHTML = 'Selected Spools for DC (<span id="queueCount">0</span>)';
+      btnSaveLabel.innerText = 'SAVE DC ENTRY';
+      customArea.innerHTML = `
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
+          <div style="width: 240px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">DC No (e.g. AEPL-08):</label><input type="text" id="input_dc_no" placeholder="Enter DC No" required></div>
+          <div style="width: 200px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Dispatch Date:</label><input type="date" id="input_date" required></div>
+        </div>
+      `;
+    }
+  }
+
+  async function loadStageData(stage) {
+    document.getElementById('metricSpools').innerText = '...';
+    document.getElementById('metricWelds').innerText = '...';
+    document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>';
+
+    let query = db.from('piping_joints').select('*');
+    if (stage === 'bending_issue') query = query.is('Bend_date', null).is('Issued_for_bending', null);
+    else if (stage === 'bend_entry') query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
+    else if (stage === 'fitup_issue') query = query.not('Bend_date', 'is', null).is('Issue_for_fitup', null);
+    else if (stage === 'fitter_name') query = query.not('Issue_for_fitup', 'is', null).is('Fitter_name', null);
+    else if (stage === 'ready_fitup') query = query.not('Fitter_name', 'is', null).is('Ready_for_fitup_insp', null);
+    else if (stage === 'fitup_entry') query = query.not('Ready_for_fitup_insp', 'is', null).is('Fit_up_date', null);
+    else if (stage === 'welder_name') query = query.not('Fit_up_date', 'is', null).is('Welder_no', null);
+    else if (stage === 'ready_weld') query = query.not('Welder_no', 'is', null).is('Ready_for_weld_visual', null);
+    else if (stage === 'weld_visual') query = query.not('Ready_for_weld_visual', 'is', null).is('Weld_visual_date', null);
+    else if (stage === 'ndt_clearance') query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
+    else if (stage === 'fd') query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
+
+    const { data, error } = await query.order('id', { ascending: true }).limit(5000);
+    if (error) return alert("Error loading data: " + error.message);
+
+    cumulativeRows = data || [];
+    balanceColumnFilters = {};
+    filterBySubStage();
+  }
+
+  function selectSubFilter(val, btn) {
+    activeSubFilter = val;
+    btn.parentNode.querySelectorAll('.sub-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterBySubStage();
+  }
+
+  function filterBySubStage() {
+    if (currentStage === 'ready_fitup') {
+      stageFilteredRows = cumulativeRows.filter(r => String(r.Fitter_name || '').trim() === activeSubFilter);
+    } else if (currentStage === 'ready_weld') {
+      stageFilteredRows = cumulativeRows.filter(r => String(r.Welder_no || '').includes(activeSubFilter));
+    } else {
+      stageFilteredRows = cumulativeRows;
+    }
+    applyBalanceDataFilters();
+    updateMetrics();
+  }
+
+  function updateMetrics() {
+    const cumSpools = new Set(cumulativeRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
+    let cumWeldSum = 0;
+    cumulativeRows.forEach(r => {
+      const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+        const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+        const num = parseFloat(cleaned);
+        if (!isNaN(num)) cumWeldSum += num;
+      }
+    });
+
+    document.getElementById('metricSpools').innerText = cumSpools.size;
+    document.getElementById('metricWelds').innerText = Number.isInteger(cumWeldSum) ? cumWeldSum : parseFloat(cumWeldSum.toFixed(2));
+
+    if (currentStage === 'ready_fitup' || currentStage === 'ready_weld') {
+      const subSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
+      let subWeldSum = 0;
+      stageFilteredRows.forEach(r => {
+        const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+        if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+          const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+          const num = parseFloat(cleaned);
+          if (!isNaN(num)) subWeldSum += num;
+        }
+      });
+      document.getElementById('subMetricSpools').innerText = subSpools.size;
+      document.getElementById('subMetricWelds').innerText = Number.isInteger(subWeldSum) ? subWeldSum : parseFloat(subWeldSum.toFixed(2));
+    }
+    document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
+  }
+
+  function handleSearchInput() {
+    const term = document.getElementById('spoolSearch').value.trim().toLowerCase();
+    const dropdown = document.getElementById('searchDropdown');
+    if (!term) { dropdown.style.display = 'none'; return; }
+
+    const matched = stageFilteredRows.filter(r => {
+      const spl = String(r.Spool_number || '').toLowerCase();
+      const dwg = String(r.Drawing_no || '').toLowerCase();
+      const wld = String(r.Weld_id || '').toLowerCase();
+      return spl.includes(term) || dwg.includes(term) || wld.includes(term);
+    }).slice(0, 35);
+
+    if (matched.length === 0) {
+      dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:13px; text-align:center;">No Spools Found</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+
+    dropdown.innerHTML = matched.map(r => `
+      <div class="dropdown-row" onclick="onSpoolSelect(${r.id})">
+        <div>
+          <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
+          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
+        </div>
+        <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || '-'}</span>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+  }
+
+  function onSpoolSelect(id) {
+    if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
+      return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સિલેક્ટ અથવા સેવ કરવાની પરમિશન નથી!");
+    }
+    if (selectedQueue.some(x => x.id === id)) return alert("⚠️ આ સ્પૂલ પહેલેથી નીચેના લિસ્ટમાં ઉમેરેલું છે!");
+
+    const item = stageFilteredRows.find(x => x.id === id);
+    if (!item) return;
+
+    document.getElementById('spoolSearch').value = '';
+    document.getElementById('searchDropdown').style.display = 'none';
+
+    const isDirectStage = ['bending_issue', 'fitup_issue', 'fd', 'ready_fitup', 'fitup_entry', 'ready_weld', 'weld_visual', 'ndt_clearance'].includes(currentStage);
+    if (isDirectStage) {
+      selectedQueue.push(item);
+      document.getElementById('itemEditForm').style.display = 'none';
+      renderSelectedTable();
+      document.getElementById('spoolSearch').focus();
+      return;
+    }
+
+    document.getElementById('itemEditForm').style.display = 'block';
+    document.getElementById('form_item_id').value = item.id;
+    document.getElementById('form_spool_no').value = item.Spool_number || '';
+    document.getElementById('form_drawing_no').value = item.Drawing_no || '';
+
+    const dynArea = document.getElementById('dynamicFormFields');
+    dynArea.innerHTML = '';
+
+    if (currentStage === 'bend_entry') {
+      dynArea.innerHTML = `
+        <div><label style="margin-top:0; color:#1e40af;">BEND QTY (Editable):</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
+        <div><label style="margin-top:0; color:#1e40af;">WELD ID (Editable):</label><input type="text" id="form_weld_id" value="${item.Weld_id || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
+      `;
+    } 
+    else if (currentStage === 'fitter_name') {
+      dynArea.innerHTML = `
+        <div>
+          <label style="margin-top:0; color:#1e40af;">Select Fitter Name:</label>
+          <select id="form_fitter_val" style="border-color:#2563eb; font-weight:bold;">
+            <option value="">-- Select Fitter --</option>
+            ${FITTERS.map(f => `<option value="${f}">${f}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    }
+    else if (currentStage === 'welder_name') {
+      dynArea.innerHTML = `
+        <div>
+          <label style="margin-top:0; color:#1e40af;">Welder No 1:</label>
+          <select id="form_welder_1" style="border-color:#2563eb; font-weight:bold;">
+            <option value="">-- Welder 1 --</option>
+            ${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}
+          </select>
+          <label style="margin-top:6px; color:#1e40af;">Welder No 2 (Optional):</label>
+          <select id="form_welder_2">
+            <option value="">-- Welder 2 (None) --</option>
+            ${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    }
+  }
+
+  function confirmAddFormToQueue() {
+    const id = parseInt(document.getElementById('form_item_id').value);
+    const item = stageFilteredRows.find(x => x.id === id);
+    if (!item) return;
+
+    let extraData = {};
+    if (currentStage === 'bend_entry') {
+      extraData.final_bend_qty = document.getElementById('form_bend_qty').value.trim();
+      extraData.final_weld_id = document.getElementById('form_weld_id').value.trim();
+    } 
+    else if (currentStage === 'fitter_name') {
+      const fName = document.getElementById('form_fitter_val').value;
+      if (!fName) return alert("કૃપા કરીને Fitter Name અથવા NA પસંદ કરો!");
+      extraData.final_fitter = fName;
+    }
+    else if (currentStage === 'welder_name') {
+      const w1 = document.getElementById('form_welder_1').value;
+      const w2 = document.getElementById('form_welder_2').value;
+      if (!w1) return alert("કૃપા કરીને Welder 1 અથવા NA પસંદ કરો!");
+      extraData.final_welder = (w2 && w2 !== 'NA') ? `${w1}/${w2}` : w1;
+    }
+
+    selectedQueue.push({ ...item, ...extraData });
+    document.getElementById('itemEditForm').style.display = 'none';
+    renderSelectedTable();
+    document.getElementById('spoolSearch').focus();
+  }
+
+  function removeSpoolFromQueue(id) {
+    selectedQueue = selectedQueue.filter(x => x.id !== id);
+    renderSelectedTable();
+  }
+
+  function renderSelectedTable() {
+    const thead = document.getElementById('selectedTableHead');
+    const tbody = document.getElementById('selectedTableBody');
+    const cnt = document.getElementById('queueCount');
+    if (cnt) cnt.innerText = selectedQueue.length;
+
+    if (currentStage === 'fitter_name') thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Assigned Fitter</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+    else if (currentStage === 'welder_name') thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Assigned Welder</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+    else if (currentStage === 'bend_entry') thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+    else thead.innerHTML = `<tr><th style="width:50px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th style="text-align:center; width:100px;">Action</th></tr>`;
+
+    if (selectedQueue.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">No spools selected.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = selectedQueue.map((r, idx) => {
+      let customCol = '';
+      if (currentStage === 'fitter_name') customCol = `<td style="font-weight:bold; color:#1e40af;">${r.final_fitter || '-'}</td>`;
+      else if (currentStage === 'welder_name') customCol = `<td style="font-weight:bold; color:#1e40af;">${r.final_welder || '-'}</td>`;
+      else if (currentStage === 'bend_entry') customCol = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td><td style="font-weight:bold; color:#0284c7;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>`;
+
+      return `
+        <tr>
+          <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+          <td style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</td>
+          <td style="color: #334155;">${r.Drawing_no || '-'}</td>
+          ${customCol}
+          <td style="text-align: center;"><button type="button" class="btn-remove" onclick="removeSpoolFromQueue(${r.id})">✕ Remove</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // --- UNIVERSAL EXCEL FILTER MODAL ---
   function openExcelFilter(e, targetTable, colKey, colLabel) {
     e.stopPropagation();
     const popup = document.getElementById('excelFilterPopup');
@@ -1487,6 +2296,7 @@
     return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
+  // --- BALANCE LIST FILTERING ---
   function applyBalanceDataFilters() {
     activeBalanceDisplayRows = stageFilteredRows.filter(r => {
       for (const [colKey, allowedSet] of Object.entries(balanceColumnFilters)) {
@@ -1523,6 +2333,7 @@
     `).join('');
   }
 
+  // --- MASTER REGISTER FILTERING & RENDER ---
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
     tr.innerHTML = MASTER_COLS.map(c => `
@@ -1608,6 +2419,7 @@
     `).join('');
   }
 
+  // --- STAGE DATA SAVING LOGIC ---
   async function submitCurrentStage() {
     if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
       return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
@@ -1690,6 +2502,7 @@
     loadStageData(currentStage);
   }
 
+  // Dropdown close listeners
   document.addEventListener('click', (e) => {
     const popup = document.getElementById('excelFilterPopup');
     if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
