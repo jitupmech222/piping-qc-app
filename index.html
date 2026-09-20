@@ -197,6 +197,14 @@
     }
     .btn-update-hub:hover { background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%); color: #fff; }
 
+    .btn-mto-hub {
+      background: linear-gradient(135deg, #0d9488 0%, #115e59 100%);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);
+    }
+    .btn-mto-hub:hover { background: linear-gradient(135deg, #0f766e 0%, #042f2e 100%); color: #fff; }
+
     .btn-view {
       grid-column: 1 / -1;
       justify-content: center;
@@ -216,7 +224,7 @@
 
     .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
 
-    /* Compact Action Buttons */
+    /* Action Buttons */
     .btn-save-action {
       background: #15803d;
       color: white;
@@ -447,6 +455,12 @@
           <span>PROGRESS REPORT</span>
         </button>
 
+        <!-- MTO Register Button -->
+        <button class="menu-btn btn-mto-hub" onclick="openMtoRegister()">
+          <span class="step-badge" style="background:#fff; color:#0f766e;">📋</span>
+          <span>MTO REGISTER</span>
+        </button>
+
         <!-- Data Update Hub (Admin Only) -->
         <button class="menu-btn btn-update-hub" id="btnDataUpdateHub" style="display: none;" onclick="openDataUpdateHub()">
           <span class="step-badge" style="background:#fff; color:#7c3aed;">🔄</span>
@@ -466,7 +480,7 @@
         <h3 style="color:#6d28d9;">🔄 Database Excel Batch Update (Admin)</h3>
         <p style="font-size: 13px; color: #475569; margin-top: 4px;">
           ૧. પહેલાં <b>Download Master Data</b> બટન દબાવીને એક્સેલ ફાઇલ મેળવો.<br>
-          ૨. ફાઇલમાં જરૂરી ફેરફારો કરો (ધ્યાન રાખો: <b>id</b> કૉલમમાં કોઈ છેડછાડ ન કરવી).<br>
+          ૨. ફાઇલમાં જરૂરી ફેરફારો કરો (ધ્યાન રાખો: <b>id</b> કૉલમમાં કોઈ ફેરફાર કરવો નહીં).<br>
           ૩. ફાઇલ પસંદ કરીને <b>Upload & Update Database</b> બટન દબાવો.
         </p>
 
@@ -485,6 +499,47 @@
           <button type="button" class="btn-save-action" id="btnExecuteExcelUpdate" style="background: #15803d; width: 100%; margin-top: 14px; padding: 12px; justify-content: center;" onclick="uploadAndApplyExcelUpdate()">
             📤 2. Upload & Update Database
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MTO Register Screen -->
+    <div id="mtoContainer" style="display: none;">
+      <div class="card" style="padding: 10px 14px; margin-top: 4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
+          <h3 style="margin:0; border:none; color:#0f766e;">📋 MTO Register (<span id="mtoTotalCount">0</span>)</h3>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="mtoSearchInput" placeholder="Search Spool / Drawing..." oninput="handleMtoSearch(this.value)" style="padding:4px 8px; width:220px; font-size:12px; margin-top:0;">
+            <button type="button" class="sub-filter-btn" onclick="loadMtoData()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div class="master-table-container">
+          <table>
+            <thead>
+              <tr style="background:#0f766e; color:white;">
+                <th>Sr.</th>
+                <th>Spool No</th>
+                <th>Drawing No</th>
+                <th>SAP Code</th>
+                <th>Size 1</th>
+                <th>Size 2</th>
+                <th>Unit</th>
+                <th>Material Description</th>
+                <th>MIN No</th>
+                <th>MIN Date</th>
+                <th>MIN Qty</th>
+                <th>Issued Qty</th>
+                <th>IGP No</th>
+                <th>IGP Date</th>
+                <th>Heat No</th>
+                <th>Bend Date</th>
+                <th>Fit Up Date</th>
+              </tr>
+            </thead>
+            <tbody id="mtoTableBody">
+              <tr><td colspan="17" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -720,7 +775,6 @@
     const btnShareWA = document.getElementById('btnShareWhatsApp');
     const btnUpdateHub = document.getElementById('btnDataUpdateHub');
     
-    // WhatsApp & Data Update Button visible ONLY for Admin
     if (btnShareWA) {
       btnShareWA.style.display = (currentUser.username === 'admin') ? 'inline-flex' : 'none';
     }
@@ -824,6 +878,27 @@
     { key: 'Remarks', label: 'REMARKS' }
   ];
 
+  const MTO_COLS = [
+    { key: 'Spool_number', label: 'Spool No' },
+    { key: 'Drawing_no', label: 'Drawing No' },
+    { key: 'MAT_SAP_CODE', label: 'SAP Code' },
+    { key: 'Size_1', label: 'Size 1' },
+    { key: 'Size_2', label: 'Size 2' },
+    { key: 'Unit', label: 'Unit' },
+    { key: 'MAT_Description', label: 'Material Description' },
+    { key: 'MIN_No', label: 'MIN No' },
+    { key: 'MIN_Date', label: 'MIN Date' },
+    { key: 'MIN_qty', label: 'MIN Qty' },
+    { key: 'Issued_qty', label: 'Issued Qty' },
+    { key: 'IGP_No', label: 'IGP No' },
+    { key: 'IGP_Date', label: 'IGP Date' },
+    { key: 'Heat_number', label: 'Heat No' },
+    { key: 'Bend_date', label: 'Bend Date' },
+    { key: 'Fit_up_date', label: 'Fit Up Date' }
+  ];
+
+  let mtoCache = [];
+
   function formatDateDisplay(val) {
     if (!val) return '-';
     const str = String(val).trim();
@@ -847,6 +922,7 @@
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'block';
     document.getElementById('btnTopDashboard').style.display = 'none';
     document.getElementById('navSubTitle').innerText = currentUser ? `| ${currentUser.name}` : '| Progress Tracking';
@@ -862,6 +938,7 @@
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
 
     if (stage === 'view_records') {
@@ -893,6 +970,7 @@
     document.getElementById('progressDashboardContainer').style.display = 'none';
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 🔄 Data Update (Admin)`;
     document.getElementById('dataUpdateContainer').style.display = 'block';
@@ -929,7 +1007,6 @@
         return;
       }
 
-      // Excel માટે તૈયાર કરવું - id પ્રથમ કૉલમ રાખવી જરૂરી છે
       const formatted = allRows.map(r => {
         const rowObj = { id: r.id };
         MASTER_COLS.forEach(c => {
@@ -997,7 +1074,6 @@
 
         updateBtn.innerHTML = "⏳ Updating Supabase in batches...";
 
-        // 50-50 ના બેચમાં અપડેટ કરવું જેથી નેટવર્ક એરર ન આવે
         const batchSize = 50;
         let updatedCount = 0;
 
@@ -1014,7 +1090,6 @@
             return cleanObj;
           });
 
-          // Supabase upsert
           const { error } = await db.from('piping_joints').upsert(batch, { onConflict: 'id' });
           if (error) throw error;
           updatedCount += batch.length;
@@ -1023,7 +1098,7 @@
 
         alert(`🎉 સફળતાપૂર્વક ${updatedCount} રેકોર્ડ્સ Supabase માં અપડેટ થઈ ગયા!`);
         fileInput.value = '';
-        allRecordsCache = []; // કેશ રિસેટ કરવું
+        allRecordsCache = [];
       } catch (err) {
         console.error(err);
         alert("અપડેટ કરવામાં ભૂલ આવી: " + err.message);
@@ -1035,6 +1110,82 @@
     reader.readAsArrayBuffer(file);
   }
 
+  // --- MTO REGISTER MODULE ---
+  async function openMtoRegister() {
+    closeExcelPopup();
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('recordsContainer').style.display = 'none';
+    document.getElementById('progressDashboardContainer').style.display = 'none';
+    document.getElementById('spoolTrackingContainer').style.display = 'none';
+    document.getElementById('progressReportContainer').style.display = 'none';
+    document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
+    document.getElementById('navSubTitle').innerText = `| 📋 MTO Register (${currentUser.name})`;
+    document.getElementById('mtoContainer').style.display = 'block';
+    await loadMtoData();
+  }
+
+  async function loadMtoData() {
+    const tbody = document.getElementById('mtoTableBody');
+    tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>';
+
+    const { data, error } = await db.from('mto').select('*').order('id', { ascending: true }).limit(5000);
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="17" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
+      return;
+    }
+
+    mtoCache = data || [];
+    renderMtoTable(mtoCache);
+  }
+
+  function handleMtoSearch(term) {
+    const q = term.toLowerCase().trim();
+    if (!q) {
+      renderMtoTable(mtoCache);
+      return;
+    }
+    const filtered = mtoCache.filter(r => 
+      String(r.Spool_number || '').toLowerCase().includes(q) ||
+      String(r.Drawing_no || '').toLowerCase().includes(q) ||
+      String(r.MAT_SAP_CODE || '').toLowerCase().includes(q)
+    );
+    renderMtoTable(filtered);
+  }
+
+  function renderMtoTable(rows) {
+    const tbody = document.getElementById('mtoTableBody');
+    document.getElementById('mtoTotalCount').innerText = rows.length;
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:15px; color:#64748b;">No MTO records found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map((r, idx) => `
+      <tr>
+        <td style="text-align:center;">${idx + 1}</td>
+        <td><b>${r.Spool_number || '-'}</b></td>
+        <td>${r.Drawing_no || '-'}</td>
+        <td>${r.MAT_SAP_CODE || '-'}</td>
+        <td>${r.Size_1 || '-'}</td>
+        <td>${r.Size_2 || '-'}</td>
+        <td>${r.Unit || '-'}</td>
+        <td>${r.MAT_Description || '-'}</td>
+        <td>${r.MIN_No || '-'}</td>
+        <td>${formatDateDisplay(r.MIN_Date)}</td>
+        <td>${r.MIN_qty || '-'}</td>
+        <td>${r.Issued_qty || '-'}</td>
+        <td>${r.IGP_No || '-'}</td>
+        <td>${formatDateDisplay(r.IGP_Date)}</td>
+        <td>${r.Heat_number || '-'}</td>
+        <td>${formatDateDisplay(r.Bend_date)}</td>
+        <td>${formatDateDisplay(r.Fit_up_date)}</td>
+      </tr>
+    `).join('');
+  }
+
   // --- PROGRESS DASHBOARD MODULE ---
   async function openProgressDashboard() {
     closeExcelPopup();
@@ -1044,6 +1195,7 @@
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 📈 Progress Dashboard (${currentUser.name})`;
     document.getElementById('progressDashboardContainer').style.display = 'block';
@@ -1135,6 +1287,7 @@
     document.getElementById('progressDashboardContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 🔍 Spool Tracking (${currentUser.name})`;
     document.getElementById('spoolTrackingContainer').style.display = 'block';
@@ -1238,6 +1391,7 @@
     document.getElementById('progressDashboardContainer').style.display = 'none';
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 📅 Progress Report (${currentUser.name})`;
     document.getElementById('progressReportContainer').style.display = 'block';
