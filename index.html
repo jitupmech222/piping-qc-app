@@ -164,7 +164,6 @@
     .menu-btn.stage-ndt { border-left: 4px solid #d97706; }
     .menu-btn.stage-fd { border-left: 4px solid #059669; }
 
-    /* Special Accent Buttons */
     .btn-progress-hub {
       background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
       color: #ffffff;
@@ -224,7 +223,6 @@
 
     .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
 
-    /* Action Buttons */
     .btn-save-action {
       background: #15803d;
       color: white;
@@ -279,7 +277,6 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
-    /* Tables & Scrolling */
     .balance-table-container { overflow: auto; margin-top: 10px; height: 55vh; border: 1px solid #cbd5e1; border-radius: 6px; }
     .master-table-container { overflow: auto; margin-top: 8px; height: calc(100vh - 145px); border: 1px solid #cbd5e1; border-radius: 6px; }
 
@@ -293,7 +290,6 @@
     .filter-btn-icon:hover { background: #2563eb; }
     .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
 
-    /* Floating Excel Filter Modal */
     #excelFilterPopup {
       position: absolute;
       display: none;
@@ -317,7 +313,6 @@
 </head>
 <body>
 
-<!-- Login Security Modal -->
 <div id="loginOverlay">
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 16px;">
@@ -346,9 +341,7 @@
   </div>
 </div>
 
-<!-- Main App -->
 <div id="appContent" style="display: none;">
-  <!-- Universal Top Navigation Bar -->
   <div class="top-navbar">
     <div class="top-nav-title">
       <span>⚙️ PIPING CONSOLE</span>
@@ -361,7 +354,6 @@
   </div>
 
   <div class="container">
-    <!-- Hub / Main Dashboard -->
     <div id="mainMenu" class="card">
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
         <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">Fabrication & QC Tracking Dashboard</h3>
@@ -385,16 +377,13 @@
         <button class="menu-btn btn-track-hub" onclick="openSpoolTracking()"><span class="step-badge" style="background:#fff; color:#b45309;">🔍</span><span>SPOOL TRACKING</span></button>
         <button class="menu-btn btn-report-hub" onclick="openProgressReport()"><span class="step-badge" style="background:#fff; color:#0369a1;">📅</span><span>PROGRESS REPORT</span></button>
 
-        <!-- MTO Register Button -->
         <button class="menu-btn btn-mto-hub" onclick="openMtoRegister()"><span class="step-badge" style="background:#fff; color:#0f766e;">📋</span><span>MTO REGISTER</span></button>
 
-        <!-- Data Update Hub (Admin Only) -->
         <button class="menu-btn btn-update-hub" id="btnDataUpdateHub" style="display: none;" onclick="openDataUpdateHub()"><span class="step-badge" style="background:#fff; color:#7c3aed;">🔄</span><span>DATA UPDATE</span></button>
         <button class="menu-btn btn-view" onclick="openStage('view_records')"><span>📊 VIEW MASTER REGISTER</span></button>
       </div>
     </div>
 
-    <!-- Data Update Screen (Admin Only) -->
     <div id="dataUpdateContainer" style="display: none;">
       <div class="card">
         <h3 style="color:#6d28d9;">🔄 Database Excel Batch Update (Admin)</h3>
@@ -415,7 +404,6 @@
       </div>
     </div>
 
-    <!-- MTO Register Screen -->
     <div id="mtoContainer" style="display: none;">
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
@@ -428,15 +416,12 @@
             <input type="text" id="mtoSearchInput" placeholder="Search in MTO..." oninput="handleMtoSearch(this.value)" style="padding:5px 8px; width:140px; font-size:12px; margin-top:0;">
             <button type="button" class="sub-filter-btn" onclick="clearAllMtoFiltersAndLoad()">🔄 Reset / All View</button>
             
-            <!-- Filter View Buttons -->
             <button type="button" class="sub-filter-btn" id="btnFilterMinBal" style="background:#ffedd5; color:#c2410c; border-color:#fdba74;" onclick="viewMtoBalanceCategory('min_bal')">👁️ MIN Bal.</button>
             <button type="button" class="sub-filter-btn" id="btnFilterIssueBal" style="background:#fef3c7; color:#b45309; border-color:#fcd34d;" onclick="viewMtoBalanceCategory('issue_bal')">👁️ Mat. Issue Bal.</button>
             <button type="button" class="sub-filter-btn" id="btnFilterAllBal" style="background:#e0e7ff; color:#4338ca; border-color:#a5b4fc;" onclick="viewMtoBalanceCategory('all_bal')">👁️ All Bal.</button>
 
-            <!-- 📥 Download View Excel Button -->
             <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px;" onclick="downloadFormattedMtoExcel()">📥 Download View Excel</button>
 
-            <!-- Excel Upload Button (Admin Only) -->
             <button type="button" class="btn-save-action" id="btnMtoUploadTrigger" style="background:#15803d; padding:6px 10px; font-size:11.5px; display:none;" onclick="document.getElementById('mtoFileInput').click()">📤 Upload & Update</button>
             <input type="file" id="mtoFileInput" accept=".xlsx, .xls" style="display:none;" onchange="uploadAndApplyMtoExcel(event)">
           </div>
@@ -455,7 +440,6 @@
       </div>
     </div>
 
-    <!-- Progress Dashboard Screen -->
     <div id="progressDashboardContainer" style="display: none;">
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -480,7 +464,6 @@
       </div>
     </div>
 
-    <!-- Spool Tracking Screen -->
     <div id="spoolTrackingContainer" style="display: none;">
       <div class="card">
         <h3 style="color:#b45309;">🔍 Spool Live Stage Tracker</h3>
@@ -502,7 +485,6 @@
       </div>
     </div>
 
-    <!-- Progress Report Screen -->
     <div id="progressReportContainer" style="display: none;">
       <div class="card">
         <h3 style="color:#0369a1;">📅 Daily Progress Report Generator</h3>
@@ -535,7 +517,6 @@
       </div>
     </div>
 
-    <!-- Stage Screen -->
     <div id="stageContainer" style="display: none;">
       <div class="card">
         <div class="metric-banner">
@@ -600,7 +581,6 @@
       </div>
     </div>
 
-    <!-- Master Register -->
     <div id="recordsContainer" style="display: none;">
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
@@ -625,7 +605,6 @@
   </div>
 </div>
 
-<!-- Floating Excel Filter Modal -->
 <div id="excelFilterPopup">
   <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
   <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
@@ -640,7 +619,6 @@
 </div>
 
 <script>
-  // USER ROLES & PERMISSIONS DEFINITION
   const USER_ROLES = {
     "admin": { pass: "ruhi@2018", name: "Admin", allowed: ["all"] },
     "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry", "fitup_issue"] },
@@ -766,7 +744,7 @@
     { key: 'Remarks', label: 'REMARKS' }
   ];
 
-  // 👉 MTO કૉલમ્સમાં ડેટાબેઝ સ્કીમા સાથે સુસંગત સ્મોલ 'lot_no' રાખેલું છે
+  // 👉 MTO કૉલમ્સમાં ડેટાબેઝ સ્કીમા સાથે સુસંગત સ્મોલ 'lot_no' રાખેલું છે[span_4](start_span)[span_4](end_span)
   const MTO_COLS = [
     { key: 'Spool_number', label: 'Spool No' },
     { key: 'Drawing_no', label: 'Drawing No' },
@@ -869,7 +847,6 @@
     enforceRolePermissions(stage);
   }
 
-  // --- DATA UPDATE MODULE (Admin Only) ---
   function openDataUpdateHub() {
     if (!currentUser || currentUser.username !== 'admin') {
       alert("⚠️ માત્ર Admin પાસે જ Data Update કરવાનો અધિકાર છે!");
@@ -1036,7 +1013,6 @@
     reader.readAsArrayBuffer(file);
   }
 
-  // --- MTO REGISTER MODULE ---
   function buildMtoRegisterHeader() {
     const tr = document.getElementById('mtoHeaderRow');
     tr.innerHTML = `
@@ -1220,7 +1196,6 @@
     `).join('');
   }
 
-  // 👉 PERFECT EXCEL GENERATOR (ExcelJS)
   async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sheet1', { views: [{ showGridLines: true }] });
@@ -1233,7 +1208,7 @@
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FFD9EAD3' } // Light Green
+        fgColor: { argb: 'FFD9EAD3' }
       };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
       cell.border = {
@@ -1301,7 +1276,6 @@
     await exportStyledExcelWorkbook(excelRows, headers, `${catName}_List_${today}`);
   }
 
-  // 👉 Excel અપલોડ & ડેટાબેઝ અપડેટ ફંક્શન (lot_no સંપૂર્ણ ફ્લેક્સિબલ રીતે મેપ થશે)
   async function uploadAndApplyMtoExcel(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1367,7 +1341,6 @@
               } else if (r.hasOwnProperty(c.label)) {
                 rawVal = r[c.label];
               } else {
-                // કેસ-ઇન્સેન્સિટિવ તથા સ્પેસ/અંડરસ્કોર વગર મેચિંગ (જેથી Lot No, Lot_no, lot_no બધું જ મેચ થઈ જાય)
                 const matchedKey = Object.keys(r).find(k => 
                   k.toLowerCase().replace(/[\s_-]/g, '') === c.key.toLowerCase().replace(/[\s_-]/g, '') ||
                   k.toLowerCase().replace(/[\s_-]/g, '') === c.label.toLowerCase().replace(/[\s_-]/g, '')
@@ -1408,7 +1381,315 @@
     reader.readAsArrayBuffer(file);
   }
 
-  // Dropdown close listeners
+  function openExcelFilter(e, targetTable, colKey, colLabel) {
+    e.stopPropagation();
+    const popup = document.getElementById('excelFilterPopup');
+    const rect = e.target.getBoundingClientRect();
+    let top = rect.bottom + window.scrollY + 6;
+    let left = rect.left + window.scrollX - 100;
+    if (left + 270 > window.innerWidth) left = window.innerWidth - 280;
+    if (left < 10) left = 10;
+
+    popup.style.top = `${top}px`;
+    popup.style.left = `${left}px`;
+    popup.style.display = 'block';
+
+    currentPopupContext.targetTable = targetTable;
+    currentPopupContext.colKey = colKey;
+    currentPopupContext.colLabel = colLabel;
+
+    let sourceRows = [];
+    if (targetTable === 'balance') sourceRows = stageFilteredRows;
+    else if (targetTable === 'master') sourceRows = allRecordsCache;
+    else if (targetTable === 'mto') sourceRows = mtoBaseRows;
+
+    const valueMap = new Map();
+    const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issue') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+
+    sourceRows.forEach(r => {
+      let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
+      if (val === null || val === undefined) val = '';
+      val = String(val).trim();
+      let displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
+      valueMap.set(displayVal, (valueMap.get(displayVal) || 0) + 1);
+    });
+
+    const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    currentPopupContext.allValues = distinctSorted;
+
+    let activeFilters = {};
+    if (targetTable === 'balance') activeFilters = balanceColumnFilters;
+    else if (targetTable === 'master') activeFilters = masterColumnFilters;
+    else if (targetTable === 'mto') activeFilters = mtoColumnFilters;
+
+    const currentSelectedSet = activeFilters[colKey] || null;
+    document.getElementById('popupSearchInput').value = '';
+    document.getElementById('popupSearchInput').placeholder = `Search in ${colLabel}...`;
+    renderPopupCheckboxes(distinctSorted, currentSelectedSet);
+  }
+
+  function renderPopupCheckboxes(items, selectedSet) {
+    const container = document.getElementById('popupOptionsList');
+    container.innerHTML = items.map(([val, count], idx) => {
+      const isChecked = selectedSet === null || selectedSet.has(val);
+      return `
+        <div class="popup-item">
+          <input type="checkbox" id="chk_opt_${idx}" value="${escapeHtml(val)}" ${isChecked ? 'checked' : ''}>
+          <label for="chk_opt_${idx}" style="cursor:pointer; font-size:12px; margin:0;">${escapeHtml(val)} <span style="color:#64748b;">(${count})</span></label>
+        </div>
+      `;
+    }).join('');
+    document.getElementById('popupSelectAll').checked = items.every(([val]) => selectedSet === null || selectedSet.has(val));
+  }
+
+  function onPopupSearch(term) {
+    const q = term.toLowerCase().trim();
+    const filtered = currentPopupContext.allValues.filter(([val]) => val.toLowerCase().includes(q));
+    let activeFilters = currentPopupContext.targetTable === 'balance' ? balanceColumnFilters : (currentPopupContext.targetTable === 'mto' ? mtoColumnFilters : masterColumnFilters);
+    const currentSelectedSet = activeFilters[currentPopupContext.colKey] || null;
+    renderPopupCheckboxes(filtered, currentSelectedSet);
+  }
+
+  function togglePopupSelectAll(checked) {
+    document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(chk => { chk.checked = checked; });
+  }
+
+  function applyPopupFilter() {
+    const selected = new Set();
+    document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(c => { if (c.checked) selected.add(c.value); });
+    const { targetTable, colKey, allValues } = currentPopupContext;
+    let activeFilters = targetTable === 'balance' ? balanceColumnFilters : (targetTable === 'mto' ? mtoColumnFilters : masterColumnFilters);
+
+    if (selected.size === allValues.length) delete activeFilters[colKey];
+    else activeFilters[colKey] = selected;
+
+    closeExcelPopup();
+    if (targetTable === 'balance') applyBalanceDataFilters();
+    else if (targetTable === 'mto') applyMtoDataFilters();
+    else applyMasterDataFilters();
+  }
+
+  function clearCurrentPopupFilter() {
+    const { targetTable, colKey } = currentPopupContext;
+    let activeFilters = targetTable === 'balance' ? balanceColumnFilters : (targetTable === 'mto' ? mtoColumnFilters : masterColumnFilters);
+    delete activeFilters[colKey];
+    closeExcelPopup();
+    if (targetTable === 'balance') applyBalanceDataFilters();
+    else if (targetTable === 'mto') applyMtoDataFilters();
+    else applyMasterDataFilters();
+  }
+
+  function closeExcelPopup() {
+    document.getElementById('excelFilterPopup').style.display = 'none';
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function applyBalanceDataFilters() {
+    activeBalanceDisplayRows = stageFilteredRows.filter(r => {
+      for (const [colKey, allowedSet] of Object.entries(balanceColumnFilters)) {
+        let val = r[colKey] !== undefined ? r[colKey] : '';
+        val = String(val || '').trim();
+        const displayVal = val === '' ? '(Blank)' : val;
+        if (!allowedSet.has(displayVal)) return false;
+      }
+      return true;
+    });
+    document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
+    renderStageBalanceTable();
+  }
+
+  function clearAllBalanceFilters() {
+    balanceColumnFilters = {};
+    applyBalanceDataFilters();
+  }
+
+  function renderStageBalanceTable() {
+    const tbody = document.getElementById('stageBalanceTableBody');
+    if (activeBalanceDisplayRows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#16a34a; font-weight:bold;">🎉 All cleared!</td></tr>';
+      return;
+    }
+    tbody.innerHTML = activeBalanceDisplayRows.slice(0, 500).map(r => `
+      <tr>
+        <td><b>${r.Drawing_no || '-'}</b></td>
+        <td><b>${r.Spool_number || '-'}</b></td>
+        <td>${r.Spool_size || '-'}</td>
+        <td><b>${r.Weld_id || '-'}</b></td>
+        <td>${r.Bend_qty || '-'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function buildMasterRegisterHeader() {
+    const tr = document.getElementById('masterHeaderRow');
+    tr.innerHTML = MASTER_COLS.map(c => `
+      <th>
+        <div class="header-cell">
+          <span>${c.label}</span>
+          <button class="filter-btn-icon" onclick="openExcelFilter(event, 'master', '${c.key}', '${c.label}')">🔽</button>
+        </div>
+      </th>
+    `).join('');
+  }
+
+  async function loadFullRegister() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '<tr><td colspan="24" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>';
+
+    let allRows = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+      if (error) break;
+      if (data && data.length > 0) {
+        allRows = allRows.concat(data);
+        from += step;
+        if (data.length < step) hasMore = false;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    allRecordsCache = allRows;
+    masterColumnFilters = {};
+    applyMasterDataFilters();
+  }
+
+  function applyMasterDataFilters() {
+    masterDisplayRows = allRecordsCache.filter(r => {
+      for (const [colKey, allowedSet] of Object.entries(masterColumnFilters)) {
+        let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
+        val = String(val || '').trim();
+        const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issue') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+        const displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
+        if (!allowedSet.has(displayVal)) return false;
+      }
+      return true;
+    });
+
+    document.getElementById('masterTotalCount').innerText = masterDisplayRows.length;
+    renderMasterTable();
+  }
+
+  function clearAllMasterFilters() {
+    masterColumnFilters = {};
+    applyMasterDataFilters();
+  }
+
+  function renderMasterTable() {
+    const tbody = document.getElementById('tableBody');
+    if (masterDisplayRows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="24" style="text-align:center; padding:15px;">No records found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = masterDisplayRows.slice(0, 1000).map(r => `
+      <tr>
+        ${MASTER_COLS.map(c => {
+          let val = r[c.key] !== undefined ? r[c.key] : (r[c.key.toLowerCase()] !== undefined ? r[c.key.toLowerCase()] : '');
+          if (val === null || val === undefined) val = '';
+          const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issue') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
+          let displayVal = isDateCol ? formatDateDisplay(val) : String(val);
+
+          if (isMasterEditMode) {
+            let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+            return `<td><input type="text" class="cell-input" value="${escapeHtml(editVal)}" onchange="handleMasterCellChange(${r.id}, '${c.key}', this.value)"></td>`;
+          } else {
+            return `<td>${displayVal || '-'}</td>`;
+          }
+        }).join('')}
+      </tr>
+    `).join('');
+  }
+
+  async function submitCurrentStage() {
+    if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
+      return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
+    }
+    if (selectedQueue.length === 0) return alert('કૃપા કરીને સર્ચ કરીને ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
+
+    const dateInput = document.getElementById('input_date');
+    const enteredDate = dateInput ? dateInput.value : null;
+
+    if (currentStage === 'fitter_name') {
+      if (!enteredDate) return alert('કૃપા કરીને Issued to Fitter Date પસંદ કરો.');
+      for (const item of selectedQueue) {
+        const { error } = await db.from('piping_joints').update({ Fitter_name: item.final_fitter, issued_to_fitter_date: enteredDate }).eq('id', item.id);
+        if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
+      }
+    }
+    else if (currentStage === 'welder_name') {
+      if (!enteredDate) return alert('કૃપા કરીને Issued to Welder Date પસંદ કરો.');
+      for (const item of selectedQueue) {
+        const { error } = await db.from('piping_joints').update({ Welder_no: item.final_welder, issued_to_welder_date: enteredDate }).eq('id', item.id);
+        if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
+      }
+    }
+    else if (currentStage === 'bend_entry') {
+      if (!enteredDate) return alert('કૃપા કરીને Bend Date પસંદ કરો.');
+      for (const item of selectedQueue) {
+        const updateData = { Bend_date: enteredDate, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id };
+        const { error } = await db.from('piping_joints').update(updateData).eq('id', item.id);
+        if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
+      }
+    }
+    else if (currentStage === 'bending_issue') {
+      if (!enteredDate) return alert('કૃપા કરીને Bending Issue Date પસંદ કરો.');
+      const { error } = await db.from('piping_joints').update({ Issued_for_bending: enteredDate }).in('id', selectedQueue.map(x => x.id));
+      if (error) return alert("Error: " + error.message);
+    }
+    else if (currentStage === 'fitup_issue') {
+      if (!enteredDate) return alert('કૃપા કરીને Fit-Up Issue Date પસંદ કરો.');
+      const { error } = await db.from('piping_joints').update({ Issue_for_fitup: enteredDate }).in('id', selectedQueue.map(x => x.id));
+      if (error) return alert("Error: " + error.message);
+    }
+    else if (currentStage === 'ready_fitup') {
+      if (!enteredDate) return alert('કૃપા કરીને Ready Fit-Up Date દાખલ કરો.');
+      const { error } = await db.from('piping_joints').update({ Ready_for_fitup_insp: enteredDate }).in('id', selectedQueue.map(x => x.id));
+      if (error) return alert("Error: " + error.message);
+    }
+    else if (currentStage === 'fitup_entry') {
+      if (!enteredDate) return alert('કૃપા કરીને Fit-Up Date પસંદ કરો.');
+      const { error } = await db.from('piping_joints').update({ Fit_up_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
+      if (error) return alert("Error: " + error.message);
+    }
+    else if (currentStage === 'ready_weld') {
+      if (!enteredDate) return alert('કૃપા કરીને Ready Weld Date દાખલ કરો.');
+      const { error } = await db.from('piping_joints').update({ Ready_for_weld_visual: enteredDate }).in('id', selectedQueue.map(x => x.id));
+      if (error) return alert("Error: " + error.message);
+    }
+    else if (currentStage === 'weld_visual') {
+      if (!enteredDate) return alert('કૃપા કરીને Visual Date દાખલ કરો.');
+      const { error } = await db.from('piping_joints').update({ Weld_visual_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
+      if (error) return alert("Error: " + error.message);
+    }
+    else if (currentStage === 'ndt_clearance') {
+      if (!enteredDate) return alert('કૃપા કરીને NDT Clearance Date દાખલ કરો.');
+      const { error } = await db.from('piping_joints').update({ Ndt_clearance: enteredDate }).in('id', selectedQueue.map(x => x.id));
+      if (error) return alert("Error: " + error.message);
+    }
+    else if (currentStage === 'fd') {
+      const dcNo = document.getElementById('input_dc_no').value.trim();
+      if (!dcNo || !enteredDate) return alert('કૃપા કરીને DC No અને Dispatch Date બંને દાખલ કરો.');
+      const { error } = await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
+      if (error) return alert("Error: " + error.message);
+    }
+
+    alert(`✅ ${selectedQueue.length} Spools સફળતાપૂર્વક અપડેટ થઈ ગયા!`);
+    selectedQueue = [];
+    if (document.getElementById('input_date')) document.getElementById('input_date').value = '';
+    if (document.getElementById('input_dc_no')) document.getElementById('input_dc_no').value = '';
+    if (document.getElementById('spoolSearch')) document.getElementById('spoolSearch').value = '';
+    renderSelectedTable();
+    loadStageData(currentStage);
+  }
+
   document.addEventListener('click', (e) => {
     const popup = document.getElementById('excelFilterPopup');
     if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
