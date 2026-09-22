@@ -473,7 +473,7 @@
           <div id="trackDropdown" class="search-dropdown"></div>
         </div>
         <div id="spoolDetailsHeader" style="display: none; margin-top: 14px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 8px;">
             <div>
               <span style="font-size: 16px; font-weight: 800; color: #0f172a;" id="trackSpoolNo">Spool No</span>
               <span style="margin-left: 8px; font-size: 12px; color: #0284c7; font-weight: 600;" id="trackDwgNo">Dwg No</span>
@@ -1110,13 +1110,10 @@
     const isFilled = val => !isBlank(val);
 
     if (type === 'min_bal') {
-      // ૧. MIN no અને MIN date ખાલી હોય
       mtoBaseRows = mtoCache.filter(r => isBlank(r.MIN_No) && isBlank(r.MIN_Date));
     } else if (type === 'issue_bal') {
-      // ૨. MIN no & MIN date ભરેલા હોય અને IGP no & IGP date ખાલી હોય
       mtoBaseRows = mtoCache.filter(r => isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date));
     } else if (type === 'all_bal') {
-      // ૩. ઉપર મુજબનું ૧ + ૨ તમામ બેલેન્સ
       mtoBaseRows = mtoCache.filter(r => 
         (isBlank(r.MIN_No) && isBlank(r.MIN_Date)) || 
         (isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date))
@@ -1238,8 +1235,7 @@
           return;
         }
 
-        // કીને સાફ કરીને સરખાવવા માટે
-        const normalize = (k) => String(k || '').trim().toLowerCase().replace(/[\s_-]/g, '');
+        const cleanKey = (k) => String(k || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
         if (!confirm(`શું તમે ખરેખર ${rawRows.length} રેકોર્ડ્સ MTO Database માં અપડેટ કરવા માંગો છો?`)) {
           event.target.value = '';
@@ -1254,39 +1250,32 @@
 
         for (let i = 0; i < rawRows.length; i += batchSize) {
           const batch = rawRows.slice(i, i + batchSize).map(r => {
-            // Excel રો ની તમામ કીઝ નોર્મલાઇઝ કરીને ઓરીજીનલ વેલ્યુ સાચવવી
-            const excelMap = {};
+            const rowMap = {};
             Object.keys(r).forEach(k => {
-              excelMap[normalize(k)] = r[k];
+              rowMap[cleanKey(k)] = r[k];
             });
 
             const cleanObj = {};
-            // id મેચ કરવું
-            const idVal = excelMap['id'];
-            if (idVal !== undefined && idVal !== '') {
-              cleanObj.id = idVal;
-            }
+            if (rowMap['id']) cleanObj.id = rowMap['id'];
 
-            // દરેક MTO કૉલમ મેપ કરવી
             MTO_COLS.forEach(c => {
-              const k1 = normalize(c.key);
-              const k2 = normalize(c.label);
+              const targetCleanKey = cleanKey(c.key);
+              const labelCleanKey = cleanKey(c.label);
 
               let rawVal = undefined;
-              if (excelMap[k1] !== undefined && excelMap[k1] !== '') {
-                rawVal = excelMap[k1];
-              } else if (excelMap[k2] !== undefined && excelMap[k2] !== '') {
-                rawVal = excelMap[k2];
+              if (rowMap[targetCleanKey] !== undefined && rowMap[targetCleanKey] !== '') {
+                rawVal = rowMap[targetCleanKey];
+              } else if (rowMap[labelCleanKey] !== undefined && rowMap[labelCleanKey] !== '') {
+                rawVal = rowMap[labelCleanKey];
               }
 
-              if (rawVal === undefined || rawVal === null || String(rawVal).trim() === '' || String(rawVal).toLowerCase() === 'null') {
+              if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null || rawVal === '-') {
                 cleanObj[c.key] = null;
               } else {
                 const isDateCol = c.key.toLowerCase().includes('date');
                 if (isDateCol) {
                   cleanObj[c.key] = formatExcelDate(rawVal);
                 } else {
-                  // અહીં વેલ્યુને કોઈ ફેરફાર વિના એઝ-ઇટ-ઇઝ (દા.ત. A_lot-47) રાખવી
                   cleanObj[c.key] = String(rawVal).trim();
                 }
               }
@@ -1295,8 +1284,8 @@
             return cleanObj;
           });
 
-          // Supabase માં Upsert કરવું
-          const { error } = await db.from('mto').upsert(batch, { onConflict: 'id' });
+          // Supabase upsert
+          const { error } = await db.from('mto').upsert(batch);
           if (error) throw error;
           updatedCount += batch.length;
         }
@@ -1624,6 +1613,7 @@
     loadStageData(currentStage);
   }
 
+  // Dropdown close listeners
   document.addEventListener('click', (e) => {
     const popup = document.getElementById('excelFilterPopup');
     if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
@@ -1640,3 +1630,4 @@
 
 </body>
 </html>
+this is newly program send by you, keep in mind now i will share error
