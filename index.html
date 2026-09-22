@@ -1238,7 +1238,8 @@
           return;
         }
 
-        const cleanKey = (k) => String(k || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        // કીને સાફ કરીને સરખાવવા માટે
+        const normalize = (k) => String(k || '').trim().toLowerCase().replace(/[\s_-]/g, '');
 
         if (!confirm(`શું તમે ખરેખર ${rawRows.length} રેકોર્ડ્સ MTO Database માં અપડેટ કરવા માંગો છો?`)) {
           event.target.value = '';
@@ -1253,32 +1254,39 @@
 
         for (let i = 0; i < rawRows.length; i += batchSize) {
           const batch = rawRows.slice(i, i + batchSize).map(r => {
-            const rowMap = {};
+            // Excel રો ની તમામ કીઝ નોર્મલાઇઝ કરીને ઓરીજીનલ વેલ્યુ સાચવવી
+            const excelMap = {};
             Object.keys(r).forEach(k => {
-              rowMap[cleanKey(k)] = r[k];
+              excelMap[normalize(k)] = r[k];
             });
 
             const cleanObj = {};
-            if (rowMap['id']) cleanObj.id = rowMap['id'];
+            // id મેચ કરવું
+            const idVal = excelMap['id'];
+            if (idVal !== undefined && idVal !== '') {
+              cleanObj.id = idVal;
+            }
 
+            // દરેક MTO કૉલમ મેપ કરવી
             MTO_COLS.forEach(c => {
-              const targetCleanKey = cleanKey(c.key);
-              const labelCleanKey = cleanKey(c.label);
+              const k1 = normalize(c.key);
+              const k2 = normalize(c.label);
 
               let rawVal = undefined;
-              if (rowMap[targetCleanKey] !== undefined && rowMap[targetCleanKey] !== '') {
-                rawVal = rowMap[targetCleanKey];
-              } else if (rowMap[labelCleanKey] !== undefined && rowMap[labelCleanKey] !== '') {
-                rawVal = rowMap[labelCleanKey];
+              if (excelMap[k1] !== undefined && excelMap[k1] !== '') {
+                rawVal = excelMap[k1];
+              } else if (excelMap[k2] !== undefined && excelMap[k2] !== '') {
+                rawVal = excelMap[k2];
               }
 
-              if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null || rawVal === '-') {
+              if (rawVal === undefined || rawVal === null || String(rawVal).trim() === '' || String(rawVal).toLowerCase() === 'null') {
                 cleanObj[c.key] = null;
               } else {
                 const isDateCol = c.key.toLowerCase().includes('date');
                 if (isDateCol) {
                   cleanObj[c.key] = formatExcelDate(rawVal);
                 } else {
+                  // અહીં વેલ્યુને કોઈ ફેરફાર વિના એઝ-ઇટ-ઇઝ (દા.ત. A_lot-47) રાખવી
                   cleanObj[c.key] = String(rawVal).trim();
                 }
               }
@@ -1287,8 +1295,8 @@
             return cleanObj;
           });
 
-          // Supabase upsert
-          const { error } = await db.from('mto').upsert(batch);
+          // Supabase માં Upsert કરવું
+          const { error } = await db.from('mto').upsert(batch, { onConflict: 'id' });
           if (error) throw error;
           updatedCount += batch.length;
         }
