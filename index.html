@@ -1121,7 +1121,9 @@
   // 👉 View Option: First view data on screen, then allow download
   function viewMtoBalanceCategory(type) {
     activeMtoCategory = type;
+    mtoColumnFilters = {}; // જૂના સ્તંભ ફિલ્ટર્સ રીસેટ કરવા જેથી સાચો ડેટા દેખાય
     resetCategoryButtonStyles();
+    
     const lbl = document.getElementById('mtoCurrentFilterLabel');
     lbl.style.display = 'inline-block';
 
@@ -1140,19 +1142,35 @@
   }
 
   function applyMtoCategoryFilter(type) {
-    const isBlank = val => val === null || val === undefined || String(val).trim() === '' || String(val).toLowerCase() === 'null';
+    // ખાલી/નલ વેલ્યૂ ચેક કરવા માટેનું સુધારેલું હેલ્પર
+    const isBlank = val => {
+      if (val === null || val === undefined) return true;
+      const s = String(val).trim().toLowerCase();
+      return s === '' || s === 'null' || s === 'undefined' || s === '-';
+    };
     const isFilled = val => !isBlank(val);
 
     if (type === 'min_bal') {
-      mtoBaseRows = mtoCache.filter(r => isBlank(r.MIN_No) && isBlank(r.MIN_Date));
-    } else if (type === 'issue_bal') {
-      mtoBaseRows = mtoCache.filter(r => isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date));
-    } else if (type === 'all_bal') {
+      // MIN Balance: જ્યાં હજુ MIN નંબર કે MIN ડેટ જનરેટ નથી થઈ
+      mtoBaseRows = mtoCache.filter(r => isBlank(r.MIN_No) || isBlank(r.MIN_Date));
+    } 
+    else if (type === 'issue_bal') {
+      // Material Issue Balance: MIN અપાઈ ગયો છે પરંતુ હજુ IGP નંબર કે IGP ડેટ બાકી છે
       mtoBaseRows = mtoCache.filter(r => 
-        (isBlank(r.MIN_No) && isBlank(r.MIN_Date)) || 
-        (isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date))
+        (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && 
+        (isBlank(r.IGP_No) || isBlank(r.IGP_Date))
       );
-    } else {
+    } 
+    else if (type === 'all_bal') {
+      // All Balance: MIN બાકી હોય અથવા IGP બાકી હોય તે બંને
+      mtoBaseRows = mtoCache.filter(r => {
+        const isMinPending = isBlank(r.MIN_No) || isBlank(r.MIN_Date);
+        const isIssuePending = (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && (isBlank(r.IGP_No) || isBlank(r.IGP_Date));
+        return isMinPending || isIssuePending;
+      });
+    } 
+    else {
+      // All View
       mtoBaseRows = mtoCache;
     }
 
