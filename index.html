@@ -605,6 +605,7 @@
   </div>
 </div>
 
+<!-- Floating Excel Filter Modal -->
 <div id="excelFilterPopup">
   <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
   <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
@@ -619,6 +620,7 @@
 </div>
 
 <script>
+  // USER ROLES & PERMISSIONS DEFINITION
   const USER_ROLES = {
     "admin": { pass: "ruhi@2018", name: "Admin", allowed: ["all"] },
     "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry", "fitup_issue"] },
@@ -836,7 +838,7 @@
       document.getElementById('recordsContainer').style.display = 'block';
       setMasterMode('view');
       buildMasterRegisterHeader();
-      loadFullRegister();
+      await loadFullRegister();
       return;
     }
 
@@ -1216,7 +1218,7 @@
     }
   }
 
-  // 👉 અપલોડ અને બેચ અપડેટ (ઓટો-નોર્મલાઇઝેશન સાથે જેથી તમામ કૉલમ્સ સફળતાપૂર્વક ભરાય)
+  // 👉 શીટમાંથી તમામ ૧૭ કૉલમ્સ આપમેળે ઓળખીને Supabase માં Upsert કરતું ફંક્શન
   async function uploadAndApplyMtoExcel(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1236,7 +1238,7 @@
         }
 
         // કીને સાફ કરીને સરખાવવા માટે
-        const normalize = (k) => String(k || '').trim().toLowerCase().replace(/[\s_-]/g, '');
+        const cleanKey = (k) => String(k || '').trim().toLowerCase().replace(/[\s_-]/g, '');
 
         if (!confirm(`શું તમે ખરેખર ${rawRows.length} રેકોર્ડ્સ MTO Database માં અપડેટ કરવા માંગો છો?`)) {
           event.target.value = '';
@@ -1251,23 +1253,20 @@
 
         for (let i = 0; i < rawRows.length; i += batchSize) {
           const batch = rawRows.slice(i, i + batchSize).map(r => {
-            // Excel રો ની તમામ કીઝ નોર્મલાઇઝ કરીને ઓરીજીનલ વેલ્યુ સાચવવી
             const excelMap = {};
             Object.keys(r).forEach(k => {
-              excelMap[normalize(k)] = r[k];
+              excelMap[cleanKey(k)] = r[k];
             });
 
             const cleanObj = {};
-            // id મેચ કરવું
             const idVal = excelMap['id'];
             if (idVal !== undefined && idVal !== '') {
               cleanObj.id = idVal;
             }
 
-            // દરેક MTO કૉલમ મેપ કરવી
             MTO_COLS.forEach(c => {
-              const k1 = normalize(c.key);
-              const k2 = normalize(c.label);
+              const k1 = cleanKey(c.key);
+              const k2 = cleanKey(c.label);
 
               let rawVal = undefined;
               if (excelMap[k1] !== undefined && excelMap[k1] !== '') {
@@ -1283,7 +1282,6 @@
                 if (isDateCol) {
                   cleanObj[c.key] = formatExcelDate(rawVal);
                 } else {
-                  // અહીં વેલ્યુને કોઈ ફેરફાર વિના એઝ-ઇટ-ઇઝ (દા.ત. A_lot-47) રાખવી
                   cleanObj[c.key] = String(rawVal).trim();
                 }
               }
@@ -1292,7 +1290,6 @@
             return cleanObj;
           });
 
-          // Supabase માં Upsert કરવું
           const { error } = await db.from('mto').upsert(batch, { onConflict: 'id' });
           if (error) throw error;
           updatedCount += batch.length;
@@ -1477,7 +1474,10 @@
 
     while (hasMore) {
       const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
-      if (error) break;
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="24" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
+        return;
+      }
       if (data && data.length > 0) {
         allRows = allRows.concat(data);
         from += step;
