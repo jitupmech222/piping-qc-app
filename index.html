@@ -1467,29 +1467,26 @@
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '<tr><td colspan="24" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>';
 
-    let allRows = [];
-    let from = 0;
-    const step = 1000;
-    let hasMore = true;
+    try {
+      // તમામ 3888 રેકોર્ડ્સ એકસાથે સરળતાથી ફેચ થશે
+      const { data, error } = await db
+        .from('piping_joints')
+        .select('*')
+        .order('id', { ascending: true })
+        .limit(10000);
 
-    while (hasMore) {
-      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
       if (error) {
         tbody.innerHTML = `<tr><td colspan="24" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
         return;
       }
-      if (data && data.length > 0) {
-        allRows = allRows.concat(data);
-        from += step;
-        if (data.length < step) hasMore = false;
-      } else {
-        hasMore = false;
-      }
-    }
 
-    allRecordsCache = allRows;
-    masterColumnFilters = {};
-    applyMasterDataFilters();
+      allRecordsCache = data || [];
+      masterColumnFilters = {};
+      applyMasterDataFilters();
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="24" style="text-align:center; color:red; padding:15px;">Error: ${err.message}</td></tr>`;
+    }
   }
 
   function applyMasterDataFilters() {
@@ -1538,7 +1535,36 @@
       </tr>
     `).join('');
   }
+async function loadStageData(stage) {
+    document.getElementById('metricSpools').innerText = '...';
+    document.getElementById('metricWelds').innerText = '...';
+    document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>';
 
+    let query = db.from('piping_joints').select('*');
+
+    if (stage === 'bending_issue') query = query.is('Bend_date', null).is('Issued_for_bending', null);
+    else if (stage === 'bend_entry') query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
+    else if (stage === 'fitup_issue') query = query.not('Bend_date', 'is', null).is('Issue_for_fitup', null);
+    else if (stage === 'fitter_name') query = query.not('Issue_for_fitup', 'is', null).is('Fitter_name', null);
+    else if (stage === 'ready_fitup') query = query.not('Fitter_name', 'is', null).is('Ready_for_fitup_insp', null);
+    else if (stage === 'fitup_entry') query = query.not('Ready_for_fitup_insp', 'is', null).is('Fit_up_date', null);
+    else if (stage === 'welder_name') query = query.not('Fit_up_date', 'is', null).is('Welder_no', null);
+    else if (stage === 'ready_weld') query = query.not('Welder_no', 'is', null).is('Ready_for_weld_visual', null);
+    else if (stage === 'weld_visual') query = query.not('Ready_for_weld_visual', 'is', null).is('Weld_visual_date', null);
+    else if (stage === 'ndt_clearance') query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
+    else if (stage === 'fd') query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
+
+    const { data, error } = await query.order('id', { ascending: true }).limit(10000);
+
+    if (error) {
+      alert("Error loading data: " + error.message);
+      return;
+    }
+
+    cumulativeRows = data || [];
+    balanceColumnFilters = {};
+    filterBySubStage();
+  }
   async function submitCurrentStage() {
     if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
       return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
