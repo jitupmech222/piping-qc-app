@@ -605,7 +605,6 @@
   </div>
 </div>
 
-<!-- Floating Excel Filter Modal -->
 <div id="excelFilterPopup">
   <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
   <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
@@ -620,7 +619,6 @@
 </div>
 
 <script>
-  // USER ROLES & PERMISSIONS DEFINITION
   const USER_ROLES = {
     "admin": { pass: "ruhi@2018", name: "Admin", allowed: ["all"] },
     "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry", "fitup_issue"] },
@@ -874,6 +872,7 @@
       btn.innerHTML = "⏳ Fetching Data from Supabase...";
       btn.disabled = true;
 
+      // ૩૮૮૮ રો સરળતાથી ફેચ કરવા
       let allRows = [];
       let from = 0;
       const step = 1000;
@@ -1218,7 +1217,6 @@
     }
   }
 
-  // 👉 શીટમાંથી તમામ ૧૭ કૉલમ્સ આપમેળે ઓળખીને Supabase માં Upsert કરતું ફંક્શન
   async function uploadAndApplyMtoExcel(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1237,7 +1235,6 @@
           return;
         }
 
-        // કીને સાફ કરીને સરખાવવા માટે
         const cleanKey = (k) => String(k || '').trim().toLowerCase().replace(/[\s_-]/g, '');
 
         if (!confirm(`શું તમે ખરેખર ${rawRows.length} રેકોર્ડ્સ MTO Database માં અપડેટ કરવા માંગો છો?`)) {
@@ -1468,19 +1465,27 @@
     tbody.innerHTML = '<tr><td colspan="24" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>';
 
     try {
-      // તમામ 3888 રેકોર્ડ્સ એકસાથે સરળતાથી ફેચ થશે
-      const { data, error } = await db
-        .from('piping_joints')
-        .select('*')
-        .order('id', { ascending: true })
-        .limit(10000);
+      let allRows = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
 
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="24" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
-        return;
+      while (hasMore) {
+        const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="24" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
+          return;
+        }
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += step;
+          if (data.length < step) hasMore = false;
+        } else {
+          hasMore = false;
+        }
       }
 
-      allRecordsCache = data || [];
+      allRecordsCache = allRows;
       masterColumnFilters = {};
       applyMasterDataFilters();
     } catch (err) {
@@ -1535,7 +1540,8 @@
       </tr>
     `).join('');
   }
-async function loadStageData(stage) {
+
+  async function loadStageData(stage) {
     document.getElementById('metricSpools').innerText = '...';
     document.getElementById('metricWelds').innerText = '...';
     document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>';
@@ -1554,17 +1560,31 @@ async function loadStageData(stage) {
     else if (stage === 'ndt_clearance') query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
     else if (stage === 'fd') query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
 
-    const { data, error } = await query.order('id', { ascending: true }).limit(10000);
+    let allRows = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
 
-    if (error) {
-      alert("Error loading data: " + error.message);
-      return;
+    while (hasMore) {
+      const { data, error } = await query.order('id', { ascending: true }).range(from, from + step - 1);
+      if (error) {
+        alert("Error loading data: " + error.message);
+        return;
+      }
+      if (data && data.length > 0) {
+        allRows = allRows.concat(data);
+        from += step;
+        if (data.length < step) hasMore = false;
+      } else {
+        hasMore = false;
+      }
     }
 
-    cumulativeRows = data || [];
+    cumulativeRows = allRows;
     balanceColumnFilters = {};
     filterBySubStage();
   }
+
   async function submitCurrentStage() {
     if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
       return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
