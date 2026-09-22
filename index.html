@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piping Work Progress Console</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- HTML ને Image માં કન્વર્ટ કરવા માટેની લાઈબ્રેરી -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Excel (.xlsx, .csv) વાંચવા અને ડાઉનલોડ કરવા માટે SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 0; }
@@ -16,6 +18,7 @@
     input, select { width: 100%; padding: 8px 10px; margin-top: 3px; border: 1.5px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; background: #fff; }
     input:focus, select:focus { outline: none; border-color: #0284c7; }
 
+    /* Top Navigation Bar */
     .top-navbar {
       background: #0f172a;
       color: white;
@@ -49,6 +52,7 @@
     }
     .btn-nav-dashboard:hover { background: #f1f5f9; color: #0284c7; }
 
+    /* Login Screen Modal Overlay */
     #loginOverlay {
       position: fixed;
       top: 0;
@@ -96,12 +100,14 @@
       cursor: pointer;
     }
 
+    /* Master Register Controls */
     .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
     .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
     .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
 
+    /* Dashboard Grid */
     .menu-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -575,7 +581,6 @@
       </div>
     </div>
 
-    <!-- Master Register -->
     <div id="recordsContainer" style="display: none;">
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
@@ -1124,7 +1129,7 @@
   function applyMtoDataFilters() {
     mtoDisplayRows = mtoBaseRows.filter(r => {
       for (const [colKey, allowedSet] of Object.entries(mtoColumnFilters)) {
-        let val = r[colKey] !== undefined ? r[colKey] : '';
+        let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
         val = String(val || '').trim();
         const isDateCol = colKey.toLowerCase().includes('date');
         const displayVal = (val === '' || val === '-') ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
@@ -1193,7 +1198,7 @@
       const formatted = mtoDisplayRows.map((r, index) => {
         const rowObj = { "Sr No": index + 1 };
         MTO_COLS.forEach(c => {
-          let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+          let val = r[c.key] !== undefined ? r[c.key] : (r[c.key.toLowerCase()] !== undefined ? r[c.key.toLowerCase()] : '');
           const isDate = c.key.toLowerCase().includes('date');
           rowObj[c.label] = isDate ? (formatDateDisplay(val) === '-' ? '' : formatDateDisplay(val)) : (val === '-' ? '' : val);
         });
@@ -1409,7 +1414,7 @@
   function applyBalanceDataFilters() {
     activeBalanceDisplayRows = stageFilteredRows.filter(r => {
       for (const [colKey, allowedSet] of Object.entries(balanceColumnFilters)) {
-        let val = r[colKey] !== undefined ? r[colKey] : '';
+        let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
         val = String(val || '').trim();
         const displayVal = val === '' ? '(Blank)' : val;
         if (!allowedSet.has(displayVal)) return false;
@@ -1579,6 +1584,218 @@
     filterBySubStage();
   }
 
+  function selectSubFilter(val, btn) {
+    activeSubFilter = val;
+    btn.parentNode.querySelectorAll('.sub-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterBySubStage();
+  }
+
+  function filterBySubStage() {
+    if (currentStage === 'ready_fitup') {
+      stageFilteredRows = cumulativeRows.filter(r => String(r.Fitter_name || r.fitter_name || '').trim() === activeSubFilter);
+    } else if (currentStage === 'ready_weld') {
+      stageFilteredRows = cumulativeRows.filter(r => String(r.Welder_no || r.welder_no || '').includes(activeSubFilter));
+    } else {
+      stageFilteredRows = cumulativeRows;
+    }
+    applyBalanceDataFilters();
+    updateMetrics();
+  }
+
+  function updateMetrics() {
+    const cumSpools = new Set(cumulativeRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
+    let cumWeldSum = 0;
+    cumulativeRows.forEach(r => {
+      const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+        const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+        const num = parseFloat(cleaned);
+        if (!isNaN(num)) cumWeldSum += num;
+      }
+    });
+
+    document.getElementById('metricSpools').innerText = cumSpools.size;
+    document.getElementById('metricWelds').innerText = Number.isInteger(cumWeldSum) ? cumWeldSum : parseFloat(cumWeldSum.toFixed(2));
+
+    if (currentStage === 'ready_fitup' || currentStage === 'ready_weld') {
+      const subSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
+      let subWeldSum = 0;
+      stageFilteredRows.forEach(r => {
+        const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+        if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+          const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+          const num = parseFloat(cleaned);
+          if (!isNaN(num)) subWeldSum += num;
+        }
+      });
+      document.getElementById('subMetricSpools').innerText = subSpools.size;
+      document.getElementById('subMetricWelds').innerText = Number.isInteger(subWeldSum) ? subWeldSum : parseFloat(subWeldSum.toFixed(2));
+    }
+    document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
+  }
+
+  function handleSearchInput() {
+    const term = document.getElementById('spoolSearch').value.trim().toLowerCase();
+    const dropdown = document.getElementById('searchDropdown');
+    if (!term) { dropdown.style.display = 'none'; return; }
+
+    const matched = stageFilteredRows.filter(r => {
+      const spl = String(r.Spool_number || r.spool_number || '').toLowerCase();
+      const dwg = String(r.Drawing_no || r.drawing_no || '').toLowerCase();
+      const wld = String(r.Weld_id || r.weld_id || '').toLowerCase();
+      return spl.includes(term) || dwg.includes(term) || wld.includes(term);
+    }).slice(0, 35);
+
+    if (matched.length === 0) {
+      dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:13px; text-align:center;">No Spools Found</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+
+    dropdown.innerHTML = matched.map(r => `
+      <div class="dropdown-row" onclick="onSpoolSelect(${r.id})">
+        <div>
+          <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || r.spool_number || 'N/A'}</span>
+          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Size: ${r.Spool_size || r.spool_size || '-'}, Weld ID: ${r.Weld_id || r.weld_id || '-'})</span>
+        </div>
+        <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || r.drawing_no || '-'}</span>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+  }
+
+  function onSpoolSelect(id) {
+    if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
+      return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સિલેક્ટ અથવા સેવ કરવાની પરમિશન નથી!");
+    }
+    if (selectedQueue.some(x => x.id === id)) return alert("⚠️ આ સ્પૂલ પહેલેથી નીચેના લિસ્ટમાં ઉમેરેલું છે!");
+
+    const item = stageFilteredRows.find(x => x.id === id);
+    if (!item) return;
+
+    document.getElementById('spoolSearch').value = '';
+    document.getElementById('searchDropdown').style.display = 'none';
+
+    const isDirectStage = ['bending_issue', 'fitup_issue', 'fd', 'ready_fitup', 'fitup_entry', 'ready_weld', 'weld_visual', 'ndt_clearance'].includes(currentStage);
+    if (isDirectStage) {
+      selectedQueue.push(item);
+      document.getElementById('itemEditForm').style.display = 'none';
+      renderSelectedTable();
+      document.getElementById('spoolSearch').focus();
+      return;
+    }
+
+    document.getElementById('itemEditForm').style.display = 'block';
+    document.getElementById('form_item_id').value = item.id;
+    document.getElementById('form_spool_no').value = item.Spool_number || item.spool_number || '';
+    document.getElementById('form_drawing_no').value = item.Drawing_no || item.drawing_no || '';
+
+    const dynArea = document.getElementById('dynamicFormFields');
+    dynArea.innerHTML = '';
+
+    if (currentStage === 'bend_entry') {
+      dynArea.innerHTML = `
+        <div><label style="margin-top:0; color:#1e40af;">BEND QTY (Editable):</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || item.bend_qty || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
+        <div><label style="margin-top:0; color:#1e40af;">WELD ID (Editable):</label><input type="text" id="form_weld_id" value="${item.Weld_id || item.weld_id || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
+      `;
+    } 
+    else if (currentStage === 'fitter_name') {
+      dynArea.innerHTML = `
+        <div>
+          <label style="margin-top:0; color:#1e40af;">Select Fitter Name:</label>
+          <select id="form_fitter_val" style="border-color:#2563eb; font-weight:bold;">
+            <option value="">-- Select Fitter --</option>
+            ${FITTERS.map(f => `<option value="${f}">${f}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    }
+    else if (currentStage === 'welder_name') {
+      dynArea.innerHTML = `
+        <div>
+          <label style="margin-top:0; color:#1e40af;">Welder No 1:</label>
+          <select id="form_welder_1" style="border-color:#2563eb; font-weight:bold;">
+            <option value="">-- Welder 1 --</option>
+            ${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}
+          </select>
+          <label style="margin-top:6px; color:#1e40af;">Welder No 2 (Optional):</label>
+          <select id="form_welder_2">
+            <option value="">-- Welder 2 (None) --</option>
+            ${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    }
+  }
+
+  function confirmAddFormToQueue() {
+    const id = parseInt(document.getElementById('form_item_id').value);
+    const item = stageFilteredRows.find(x => x.id === id);
+    if (!item) return;
+
+    let extraData = {};
+    if (currentStage === 'bend_entry') {
+      extraData.final_bend_qty = document.getElementById('form_bend_qty').value.trim();
+      extraData.final_weld_id = document.getElementById('form_weld_id').value.trim();
+    } 
+    else if (currentStage === 'fitter_name') {
+      const fName = document.getElementById('form_fitter_val').value;
+      if (!fName) return alert("કૃપા કરીને Fitter Name અથવા NA પસંદ કરો!");
+      extraData.final_fitter = fName;
+    }
+    else if (currentStage === 'welder_name') {
+      const w1 = document.getElementById('form_welder_1').value;
+      const w2 = document.getElementById('form_welder_2').value;
+      if (!w1) return alert("કૃપા કરીને Welder 1 અથવા NA પસંદ કરો!");
+      extraData.final_welder = (w2 && w2 !== 'NA') ? `${w1}/${w2}` : w1;
+    }
+
+    selectedQueue.push({ ...item, ...extraData });
+    document.getElementById('itemEditForm').style.display = 'none';
+    renderSelectedTable();
+    document.getElementById('spoolSearch').focus();
+  }
+
+  function removeSpoolFromQueue(id) {
+    selectedQueue = selectedQueue.filter(x => x.id !== id);
+    renderSelectedTable();
+  }
+
+  function renderSelectedTable() {
+    const thead = document.getElementById('selectedTableHead');
+    const tbody = document.getElementById('selectedTableBody');
+    const cnt = document.getElementById('queueCount');
+    if (cnt) cnt.innerText = selectedQueue.length;
+
+    if (currentStage === 'fitter_name') thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Assigned Fitter</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+    else if (currentStage === 'welder_name') thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Assigned Welder</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+    else if (currentStage === 'bend_entry') thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+    else thead.innerHTML = `<tr><th style="width:50px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th style="text-align:center; width:100px;">Action</th></tr>`;
+
+    if (selectedQueue.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">No spools selected.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = selectedQueue.map((r, idx) => {
+      let customCol = '';
+      if (currentStage === 'fitter_name') customCol = `<td style="font-weight:bold; color:#1e40af;">${r.final_fitter || '-'}</td>`;
+      else if (currentStage === 'welder_name') customCol = `<td style="font-weight:bold; color:#1e40af;">${r.final_welder || '-'}</td>`;
+      else if (currentStage === 'bend_entry') customCol = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || r.bend_qty || '-')}</td><td style="font-weight:bold; color:#0284c7;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || r.weld_id || '-')}</td>`;
+
+      return `
+        <tr>
+          <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
+          <td style="font-weight: bold; color: #0f172a;">${r.Spool_number || r.spool_number || 'N/A'}</td>
+          <td style="color: #334155;">${r.Drawing_no || r.drawing_no || '-'}</td>
+          ${customCol}
+          <td style="text-align: center;"><button type="button" class="btn-remove" onclick="removeSpoolFromQueue(${r.id})">✕ Remove</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
   async function submitCurrentStage() {
     if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
       return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
@@ -1661,6 +1878,7 @@
     loadStageData(currentStage);
   }
 
+  // Dropdown close listeners
   document.addEventListener('click', (e) => {
     const popup = document.getElementById('excelFilterPopup');
     if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
