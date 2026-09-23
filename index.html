@@ -100,10 +100,13 @@
       cursor: pointer;
     }
 
-    /* Master Register Toolbar & Controls */
+    /* Master Register & MTO Toolbar Controls */
     .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
+    .btn-mode-sync { background: #7c3aed; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-sync:hover { background: #6d28d9; }
+    
     .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
     .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
 
@@ -422,6 +425,14 @@
           <div style="display:flex; align-items:center; gap:8px;">
             <h3 style="margin:0; border:none; color:#0f766e;">📋 MTO Register (<span id="mtoTotalCount">0</span>)</h3>
             <span id="mtoCurrentFilterLabel" style="font-size:12px; font-weight:bold; color:#c2410c; background:#ffedd5; padding:2px 8px; border-radius:12px; display:none;"></span>
+            
+            <!-- Point-1: View, Edit & Save Buttons for MTO -->
+            <button type="button" id="btnMtoView" class="btn-mode-view" onclick="setMtoMode('view')">👁️ View</button>
+            <button type="button" id="btnMtoEdit" class="btn-mode-edit" onclick="requestMtoEditMode()">✏️ Edit</button>
+            <button type="button" id="btnMtoSave" class="btn-mode-save" onclick="saveMtoEditsToDb()">💾 SAVE CHANGES</button>
+            
+            <!-- Point-1: Sync from Master Table Button -->
+            <button type="button" class="btn-mode-sync" onclick="syncMtoFromMaster()">🔄 MTO UPDATE FROM MASTER</button>
           </div>
 
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
@@ -433,7 +444,7 @@
             <button type="button" class="sub-filter-btn" id="btnFilterIssueBal" style="background:#fef3c7; color:#b45309; border-color:#fcd34d;" onclick="viewMtoBalanceCategory('issue_bal')">👁️ Mat. Issue Bal.</button>
             <button type="button" class="sub-filter-btn" id="btnFilterAllBal" style="background:#e0e7ff; color:#4338ca; border-color:#a5b4fc;" onclick="viewMtoBalanceCategory('all_bal')">👁️ All Bal.</button>
 
-            <!-- 📥 Download Excel Button (Displays formatted excel for currently shown rows) -->
+            <!-- 📥 Download Excel Button -->
             <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px;" onclick="downloadFormattedMtoExcel()">📥 Download View Excel</button>
 
             <!-- Excel Upload Button (Admin Only) -->
@@ -656,12 +667,22 @@
   let isMasterEditMode = false;
   let masterPendingUpdates = new Map();
 
+  // MTO Edit Mode States
+  let isMtoEditMode = false;
+  let mtoPendingUpdates = new Map();
+
   function updateDashboardUIForRole() {
     if (!currentUser) return;
     const btnShareWA = document.getElementById('btnShareWhatsApp');
     const btnUpdateHub = document.getElementById('btnDataUpdateHub');
     if (btnShareWA) btnShareWA.style.display = (currentUser.username === 'admin') ? 'inline-flex' : 'none';
     if (btnUpdateHub) btnUpdateHub.style.display = (currentUser.username === 'admin') ? 'flex' : 'none';
+
+    // MTO Edit & Upload Admin-only View
+    const btnMtoEdit = document.getElementById('btnMtoEdit');
+    const btnMtoUpload = document.getElementById('btnMtoUploadTrigger');
+    if (btnMtoEdit) btnMtoEdit.style.display = (currentUser.username === 'admin') ? 'inline-block' : 'none';
+    if (btnMtoUpload) btnMtoUpload.style.display = (currentUser.username === 'admin') ? 'inline-flex' : 'none';
   }
 
   function checkSessionAuth() {
@@ -705,7 +726,9 @@
       sessionStorage.removeItem('piping_app_auth');
       currentUser = null;
       isMasterEditMode = false;
+      isMtoEditMode = false;
       masterPendingUpdates.clear();
+      mtoPendingUpdates.clear();
       checkSessionAuth();
     }
   }
@@ -766,7 +789,6 @@
     { key: 'Remarks', label: 'REMARKS' }
   ];
 
-  // 👉 MTO કૉલમ્સમાં lot_no યોગ્ય ક્રમમાં
   const MTO_COLS = [
     { key: 'Spool_number', label: 'Spool No' },
     { key: 'Drawing_no', label: 'Drawing No' },
@@ -826,7 +848,9 @@
   function backToMenu() {
     closeExcelPopup();
     isMasterEditMode = false;
+    isMtoEditMode = false;
     masterPendingUpdates.clear();
+    mtoPendingUpdates.clear();
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
     document.getElementById('itemEditForm').style.display = 'none';
@@ -1054,6 +1078,8 @@
 
   async function openMtoRegister() {
     closeExcelPopup();
+    isMtoEditMode = false;
+    mtoPendingUpdates.clear();
     document.getElementById('mainMenu').style.display = 'none';
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
@@ -1065,11 +1091,7 @@
     document.getElementById('navSubTitle').innerText = `| 📋 MTO Register (${currentUser.name})`;
     document.getElementById('mtoContainer').style.display = 'block';
 
-    const btnUpload = document.getElementById('btnMtoUploadTrigger');
-    if (btnUpload) {
-      btnUpload.style.display = (currentUser && currentUser.username === 'admin') ? 'inline-flex' : 'none';
-    }
-
+    setMtoMode('view');
     buildMtoRegisterHeader();
     await loadMtoData();
   }
@@ -1118,12 +1140,10 @@
     });
   }
 
-  // 👉 View Option: First view data on screen, then allow download
   function viewMtoBalanceCategory(type) {
     activeMtoCategory = type;
-    mtoColumnFilters = {}; // જૂના સ્તંભ ફિલ્ટર્સ રીસેટ કરવા જેથી સાચો ડેટા દેખાય
+    mtoColumnFilters = {};
     resetCategoryButtonStyles();
-    
     const lbl = document.getElementById('mtoCurrentFilterLabel');
     lbl.style.display = 'inline-block';
 
@@ -1142,7 +1162,6 @@
   }
 
   function applyMtoCategoryFilter(type) {
-    // ખાલી/નલ વેલ્યૂ ચેક કરવા માટેનું સુધારેલું હેલ્પર
     const isBlank = val => {
       if (val === null || val === undefined) return true;
       const s = String(val).trim().toLowerCase();
@@ -1151,26 +1170,19 @@
     const isFilled = val => !isBlank(val);
 
     if (type === 'min_bal') {
-      // MIN Balance: જ્યાં હજુ MIN નંબર કે MIN ડેટ જનરેટ નથી થઈ
       mtoBaseRows = mtoCache.filter(r => isBlank(r.MIN_No) || isBlank(r.MIN_Date));
-    } 
-    else if (type === 'issue_bal') {
-      // Material Issue Balance: MIN અપાઈ ગયો છે પરંતુ હજુ IGP નંબર કે IGP ડેટ બાકી છે
+    } else if (type === 'issue_bal') {
       mtoBaseRows = mtoCache.filter(r => 
         (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && 
         (isBlank(r.IGP_No) || isBlank(r.IGP_Date))
       );
-    } 
-    else if (type === 'all_bal') {
-      // All Balance: MIN બાકી હોય અથવા IGP બાકી હોય તે બંને
+    } else if (type === 'all_bal') {
       mtoBaseRows = mtoCache.filter(r => {
         const isMinPending = isBlank(r.MIN_No) || isBlank(r.MIN_Date);
         const isIssuePending = (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && (isBlank(r.IGP_No) || isBlank(r.IGP_Date));
         return isMinPending || isIssuePending;
       });
-    } 
-    else {
-      // All View
+    } else {
       mtoBaseRows = mtoCache;
     }
 
@@ -1208,6 +1220,141 @@
     renderMtoTable(filtered);
   }
 
+  // Point-1: MTO Edit Mode Functions
+  function setMtoMode(mode) {
+    if (mode === 'view') {
+      isMtoEditMode = false;
+      document.getElementById('btnMtoView').style.outline = '2px solid #0369a1';
+      document.getElementById('btnMtoEdit').style.outline = 'none';
+      document.getElementById('btnMtoSave').style.display = 'none';
+      renderMtoTable(mtoDisplayRows);
+    } else if (mode === 'edit') {
+      isMtoEditMode = true;
+      document.getElementById('btnMtoEdit').style.outline = '2px solid #b45309';
+      document.getElementById('btnMtoView').style.outline = 'none';
+      document.getElementById('btnMtoSave').style.display = 'inline-block';
+      renderMtoTable(mtoDisplayRows);
+    }
+  }
+
+  function requestMtoEditMode() {
+    if (!currentUser || currentUser.username !== 'admin') {
+      return alert("⚠️ માત્ર Admin પાસે જ MTO Register Edit કરવાની પરમિશન છે!");
+    }
+    const inputPass = prompt("🔐 Enter MTO Register Edit Password:");
+    if (inputPass === null) return;
+    if (inputPass === EDIT_MODE_PASSWORD) {
+      alert("✅ MTO Edit Mode Unlocked! You can edit any cell directly.");
+      setMtoMode('edit');
+    } else {
+      alert("❌ Incorrect Edit Password! Access Denied.");
+    }
+  }
+
+  function handleMtoCellChange(id, colKey, newVal) {
+    if (!mtoPendingUpdates.has(id)) mtoPendingUpdates.set(id, {});
+    mtoPendingUpdates.get(id)[colKey] = newVal.trim() === '' ? null : newVal.trim();
+    const item = mtoCache.find(x => x.id === id);
+    if (item) item[colKey] = newVal.trim() === '' ? null : newVal.trim();
+  }
+
+  async function saveMtoEditsToDb() {
+    if (mtoPendingUpdates.size === 0) return alert("⚠️ કોઈ ફેરફાર થયેલ નથી.");
+    if (!confirm(`શું તમે ખરેખર ${mtoPendingUpdates.size} રો ના ફેરફારો MTO Database માં Save કરવા માંગો છો?`)) return;
+
+    const saveBtn = document.getElementById('btnMtoSave');
+    saveBtn.disabled = true;
+    saveBtn.innerText = "⏳ Saving...";
+
+    let updateErrors = 0;
+    for (const [id, rowData] of mtoPendingUpdates.entries()) {
+      const cleanData = {};
+      for (const k in rowData) {
+        let v = rowData[k];
+        const isDateCol = k.toLowerCase().includes('date');
+        cleanData[k] = isDateCol ? formatExcelDate(v) : v;
+      }
+      const { error } = await db.from('mto').update(cleanData).eq('id', id);
+      if (error) { console.error("MTO Update error for row " + id, error); updateErrors++; }
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.innerText = "💾 SAVE CHANGES";
+
+    if (updateErrors === 0) {
+      alert(`🎉 સફળતાપૂર્વક ${mtoPendingUpdates.size} MTO રેકોર્ડ્સ Database માં અપડેટ થઈ ગયા!`);
+      mtoPendingUpdates.clear();
+      setMtoMode('view');
+    } else {
+      alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી.`);
+    }
+  }
+
+  // Point-1: MTO UPDATE FROM MASTER LOGIC
+  async function syncMtoFromMaster() {
+    if (!confirm("શું તમે Master Data (piping_joints) માંથી Bend Date અને Fit Up Date ને MTO માં સિન્ક કરવા માંગો છો?")) return;
+
+    const tbody = document.getElementById('mtoTableBody');
+    tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#7c3aed;">⏳ Syncing MTO from Master Data...</td></tr>';
+
+    try {
+      // ૧. Master table માંથી Bend_date અથવા Fit_up_date ભરેલા હોય તેવા તમામ Spool મેળવવા
+      let masterMap = new Map();
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db.from('piping_joints')
+          .select('Spool_number, Bend_date, Fit_up_date')
+          .range(from, from + step - 1);
+
+        if (error) throw error;
+        if (data && data.length > 0) {
+          data.forEach(r => {
+            if (r.Spool_number) {
+              const spNo = String(r.Spool_number).trim();
+              if (!masterMap.has(spNo)) {
+                masterMap.set(spNo, {
+                  Bend_date: r.Bend_date || null,
+                  Fit_up_date: r.Fit_up_date || null
+                });
+              } else {
+                const existing = masterMap.get(spNo);
+                if (!existing.Bend_date && r.Bend_date) existing.Bend_date = r.Bend_date;
+                if (!existing.Fit_up_date && r.Fit_up_date) existing.Fit_up_date = r.Fit_up_date;
+              }
+            }
+          });
+          from += step;
+          if (data.length < step) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      // ૨. MTO માં જે પણ Spool_number મેચ થાય તેના માટે Bend_date અને Fit_up_date અપડેટ કરવું
+      let updatedSpoolsCount = 0;
+      for (const [spoolNo, dates] of masterMap.entries()) {
+        if (dates.Bend_date || dates.Fit_up_date) {
+          const updateObj = {};
+          if (dates.Bend_date) updateObj.Bend_date = dates.Bend_date;
+          if (dates.Fit_up_date) updateObj.Fit_up_date = dates.Fit_up_date;
+
+          const { error } = await db.from('mto').update(updateObj).eq('Spool_number', spoolNo);
+          if (!error) updatedSpoolsCount++;
+        }
+      }
+
+      alert(`🎉 Master Data માંથી MTO ટેબલ સફળતાપૂર્વક અપડેટ થઈ ગયું!`);
+      await loadMtoData();
+    } catch (err) {
+      console.error(err);
+      alert("MTO Update કરવામાં ભૂલ આવી: " + err.message);
+      await loadMtoData();
+    }
+  }
+
   function renderMtoTable(rows) {
     const tbody = document.getElementById('mtoTableBody');
     if (rows.length === 0) {
@@ -1215,46 +1362,59 @@
       return;
     }
 
-    tbody.innerHTML = rows.slice(0, 1000).map((r, idx) => `
-      <tr>
-        <td style="text-align:center; font-weight:600;">${idx + 1}</td>
-        <td><b>${r.Spool_number || '-'}</b></td>
-        <td>${r.Drawing_no || '-'}</td>
-        <td>${r.MAT_SAP_CODE || '-'}</td>
-        <td>${r.Size_1 || '-'}</td>
-        <td>${r.Size_2 || '-'}</td>
-        <td>${r.Unit || '-'}</td>
-        <td>${r.MAT_Description || '-'}</td>
-        <td style="font-weight:bold; color:#0f766e;">${r.lot_no || '-'}</td>
-        <td>${r.MIN_No || '-'}</td>
-        <td>${formatDateDisplay(r.MIN_Date)}</td>
-        <td>${r.MIN_qty || '-'}</td>
-        <td>${r.Issued_qty || '-'}</td>
-        <td>${r.IGP_No || '-'}</td>
-        <td>${formatDateDisplay(r.IGP_Date)}</td>
-        <td>${r.Heat_number || '-'}</td>
-        <td>${formatDateDisplay(r.Bend_date)}</td>
-        <td>${formatDateDisplay(r.Fit_up_date)}</td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = rows.slice(0, 1000).map((r, idx) => {
+      if (isMtoEditMode) {
+        return `
+          <tr>
+            <td style="text-align:center; font-weight:600;">${idx + 1}</td>
+            ${MTO_COLS.map(c => {
+              let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+              let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+              return `<td><input type="text" class="cell-input" value="${escapeHtml(editVal)}" onchange="handleMtoCellChange(${r.id}, '${c.key}', this.value)"></td>`;
+            }).join('')}
+          </tr>
+        `;
+      } else {
+        return `
+          <tr>
+            <td style="text-align:center; font-weight:600;">${idx + 1}</td>
+            <td><b>${r.Spool_number || '-'}</b></td>
+            <td>${r.Drawing_no || '-'}</td>
+            <td>${r.MAT_SAP_CODE || '-'}</td>
+            <td>${r.Size_1 || '-'}</td>
+            <td>${r.Size_2 || '-'}</td>
+            <td>${r.Unit || '-'}</td>
+            <td>${r.MAT_Description || '-'}</td>
+            <td style="font-weight:bold; color:#0f766e;">${r.lot_no || '-'}</td>
+            <td>${r.MIN_No || '-'}</td>
+            <td>${formatDateDisplay(r.MIN_Date)}</td>
+            <td>${r.MIN_qty || '-'}</td>
+            <td>${r.Issued_qty || '-'}</td>
+            <td>${r.IGP_No || '-'}</td>
+            <td>${formatDateDisplay(r.IGP_Date)}</td>
+            <td>${r.Heat_number || '-'}</td>
+            <td style="font-weight:bold; color:#2563eb;">${formatDateDisplay(r.Bend_date)}</td>
+            <td style="font-weight:bold; color:#15803d;">${formatDateDisplay(r.Fit_up_date)}</td>
+          </tr>
+        `;
+      }
+    }).join('');
   }
 
-  // 👉 PERFECT EXCEL GENERATOR (ExcelJS)
+  // PERFECT EXCEL GENERATOR (ExcelJS)
   async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sheet1', { views: [{ showGridLines: true }] });
 
-    // ૧. હેડર ઉમેરવું
     const headerRow = worksheet.addRow(columnHeaders);
-    headerRow.height = 26; // હેડર રો ની ઊંચાઈ
+    headerRow.height = 26;
 
-    // ૨. હેડર સ્ટાઇલિંગ (મોટી સાઈઝ, બોલ્ડ, આછો લીલો બેકગ્રાઉન્ડ કલર #D9EAD3)
     headerRow.eachCell((cell) => {
       cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FFD9EAD3' } // Light Green
+        fgColor: { argb: 'FFD9EAD3' }
       };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
       cell.border = {
@@ -1265,7 +1425,6 @@
       };
     });
 
-    // ૩. તમામ ડેટા રો ઉમેરવી અને બોર્ડર આપવી
     rowsData.forEach(rowItem => {
       const rowValues = columnHeaders.map(col => rowItem[col] !== undefined && rowItem[col] !== null ? rowItem[col] : '');
       const dataRow = worksheet.addRow(rowValues);
@@ -1283,7 +1442,6 @@
       });
     });
 
-    // ૪. ઓટોમેટિક યોગ્ય કૉલમ પહોળાઈ (Auto Column Width)
     worksheet.columns.forEach((column) => {
       let maxLength = 0;
       column.eachCell({ includeEmpty: true }, (cell) => {
@@ -1293,7 +1451,6 @@
       column.width = Math.max(maxLength + 4, 12);
     });
 
-    // ૫. બ્રાઉઝરમાંથી ડાઉનલોડ કરવું
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const link = document.createElement('a');
@@ -1303,7 +1460,6 @@
     URL.revokeObjectURL(link.href);
   }
 
-  // 👉 હાલમાં સ્ક્રીન પર દેખાતી તમામ રો ને પરફેક્ટ સ્ટાઈલ્ડ એક્સેલમાં ડાઉનલોડ કરવી
   async function downloadFormattedMtoExcel() {
     if (!mtoDisplayRows || mtoDisplayRows.length === 0) {
       alert("⚠️ હાલ સ્ક્રીન પર ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
@@ -2022,7 +2178,7 @@
       if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
         const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
         const num = parseFloat(cleaned);
-        if (!isNaN(num)) cumWeldSum += num;
+        if (!isNaN(num)) sum += num;
       }
     });
 
@@ -2437,7 +2593,7 @@
     `).join('');
   }
 
-  // --- STAGE DATA SAVING LOGIC ---
+  // --- STAGE DATA SAVING LOGIC (With Point-2 Dual Table Sync) ---
   async function submitCurrentStage() {
     if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
       return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
@@ -2462,11 +2618,17 @@
       }
     }
     else if (currentStage === 'bend_entry') {
+      // Point-2: Bend entry saves to piping_joints & ALL rows in mto table against Spool_number
       if (!enteredDate) return alert('કૃપા કરીને Bend Date પસંદ કરો.');
       for (const item of selectedQueue) {
         const updateData = { Bend_date: enteredDate, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id };
         const { error } = await db.from('piping_joints').update(updateData).eq('id', item.id);
         if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
+
+        // Update in MTO table for all rows of this spool
+        if (item.Spool_number) {
+          await db.from('mto').update({ Bend_date: enteredDate }).eq('Spool_number', item.Spool_number);
+        }
       }
     }
     else if (currentStage === 'bending_issue') {
@@ -2485,9 +2647,17 @@
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'fitup_entry') {
+      // Point-2: Fit-up entry saves to piping_joints & ALL rows in mto table against Spool_number
       if (!enteredDate) return alert('કૃપા કરીને Fit-Up Date પસંદ કરો.');
       const { error } = await db.from('piping_joints').update({ Fit_up_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
       if (error) return alert("Error: " + error.message);
+
+      // Update in MTO table for all rows of each selected spool
+      for (const item of selectedQueue) {
+        if (item.Spool_number) {
+          await db.from('mto').update({ Fit_up_date: enteredDate }).eq('Spool_number', item.Spool_number);
+        }
+      }
     }
     else if (currentStage === 'ready_weld') {
       if (!enteredDate) return alert('કૃપા કરીને Ready Weld Date દાખલ કરો.');
