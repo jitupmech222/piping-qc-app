@@ -1295,11 +1295,11 @@
     if (!confirm("શું તમે Master Data (piping_joints) માંથી Bend Date અને Fit Up Date ને MTO માં સિન્ક કરવા માંગો છો?")) return;
 
     const tbody = document.getElementById('mtoTableBody');
-    tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#7c3aed;">⏳ Syncing MTO from Master Data...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#7c3aed;">⏳ Syncing MTO from Master Data... Please wait...</td></tr>';
 
     try {
-      // ૧. Master table માંથી Bend_date અથવા Fit_up_date ભરેલા હોય તેવા તમામ Spool મેળવવા
-      let masterMap = new Map();
+      // ૧. Master Data માંથી બધી જ રો લાવવી
+      let masterRows = [];
       let from = 0;
       const step = 1000;
       let hasMore = true;
@@ -1311,21 +1311,7 @@
 
         if (error) throw error;
         if (data && data.length > 0) {
-          data.forEach(r => {
-            if (r.Spool_number) {
-              const spNo = String(r.Spool_number).trim();
-              if (!masterMap.has(spNo)) {
-                masterMap.set(spNo, {
-                  Bend_date: r.Bend_date || null,
-                  Fit_up_date: r.Fit_up_date || null
-                });
-              } else {
-                const existing = masterMap.get(spNo);
-                if (!existing.Bend_date && r.Bend_date) existing.Bend_date = r.Bend_date;
-                if (!existing.Fit_up_date && r.Fit_up_date) existing.Fit_up_date = r.Fit_up_date;
-              }
-            }
-          });
+          masterRows = masterRows.concat(data);
           from += step;
           if (data.length < step) hasMore = false;
         } else {
@@ -1333,24 +1319,85 @@
         }
       }
 
-      // ૨. MTO માં જે પણ Spool_number મેચ થાય તેના માટે Bend_date અને Fit_up_date અપડેટ કરવું
-      let updatedSpoolsCount = 0;
-      for (const [spoolNo, dates] of masterMap.entries()) {
-        if (dates.Bend_date || dates.Fit_up_date) {
-          const updateObj = {};
-          if (dates.Bend_date) updateObj.Bend_date = dates.Bend_date;
-          if (dates.Fit_up_date) updateObj.Fit_up_date = dates.Fit_up_date;
+      // ૨. Spool-wise લેટેસ્ટ/વેલિડ તારીખનો મેપ તૈયાર કરવો
+      const masterMap = new Map();
+      masterRows.forEach(r => {
+        if (!r.Spool_number) return;
+        const spNo = String(r.Spool_number).trim();
+        
+        const bDate = r.Bend_date ? String(r.Bend_date).split('T')[0] : null;
+        const fDate = r.Fit_up_date ? String(r.Fit_up_date).split('T')[0] : null;
 
-          const { error } = await db.from('mto').update(updateObj).eq('Spool_number', spoolNo);
-          if (!error) updatedSpoolsCount++;
+        if (!masterMap.has(spNo)) {
+          masterMap.set(spNo, { Bend_date: bDate, Fit_up_date: fDate });
+        } else {
+          const cur = masterMap.get(spNo);
+          // જો અગાઉ નલ હોય અને આ રો માં તારીખ મળે તો અપડેટ કરો
+          if (!cur.Bend_date && bDate) cur.Bend_date = bDate;
+          if (!cur.Fit_up_date && fDate) cur.Fit_up_date = fDate;
+        }
+      });
+
+      // ૩. MTO ટેબલમાંથી તમામ રેકોર્ડ્સ મેળવવા (ID સાથે)
+      let mtoAll = [];
+      from = 0;
+      hasMore = true;
+      while (hasMore) {
+        const { data, error } = await db.from('mto').select('id, Spool_number, Bend_date, Fit_up_date').range(from, from + step - 1);
+        if (error) throw error;
+        if (data && data.length > 0) {
+          mtoAll = mtoAll.concat(data);
+          from += step;
+          if (data.length < step) hasMore = false;
+        } else {
+          hasMore = false;
         }
       }
 
-      alert(`🎉 Master Data માંથી MTO ટેબલ સફળતાપૂર્વક અપડેટ થઈ ગયું!`);
+      // ૪. જે જે MTO રો માં ફેરફાર જરૂરી છે તેનું લિસ્ટ બનાવવું
+      const updateBatch = [];
+      mtoAll.forEach(mRow => {
+        if (!mRow.Spool_number) return;
+        const spKey = String(mRow.Spool_number).trim();
+        if (masterMap.has(spKey)) {
+          const masterDates = masterMap.get(spKey);
+          let needsUpdate = false;
+          const patch = { id: mRow.id };
+
+          if (masterDates.Bend_date && masterDates.Bend_date !== mRow.Bend_date) {
+            patch.Bend_date = masterDates.Bend_date;
+            needsUpdate = true;
+          }
+          if (masterDates.Fit_up_date && masterDates.Fit_up_date !== mRow.Fit_up_date) {
+            patch.Fit_up_date = masterDates.Fit_up_date;
+            needsUpdate = true;
+          }
+
+          if (needsUpdate) {
+            updateBatch.push(patch);
+          }
+        }
+      });
+
+      if (updateBatch.length === 0) {
+        alert("ℹ️ MTO ટેબલ પહેલેથી જ અપ-ટુ-ડેટ છે. કોઈ નવા ફેરફાર મળ્યા નથી.");
+        await loadMtoData();
+        return;
+      }
+
+      // ૫. ૫૦-૫૦ ના બેચમાં સચોટ Upsert કરવું (જેથી કોઈ તારીખ છૂટી ન જાય)
+      const batchSize = 50;
+      for (let i = 0; i < updateBatch.length; i += batchSize) {
+        const batch = updateBatch.slice(i, i + batchSize);
+        const { error } = await db.from('mto').upsert(batch, { onConflict: 'id' });
+        if (error) throw error;
+      }
+
+      alert(`🎉 સફળતાપૂર્વક MTO ની ${updateBatch.length} રો માં Master Data ની તારીખો અપડેટ થઈ ગઈ!`);
       await loadMtoData();
     } catch (err) {
       console.error(err);
-      alert("MTO Update કરવામાં ભૂલ આવી: " + err.message);
+      alert("MTO Sync કરવામાં ભૂલ આવી: " + err.message);
       await loadMtoData();
     }
   }
@@ -2171,20 +2218,24 @@
   }
 
   function updateMetrics() {
+    // Unique Spool Numbers Count
     const cumSpools = new Set(cumulativeRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
+    
+    // SUM of Weld_id (સંખ્યાત્મક સરવાળો)
     let cumWeldSum = 0;
     cumulativeRows.forEach(r => {
       const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
       if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
         const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
         const num = parseFloat(cleaned);
-        if (!isNaN(num)) sum += num;
+        if (!isNaN(num)) cumWeldSum += num; // ✅ સુધારેલ: અહીં cumWeldSum કરી દીધું
       }
     });
 
     document.getElementById('metricSpools').innerText = cumSpools.size;
     document.getElementById('metricWelds').innerText = Number.isInteger(cumWeldSum) ? cumWeldSum : parseFloat(cumWeldSum.toFixed(2));
 
+    // Sub-metric (Fitter / Welder stage માટે)
     if (currentStage === 'ready_fitup' || currentStage === 'ready_weld') {
       const subSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
       let subWeldSum = 0;
@@ -2196,10 +2247,14 @@
           if (!isNaN(num)) subWeldSum += num;
         }
       });
-      document.getElementById('subMetricSpools').innerText = subSpools.size;
-      document.getElementById('subMetricWelds').innerText = Number.isInteger(subWeldSum) ? subWeldSum : parseFloat(subWeldSum.toFixed(2));
+      const subSpoolEl = document.getElementById('subMetricSpools');
+      const subWeldEl = document.getElementById('subMetricWelds');
+      if (subSpoolEl) subSpoolEl.innerText = subSpools.size;
+      if (subWeldEl) subWeldEl.innerText = Number.isInteger(subWeldSum) ? subWeldSum : parseFloat(subWeldSum.toFixed(2));
     }
-    document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
+    
+    const tblTotal = document.getElementById('tableTotalCount');
+    if (tblTotal) tblTotal.innerText = activeBalanceDisplayRows.length;
   }
 
   function handleSearchInput() {
