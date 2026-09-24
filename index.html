@@ -104,8 +104,6 @@
     .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
-    .btn-mode-sync { background: #7c3aed; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
-    .btn-mode-sync:hover { background: #6d28d9; }
     .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
     .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
 
@@ -166,6 +164,7 @@
     .menu-btn.stage-ndt { border-left: 4px solid #d97706; }
     .menu-btn.stage-fd { border-left: 4px solid #059669; }
 
+    /* Special Accent Buttons */
     .btn-progress-hub {
       background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
       color: #ffffff;
@@ -225,6 +224,7 @@
 
     .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
 
+    /* Action Buttons */
     .btn-save-action {
       background: #15803d;
       color: white;
@@ -279,6 +279,7 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
+    /* Tables & Scrolling */
     .balance-table-container { overflow: auto; margin-top: 10px; height: 55vh; border: 1px solid #cbd5e1; border-radius: 6px; }
     .master-table-container { overflow: auto; margin-top: 8px; height: calc(100vh - 145px); border: 1px solid #cbd5e1; border-radius: 6px; }
 
@@ -350,6 +351,7 @@
 </head>
 <body>
 
+<!-- Login Security Modal -->
 <div id="loginOverlay">
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 16px;">
@@ -378,7 +380,9 @@
   </div>
 </div>
 
+<!-- Main App -->
 <div id="appContent" style="display: none;">
+  <!-- Universal Top Navigation Bar -->
   <div class="top-navbar">
     <div class="top-nav-title">
       <span>⚙️ PIPING CONSOLE</span>
@@ -391,6 +395,7 @@
   </div>
 
   <div class="container">
+    <!-- Hub / Main Dashboard (Point-1: 03, 04, 05, 07, 08 Removed) -->
     <div id="mainMenu" class="card">
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
         <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">Fabrication & QC Tracking Dashboard</h3>
@@ -400,28 +405,25 @@
       <div class="menu-grid">
         <button class="menu-btn stage-bend" onclick="openStage('bending_issue')"><span class="step-badge">01</span><span>ISSUED FOR BENDING</span></button>
         <button class="menu-btn stage-bend" onclick="openStage('bend_entry')"><span class="step-badge">02</span><span>BEND COMPLETED</span></button>
-        <button class="menu-btn stage-fitup" onclick="openStage('fitup_issue')"><span class="step-badge">03</span><span>ISSUED FOR FIT-UP</span></button>
-        <button class="menu-btn stage-fitup" onclick="openStage('fitter_name')"><span class="step-badge">04</span><span>ISSUED TO FITTER</span></button>
-        <button class="menu-btn stage-fitup" onclick="openStage('ready_fitup')"><span class="step-badge">05</span><span>READY FIT-UP FOR INSP</span></button>
-        <button class="menu-btn stage-fitup" onclick="openStage('fitup_entry')"><span class="step-badge">06</span><span>FIT UP COMPLETED</span></button>
-        <button class="menu-btn stage-weld" onclick="openStage('welder_name')"><span class="step-badge">07</span><span>ISSUED TO WELDER</span></button>
-        <button class="menu-btn stage-weld" onclick="openStage('ready_weld')"><span class="step-badge">08</span><span>READY FOR WELD VISUAL</span></button>
-        <button class="menu-btn stage-weld" onclick="openStage('weld_visual')"><span class="step-badge">09</span><span>WELD VISUAL COMPLETED</span></button>
-        <button class="menu-btn stage-ndt" onclick="openStage('ndt_clearance')"><span class="step-badge">10</span><span>NDT CLEARANCE</span></button>
-        <button class="menu-btn stage-fd" onclick="openStage('fd')"><span class="step-badge">11</span><span>FD & DC NO</span></button>
+        <button class="menu-btn stage-fitup" onclick="openStage('fitup_entry')"><span class="step-badge">03</span><span>FIT UP COMPLETED</span></button>
+        <button class="menu-btn stage-weld" onclick="openStage('weld_visual')"><span class="step-badge">04</span><span>WELD VISUAL COMPLETED</span></button>
+        <button class="menu-btn stage-ndt" onclick="openStage('ndt_clearance')"><span class="step-badge">05</span><span>NDT CLEARANCE</span></button>
+        <button class="menu-btn stage-fd" onclick="openStage('fd')"><span class="step-badge">06</span><span>FD & DC NO</span></button>
 
         <button class="menu-btn btn-progress-hub" onclick="openProgressDashboard()"><span class="step-badge" style="background:#fff; color:#4338ca;">📈</span><span>PROGRESS DASHBOARD</span></button>
         <button class="menu-btn btn-track-hub" onclick="openSpoolTracking()"><span class="step-badge" style="background:#fff; color:#b45309;">🔍</span><span>SPOOL TRACKING</span></button>
         <button class="menu-btn btn-report-hub" onclick="openProgressReport()"><span class="step-badge" style="background:#fff; color:#0369a1;">📅</span><span>PROGRESS REPORT</span></button>
 
+        <!-- MTO Register Button -->
         <button class="menu-btn btn-mto-hub" onclick="openMtoRegister()"><span class="step-badge" style="background:#fff; color:#0f766e;">📋</span><span>MTO REGISTER</span></button>
 
+        <!-- Data Update Hub (Admin Only) -->
         <button class="menu-btn btn-update-hub" id="btnDataUpdateHub" style="display: none;" onclick="openDataUpdateHub()"><span class="step-badge" style="background:#fff; color:#7c3aed;">🔄</span><span>DATA UPDATE</span></button>
         <button class="menu-btn btn-view" onclick="openStage('view_records')"><span>📊 VIEW MASTER REGISTER</span></button>
       </div>
     </div>
 
-    <!-- Data Update Screen (Admin Only) -->
+    <!-- Data Update Screen (Admin Only - Unaltered Full DB Update) -->
     <div id="dataUpdateContainer" style="display: none;">
       <div class="card">
         <h3 style="color:#6d28d9;">🔄 Database Excel Batch Update (Admin)</h3>
@@ -449,11 +451,6 @@
           <div style="display:flex; align-items:center; gap:8px;">
             <h3 style="margin:0; border:none; color:#0f766e;">📋 MTO Register (<span id="mtoTotalCount">0</span>)</h3>
             <span id="mtoCurrentFilterLabel" style="font-size:12px; font-weight:bold; color:#c2410c; background:#ffedd5; padding:2px 8px; border-radius:12px; display:none;"></span>
-            
-            <button type="button" id="btnMtoView" class="btn-mode-view" onclick="setMtoMode('view')">👁️ View</button>
-            <button type="button" id="btnMtoEdit" class="btn-mode-edit" onclick="requestMtoEditMode()">✏️ Edit</button>
-            <button type="button" id="btnMtoSave" class="btn-mode-save" onclick="saveMtoEditsToDb()">💾 SAVE CHANGES</button>
-            <button type="button" class="btn-mode-sync" onclick="syncMtoFromMaster()">🔄 MTO UPDATE FROM MASTER</button>
           </div>
 
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
@@ -465,7 +462,6 @@
             <button type="button" class="sub-filter-btn" id="btnFilterAllBal" style="background:#e0e7ff; color:#4338ca; border-color:#a5b4fc;" onclick="viewMtoBalanceCategory('all_bal')">👁️ All Bal.</button>
 
             <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px;" onclick="downloadFormattedMtoExcel()">📥 Download View Excel</button>
-            <button type="button" class="btn-save-action" style="background:#0d9488; padding:6px 10px; font-size:11.5px;" onclick="downloadMtoSummaryExcel()">📥 Download View Summary Excel</button>
 
             <button type="button" class="btn-save-action" id="btnMtoUploadTrigger" style="background:#15803d; padding:6px 10px; font-size:11.5px; display:none;" onclick="document.getElementById('mtoFileInput').click()">📤 Upload & Update</button>
             <input type="file" id="mtoFileInput" accept=".xlsx, .xls" style="display:none;" onchange="uploadAndApplyMtoExcel(event)">
@@ -504,9 +500,7 @@
                 <th style="text-align: center; background:#9a3412;">Balance Weld ID</th>
               </tr>
             </thead>
-            <tbody id="progressTableBody">
-              <tr><td colspan="6" style="text-align:center; padding:15px; color:#2563eb;">⏳ Calculating Progress Data...</td></tr>
-            </tbody>
+            <tbody id="progressTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -577,8 +571,8 @@
         <h3 id="stageTitle">Stage Title</h3>
         <div id="subFilterArea" class="sub-filter-group" style="display: none;"></div>
         <div id="subMetricArea" class="sub-metric-banner" style="display: none;">
-          <div>SELECTED FITTER SPOOL = <span id="subMetricSpools" class="metric-val">0</span></div>
-          <div>SELECTED FITTER WELD = <span id="subMetricWelds" class="metric-val">0</span></div>
+          <div>SELECTED SPOOL = <span id="subMetricSpools" class="metric-val">0</span></div>
+          <div>SELECTED WELD = <span id="subMetricWelds" class="metric-val">0</span></div>
         </div>
         <label id="spoolSearchLabel">Spool Unique Number:</label>
         <div class="search-box-wrapper">
@@ -632,7 +626,7 @@
       </div>
     </div>
 
-    <!-- Master Register -->
+    <!-- Master Register (Point-2 & Point-3: Hidden Columns & Download View Excel Button) -->
     <div id="recordsContainer" style="display: none;">
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
@@ -642,7 +636,11 @@
             <button type="button" id="btnMasterEdit" class="btn-mode-edit" onclick="requestEditMode()">✏️ Edit</button>
             <button type="button" id="btnMasterSave" class="btn-mode-save" onclick="saveMasterEditsToDb()">💾 SAVE CHANGES</button>
           </div>
-          <button type="button" class="sub-filter-btn" onclick="clearAllMasterFilters()">🔄 Clear Filters</button>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <!-- Point-3: Download View Excel Button for Filtered Master Records -->
+            <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 12px; font-size:12px;" onclick="downloadFormattedMasterExcel()">📥 Download View Excel</button>
+            <button type="button" class="sub-filter-btn" onclick="clearAllMasterFilters()">🔄 Clear Filters</button>
+          </div>
         </div>
         <div class="master-table-container">
           <table id="qcDataTable">
@@ -657,6 +655,7 @@
   </div>
 </div>
 
+<!-- Floating Excel Filter Modal -->
 <div id="excelFilterPopup">
   <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
   <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
@@ -671,11 +670,12 @@
 </div>
 
 <script>
+  // USER ROLES & PERMISSIONS DEFINITION (Point-1 Aligned)
   const USER_ROLES = {
     "admin": { pass: "ruhi@2018", name: "Admin", allowed: ["all"] },
-    "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry", "fitup_issue"] },
-    "fitup": { pass: "rajan@456", name: "Fit-up Team", allowed: ["fitter_name", "ready_fitup", "fitup_entry"] },
-    "welding": { pass: "jagdish@789", name: "Welding Team", allowed: ["welder_name", "ready_weld", "weld_visual"] },
+    "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry"] },
+    "fitup": { pass: "rajan@456", name: "Fit-up Team", allowed: ["fitup_entry"] },
+    "welding": { pass: "jagdish@789", name: "Welding Team", allowed: ["weld_visual"] },
     "qc/dc": { pass: "qc@6038", name: "QC/DC Team", allowed: ["ndt_clearance", "fd"] },
     "viewer": { pass: "view@123", name: "Viewer", allowed: [] }
   };
@@ -686,9 +686,6 @@
   let isMasterEditMode = false;
   let masterPendingUpdates = new Map();
 
-  let isMtoEditMode = false;
-  let mtoPendingUpdates = new Map();
-
   function updateDashboardUIForRole() {
     if (!currentUser) return;
     const btnShareWA = document.getElementById('btnShareWhatsApp');
@@ -696,9 +693,7 @@
     if (btnShareWA) btnShareWA.style.display = (currentUser.username === 'admin') ? 'inline-flex' : 'none';
     if (btnUpdateHub) btnUpdateHub.style.display = (currentUser.username === 'admin') ? 'flex' : 'none';
 
-    const btnMtoEdit = document.getElementById('btnMtoEdit');
     const btnMtoUpload = document.getElementById('btnMtoUploadTrigger');
-    if (btnMtoEdit) btnMtoEdit.style.display = (currentUser.username === 'admin') ? 'inline-block' : 'none';
     if (btnMtoUpload) btnMtoUpload.style.display = (currentUser.username === 'admin') ? 'inline-flex' : 'none';
   }
 
@@ -743,9 +738,7 @@
       sessionStorage.removeItem('piping_app_auth');
       currentUser = null;
       isMasterEditMode = false;
-      isMtoEditMode = false;
       masterPendingUpdates.clear();
-      mtoPendingUpdates.clear();
       checkSessionAuth();
     }
   }
@@ -775,10 +768,8 @@
   let mtoColumnFilters = {};
   let currentPopupContext = { targetTable: '', colKey: '', colLabel: '', allValues: [] };
 
-  const FITTERS = ["NA", "PANKAJ CHAUHAN", "RAMPRAKASH CHAUHAN", "NANHE PRAJAPATI", "KAMAL PRASAD"];
-  const WELDERS = ["NA", "770", "815", "625", "853", "711", "625/1200", "770/1200"];
-
-  const MASTER_COLS = [
+  // Database Schema (સંપૂર્ણ ટેબલ કૉલમ્સ અકબંધ રાખવામાં આવ્યા છે)
+  const MASTER_COLS_ALL = [
     { key: 'Drawing_no', label: 'Drawing No' },
     { key: 'Spool_number', label: 'Spool Unique No' },
     { key: 'Spool_size', label: 'Spool Size' },
@@ -804,6 +795,21 @@
     { key: 'Bill', label: 'BILL' },
     { key: 'Remarks', label: 'REMARKS' }
   ];
+
+  // Point-2: આ ૮ કૉલમ્સને View Master Record માંથી હાઈડ કરવાના છે
+  const HIDDEN_MASTER_KEYS = new Set([
+    'Issued_for_bending',
+    'Issue_for_fitup',
+    'Fitter_name',
+    'issued_to_fitter_date',
+    'Ready_for_fitup_insp',
+    'Welder_no',
+    'issued_to_welder_date',
+    'Ready_for_weld_visual'
+  ]);
+
+  // View Master Record માં ફક્ત આ જ કૉલમ્સ દેખાશે અને ડાઉનલોડ થશે
+  const MASTER_COLS_VISIBLE = MASTER_COLS_ALL.filter(c => !HIDDEN_MASTER_KEYS.has(c.key));
 
   const MTO_COLS = [
     { key: 'Spool_number', label: 'Spool No' },
@@ -861,7 +867,6 @@
     return str;
   }
 
-  // Calculate SUM of Weld IDs safely
   function calculateWeldSum(rows) {
     let sum = 0;
     rows.forEach(r => {
@@ -875,7 +880,6 @@
     return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
   }
 
-  // All Records Cache Loader Helper
   async function ensureAllRecordsCached() {
     if (allRecordsCache.length > 0) return allRecordsCache;
     let allRows = [];
@@ -901,9 +905,7 @@
   function backToMenu() {
     closeExcelPopup();
     isMasterEditMode = false;
-    isMtoEditMode = false;
     masterPendingUpdates.clear();
-    mtoPendingUpdates.clear();
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
     document.getElementById('itemEditForm').style.display = 'none';
@@ -980,9 +982,10 @@
         return;
       }
 
+      // સંપૂર્ણ ડેટાબેઝ અપડેટ માટે તમામ કૉલમ્સ ડાઉનલોડ થશે
       const formatted = allRows.map(r => {
         const rowObj = { id: r.id };
-        MASTER_COLS.forEach(c => {
+        MASTER_COLS_ALL.forEach(c => {
           rowObj[c.key] = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
         });
         return rowObj;
@@ -1060,7 +1063,7 @@
         for (let i = 0; i < rows.length; i += batchSize) {
           const batch = rows.slice(i, i + batchSize).map(r => {
             const cleanObj = { id: r.id };
-            MASTER_COLS.forEach(c => {
+            MASTER_COLS_ALL.forEach(c => {
               if (r.hasOwnProperty(c.key)) {
                 let v = r[c.key];
                 if (v === '' || v === undefined || v === 'null') {
@@ -1097,6 +1100,7 @@
     reader.readAsArrayBuffer(file);
   }
 
+  // --- MTO REGISTER MODULE ---
   function buildMtoRegisterHeader() {
     const tr = document.getElementById('mtoHeaderRow');
     tr.innerHTML = `
@@ -1114,8 +1118,6 @@
 
   async function openMtoRegister() {
     closeExcelPopup();
-    isMtoEditMode = false;
-    mtoPendingUpdates.clear();
     document.getElementById('mainMenu').style.display = 'none';
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
@@ -1127,7 +1129,11 @@
     document.getElementById('navSubTitle').innerText = `| 📋 MTO Register (${currentUser.name})`;
     document.getElementById('mtoContainer').style.display = 'block';
 
-    setMtoMode('view');
+    const btnUpload = document.getElementById('btnMtoUploadTrigger');
+    if (btnUpload) {
+      btnUpload.style.display = (currentUser && currentUser.username === 'admin') ? 'inline-flex' : 'none';
+    }
+
     buildMtoRegisterHeader();
     await loadMtoData();
   }
@@ -1178,7 +1184,6 @@
 
   function viewMtoBalanceCategory(type) {
     activeMtoCategory = type;
-    mtoColumnFilters = {};
     resetCategoryButtonStyles();
     const lbl = document.getElementById('mtoCurrentFilterLabel');
     lbl.style.display = 'inline-block';
@@ -1198,26 +1203,18 @@
   }
 
   function applyMtoCategoryFilter(type) {
-    const isBlank = val => {
-      if (val === null || val === undefined) return true;
-      const s = String(val).trim().toLowerCase();
-      return s === '' || s === 'null' || s === 'undefined' || s === '-';
-    };
+    const isBlank = val => val === null || val === undefined || String(val).trim() === '' || String(val).toLowerCase() === 'null';
     const isFilled = val => !isBlank(val);
 
     if (type === 'min_bal') {
-      mtoBaseRows = mtoCache.filter(r => isBlank(r.MIN_No) || isBlank(r.MIN_Date));
+      mtoBaseRows = mtoCache.filter(r => isBlank(r.MIN_No) && isBlank(r.MIN_Date));
     } else if (type === 'issue_bal') {
-      mtoBaseRows = mtoCache.filter(r => 
-        (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && 
-        (isBlank(r.IGP_No) || isBlank(r.IGP_Date))
-      );
+      mtoBaseRows = mtoCache.filter(r => isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date));
     } else if (type === 'all_bal') {
-      mtoBaseRows = mtoCache.filter(r => {
-        const isMinPending = isBlank(r.MIN_No) || isBlank(r.MIN_Date);
-        const isIssuePending = (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && (isBlank(r.IGP_No) || isBlank(r.IGP_Date));
-        return isMinPending || isIssuePending;
-      });
+      mtoBaseRows = mtoCache.filter(r => 
+        (isBlank(r.MIN_No) && isBlank(r.MIN_Date)) || 
+        (isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date))
+      );
     } else {
       mtoBaseRows = mtoCache;
     }
@@ -1256,165 +1253,6 @@
     renderMtoTable(filtered);
   }
 
-  function setMtoMode(mode) {
-    if (mode === 'view') {
-      isMtoEditMode = false;
-      const btnView = document.getElementById('btnMtoView');
-      const btnEdit = document.getElementById('btnMtoEdit');
-      const btnSave = document.getElementById('btnMtoSave');
-      if (btnView) btnView.style.outline = '2px solid #0369a1';
-      if (btnEdit) btnEdit.style.outline = 'none';
-      if (btnSave) btnSave.style.display = 'none';
-      renderMtoTable(mtoDisplayRows);
-    } else if (mode === 'edit') {
-      isMtoEditMode = true;
-      const btnView = document.getElementById('btnMtoView');
-      const btnEdit = document.getElementById('btnMtoEdit');
-      const btnSave = document.getElementById('btnMtoSave');
-      if (btnEdit) btnEdit.style.outline = '2px solid #b45309';
-      if (btnView) btnView.style.outline = 'none';
-      if (btnSave) btnSave.style.display = 'inline-block';
-      renderMtoTable(mtoDisplayRows);
-    }
-  }
-
-  function requestMtoEditMode() {
-    if (!currentUser || currentUser.username !== 'admin') {
-      return alert("⚠️ માત્ર Admin પાસે જ MTO Register Edit કરવાની પરમિશન છે!");
-    }
-    const inputPass = prompt("🔐 Enter MTO Register Edit Password:");
-    if (inputPass === null) return;
-    if (inputPass === EDIT_MODE_PASSWORD) {
-      alert("✅ MTO Edit Mode Unlocked! You can edit any cell directly.");
-      setMtoMode('edit');
-    } else {
-      alert("❌ Incorrect Edit Password! Access Denied.");
-    }
-  }
-
-  function handleMtoCellChange(id, colKey, newVal) {
-    if (!mtoPendingUpdates.has(id)) mtoPendingUpdates.set(id, {});
-    mtoPendingUpdates.get(id)[colKey] = newVal.trim() === '' ? null : newVal.trim();
-    const item = mtoCache.find(x => x.id === id);
-    if (item) item[colKey] = newVal.trim() === '' ? null : newVal.trim();
-  }
-
-  async function saveMtoEditsToDb() {
-    if (mtoPendingUpdates.size === 0) return alert("⚠️ કોઈ ફેરફાર થયેલ નથી.");
-    if (!confirm(`શું તમે ખરેખર ${mtoPendingUpdates.size} રો ના ફેરફારો MTO Database માં Save કરવા માંગો છો?`)) return;
-
-    const saveBtn = document.getElementById('btnMtoSave');
-    saveBtn.disabled = true;
-    saveBtn.innerText = "⏳ Saving...";
-
-    let updateErrors = 0;
-    for (const [id, rowData] of mtoPendingUpdates.entries()) {
-      const cleanData = {};
-      for (const k in rowData) {
-        let v = rowData[k];
-        const isDateCol = k.toLowerCase().includes('date');
-        cleanData[k] = isDateCol ? formatExcelDate(v) : v;
-      }
-      const { error } = await db.from('mto').update(cleanData).eq('id', id);
-      if (error) { console.error("MTO Update error for row " + id, error); updateErrors++; }
-    }
-
-    saveBtn.disabled = false;
-    saveBtn.innerText = "💾 SAVE CHANGES";
-
-    if (updateErrors === 0) {
-      alert(`🎉 સફળતાપૂર્વક ${mtoPendingUpdates.size} MTO રેકોર્ડ્સ Database માં અપડેટ થઈ ગયા!`);
-      mtoPendingUpdates.clear();
-      setMtoMode('view');
-    } else {
-      alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી.`);
-    }
-  }
-
-  async function syncMtoFromMaster() {
-    if (!confirm("શું તમે Master Data (piping_joints) માંથી Bend Date અને Fit Up Date ને MTO માં સિન્ક કરવા માંગો છો?")) return;
-
-    const tbody = document.getElementById('mtoTableBody');
-    tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#7c3aed;">⏳ Syncing MTO from Master Data... Please wait...</td></tr>';
-
-    try {
-      const masterRows = await ensureAllRecordsCached();
-
-      const masterMap = new Map();
-      masterRows.forEach(r => {
-        if (!r.Spool_number) return;
-        const spNo = String(r.Spool_number).trim();
-        const bDate = r.Bend_date ? String(r.Bend_date).split('T')[0] : null;
-        const fDate = r.Fit_up_date ? String(r.Fit_up_date).split('T')[0] : null;
-
-        if (!masterMap.has(spNo)) {
-          masterMap.set(spNo, { Bend_date: bDate, Fit_up_date: fDate });
-        } else {
-          const cur = masterMap.get(spNo);
-          if (!cur.Bend_date && bDate) cur.Bend_date = bDate;
-          if (!cur.Fit_up_date && fDate) cur.Fit_up_date = fDate;
-        }
-      });
-
-      let mtoAll = [];
-      let from = 0;
-      let hasMore = true;
-      while (hasMore) {
-        const { data, error } = await db.from('mto').select('id, Spool_number, Bend_date, Fit_up_date').range(from, from + 999);
-        if (error) throw error;
-        if (data && data.length > 0) {
-          mtoAll = mtoAll.concat(data);
-          from += 1000;
-          if (data.length < 1000) hasMore = false;
-        } else {
-          hasMore = false;
-        }
-      }
-
-      const updateBatch = [];
-      mtoAll.forEach(mRow => {
-        if (!mRow.Spool_number) return;
-        const spKey = String(mRow.Spool_number).trim();
-        if (masterMap.has(spKey)) {
-          const masterDates = masterMap.get(spKey);
-          let needsUpdate = false;
-          const patch = { id: mRow.id };
-
-          if (masterDates.Bend_date && masterDates.Bend_date !== mRow.Bend_date) {
-            patch.Bend_date = masterDates.Bend_date;
-            needsUpdate = true;
-          }
-          if (masterDates.Fit_up_date && masterDates.Fit_up_date !== mRow.Fit_up_date) {
-            patch.Fit_up_date = masterDates.Fit_up_date;
-            needsUpdate = true;
-          }
-
-          if (needsUpdate) updateBatch.push(patch);
-        }
-      });
-
-      if (updateBatch.length === 0) {
-        alert("ℹ️ MTO ટેબલ પહેલેથી જ અપ-ટુ-ડેટ છે. કોઈ નવા ફેરફાર મળ્યા નથી.");
-        await loadMtoData();
-        return;
-      }
-
-      const batchSize = 50;
-      for (let i = 0; i < updateBatch.length; i += batchSize) {
-        const batch = updateBatch.slice(i, i + batchSize);
-        const { error } = await db.from('mto').upsert(batch, { onConflict: 'id' });
-        if (error) throw error;
-      }
-
-      alert(`🎉 સફળતાપૂર્વક MTO ની ${updateBatch.length} રો માં Master Data ની તારીખો અપડેટ થઈ ગઈ!`);
-      await loadMtoData();
-    } catch (err) {
-      console.error(err);
-      alert("MTO Sync કરવામાં ભૂલ આવી: " + err.message);
-      await loadMtoData();
-    }
-  }
-
   function renderMtoTable(rows) {
     const tbody = document.getElementById('mtoTableBody');
     if (rows.length === 0) {
@@ -1422,43 +1260,28 @@
       return;
     }
 
-    tbody.innerHTML = rows.slice(0, 1000).map((r, idx) => {
-      if (isMtoEditMode) {
-        return `
-          <tr>
-            <td style="text-align:center; font-weight:600;">${idx + 1}</td>
-            ${MTO_COLS.map(c => {
-              let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
-              let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
-              return `<td><input type="text" class="cell-input" value="${escapeHtml(editVal)}" onchange="handleMtoCellChange(${r.id}, '${c.key}', this.value)"></td>`;
-            }).join('')}
-          </tr>
-        `;
-      } else {
-        return `
-          <tr>
-            <td style="text-align:center; font-weight:600;">${idx + 1}</td>
-            <td><b>${r.Spool_number || '-'}</b></td>
-            <td>${r.Drawing_no || '-'}</td>
-            <td>${r.MAT_SAP_CODE || '-'}</td>
-            <td>${r.Size_1 || '-'}</td>
-            <td>${r.Size_2 || '-'}</td>
-            <td>${r.Unit || '-'}</td>
-            <td>${r.MAT_Description || '-'}</td>
-            <td style="font-weight:bold; color:#0f766e;">${r.lot_no || '-'}</td>
-            <td>${r.MIN_No || '-'}</td>
-            <td>${formatDateDisplay(r.MIN_Date)}</td>
-            <td>${r.MIN_qty || '-'}</td>
-            <td>${r.Issued_qty || '-'}</td>
-            <td>${r.IGP_No || '-'}</td>
-            <td>${formatDateDisplay(r.IGP_Date)}</td>
-            <td>${r.Heat_number || '-'}</td>
-            <td style="font-weight:bold; color:#2563eb;">${formatDateDisplay(r.Bend_date)}</td>
-            <td style="font-weight:bold; color:#15803d;">${formatDateDisplay(r.Fit_up_date)}</td>
-          </tr>
-        `;
-      }
-    }).join('');
+    tbody.innerHTML = rows.slice(0, 1000).map((r, idx) => `
+      <tr>
+        <td style="text-align:center; font-weight:600;">${idx + 1}</td>
+        <td><b>${r.Spool_number || '-'}</b></td>
+        <td>${r.Drawing_no || '-'}</td>
+        <td>${r.MAT_SAP_CODE || '-'}</td>
+        <td>${r.Size_1 || '-'}</td>
+        <td>${r.Size_2 || '-'}</td>
+        <td>${r.Unit || '-'}</td>
+        <td>${r.MAT_Description || '-'}</td>
+        <td style="font-weight:bold; color:#0f766e;">${r.lot_no || '-'}</td>
+        <td>${r.MIN_No || '-'}</td>
+        <td>${formatDateDisplay(r.MIN_Date)}</td>
+        <td>${r.MIN_qty || '-'}</td>
+        <td>${r.Issued_qty || '-'}</td>
+        <td>${r.IGP_No || '-'}</td>
+        <td>${formatDateDisplay(r.IGP_Date)}</td>
+        <td>${r.Heat_number || '-'}</td>
+        <td>${formatDateDisplay(r.Bend_date)}</td>
+        <td>${formatDateDisplay(r.Fit_up_date)}</td>
+      </tr>
+    `).join('');
   }
 
   async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
@@ -1525,152 +1348,20 @@
       return;
     }
 
-    const headers = ["id", ...MTO_COLS.map(c => c.key)];
-    const excelRows = mtoDisplayRows.map(r => {
-      const rowObj = { "id": r.id };
+    const headers = ["Sr No", ...MTO_COLS.map(c => c.label)];
+    const excelRows = mtoDisplayRows.map((r, index) => {
+      const rowObj = { "Sr No": index + 1 };
       MTO_COLS.forEach(c => {
         let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
         const isDate = c.key.toLowerCase().includes('date');
-        rowObj[c.key] = isDate ? (formatExcelDate(val) || '') : val;
+        rowObj[c.label] = isDate ? formatDateDisplay(val) : val;
       });
       return rowObj;
     });
 
     let catName = activeMtoCategory === 'all' ? 'MTO_Full' : `MTO_${activeMtoCategory}`;
     const today = new Date().toISOString().split('T')[0];
-    await exportStyledExcelWorkbook(excelRows, headers, `${catName}_DatabaseFormat_${today}`);
-  }
-
-  async function downloadMtoSummaryExcel() {
-    if (!mtoDisplayRows || mtoDisplayRows.length === 0) {
-      alert("⚠️ હાલ સમરી ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
-      return;
-    }
-
-    const summaryMap = new Map();
-    mtoDisplayRows.forEach(r => {
-      const sap = String(r.MAT_SAP_CODE || '-').trim();
-      const desc = String(r.MAT_Description || '-').trim();
-      const lot = String(r.lot_no || '-').trim();
-      const minNo = String(r.MIN_No || '-').trim();
-      const groupKey = `${sap}___${desc}___${lot}___${minNo}`;
-
-      const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
-      const issQty = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
-
-      if (!summaryMap.has(groupKey)) {
-        summaryMap.set(groupKey, {
-          MAT_SAP_CODE: sap,
-          MAT_Description: desc,
-          lot_no: lot,
-          MIN_No: minNo,
-          MIN_qty_sum: minQty,
-          Issued_qty_sum: issQty
-        });
-      } else {
-        const item = summaryMap.get(groupKey);
-        item.MIN_qty_sum += minQty;
-        item.Issued_qty_sum += issQty;
-      }
-    });
-
-    const summaryHeaders = [
-      "Sr no.",
-      "MAT_SAP_CODE",
-      "MAT_Description",
-      "lot_no",
-      "MIN_No",
-      "sum of MIN_qty",
-      "sum of Issued_qty"
-    ];
-
-    let totalMinQty = 0;
-    let totalIssuedQty = 0;
-    let srNo = 1;
-
-    const summaryRows = [];
-    for (const val of summaryMap.values()) {
-      const minQtyClean = parseFloat(val.MIN_qty_sum.toFixed(3));
-      const issQtyClean = parseFloat(val.Issued_qty_sum.toFixed(3));
-      totalMinQty += minQtyClean;
-      totalIssuedQty += issQtyClean;
-
-      summaryRows.push({
-        "Sr no.": srNo++,
-        "MAT_SAP_CODE": val.MAT_SAP_CODE,
-        "MAT_Description": val.MAT_Description,
-        "lot_no": val.lot_no,
-        "MIN_No": val.MIN_No,
-        "sum of MIN_qty": minQtyClean,
-        "sum of Issued_qty": issQtyClean
-      });
-    }
-
-    summaryRows.push({
-      "Sr no.": "TOTAL",
-      "MAT_SAP_CODE": "",
-      "MAT_Description": "",
-      "lot_no": "",
-      "MIN_No": "",
-      "sum of MIN_qty": parseFloat(totalMinQty.toFixed(3)),
-      "sum of Issued_qty": parseFloat(totalIssuedQty.toFixed(3))
-    });
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('MTO_Summary', { views: [{ showGridLines: true }] });
-
-    const headerRow = worksheet.addRow(summaryHeaders);
-    headerRow.height = 26;
-    headerRow.eachCell((cell) => {
-      cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F766E' } };
-      cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
-    });
-
-    summaryRows.forEach((rowItem, index) => {
-      const isTotalRow = index === summaryRows.length - 1;
-      const rowValues = summaryHeaders.map(col => rowItem[col]);
-      const dataRow = worksheet.addRow(rowValues);
-      dataRow.height = isTotalRow ? 24 : 20;
-
-      dataRow.eachCell((cell, colNumber) => {
-        cell.font = { name: 'Calibri', size: 11, bold: isTotalRow };
-        cell.border = {
-          top: { style: isTotalRow ? 'medium' : 'thin', color: { argb: 'FF94A3B8' } },
-          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-          bottom: { style: isTotalRow ? 'double' : 'thin', color: { argb: 'FF94A3B8' } },
-          right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
-        };
-
-        if (isTotalRow) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
-          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF92400E' } };
-        }
-
-        if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        else if (colNumber >= 6) cell.alignment = { vertical: 'middle', horizontal: 'right' };
-        else cell.alignment = { vertical: 'middle', horizontal: 'left' };
-      });
-    });
-
-    worksheet.columns.forEach((column) => {
-      let maxLength = 0;
-      column.eachCell({ includeEmpty: true }, (cell) => {
-        const val = cell.value ? cell.value.toString() : '';
-        if (val.length > maxLength) maxLength = val.length;
-      });
-      column.width = Math.max(maxLength + 4, 14);
-    });
-
-    const today = new Date().toISOString().split('T')[0];
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `MTO_Summary_Report_${today}.xlsx`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    await exportStyledExcelWorkbook(excelRows, headers, `${catName}_List_${today}`);
   }
 
   async function uploadAndApplyMtoExcel(event) {
@@ -1688,7 +1379,9 @@
         const headers = [];
         worksheet.eachRow((row, rowNumber) => {
           if (rowNumber === 1) {
-            row.eachCell((cell, colNumber) => { headers[colNumber] = cell.value; });
+            row.eachCell((cell, colNumber) => {
+              headers[colNumber] = String(cell.value || '').trim();
+            });
           } else {
             const rowObj = {};
             row.eachCell((cell, colNumber) => {
@@ -1705,7 +1398,8 @@
           return;
         }
 
-        if (!rows[0].hasOwnProperty('id')) {
+        const hasId = rows[0].hasOwnProperty('id') || rows[0].hasOwnProperty('ID');
+        if (!hasId) {
           alert("❌ ભૂલ: Excel ફાઈલમાં 'id' કૉલમ હોવી ફરજિયાત છે! કૃપા કરીને ડાઉનલોડ કરેલી ફાઈલમાં જ એડિટ કરીને અપલોડ કરો.");
           event.target.value = '';
           return;
@@ -1724,21 +1418,36 @@
 
         for (let i = 0; i < rows.length; i += batchSize) {
           const batch = rows.slice(i, i + batchSize).map(r => {
-            const cleanObj = { id: r.id };
+            const rowId = r.id !== undefined ? r.id : r.ID;
+            const cleanObj = { id: rowId };
+
             MTO_COLS.forEach(c => {
+              let rawVal = undefined;
+
               if (r.hasOwnProperty(c.key)) {
-                let v = r[c.key];
-                if (v === '' || v === undefined || v === 'null') {
-                  v = null;
+                rawVal = r[c.key];
+              } else if (r.hasOwnProperty(c.label)) {
+                rawVal = r[c.label];
+              } else {
+                const matchedKey = Object.keys(r).find(k => 
+                  k.toLowerCase().replace(/[\s_-]/g, '') === c.key.toLowerCase().replace(/[\s_-]/g, '') ||
+                  k.toLowerCase().replace(/[\s_-]/g, '') === c.label.toLowerCase().replace(/[\s_-]/g, '')
+                );
+                if (matchedKey) rawVal = r[matchedKey];
+              }
+
+              if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) {
+                cleanObj[c.key] = null;
+              } else {
+                const isDateCol = c.key.toLowerCase().includes('date');
+                if (isDateCol) {
+                  cleanObj[c.key] = formatExcelDate(rawVal);
                 } else {
-                  const isDateCol = c.key.toLowerCase().includes('date');
-                  if (isDateCol) {
-                    v = formatExcelDate(v);
-                  }
+                  cleanObj[c.key] = String(rawVal).trim();
                 }
-                cleanObj[c.key] = v;
               }
             });
+
             return cleanObj;
           });
 
@@ -1760,7 +1469,7 @@
     reader.readAsArrayBuffer(file);
   }
 
-  // --- PROGRESS DASHBOARD MODULE (FIXED) ---
+  // --- PROGRESS DASHBOARD MODULE (Point-1: 6 Stages Only) ---
   async function openProgressDashboard() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
@@ -1790,15 +1499,10 @@
     const stagesConfig = [
       { no: '01', name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && (!r.Issued_for_bending || String(r.Issued_for_bending).trim() === '') },
       { no: '02', name: 'BEND COMPLETED', isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && r.Issued_for_bending !== null && String(r.Issued_for_bending).trim() !== '' },
-      { no: '03', name: 'ISSUED FOR FIT-UP', isComp: r => r.Issue_for_fitup !== null && r.Issue_for_fitup !== undefined && String(r.Issue_for_fitup).trim() !== '', isBal: r => r.Bend_date !== null && String(r.Bend_date).trim() !== '' && (!r.Issue_for_fitup || String(r.Issue_for_fitup).trim() === '') },
-      { no: '04', name: 'ISSUED TO FITTER', isComp: r => r.Fitter_name !== null && String(r.Fitter_name).trim() !== '', isBal: r => r.Issue_for_fitup !== null && String(r.Issue_for_fitup).trim() !== '' && (!r.Fitter_name || String(r.Fitter_name).trim() === '') },
-      { no: '05', name: 'READY FIT-UP FOR INSP', isComp: r => r.Ready_for_fitup_insp !== null && r.Ready_for_fitup_insp !== undefined && String(r.Ready_for_fitup_insp).trim() !== '', isBal: r => r.Fitter_name !== null && String(r.Fitter_name).trim() !== '' && (!r.Ready_for_fitup_insp || String(r.Ready_for_fitup_insp).trim() === '') },
-      { no: '06', name: 'FIT UP COMPLETED', isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '', isBal: r => r.Ready_for_fitup_insp !== null && String(r.Ready_for_fitup_insp).trim() !== '' && (!r.Fit_up_date || String(r.Fit_up_date).trim() === '') },
-      { no: '07', name: 'ISSUED TO WELDER', isComp: r => r.Welder_no !== null && String(r.Welder_no).trim() !== '', isBal: r => r.Fit_up_date !== null && String(r.Fit_up_date).trim() !== '' && (!r.Welder_no || String(r.Welder_no).trim() === '') },
-      { no: '08', name: 'READY FOR WELD VISUAL', isComp: r => r.Ready_for_weld_visual !== null && r.Ready_for_weld_visual !== undefined && String(r.Ready_for_weld_visual).trim() !== '', isBal: r => r.Welder_no !== null && String(r.Welder_no).trim() !== '' && (!r.Ready_for_weld_visual || String(r.Ready_for_weld_visual).trim() === '') },
-      { no: '09', name: 'WELD VISUAL COMPLETED', isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '', isBal: r => r.Ready_for_weld_visual !== null && String(r.Ready_for_weld_visual).trim() !== '' && (!r.Weld_visual_date || String(r.Weld_visual_date).trim() === '') },
-      { no: '10', name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '', isBal: r => r.Weld_visual_date !== null && String(r.Weld_visual_date).trim() !== '' && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === '') },
-      { no: '11', name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') }
+      { no: '03', name: 'FIT UP COMPLETED', isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '', isBal: r => r.Bend_date !== null && String(r.Bend_date).trim() !== '' && (!r.Fit_up_date || String(r.Fit_up_date).trim() === '') },
+      { no: '04', name: 'WELD VISUAL COMPLETED', isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '', isBal: r => r.Fit_up_date !== null && String(r.Fit_up_date).trim() !== '' && (!r.Weld_visual_date || String(r.Weld_visual_date).trim() === '') },
+      { no: '05', name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '', isBal: r => r.Weld_visual_date !== null && String(r.Weld_visual_date).trim() !== '' && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === '') },
+      { no: '06', name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') }
     ];
 
     tbody.innerHTML = stagesConfig.map(st => {
@@ -1822,7 +1526,7 @@
     }).join('');
   }
 
-  // --- SPOOL TRACKING MODULE (FIXED) ---
+  // --- SPOOL TRACKING MODULE (Point-1: 6 Stages Only) ---
   async function openSpoolTracking() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
@@ -1885,15 +1589,10 @@
     const stages = [
       { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
       { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
-      { no: '03', title: 'ISSUED FOR FIT-UP', done: Boolean(item.Issue_for_fitup), detail: `Date: ${formatDateDisplay(item.Issue_for_fitup)}` },
-      { no: '04', title: 'ISSUED TO FITTER', done: Boolean(item.Fitter_name), detail: `Fitter: ${item.Fitter_name || '-'} | Date: ${formatDateDisplay(item.issued_to_fitter_date)}` },
-      { no: '05', title: 'READY FIT-UP FOR INSP', done: Boolean(item.Ready_for_fitup_insp), detail: `Date: ${formatDateDisplay(item.Ready_for_fitup_insp)}` },
-      { no: '06', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
-      { no: '07', title: 'ISSUED TO WELDER', done: Boolean(item.Welder_no), detail: `Welder: ${item.Welder_no || '-'} | Date: ${formatDateDisplay(item.issued_to_welder_date)}` },
-      { no: '08', title: 'READY FOR WELD VISUAL', done: Boolean(item.Ready_for_weld_visual), detail: `Date: ${formatDateDisplay(item.Ready_for_weld_visual)}` },
-      { no: '09', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
-      { no: '10', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
-      { no: '11', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
+      { no: '03', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
+      { no: '04', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
+      { no: '05', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
+      { no: '06', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
     ];
 
     document.getElementById('timelineList').innerHTML = stages.map(s => `
@@ -1907,7 +1606,7 @@
     `).join('');
   }
 
-  // --- PROGRESS REPORT MODULE (FIXED) ---
+  // --- PROGRESS REPORT MODULE (Point-1: 6 Stages Only) ---
   async function openProgressReport() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
@@ -1949,15 +1648,10 @@
     const reportStages = [
       { no: '01', name: 'ISSUED FOR BENDING', match: r => checkDateMatch(r.Issued_for_bending) },
       { no: '02', name: 'BEND COMPLETED', match: r => checkDateMatch(r.Bend_date) },
-      { no: '03', name: 'ISSUED FOR FIT-UP', match: r => checkDateMatch(r.Issue_for_fitup) },
-      { no: '04', name: 'ISSUED TO FITTER', match: r => checkDateMatch(r.issued_to_fitter_date) },
-      { no: '05', name: 'READY FIT-UP FOR INSP', match: r => checkDateMatch(r.Ready_for_fitup_insp) },
-      { no: '06', name: 'FIT UP COMPLETED', match: r => checkDateMatch(r.Fit_up_date) },
-      { no: '07', name: 'ISSUED TO WELDER', match: r => checkDateMatch(r.issued_to_welder_date) },
-      { no: '08', name: 'READY FOR WELD VISUAL', match: r => checkDateMatch(r.Ready_for_weld_visual) },
-      { no: '09', name: 'WELD VISUAL COMPLETED', match: r => checkDateMatch(r.Weld_visual_date) },
-      { no: '10', name: 'NDT CLEARANCE', match: r => checkDateMatch(r.Ndt_clearance) },
-      { no: '11', name: 'FINAL DISPATCH & DC NO', match: r => checkDateMatch(r.Fd_date) }
+      { no: '03', name: 'FIT UP COMPLETED', match: r => checkDateMatch(r.Fit_up_date) },
+      { no: '04', name: 'WELD VISUAL COMPLETED', match: r => checkDateMatch(r.Weld_visual_date) },
+      { no: '05', name: 'NDT CLEARANCE', match: r => checkDateMatch(r.Ndt_clearance) },
+      { no: '06', name: 'FINAL DISPATCH & DC NO', match: r => checkDateMatch(r.Fd_date) }
     ];
 
     tbody.innerHTML = reportStages.map(st => {
@@ -2145,6 +1839,7 @@
     }
   }
 
+  // Point-1: Stage Form Setup (Only 6 Stages)
   function setupStageUI(stage) {
     const title = document.getElementById('stageTitle');
     const subArea = document.getElementById('subFilterArea');
@@ -2176,66 +1871,16 @@
       btnSaveLabel.innerText = 'SAVE BEND ENTRY';
       customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Bend Date:</label><input type="date" id="input_date" required></div>`;
     }
-    else if (stage === 'fitup_issue') {
-      title.innerText = '3. ISSUE FOR FIT-UP MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: ISSUE FOR FIT-UP';
-      searchLabel.innerText = 'Search & Select Spool for Fit-Up:';
-      queueHeading.innerHTML = 'Selected Spools for Fit-Up (<span id="queueCount">0</span>)';
-      btnSaveLabel.innerText = 'SAVE FIT-UP ENTRY';
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Fit-Up Issue Date:</label><input type="date" id="input_date" required></div>`;
-    }
-    else if (stage === 'fitter_name') {
-      title.innerText = '4. FITTER NAME MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO FITTER';
-      searchLabel.innerText = 'Search & Select Spool for Fitter Allocation:';
-      queueHeading.innerHTML = 'Selected Spools for Fitter (<span id="queueCount">0</span>)';
-      btnSaveLabel.innerText = 'SAVE FITTER ENTRY';
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Issued to Fitter Date:</label><input type="date" id="input_date" required></div>`;
-    }
-    else if (stage === 'ready_fitup') {
-      title.innerText = '5. READY FOR FIT-UP INSPECTION MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: READY FIT-UP';
-      searchLabel.innerText = 'Search & Select Spool for Inspection:';
-      queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
-      btnSaveLabel.innerText = 'SAVE INSPECTION ENTRY';
-      subArea.style.display = 'flex';
-      subMetric.style.display = 'flex';
-      subArea.innerHTML = FITTERS.map(f => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${f}', this)">${f}</button>`).join('');
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Fit-Up Date:</label><input type="date" id="input_date" required></div>`;
-      activeSubFilter = FITTERS[0];
-      subArea.children[0].classList.add('active');
-    }
     else if (stage === 'fitup_entry') {
-      title.innerText = '6. FIT UP ENTRY MODULE';
+      title.innerText = '3. FIT UP COMPLETED MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: FIT-UP COMPLETED';
-      searchLabel.innerText = 'Search & Select Spool:';
+      searchLabel.innerText = 'Search & Select Spool for Fit-Up:';
       queueHeading.innerHTML = 'Selected Spools for Fit-Up (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE FIT-UP COMPLETED';
       customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Fit-Up Completed Date:</label><input type="date" id="input_date" required></div>`;
     }
-    else if (stage === 'welder_name') {
-      title.innerText = '7. WELDER NAME MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: ISSUED TO WELDER';
-      searchLabel.innerText = 'Search & Select Spool for Welder Allocation:';
-      queueHeading.innerHTML = 'Selected Spools for Welder (<span id="queueCount">0</span>)';
-      btnSaveLabel.innerText = 'SAVE WELDER ENTRY';
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Issued to Welder Date:</label><input type="date" id="input_date" required></div>`;
-    }
-    else if (stage === 'ready_weld') {
-      title.innerText = '8. READY FOR WELD VISUAL MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: READY WELD VISUAL';
-      searchLabel.innerText = 'Search & Select Spool:';
-      queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
-      btnSaveLabel.innerText = 'SAVE VISUAL ENTRY';
-      subArea.style.display = 'flex';
-      subMetric.style.display = 'flex';
-      subArea.innerHTML = WELDERS.map(w => `<button type="button" class="sub-filter-btn" onclick="selectSubFilter('${w}', this)">${w}</button>`).join('');
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Ready Visual Date:</label><input type="date" id="input_date" required></div>`;
-      activeSubFilter = WELDERS[0];
-      subArea.children[0].classList.add('active');
-    }
     else if (stage === 'weld_visual') {
-      title.innerText = '9. WELD VISUAL MODULE';
+      title.innerText = '4. WELD VISUAL COMPLETED MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: WELD VISUAL COMPLETED';
       searchLabel.innerText = 'Search & Select Spool:';
       queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
@@ -2243,7 +1888,7 @@
       customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Weld Visual Date:</label><input type="date" id="input_date" required></div>`;
     }
     else if (stage === 'ndt_clearance') {
-      title.innerText = '10. NDT CLEARANCE MODULE';
+      title.innerText = '5. NDT CLEARANCE MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: NDT CLEARANCE';
       searchLabel.innerText = 'Search & Select Spool for NDT:';
       queueHeading.innerHTML = 'Selected Spools for NDT (<span id="queueCount">0</span>)';
@@ -2251,7 +1896,7 @@
       customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">NDT Clearance Date:</label><input type="date" id="input_date" required></div>`;
     }
     else if (stage === 'fd') {
-      title.innerText = '11. FINAL DISPATCH & DC NO MODULE';
+      title.innerText = '6. FINAL DISPATCH & DC NO MODULE';
       document.getElementById('navSubTitle').innerText = '| Stage: FINAL DISPATCH & DC NO';
       searchLabel.innerText = 'Search & Select Spool for DC:';
       queueHeading.innerHTML = 'Selected Spools for DC (<span id="queueCount">0</span>)';
@@ -2265,47 +1910,40 @@
     }
   }
 
+  // Point-1: Direct Stage Routing Queries
   async function loadStageData(stage) {
     document.getElementById('metricSpools').innerText = '...';
     document.getElementById('metricWelds').innerText = '...';
     document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>';
 
     let query = db.from('piping_joints').select('*');
-    if (stage === 'bending_issue') query = query.is('Bend_date', null).is('Issued_for_bending', null);
-    else if (stage === 'bend_entry') query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
-    else if (stage === 'fitup_issue') query = query.not('Bend_date', 'is', null).is('Issue_for_fitup', null);
-    else if (stage === 'fitter_name') query = query.not('Issue_for_fitup', 'is', null).is('Fitter_name', null);
-    else if (stage === 'ready_fitup') query = query.not('Fitter_name', 'is', null).is('Ready_for_fitup_insp', null);
-    else if (stage === 'fitup_entry') query = query.not('Ready_for_fitup_insp', 'is', null).is('Fit_up_date', null);
-    else if (stage === 'welder_name') query = query.not('Fit_up_date', 'is', null).is('Welder_no', null);
-    else if (stage === 'ready_weld') query = query.not('Welder_no', 'is', null).is('Ready_for_weld_visual', null);
-    else if (stage === 'weld_visual') query = query.not('Ready_for_weld_visual', 'is', null).is('Weld_visual_date', null);
-    else if (stage === 'ndt_clearance') query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
-    else if (stage === 'fd') query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
+    if (stage === 'bending_issue') {
+      query = query.is('Bend_date', null).is('Issued_for_bending', null);
+    } 
+    else if (stage === 'bend_entry') {
+      query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
+    } 
+    else if (stage === 'fitup_entry') {
+      // 02-Bend Completed is filled then direct show for 06/03-Fit-up Completed
+      query = query.not('Bend_date', 'is', null).is('Fit_up_date', null);
+    } 
+    else if (stage === 'weld_visual') {
+      // 06/03-Fit-up Completed is filled then direct show for Weld Visual Completed
+      query = query.not('Fit_up_date', 'is', null).is('Weld_visual_date', null);
+    } 
+    else if (stage === 'ndt_clearance') {
+      query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
+    } 
+    else if (stage === 'fd') {
+      query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
+    }
 
     const { data, error } = await query.order('id', { ascending: true }).limit(5000);
     if (error) return alert("Error loading data: " + error.message);
 
     cumulativeRows = data || [];
     balanceColumnFilters = {};
-    filterBySubStage();
-  }
-
-  function selectSubFilter(val, btn) {
-    activeSubFilter = val;
-    btn.parentNode.querySelectorAll('.sub-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    filterBySubStage();
-  }
-
-  function filterBySubStage() {
-    if (currentStage === 'ready_fitup') {
-      stageFilteredRows = cumulativeRows.filter(r => String(r.Fitter_name || '').trim() === activeSubFilter);
-    } else if (currentStage === 'ready_weld') {
-      stageFilteredRows = cumulativeRows.filter(r => String(r.Welder_no || '').includes(activeSubFilter));
-    } else {
-      stageFilteredRows = cumulativeRows;
-    }
+    stageFilteredRows = cumulativeRows;
     applyBalanceDataFilters();
     updateMetrics();
   }
@@ -2316,15 +1954,6 @@
 
     document.getElementById('metricSpools').innerText = cumSpools.size;
     document.getElementById('metricWelds').innerText = cumWeldSum;
-
-    if (currentStage === 'ready_fitup' || currentStage === 'ready_weld') {
-      const subSpools = new Set(stageFilteredRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
-      const subWeldSum = calculateWeldSum(stageFilteredRows);
-      const subSpoolEl = document.getElementById('subMetricSpools');
-      const subWeldEl = document.getElementById('subMetricWelds');
-      if (subSpoolEl) subSpoolEl.innerText = subSpools.size;
-      if (subWeldEl) subWeldEl.innerText = subWeldSum;
-    }
     
     const tblTotal = document.getElementById('tableTotalCount');
     if (tblTotal) tblTotal.innerText = activeBalanceDisplayRows.length;
@@ -2372,7 +2001,8 @@
     document.getElementById('spoolSearch').value = '';
     document.getElementById('searchDropdown').style.display = 'none';
 
-    const isDirectStage = ['bending_issue', 'fitup_issue', 'fd', 'ready_fitup', 'fitup_entry', 'ready_weld', 'weld_visual', 'ndt_clearance'].includes(currentStage);
+    // Direct Stages without intermediate modal fields
+    const isDirectStage = ['bending_issue', 'fitup_entry', 'weld_visual', 'ndt_clearance', 'fd'].includes(currentStage);
     if (isDirectStage) {
       selectedQueue.push(item);
       document.getElementById('itemEditForm').style.display = 'none';
@@ -2394,33 +2024,6 @@
         <div><label style="margin-top:0; color:#1e40af;">BEND QTY (Editable):</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
         <div><label style="margin-top:0; color:#1e40af;">WELD ID (Editable):</label><input type="text" id="form_weld_id" value="${item.Weld_id || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
       `;
-    } 
-    else if (currentStage === 'fitter_name') {
-      dynArea.innerHTML = `
-        <div>
-          <label style="margin-top:0; color:#1e40af;">Select Fitter Name:</label>
-          <select id="form_fitter_val" style="border-color:#2563eb; font-weight:bold;">
-            <option value="">-- Select Fitter --</option>
-            ${FITTERS.map(f => `<option value="${f}">${f}</option>`).join('')}
-          </select>
-        </div>
-      `;
-    }
-    else if (currentStage === 'welder_name') {
-      dynArea.innerHTML = `
-        <div>
-          <label style="margin-top:0; color:#1e40af;">Welder No 1:</label>
-          <select id="form_welder_1" style="border-color:#2563eb; font-weight:bold;">
-            <option value="">-- Welder 1 --</option>
-            ${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}
-          </select>
-          <label style="margin-top:6px; color:#1e40af;">Welder No 2 (Optional):</label>
-          <select id="form_welder_2">
-            <option value="">-- Welder 2 (None) --</option>
-            ${WELDERS.map(w => `<option value="${w}">${w}</option>`).join('')}
-          </select>
-        </div>
-      `;
     }
   }
 
@@ -2433,17 +2036,6 @@
     if (currentStage === 'bend_entry') {
       extraData.final_bend_qty = document.getElementById('form_bend_qty').value.trim();
       extraData.final_weld_id = document.getElementById('form_weld_id').value.trim();
-    } 
-    else if (currentStage === 'fitter_name') {
-      const fName = document.getElementById('form_fitter_val').value;
-      if (!fName) return alert("કૃપા કરીને Fitter Name અથવા NA પસંદ કરો!");
-      extraData.final_fitter = fName;
-    }
-    else if (currentStage === 'welder_name') {
-      const w1 = document.getElementById('form_welder_1').value;
-      const w2 = document.getElementById('form_welder_2').value;
-      if (!w1) return alert("કૃપા કરીને Welder 1 અથવા NA પસંદ કરો!");
-      extraData.final_welder = (w2 && w2 !== 'NA') ? `${w1}/${w2}` : w1;
     }
 
     selectedQueue.push({ ...item, ...extraData });
@@ -2463,21 +2055,22 @@
     const cnt = document.getElementById('queueCount');
     if (cnt) cnt.innerText = selectedQueue.length;
 
-    if (currentStage === 'fitter_name') thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Assigned Fitter</th><th style="text-align:center; width:90px;">Action</th></tr>`;
-    else if (currentStage === 'welder_name') thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Assigned Welder</th><th style="text-align:center; width:90px;">Action</th></tr>`;
-    else if (currentStage === 'bend_entry') thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center; width:90px;">Action</th></tr>`;
-    else thead.innerHTML = `<tr><th style="width:50px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th style="text-align:center; width:100px;">Action</th></tr>`;
+    if (currentStage === 'bend_entry') {
+      thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center; width:90px;">Action</th></tr>`;
+    } else {
+      thead.innerHTML = `<tr><th style="width:50px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th style="text-align:center; width:100px;">Action</th></tr>`;
+    }
 
     if (selectedQueue.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 14px;">No spools selected.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 14px;">No spools selected.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = selectedQueue.map((r, idx) => {
       let customCol = '';
-      if (currentStage === 'fitter_name') customCol = `<td style="font-weight:bold; color:#1e40af;">${r.final_fitter || '-'}</td>`;
-      else if (currentStage === 'welder_name') customCol = `<td style="font-weight:bold; color:#1e40af;">${r.final_welder || '-'}</td>`;
-      else if (currentStage === 'bend_entry') customCol = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td><td style="font-weight:bold; color:#0284c7;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>`;
+      if (currentStage === 'bend_entry') {
+        customCol = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td><td style="font-weight:bold; color:#0284c7;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>`;
+      }
 
       return `
         <tr>
@@ -2491,6 +2084,7 @@
     }).join('');
   }
 
+  // --- UNIVERSAL EXCEL FILTER MODAL ---
   function openExcelFilter(e, targetTable, colKey, colLabel) {
     e.stopPropagation();
     const popup = document.getElementById('excelFilterPopup');
@@ -2633,9 +2227,10 @@
     `).join('');
   }
 
+  // Point-2: Master Register Header (Hidden 8 Columns Excluded)
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
-    tr.innerHTML = MASTER_COLS.map(c => `
+    tr.innerHTML = MASTER_COLS_VISIBLE.map(c => `
       <th>
         <div class="header-cell">
           <span>${c.label}</span>
@@ -2647,7 +2242,7 @@
 
   async function loadFullRegister() {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '<tr><td colspan="24" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>';
 
     allRecordsCache = await ensureAllRecordsCached();
     masterColumnFilters = {};
@@ -2675,16 +2270,17 @@
     applyMasterDataFilters();
   }
 
+  // Point-2: Master Register Render (Only Visible Columns)
   function renderMasterTable() {
     const tbody = document.getElementById('tableBody');
     if (masterDisplayRows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="24" style="text-align:center; padding:15px;">No records found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:15px;">No records found.</td></tr>';
       return;
     }
 
     tbody.innerHTML = masterDisplayRows.slice(0, 1000).map(r => `
       <tr>
-        ${MASTER_COLS.map(c => {
+        ${MASTER_COLS_VISIBLE.map(c => {
           let val = r[c.key] !== undefined ? r[c.key] : (r[c.key.toLowerCase()] !== undefined ? r[c.key.toLowerCase()] : '');
           if (val === null || val === undefined) val = '';
           const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issue') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
@@ -2701,6 +2297,29 @@
     `).join('');
   }
 
+  // Point-3: Download Filtered Master Records (Without Hidden Columns)
+  async function downloadFormattedMasterExcel() {
+    if (!masterDisplayRows || masterDisplayRows.length === 0) {
+      alert("⚠️ હાલ સ્ક્રીન પર ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
+      return;
+    }
+
+    const headers = ["Sr No", ...MASTER_COLS_VISIBLE.map(c => c.label)];
+    const excelRows = masterDisplayRows.map((r, index) => {
+      const rowObj = { "Sr No": index + 1 };
+      MASTER_COLS_VISIBLE.forEach(c => {
+        let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+        const isDate = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('issue');
+        rowObj[c.label] = isDate ? formatDateDisplay(val) : val;
+      });
+      return rowObj;
+    });
+
+    const today = new Date().toISOString().split('T')[0];
+    await exportStyledExcelWorkbook(excelRows, headers, `Master_Register_View_${today}`);
+  }
+
+  // Point-1: Stage Data Submission (Direct Routing)
   async function submitCurrentStage() {
     if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
       return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
@@ -2710,19 +2329,10 @@
     const dateInput = document.getElementById('input_date');
     const enteredDate = dateInput ? dateInput.value : null;
 
-    if (currentStage === 'fitter_name') {
-      if (!enteredDate) return alert('કૃપા કરીને Issued to Fitter Date પસંદ કરો.');
-      for (const item of selectedQueue) {
-        const { error } = await db.from('piping_joints').update({ Fitter_name: item.final_fitter, issued_to_fitter_date: enteredDate }).eq('id', item.id);
-        if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
-      }
-    }
-    else if (currentStage === 'welder_name') {
-      if (!enteredDate) return alert('કૃપા કરીને Issued to Welder Date પસંદ કરો.');
-      for (const item of selectedQueue) {
-        const { error } = await db.from('piping_joints').update({ Welder_no: item.final_welder, issued_to_welder_date: enteredDate }).eq('id', item.id);
-        if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
-      }
+    if (currentStage === 'bending_issue') {
+      if (!enteredDate) return alert('કૃપા કરીને Bending Issue Date પસંદ કરો.');
+      const { error } = await db.from('piping_joints').update({ Issued_for_bending: enteredDate }).in('id', selectedQueue.map(x => x.id));
+      if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'bend_entry') {
       if (!enteredDate) return alert('કૃપા કરીને Bend Date પસંદ કરો.');
@@ -2730,45 +2340,15 @@
         const updateData = { Bend_date: enteredDate, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id };
         const { error } = await db.from('piping_joints').update(updateData).eq('id', item.id);
         if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
-
-        if (item.Spool_number) {
-          await db.from('mto').update({ Bend_date: enteredDate }).eq('Spool_number', item.Spool_number);
-        }
       }
-    }
-    else if (currentStage === 'bending_issue') {
-      if (!enteredDate) return alert('કૃપા કરીને Bending Issue Date પસંદ કરો.');
-      const { error } = await db.from('piping_joints').update({ Issued_for_bending: enteredDate }).in('id', selectedQueue.map(x => x.id));
-      if (error) return alert("Error: " + error.message);
-    }
-    else if (currentStage === 'fitup_issue') {
-      if (!enteredDate) return alert('કૃપા કરીને Fit-Up Issue Date પસંદ કરો.');
-      const { error } = await db.from('piping_joints').update({ Issue_for_fitup: enteredDate }).in('id', selectedQueue.map(x => x.id));
-      if (error) return alert("Error: " + error.message);
-    }
-    else if (currentStage === 'ready_fitup') {
-      if (!enteredDate) return alert('કૃપા કરીને Ready Fit-Up Date દાખલ કરો.');
-      const { error } = await db.from('piping_joints').update({ Ready_for_fitup_insp: enteredDate }).in('id', selectedQueue.map(x => x.id));
-      if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'fitup_entry') {
-      if (!enteredDate) return alert('કૃપા કરીને Fit-Up Date પસંદ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને Fit-Up Completed Date પસંદ કરો.');
       const { error } = await db.from('piping_joints').update({ Fit_up_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
-      if (error) return alert("Error: " + error.message);
-
-      for (const item of selectedQueue) {
-        if (item.Spool_number) {
-          await db.from('mto').update({ Fit_up_date: enteredDate }).eq('Spool_number', item.Spool_number);
-        }
-      }
-    }
-    else if (currentStage === 'ready_weld') {
-      if (!enteredDate) return alert('કૃપા કરીને Ready Weld Date દાખલ કરો.');
-      const { error } = await db.from('piping_joints').update({ Ready_for_weld_visual: enteredDate }).in('id', selectedQueue.map(x => x.id));
       if (error) return alert("Error: " + error.message);
     }
     else if (currentStage === 'weld_visual') {
-      if (!enteredDate) return alert('કૃપા કરીને Visual Date દાખલ કરો.');
+      if (!enteredDate) return alert('કૃપા કરીને Visual Completed Date દાખલ કરો.');
       const { error } = await db.from('piping_joints').update({ Weld_visual_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
       if (error) return alert("Error: " + error.message);
     }
