@@ -1198,9 +1198,12 @@
     });
   }
 
+// ૧. કેટેગરી બટન ક્લિક કરતી વખતે કોલમ ફિલ્ટર્સ ક્લીયર કરવા
   function viewMtoBalanceCategory(type) {
     activeMtoCategory = type;
+    mtoColumnFilters = {}; // જૂના કોલમ ફિલ્ટર્સ સાફ કરવા જેથી બધો ફિલ્ટર ડેટા દેખાય
     resetCategoryButtonStyles();
+    
     const lbl = document.getElementById('mtoCurrentFilterLabel');
     lbl.style.display = 'inline-block';
 
@@ -1218,20 +1221,37 @@
     applyMtoCategoryFilter(type);
   }
 
+  // ૨. MIN Bal, Issue Bal અને All Bal નું ૧૦૦% સચોટ ફિલ્ટરિંગ લોજિક
   function applyMtoCategoryFilter(type) {
-    const isBlank = val => val === null || val === undefined || String(val).trim() === '' || String(val).toLowerCase() === 'null';
+    // ખાલી/નલ/ડૅશ/સ્પેસ વેલ્યૂ માટેનું ચોક્કસ હેલ્પર
+    const isBlank = val => {
+      if (val === null || val === undefined) return true;
+      const s = String(val).trim().toLowerCase();
+      return s === '' || s === 'null' || s === 'undefined' || s === '-';
+    };
     const isFilled = val => !isBlank(val);
 
     if (type === 'min_bal') {
-      mtoBaseRows = mtoCache.filter(r => isBlank(r.MIN_No) && isBlank(r.MIN_Date));
-    } else if (type === 'issue_bal') {
-      mtoBaseRows = mtoCache.filter(r => isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date));
-    } else if (type === 'all_bal') {
+      // MIN Balance: MIN No અથવા MIN Date બેમાંથી કોઈ એક પણ ખાલી હોય
+      mtoBaseRows = mtoCache.filter(r => isBlank(r.MIN_No) || isBlank(r.MIN_Date));
+    } 
+    else if (type === 'issue_bal') {
+      // Material Issue Balance: MIN અપાઈ ગયું હોય પરંતુ IGP No અથવા IGP Date બાકી હોય
       mtoBaseRows = mtoCache.filter(r => 
-        (isBlank(r.MIN_No) && isBlank(r.MIN_Date)) || 
-        (isFilled(r.MIN_No) && isFilled(r.MIN_Date) && isBlank(r.IGP_No) && isBlank(r.IGP_Date))
+        (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && 
+        (isBlank(r.IGP_No) || isBlank(r.IGP_Date))
       );
-    } else {
+    } 
+    else if (type === 'all_bal') {
+      // All Balance: MIN બાકી હોય અથવા Issue બાકી હોય
+      mtoBaseRows = mtoCache.filter(r => {
+        const isMinPending = isBlank(r.MIN_No) || isBlank(r.MIN_Date);
+        const isIssuePending = (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && (isBlank(r.IGP_No) || isBlank(r.IGP_Date));
+        return isMinPending || isIssuePending;
+      });
+    } 
+    else {
+      // All View (Reset)
       mtoBaseRows = mtoCache;
     }
 
