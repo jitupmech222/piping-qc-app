@@ -449,9 +449,15 @@
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <h3 style="margin:0; border:none; color:#0f766e;">📋 MTO Register (<span id="mtoTotalCount">0</span>)</h3>
-            <span id="mtoCurrentFilterLabel" style="font-size:12px; font-weight:bold; color:#c2410c; background:#ffedd5; padding:2px 8px; border-radius:12px; display:none;"></span>
-          </div>
+  <h3 style="margin:0; border:none; color:#0f766e;">📋 MTO Register (<span id="mtoTotalCount">0</span>)</h3>
+  <span id="mtoCurrentFilterLabel" style="font-size:12px; font-weight:bold; color:#c2410c; background:#ffedd5; padding:2px 8px; border-radius:12px; display:none;"></span>
+  
+  <!-- 👉 આ બટનો ઉમેરો -->
+  <button type="button" id="btnMtoView" class="btn-mode-view" onclick="setMtoMode('view')">👁️ View</button>
+  <button type="button" id="btnMtoEdit" class="btn-mode-edit" onclick="requestMtoEditMode()">✏️ Edit</button>
+  <button type="button" id="btnMtoSave" class="btn-mode-save" onclick="saveMtoEditsToDb()">💾 SAVE CHANGES</button>
+  <button type="button" class="btn-mode-sync" onclick="syncMtoFromMaster()">🔄 MTO UPDATE FROM MASTER</button>
+</div>
 
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <input type="text" id="mtoSearchInput" placeholder="Search in MTO..." oninput="handleMtoSearch(this.value)" style="padding:5px 8px; width:140px; font-size:12px; margin-top:0;">
@@ -690,6 +696,9 @@
   let currentUser = null;
   let isMasterEditMode = false;
   let masterPendingUpdates = new Map();
+  // MTO Edit Mode States
+  let isMtoEditMode = false;
+  let mtoPendingUpdates = new Map();
 
   function updateDashboardUIForRole() {
     if (!currentUser) return;
@@ -1123,6 +1132,8 @@
 
   async function openMtoRegister() {
     closeExcelPopup();
+    isMtoEditMode = false;
+    mtoPendingUpdates.clear();
     document.getElementById('mainMenu').style.display = 'none';
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('recordsContainer').style.display = 'none';
@@ -1140,9 +1151,9 @@
     }
 
     buildMtoRegisterHeader();
+    setMtoMode('view'); // 👈 આ લાઈન ઉમેરો
     await loadMtoData();
   }
-
   async function loadMtoData() {
     const tbody = document.getElementById('mtoTableBody');
     tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>';
@@ -1265,28 +1276,43 @@
       return;
     }
 
-    tbody.innerHTML = rows.slice(0, 1000).map((r, idx) => `
-      <tr>
-        <td style="text-align:center; font-weight:600;">${idx + 1}</td>
-        <td><b>${r.Spool_number || '-'}</b></td>
-        <td>${r.Drawing_no || '-'}</td>
-        <td>${r.MAT_SAP_CODE || '-'}</td>
-        <td>${r.Size_1 || '-'}</td>
-        <td>${r.Size_2 || '-'}</td>
-        <td>${r.Unit || '-'}</td>
-        <td>${r.MAT_Description || '-'}</td>
-        <td style="font-weight:bold; color:#0f766e;">${r.lot_no || '-'}</td>
-        <td>${r.MIN_No || '-'}</td>
-        <td>${formatDateDisplay(r.MIN_Date)}</td>
-        <td>${r.MIN_qty || '-'}</td>
-        <td>${r.Issued_qty || '-'}</td>
-        <td>${r.IGP_No || '-'}</td>
-        <td>${formatDateDisplay(r.IGP_Date)}</td>
-        <td>${r.Heat_number || '-'}</td>
-        <td>${formatDateDisplay(r.Bend_date)}</td>
-        <td>${formatDateDisplay(r.Fit_up_date)}</td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = rows.slice(0, 1000).map((r, idx) => {
+      if (isMtoEditMode) {
+        return `
+          <tr>
+            <td style="text-align:center; font-weight:600;">${idx + 1}</td>
+            ${MTO_COLS.map(c => {
+              let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+              let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+              return `<td><input type="text" class="cell-input" value="${escapeHtml(editVal)}" onchange="handleMtoCellChange(${r.id}, '${c.key}', this.value)"></td>`;
+            }).join('')}
+          </tr>
+        `;
+      } else {
+        return `
+          <tr>
+            <td style="text-align:center; font-weight:600;">${idx + 1}</td>
+            <td><b>${r.Spool_number || '-'}</b></td>
+            <td>${r.Drawing_no || '-'}</td>
+            <td>${r.MAT_SAP_CODE || '-'}</td>
+            <td>${r.Size_1 || '-'}</td>
+            <td>${r.Size_2 || '-'}</td>
+            <td>${r.Unit || '-'}</td>
+            <td>${r.MAT_Description || '-'}</td>
+            <td style="font-weight:bold; color:#0f766e;">${r.lot_no || '-'}</td>
+            <td>${r.MIN_No || '-'}</td>
+            <td>${formatDateDisplay(r.MIN_Date)}</td>
+            <td>${r.MIN_qty || '-'}</td>
+            <td>${r.Issued_qty || '-'}</td>
+            <td>${r.IGP_No || '-'}</td>
+            <td>${formatDateDisplay(r.IGP_Date)}</td>
+            <td>${r.Heat_number || '-'}</td>
+            <td>${formatDateDisplay(r.Bend_date)}</td>
+            <td>${formatDateDisplay(r.Fit_up_date)}</td>
+          </tr>
+        `;
+      }
+    }).join('');
   }
 
   async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
@@ -1368,7 +1394,166 @@
     const today = new Date().toISOString().split('T')[0];
     await exportStyledExcelWorkbook(excelRows, headers, `${catName}_List_${today}`);
   }
+// --- MTO IN-LINE EDIT & MASTER SYNC FUNCTIONS ---
+  function setMtoMode(mode) {
+    if (mode === 'view') {
+      isMtoEditMode = false;
+      const btnView = document.getElementById('btnMtoView');
+      const btnEdit = document.getElementById('btnMtoEdit');
+      const btnSave = document.getElementById('btnMtoSave');
+      if (btnView) btnView.style.outline = '2px solid #0369a1';
+      if (btnEdit) btnEdit.style.outline = 'none';
+      if (btnSave) btnSave.style.display = 'none';
+      renderMtoTable(mtoDisplayRows);
+    } else if (mode === 'edit') {
+      isMtoEditMode = true;
+      const btnView = document.getElementById('btnMtoView');
+      const btnEdit = document.getElementById('btnMtoEdit');
+      const btnSave = document.getElementById('btnMtoSave');
+      if (btnEdit) btnEdit.style.outline = '2px solid #b45309';
+      if (btnView) btnView.style.outline = 'none';
+      if (btnSave) btnSave.style.display = 'inline-block';
+      renderMtoTable(mtoDisplayRows);
+    }
+  }
 
+  function requestMtoEditMode() {
+    if (!currentUser || currentUser.username !== 'admin') {
+      return alert("⚠️ માત્ર Admin પાસે જ MTO Register Edit કરવાની પરમિશન છે!");
+    }
+    const inputPass = prompt("🔐 Enter MTO Register Edit Password:");
+    if (inputPass === null) return;
+    if (inputPass === EDIT_MODE_PASSWORD) {
+      alert("✅ MTO Edit Mode Unlocked! You can edit any cell directly.");
+      setMtoMode('edit');
+    } else {
+      alert("❌ Incorrect Edit Password! Access Denied.");
+    }
+  }
+
+  function handleMtoCellChange(id, colKey, newVal) {
+    if (!mtoPendingUpdates.has(id)) mtoPendingUpdates.set(id, {});
+    mtoPendingUpdates.get(id)[colKey] = newVal.trim() === '' ? null : newVal.trim();
+    const item = mtoCache.find(x => x.id === id);
+    if (item) item[colKey] = newVal.trim() === '' ? null : newVal.trim();
+  }
+
+  async function saveMtoEditsToDb() {
+    if (mtoPendingUpdates.size === 0) return alert("⚠️ કોઈ ફેરફાર થયેલ નથી.");
+    if (!confirm(`શું તમે ખરેખર ${mtoPendingUpdates.size} રો ના ફેરફારો MTO Database માં Save કરવા માંગો છો?`)) return;
+
+    const saveBtn = document.getElementById('btnMtoSave');
+    saveBtn.disabled = true;
+    saveBtn.innerText = "⏳ Saving...";
+
+    let updateErrors = 0;
+    for (const [id, rowData] of mtoPendingUpdates.entries()) {
+      const cleanData = {};
+      for (const k in rowData) {
+        let v = rowData[k];
+        const isDateCol = k.toLowerCase().includes('date');
+        cleanData[k] = isDateCol ? formatExcelDate(v) : v;
+      }
+      const { error } = await db.from('mto').update(cleanData).eq('id', id);
+      if (error) { console.error("MTO Update error for row " + id, error); updateErrors++; }
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.innerText = "💾 SAVE CHANGES";
+
+    if (updateErrors === 0) {
+      alert(`🎉 સફળતાપૂર્વક ${mtoPendingUpdates.size} MTO રેકોર્ડ્સ Database માં અપડેટ થઈ ગયા!`);
+      mtoPendingUpdates.clear();
+      setMtoMode('view');
+    } else {
+      alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી.`);
+    }
+  }
+
+  // 👉 MTO UPDATE FROM MASTER LOGIC
+  async function syncMtoFromMaster() {
+    if (!confirm("શું તમે Master Data (piping_joints) માંથી Bend Date અને Fit Up Date ને MTO માં સિન્ક કરવા માંગો છો?")) return;
+
+    const tbody = document.getElementById('mtoTableBody');
+    tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#7c3aed;">⏳ Syncing MTO from Master Data... Please wait...</td></tr>';
+
+    try {
+      const masterRows = await ensureAllRecordsCached();
+
+      const masterMap = new Map();
+      masterRows.forEach(r => {
+        if (!r.Spool_number) return;
+        const spNo = String(r.Spool_number).trim();
+        const bDate = r.Bend_date ? String(r.Bend_date).split('T')[0] : null;
+        const fDate = r.Fit_up_date ? String(r.Fit_up_date).split('T')[0] : null;
+
+        if (!masterMap.has(spNo)) {
+          masterMap.set(spNo, { Bend_date: bDate, Fit_up_date: fDate });
+        } else {
+          const cur = masterMap.get(spNo);
+          if (!cur.Bend_date && bDate) cur.Bend_date = bDate;
+          if (!cur.Fit_up_date && fDate) cur.Fit_up_date = fDate;
+        }
+      });
+
+      let mtoAll = [];
+      let from = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const { data, error } = await db.from('mto').select('id, Spool_number, Bend_date, Fit_up_date').range(from, from + 999);
+        if (error) throw error;
+        if (data && data.length > 0) {
+          mtoAll = mtoAll.concat(data);
+          from += 1000;
+          if (data.length < 1000) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      const updateBatch = [];
+      mtoAll.forEach(mRow => {
+        if (!mRow.Spool_number) return;
+        const spKey = String(mRow.Spool_number).trim();
+        if (masterMap.has(spKey)) {
+          const masterDates = masterMap.get(spKey);
+          let needsUpdate = false;
+          const patch = { id: mRow.id };
+
+          if (masterDates.Bend_date && masterDates.Bend_date !== mRow.Bend_date) {
+            patch.Bend_date = masterDates.Bend_date;
+            needsUpdate = true;
+          }
+          if (masterDates.Fit_up_date && masterDates.Fit_up_date !== mRow.Fit_up_date) {
+            patch.Fit_up_date = masterDates.Fit_up_date;
+            needsUpdate = true;
+          }
+
+          if (needsUpdate) updateBatch.push(patch);
+        }
+      });
+
+      if (updateBatch.length === 0) {
+        alert("ℹ️ MTO ટેબલ પહેલેથી જ અપ-ટુ-ડેટ છે. કોઈ નવા ફેરફાર મળ્યા નથી.");
+        await loadMtoData();
+        return;
+      }
+
+      const batchSize = 50;
+      for (let i = 0; i < updateBatch.length; i += batchSize) {
+        const batch = updateBatch.slice(i, i + batchSize);
+        const { error } = await db.from('mto').upsert(batch, { onConflict: 'id' });
+        if (error) throw error;
+      }
+
+      alert(`🎉 સફળતાપૂર્વક MTO ની ${updateBatch.length} રો માં Master Data ની તારીખો અપડેટ થઈ ગઈ!`);
+      await loadMtoData();
+    } catch (err) {
+      console.error(err);
+      alert("MTO Sync કરવામાં ભૂલ આવી: " + err.message);
+      await loadMtoData();
+    }
+  }
   // 👉 MTO VIEW SUMMARY EXCEL GENERATOR (Grouped by SAP Code, Desc, Lot No, MIN No with Total)
   async function downloadMtoSummaryExcel() {
     if (!mtoDisplayRows || mtoDisplayRows.length === 0) {
