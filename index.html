@@ -1507,26 +1507,31 @@
     URL.revokeObjectURL(link.href);
   }
 
+  // 👉 Supabase Table ના મૂળ Column Headers (id, Spool_number, ...) સાથે Download કરવું
   async function downloadFormattedMtoExcel() {
     if (!mtoDisplayRows || mtoDisplayRows.length === 0) {
       alert("⚠️ હાલ સ્ક્રીન પર ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
       return;
     }
 
-    const headers = ["Sr No", ...MTO_COLS.map(c => c.label)];
-    const excelRows = mtoDisplayRows.map((r, index) => {
-      const rowObj = { "Sr No": index + 1 };
+    // ૧. હેડર્સમાં Supabase Database ટેબલના મૂળ કી નામો ગોઠવવા
+    const headers = ["id", ...MTO_COLS.map(c => c.key)];
+
+    // ૨. ડેટા ઓબ્જેક્ટમાં એપ લેબલને બદલે ડેટાબેઝના key નામો વાપરવા
+    const excelRows = mtoDisplayRows.map(r => {
+      const rowObj = { "id": r.id }; // Supabase નો મૂળ id કૉલમ
       MTO_COLS.forEach(c => {
         let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
         const isDate = c.key.toLowerCase().includes('date');
-        rowObj[c.label] = isDate ? formatDateDisplay(val) : val;
+        // તારીખ ફિલ્ડને યોગ્ય YYYY-MM-DD ફોર્મેટમાં રાખવી
+        rowObj[c.key] = isDate ? (formatExcelDate(val) || '') : val;
       });
       return rowObj;
     });
 
     let catName = activeMtoCategory === 'all' ? 'MTO_Full' : `MTO_${activeMtoCategory}`;
     const today = new Date().toISOString().split('T')[0];
-    await exportStyledExcelWorkbook(excelRows, headers, `${catName}_List_${today}`);
+    await exportStyledExcelWorkbook(excelRows, headers, `${catName}_DatabaseFormat_${today}`);
   }
 
   async function uploadAndApplyMtoExcel(event) {
