@@ -461,7 +461,12 @@
             <button type="button" class="sub-filter-btn" id="btnFilterIssueBal" style="background:#fef3c7; color:#b45309; border-color:#fcd34d;" onclick="viewMtoBalanceCategory('issue_bal')">👁️ Mat. Issue Bal.</button>
             <button type="button" class="sub-filter-btn" id="btnFilterAllBal" style="background:#e0e7ff; color:#4338ca; border-color:#a5b4fc;" onclick="viewMtoBalanceCategory('all_bal')">👁️ All Bal.</button>
 
-            <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px;" onclick="downloadFormattedMtoExcel()">📥 Download View Excel</button>
+            <!-- 📥 Download View Excel Button -->
+<button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px;" onclick="downloadFormattedMtoExcel()">📥 Download View Excel</button>
+
+<!-- 👉 નવું ઉમેરો: 📥 Download View Summary Excel Button -->
+<button type="button" class="btn-save-action" style="background:#0d9488; padding:6px 10px; font-size:11.5px;" onclick="downloadMtoSummaryExcel()">📥 Download View Summary Excel</button>
+            
 
             <button type="button" class="btn-save-action" id="btnMtoUploadTrigger" style="background:#15803d; padding:6px 10px; font-size:11.5px; display:none;" onclick="document.getElementById('mtoFileInput').click()">📤 Upload & Update</button>
             <input type="file" id="mtoFileInput" accept=".xlsx, .xls" style="display:none;" onchange="uploadAndApplyMtoExcel(event)">
@@ -1362,6 +1367,141 @@
     let catName = activeMtoCategory === 'all' ? 'MTO_Full' : `MTO_${activeMtoCategory}`;
     const today = new Date().toISOString().split('T')[0];
     await exportStyledExcelWorkbook(excelRows, headers, `${catName}_List_${today}`);
+  }
+
+  // 👉 MTO VIEW SUMMARY EXCEL GENERATOR (Grouped by SAP Code, Desc, Lot No, MIN No with Total)
+  async function downloadMtoSummaryExcel() {
+    if (!mtoDisplayRows || mtoDisplayRows.length === 0) {
+      alert("⚠️ હાલ સમરી ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
+      return;
+    }
+
+    // ૧. હાલ સ્ક્રીન પરના ડેટાને MAT_SAP_CODE, MAT_Description, lot_no, MIN_No દ્વારા ગ્રુપ કરવું
+    const summaryMap = new Map();
+    mtoDisplayRows.forEach(r => {
+      const sap = String(r.MAT_SAP_CODE || '-').trim();
+      const desc = String(r.MAT_Description || '-').trim();
+      const lot = String(r.lot_no || '-').trim();
+      const minNo = String(r.MIN_No || '-').trim();
+      const groupKey = `${sap}___${desc}___${lot}___${minNo}`;
+
+      const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+      const issQty = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+
+      if (!summaryMap.has(groupKey)) {
+        summaryMap.set(groupKey, {
+          MAT_SAP_CODE: sap,
+          MAT_Description: desc,
+          lot_no: lot,
+          MIN_No: minNo,
+          MIN_qty_sum: minQty,
+          Issued_qty_sum: issQty
+        });
+      } else {
+        const item = summaryMap.get(groupKey);
+        item.MIN_qty_sum += minQty;
+        item.Issued_qty_sum += issQty;
+      }
+    });
+
+    const summaryHeaders = [
+      "Sr no.",
+      "MAT_SAP_CODE",
+      "MAT_Description",
+      "lot_no",
+      "MIN_No",
+      "sum of MIN_qty",
+      "sum of Issued_qty"
+    ];
+
+    let totalMinQty = 0;
+    let totalIssuedQty = 0;
+    let srNo = 1;
+
+    const summaryRows = [];
+    for (const val of summaryMap.values()) {
+      const minQtyClean = parseFloat(val.MIN_qty_sum.toFixed(3));
+      const issQtyClean = parseFloat(val.Issued_qty_sum.toFixed(3));
+      totalMinQty += minQtyClean;
+      totalIssuedQty += issQtyClean;
+
+      summaryRows.push({
+        "Sr no.": srNo++,
+        "MAT_SAP_CODE": val.MAT_SAP_CODE,
+        "MAT_Description": val.MAT_Description,
+        "lot_no": val.lot_no,
+        "MIN_No": val.MIN_No,
+        "sum of MIN_qty": minQtyClean,
+        "sum of Issued_qty": issQtyClean
+      });
+    }
+
+    // છેલ્લી TOTAL રો
+    summaryRows.push({
+      "Sr no.": "TOTAL",
+      "MAT_SAP_CODE": "",
+      "MAT_Description": "",
+      "lot_no": "",
+      "MIN_No": "",
+      "sum of MIN_qty": parseFloat(totalMinQty.toFixed(3)),
+      "sum of Issued_qty": parseFloat(totalIssuedQty.toFixed(3))
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('MTO_Summary', { views: [{ showGridLines: true }] });
+
+    const headerRow = worksheet.addRow(summaryHeaders);
+    headerRow.height = 26;
+    headerRow.eachCell((cell) => {
+      cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F766E' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+    });
+
+    summaryRows.forEach((rowItem, index) => {
+      const isTotalRow = index === summaryRows.length - 1;
+      const rowValues = summaryHeaders.map(col => rowItem[col]);
+      const dataRow = worksheet.addRow(rowValues);
+      dataRow.height = isTotalRow ? 24 : 20;
+
+      dataRow.eachCell((cell, colNumber) => {
+        cell.font = { name: 'Calibri', size: 11, bold: isTotalRow };
+        cell.border = {
+          top: { style: isTotalRow ? 'medium' : 'thin', color: { argb: 'FF94A3B8' } },
+          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          bottom: { style: isTotalRow ? 'double' : 'thin', color: { argb: 'FF94A3B8' } },
+          right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+        };
+
+        if (isTotalRow) {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF92400E' } };
+        }
+
+        if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        else if (colNumber >= 6) cell.alignment = { vertical: 'middle', horizontal: 'right' };
+        else cell.alignment = { vertical: 'middle', horizontal: 'left' };
+      });
+    });
+
+    worksheet.columns.forEach((column) => {
+      let maxLength = 0;
+      column.eachCell({ includeEmpty: true }, (cell) => {
+        const val = cell.value ? cell.value.toString() : '';
+        if (val.length > maxLength) maxLength = val.length;
+      });
+      column.width = Math.max(maxLength + 4, 14);
+    });
+
+    const today = new Date().toISOString().split('T')[0];
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `MTO_Summary_Report_${today}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(link.href);
   }
 
   async function uploadAndApplyMtoExcel(event) {
