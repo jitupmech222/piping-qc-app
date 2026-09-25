@@ -2429,7 +2429,7 @@
     }).join('');
   }
 
-  // --- UNIVERSAL EXCEL FILTER MODAL ---
+  // --- સાચું મલ્ટિ-લેવલ એક્સેલ ફિલ્ટર (Dependent Cascading Filter) ---
   function openExcelFilter(e, targetTable, colKey, colLabel) {
     e.stopPropagation();
     const popup = document.getElementById('excelFilterPopup');
@@ -2447,10 +2447,32 @@
     currentPopupContext.colKey = colKey;
     currentPopupContext.colLabel = colLabel;
 
-    let sourceRows = [];
-    if (targetTable === 'balance') sourceRows = stageFilteredRows;
-    else if (targetTable === 'master') sourceRows = allRecordsCache;
-    else if (targetTable === 'mto') sourceRows = mtoBaseRows;
+    let baseRows = [];
+    let activeFilters = {};
+
+    if (targetTable === 'balance') {
+      baseRows = stageFilteredRows;
+      activeFilters = balanceColumnFilters;
+    } else if (targetTable === 'master') {
+      baseRows = allRecordsCache;
+      activeFilters = masterColumnFilters;
+    } else if (targetTable === 'mto') {
+      baseRows = mtoBaseRows;
+      activeFilters = mtoColumnFilters;
+    }
+
+    // 👉 મુખ્ય સુધારો: જે કૉલમનું પોપઅપ ખુલ્લું છે (colKey) તે સિવાયના બાકીના સક્રિય ફિલ્ટર્સ લાગુ કરીને ડેટા શોર્ટ કરવો
+    const sourceRows = baseRows.filter(r => {
+      for (const [filterCol, allowedSet] of Object.entries(activeFilters)) {
+        if (filterCol === colKey) continue; // વર્તમાન કૉલમ ફિલ્ટરને સ્કીપ કરો
+        let val = r[filterCol] !== undefined ? r[filterCol] : (r[filterCol.toLowerCase()] !== undefined ? r[filterCol.toLowerCase()] : '');
+        val = String(val || '').trim();
+        const isDate = filterCol.toLowerCase().includes('date') || filterCol.toLowerCase().includes('issue') || filterCol.toLowerCase().includes('clearance') || filterCol.toLowerCase().includes('insp');
+        const displayVal = val === '' ? '(Blank)' : (isDate ? formatDateDisplay(val) : val);
+        if (!allowedSet.has(displayVal)) return false;
+      }
+      return true;
+    });
 
     const valueMap = new Map();
     const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issue') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
@@ -2465,11 +2487,6 @@
 
     const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     currentPopupContext.allValues = distinctSorted;
-
-    let activeFilters = {};
-    if (targetTable === 'balance') activeFilters = balanceColumnFilters;
-    else if (targetTable === 'master') activeFilters = masterColumnFilters;
-    else if (targetTable === 'mto') activeFilters = mtoColumnFilters;
 
     const currentSelectedSet = activeFilters[colKey] || null;
     document.getElementById('popupSearchInput').value = '';
