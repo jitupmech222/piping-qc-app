@@ -9,38 +9,121 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <!-- પ્રોફેશનલ સ્ટાઇલિંગ સાથે Excel ફાઈલ બનાવવા માટે ExcelJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f6; margin: 0; padding: 0; }
-    .container { width: 100%; max-width: 100%; margin: 0; padding: 10px 14px; box-sizing: border-box; }
-    .card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.06); margin-top: 8px; }
-    h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 16px; }
-    label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 6px; display: block; }
-    input, select { width: 100%; padding: 8px 10px; margin-top: 3px; border: 1.5px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; background: #fff; }
-    input:focus, select:focus { outline: none; border-color: #0284c7; }
+ <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
 
-    /* Top Navigation Bar */
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      background: var(--bg); 
+      color: var(--text-main); 
+      margin: 0; 
+      padding: 0; 
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .container { width: 100%; max-width: 100%; margin: 0; padding: 12px 18px; box-sizing: border-box; }
+    
+    .card { 
+      background: var(--card-bg); 
+      padding: 18px 20px; 
+      border-radius: 12px; 
+      border: 1px solid var(--border); 
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04); 
+      margin-top: 10px; 
+    }
+    
+    h3 { 
+      margin-top: 0; 
+      color: var(--navy); 
+      border-bottom: 2px solid var(--border); 
+      padding-bottom: 10px; 
+      font-size: 16px; 
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 8px; display: block; }
+    
+    input, select { 
+      width: 100%; 
+      padding: 9px 12px; 
+      margin-top: 4px; 
+      border: 1.5px solid #cbd5e1; 
+      border-radius: 8px; 
+      box-sizing: border-box; 
+      font-size: 13px; 
+      background: #fff; 
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    input:focus, select:focus { 
+      outline: none; 
+      border-color: var(--primary); 
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      background: #f8fafc;
+    }
+
+    /* Top Navigation Bar - Glass Effect */
     .top-navbar {
-      background: #0f172a;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       color: white;
-      padding: 10px 16px;
+      padding: 10px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
+    
     .top-nav-title {
       font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.5px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
+
+    .live-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .live-dot-pulse {
+      width: 7px;
+      height: 7px;
+      background: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
     .btn-nav-dashboard {
       background: #ffffff;
-      color: #0f172a;
+      color: var(--navy);
       border: 1px solid #cbd5e1;
-      border-radius: 6px;
+      border-radius: 8px;
       padding: 6px 14px;
       font-size: 12.5px;
       font-weight: 700;
@@ -50,7 +133,55 @@
       gap: 6px;
       transition: all 0.2s;
     }
-    .btn-nav-dashboard:hover { background: #f1f5f9; color: #0284c7; }
+    .btn-nav-dashboard:hover { 
+      background: #f8fafc; 
+      color: var(--primary); 
+      transform: translateY(-1px);
+    }
+
+    /* Executive KPI Grid Style */
+    .kpi-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 12px; 
+      margin-bottom: 14px; 
+    }
+    
+    .kpi-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #e2e8f0; 
+      border-radius: 12px; 
+      padding: 14px 16px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between;
+    }
+    
+    .kpi-title { 
+      font-size: 11.5px; 
+      font-weight: 700; 
+      color: #64748b; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px; 
+    }
+    
+    .kpi-val { 
+      font-size: 22px; 
+      font-weight: 800; 
+      color: #0f172a; 
+      margin-top: 4px; 
+    }
+    
+    .kpi-icon { 
+      width: 38px; 
+      height: 38px; 
+      border-radius: 10px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 18px; 
+    }
 
     /* Login Screen Modal Overlay */
     #loginOverlay {
@@ -386,7 +517,9 @@
   <div class="top-navbar">
     <div class="top-nav-title">
       <span>⚙️ PIPING CONSOLE</span>
-      <span id="navSubTitle" style="font-size: 12.5px; font-weight: normal; color: #94a3b8;">| Progress Tracking</span>
+      <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;">| Progress Tracking</span>
+      <!-- નવો પ્રોફેશનલ લાઈવ બેજ -->
+      <div class="live-dot"><div class="live-dot-pulse"></div> Live Cloud</div>
     </div>
     <div style="display: flex; align-items: center; gap: 10px;">
       <button type="button" id="btnTopDashboard" class="btn-nav-dashboard" style="display: none;" onclick="backToMenu()">🖥️ Dashboard</button>
@@ -573,12 +706,34 @@
     </div>
 
     <!-- Stage Screen -->
+    <!-- Stage Screen -->
     <div id="stageContainer" style="display: none;">
       <div class="card">
-        <div class="metric-banner">
-          <div>TOTAL SPOOL = <span id="metricSpools" class="metric-val">0</span></div>
-          <div>TOTAL WELD ID = <span id="metricWelds" class="metric-val">0</span></div>
+        <!-- પ્રોફેશનલ KPI વિજેટ્સ -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div>
+              <div class="kpi-title">Balance Spools</div>
+              <div class="kpi-val" id="metricSpools">0</div>
+            </div>
+            <div class="kpi-icon" style="background:#eff6ff; color:#3b82f6;">📦</div>
+          </div>
+          <div class="kpi-card">
+            <div>
+              <div class="kpi-title">Balance Weld ID</div>
+              <div class="kpi-val" id="metricWelds">0</div>
+            </div>
+            <div class="kpi-icon" style="background:#fef2f2; color:#ef4444;">⚡</div>
+          </div>
+          <div class="kpi-card">
+            <div>
+              <div class="kpi-title">Current Queue</div>
+              <div class="kpi-val" id="metricQueueCount">0</div>
+            </div>
+            <div class="kpi-icon" style="background:#f0fdf4; color:#15803d;">📋</div>
+          </div>
         </div>
+
         <h3 id="stageTitle">Stage Title</h3>
         <div id="subFilterArea" class="sub-filter-group" style="display: none;"></div>
         <div id="subMetricArea" class="sub-metric-banner" style="display: none;">
@@ -2299,6 +2454,9 @@
 
     document.getElementById('metricSpools').innerText = cumSpools.size;
     document.getElementById('metricWelds').innerText = cumWeldSum;
+    // નવો KPI કાઉન્ટર
+    const qEl = document.getElementById('metricQueueCount');
+    if (qEl) qEl.innerText = selectedQueue.length;
     
     const tblTotal = document.getElementById('tableTotalCount');
     if (tblTotal) tblTotal.innerText = activeBalanceDisplayRows.length;
