@@ -21,24 +21,43 @@
       --text-muted: #64748b;
     }
 
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-      background: var(--bg); 
-      color: var(--text-main); 
-      margin: 0; 
-      padding: 0; 
+    html, body {
+      height: 100vh;
+      overflow: hidden; /* બ્રાઉઝરનું મુખ્ય પેજ સ્ક્રોલ થતું બંધ કરશે */
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
       -webkit-font-smoothing: antialiased;
     }
-    
-    .container { width: 100%; max-width: 100%; margin: 0; padding: 12px 18px; box-sizing: border-box; }
-    
-    .card { 
-      background: var(--card-bg); 
-      padding: 18px 20px; 
-      border-radius: 12px; 
-      border: 1px solid var(--border); 
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04); 
-      margin-top: 10px; 
+
+    #appContent {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .container {
+      flex: 1;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 8px 14px;
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+      margin-top: 6px;
     }
     
     h3 { 
@@ -139,48 +158,47 @@
       transform: translateY(-1px);
     }
 
-    /* Executive KPI Grid Style */
+    /* Step 3: Compact Fixed KPI Grid */
     .kpi-grid { 
       display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-      gap: 12px; 
-      margin-bottom: 14px; 
+      grid-template-columns: repeat(3, 1fr); 
+      gap: 10px; 
+      margin-bottom: 8px; 
     }
     
     .kpi-card {
-      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      background: #ffffff;
       border: 1px solid #e2e8f0; 
-      border-radius: 12px; 
-      padding: 14px 16px; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      border-radius: 10px; 
+      padding: 6px 12px; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
       display: flex; 
       align-items: center; 
       justify-content: space-between;
     }
     
     .kpi-title { 
-      font-size: 11.5px; 
+      font-size: 11px; 
       font-weight: 700; 
       color: #64748b; 
-      text-transform: uppercase; 
       letter-spacing: 0.5px; 
     }
     
     .kpi-val { 
-      font-size: 22px; 
+      font-size: 18px; 
       font-weight: 800; 
       color: #0f172a; 
-      margin-top: 4px; 
+      margin-top: 2px; 
     }
     
     .kpi-icon { 
-      width: 38px; 
-      height: 38px; 
-      border-radius: 10px; 
+      width: 30px; 
+      height: 30px; 
+      border-radius: 8px; 
       display: flex; 
       align-items: center; 
       justify-content: center; 
-      font-size: 18px; 
+      font-size: 15px; 
     }
 
     /* Login Screen Modal Overlay */
@@ -411,8 +429,48 @@
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
     /* Tables & Scrolling */
-    .balance-table-container { overflow: auto; margin-top: 10px; height: 55vh; border: 1px solid #cbd5e1; border-radius: 6px; }
-    .master-table-container { overflow: auto; margin-top: 8px; height: calc(100vh - 145px); border: 1px solid #cbd5e1; border-radius: 6px; }
+    /* Step 2: Fixed Display & Internal Scrolling Layout */
+    #stageContainer {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ઉપરનું ફોર્મ અને કંટ્રોલ બોક્સ - ફિક્સ રહેશે */
+    #stageContainer > .card:first-child {
+      flex-shrink: 0;
+      padding: 10px 14px;
+      margin-top: 4px;
+    }
+
+    /* નીચેનું બેલેન્સ લિસ્ટ કાર્ડ - બાકી રહેલી જગ્યા આપોઆપ લેશે */
+    #stageContainer > .card:last-child {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 8px 14px;
+      margin-top: 8px;
+    }
+
+    /* ટેબલનું જ ઇન્ડિપેન્ડન્ટ સ્ક્રોલિંગ (પેજ કે બટન સ્ક્રોલ નહીં થાય) */
+    .balance-table-container {
+      flex: 1;
+      overflow: auto;
+      margin-top: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+    }
+
+    .master-table-container {
+      flex: 1;
+      overflow: auto;
+      margin-top: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      height: calc(100vh - 125px);
+    }
 
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; background-color: #fff; }
