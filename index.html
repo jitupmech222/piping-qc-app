@@ -990,7 +990,9 @@
             <button type="button" id="btnMasterView" class="btn-mode-view" onclick="setMasterMode('view')">👁️ View</button>
             <button type="button" id="btnMasterEdit" class="btn-mode-edit" onclick="requestEditMode()">✏️ Edit</button>
             <button type="button" id="btnMasterSave" class="btn-mode-save" onclick="saveMasterEditsToDb()">💾 SAVE CHANGES</button>
-          </div>
+            <button type="button" class="btn-mode-sync" style="background:#0f766e;" onclick="syncMasterFromMto()">🔄 MASTER UPDATE FROM MTO</button>
+</div>
+          
           <div style="display:flex; align-items:center; gap:6px;">
             <!-- Point-3: Download View Excel Button for Filtered Master Records -->
             <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 12px; font-size:12px;" onclick="downloadFormattedMasterExcel()">📥 Download View Excel</button>
@@ -1151,6 +1153,8 @@
     { key: 'Fd_date', label: 'FD Date' },
     { key: 'Shift_dc_no', label: 'DC No' },
     { key: 'Bill', label: 'BILL' },
+    { key: 'pipe', label: 'PIPE' },          // 👈 નવી કૉલમ
+    { key: 'fittings', label: 'FITTINGS' },  // 👈 નવી કૉલમ
     { key: 'Remarks', label: 'REMARKS' }
   ];
 
@@ -1934,6 +1938,140 @@
       console.error(err);
       alert("MTO Sync કરવામાં ભૂલ આવી: " + err.message);
       await loadMtoData();
+    }
+  }
+  // 👉 MASTER UPDATE FROM MTO LOGIC
+  async function syncMasterFromMto() {
+    if (!currentUser || currentUser.username !== 'admin') {
+      return alert("⚠️ માત્ર Admin પાસે જ Master Data Update કરવાની પરમિશન છે!");
+    }
+    if (!confirm("શું તમે MTO ટેબલમાંથી Pipe અને Fittings ની સ્થિતિ (Issued / Partially / Balance) Master Data (piping_joints) માં અપડેટ કરવા માંગો છો?")) return;
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Fetching MTO & Master Data to Calculate Pipe/Fittings Status... Please wait...</td></tr>';
+
+    try {
+      // ૧. MTO ટેબલમાંથી તમામ રેકોર્ડ્સ ફેચ કરવા
+      let mtoAll = [];
+      let from = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const { data, error } = await db.from('mto').select('Spool_number, MAT_Description, MIN_qty, Issued_qty').range(from, from + 999);
+        if (error) throw error;
+        if (data && data.length > 0) {
+          mtoAll = mtoAll.concat(data);
+          from += 1000;
+          if (data.length < 1000) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      // ૨. દરેક Spool Number માટે Pipe અને Fittings નું ગ્રુપિંગ બનાવવું
+      // spoolMap: Spool_number => { pipeItems: [], fittingItems: [] }
+      const spoolMap = new Map();
+
+      mtoAll.forEach(r => {
+        if (!r.Spool_number) return;
+        const spNo = String(r.Spool_number).trim();
+        if (!spoolMap.has(spNo)) {
+          spoolMap.set(spNo, { pipeItems: [], fittingItems: [] });
+        }
+
+        const desc = String(r.MAT_Description || '').trim().toUpperCase();
+        const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        
+        // Issued_qty ખાલી/નલ છે કે નહીં તેનો ચોક્કસ ચેક
+        const rawIssued = r.Issued_qty;
+        const isIssuedBlank = rawIssued === null || rawIssued === undefined || String(rawIssued).trim() === '' || String(rawIssued).trim() === '-';
+        const issuedQty = isIssuedBlank ? null : (parseFloat(String(rawIssued).replace(/[^0-9.]/g, '')) || 0);
+
+        const itemData = {
+          minQty: minQty,
+          issuedQty: issuedQty,
+          isBlank: isIssuedBlank
+        };
+
+        // જો MAT_Description "PIPE" થી શરૂ થાય તો Pipe, નહિતર Fittings
+        if (desc.startsWith('PIPE')) {
+          spoolMap.get(spNo).pipeItems.push(itemData);
+        } else {
+          spoolMap.get(spNo).fittingItems.push(itemData);
+        }
+      });
+
+      // ૩. શરતો મુજબ સ્ટેટસ (Issued / Partially / Balance) નક્કી કરતું હેલ્પર ફંક્શન
+      function evaluateStatus(items) {
+        if (!items || items.length === 0) return null; // જો MTO માં એવો કોઈ સામાન જ ન હોય
+
+        // શરત ૨: બધા જ રો માં Issued_qty ખાલી (Blank) હોય
+        const allBlank = items.every(x => x.isBlank);
+        if (allBlank) return 'Balance';
+
+        // શરત ૧: બધી જ રો માં Issued_qty >= MIN_qty હોય (અને ખાલી ન હોય)
+        const allFullyIssued = items.every(x => !x.isBlank && x.issuedQty >= x.minQty);
+        if (allFullyIssued) return 'Issued';
+
+        // શરત ૩: કોઈ રો માં ઓછો જથ્થો હોય, કોઈ બેલેન્સ હોય, અથવા પાર્શિયલ હોય
+        return 'Partially';
+      }
+
+      // ૪. Master Data (piping_joints) ના તમામ રેકોર્ડ્સ સાથે સરખામણી
+      const masterRows = await ensureAllRecordsCached();
+      const updateBatch = [];
+
+      masterRows.forEach(mRow => {
+        if (!mRow.Spool_number) return;
+        const spNo = String(mRow.Spool_number).trim();
+
+        if (spoolMap.has(spNo)) {
+          const { pipeItems, fittingItems } = spoolMap.get(spNo);
+
+          const calculatedPipe = evaluateStatus(pipeItems);
+          const calculatedFittings = evaluateStatus(fittingItems);
+
+          let needsUpdate = false;
+          const patch = { id: mRow.id };
+
+          if (calculatedPipe !== undefined && calculatedPipe !== mRow.pipe) {
+            patch.pipe = calculatedPipe;
+            needsUpdate = true;
+          }
+          if (calculatedFittings !== undefined && calculatedFittings !== mRow.fittings) {
+            patch.fittings = calculatedFittings;
+            needsUpdate = true;
+          }
+
+          if (needsUpdate) {
+            updateBatch.push(patch);
+          }
+        }
+      });
+
+      if (updateBatch.length === 0) {
+        alert("ℹ️ Master ટેબલ પહેલેથી જ MTO મુજબ અપ-ટુ-ડેટ છે. કોઈ નવા ફેરફાર મળ્યા નથી.");
+        allRecordsCache = [];
+        await loadFullRegister();
+        return;
+      }
+
+      // ૫. બેચમાં Supabase માં અપડેટ મોકલવું (50-50 ના બેચ)
+      const batchSize = 50;
+      for (let i = 0; i < updateBatch.length; i += batchSize) {
+        const batch = updateBatch.slice(i, i + batchSize);
+        const { error } = await db.from('piping_joints').upsert(batch, { onConflict: 'id' });
+        if (error) throw error;
+      }
+
+      alert(`🎉 સફળતાપૂર્વક Master Data ની ${updateBatch.length} રો માં MTO મુજબ Pipe અને Fittings ની સ્થિતિ અપડેટ થઈ ગઈ!`);
+      allRecordsCache = []; // કેશ ક્લીયર કરવી જેથી નવો ડેટા ફેચ થાય
+      await loadFullRegister();
+
+    } catch (err) {
+      console.error(err);
+      alert("Master Data Sync કરવામાં ભૂલ આવી: " + err.message);
+      allRecordsCache = [];
+      await loadFullRegister();
     }
   }
   // 👉 MTO VIEW SUMMARY EXCEL GENERATOR (Grouped by SAP Code, Desc, Lot No, MIN No with Total)
@@ -3124,6 +3262,16 @@
           if (val === null || val === undefined) val = '';
           const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issue') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
           let displayVal = isDateCol ? formatDateDisplay(val) : String(val);
+
+          if (['pipe', 'fittings'].includes(c.key)) {
+            if (val === 'Issued') {
+              displayVal = `<span style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:12px; font-weight:bold; font-size:11px;">Issued</span>`;
+            } else if (val === 'Partially') {
+              displayVal = `<span style="background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:12px; font-weight:bold; font-size:11px;">Partially</span>`;
+            } else if (val === 'Balance') {
+              displayVal = `<span style="background:#fee2e2; color:#dc2626; padding:2px 8px; border-radius:12px; font-weight:bold; font-size:11px;">Balance</span>`;
+            }
+          }
 
           if (isMasterEditMode) {
             let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
