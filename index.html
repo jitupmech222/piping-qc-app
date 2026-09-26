@@ -667,7 +667,15 @@
         <button class="menu-btn stage-ndt" onclick="openStage('ndt_clearance')"><span class="step-badge">05</span><span>NDT CLEARANCE</span></button>
         <button class="menu-btn stage-fd" onclick="openStage('fd')"><span class="step-badge">06</span><span>FD & DC NO</span></button>
 
-        <button class="menu-btn btn-progress-hub" onclick="openProgressDashboard()"><span class="step-badge" style="background:#fff; color:#4338ca;">📈</span><span>PROGRESS DASHBOARD</span></button>
+        <!-- 👉 શોધો (લગભગ લાઇન 270): -->
+<button class="menu-btn btn-progress-hub" onclick="openProgressDashboard()"><span class="step-badge" style="background:#fff; color:#4338ca;">📈</span><span>PROGRESS DASHBOARD</span></button>
+
+<!-- 👉 આની તરત નીચે નવું બટન ઉમેરો: -->
+<button class="menu-btn" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.25);" onclick="openPriorityDashboard()">
+  <span class="step-badge" style="background:#fff; color:#be123c;">🔥</span>
+  <span>PRIORITY SPOOLS DASHBOARD</span>
+</button>
+        
         <button class="menu-btn btn-track-hub" onclick="openSpoolTracking()"><span class="step-badge" style="background:#fff; color:#b45309;">🔍</span><span>SPOOL TRACKING</span></button>
         <button class="menu-btn btn-report-hub" onclick="openProgressReport()"><span class="step-badge" style="background:#fff; color:#0369a1;">📅</span><span>PROGRESS REPORT</span></button>
 
@@ -771,7 +779,66 @@
         </div>
       </div>
     </div>
+    <!-- Priority Spools Dashboard Screen -->
+    <div id="priorityDashboardContainer" style="display: none;">
+      <div class="card">
+        <!-- Top Executive KPI Summary Widgets -->
+        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 14px;">
+          <div class="kpi-card" style="border-left: 4px solid #e11d48;">
+            <div>
+              <div class="kpi-title" style="color: #be123c;">Total Priority Spools</div>
+              <div class="kpi-val" id="priorityTotalSpools">0</div>
+            </div>
+            <div class="kpi-icon" style="background: #ffe4e6; color: #e11d48;">🔥</div>
+          </div>
+          <div class="kpi-card" style="border-left: 4px solid #0284c7;">
+            <div>
+              <div class="kpi-title">Total Priority Joints (Weld ID)</div>
+              <div class="kpi-val" id="priorityTotalWelds">0</div>
+            </div>
+            <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">⚡</div>
+          </div>
+          <div class="kpi-card" style="border-left: 4px solid #16a34a;">
+            <div>
+              <div class="kpi-title">Dispatched (FD) Spools</div>
+              <div class="kpi-val" id="priorityDispatchedSpools" style="color: #15803d;">0</div>
+            </div>
+            <div class="kpi-icon" style="background: #dcfce7; color: #16a34a;">🚚</div>
+          </div>
+          <div class="kpi-card" style="border-left: 4px solid #ea580c;">
+            <div>
+              <div class="kpi-title">Balance Pending Spools</div>
+              <div class="kpi-val" id="priorityBalanceSpools" style="color: #c2410c;">0</div>
+            </div>
+            <div class="kpi-icon" style="background: #ffedd5; color: #ea580c;">⏳</div>
+          </div>
+        </div>
 
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #fecdd3; padding-bottom: 8px;">
+          <h3 style="margin: 0; border: none; color: #be123c;">🔥 Priority Spools Stage-Wise Analysis</h3>
+          <button type="button" class="sub-filter-btn" style="padding: 6px 12px; background: #ffe4e6; color: #be123c; border-color: #fecdd3;" onclick="loadPriorityDashboardData()">🔄 Refresh</button>
+        </div>
+
+        <div class="balance-table-container" style="height: auto; max-height: 70vh;">
+          <table>
+            <thead>
+              <tr style="background: #be123c; color: white;">
+                <th style="width: 50px; text-align: center;">Stage</th>
+                <th>Stage Description</th>
+                <th style="text-align: center; background: #15803d;">Completed Spools</th>
+                <th style="text-align: center; background: #166534;">Completed Weld ID</th>
+                <th style="text-align: center; background: #c2410c;">Balance Spools</th>
+                <th style="text-align: center; background: #9a3412;">Balance Weld ID</th>
+              </tr>
+            </thead>
+            <tbody id="priorityTableBody">
+              <tr><td colspan="6" style="text-align:center; padding:15px; color:#be123c;">⏳ Calculating Priority Progress...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+ 
     <!-- Spool Tracking Screen -->
     <div id="spoolTrackingContainer" style="display: none;">
       <div class="card">
@@ -1201,6 +1268,7 @@
     document.getElementById('recordsContainer').style.display = 'none';
     document.getElementById('itemEditForm').style.display = 'none';
     document.getElementById('progressDashboardContainer').style.display = 'none';
+    document.getElementById('priorityDashboardContainer').style.display = 'none';
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
@@ -1219,6 +1287,7 @@
     document.getElementById('progressDashboardContainer').style.display = 'none';
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
+    document.getElementById('priorityDashboardContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
     document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
@@ -2147,7 +2216,119 @@
       `;
     }).join('');
   }
+ // --- PRIORITY SPOOLS DASHBOARD MODULE ---
+  async function openPriorityDashboard() {
+    closeExcelPopup();
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('recordsContainer').style.display = 'none';
+    document.getElementById('progressDashboardContainer').style.display = 'none';
+    document.getElementById('spoolTrackingContainer').style.display = 'none';
+    document.getElementById('progressReportContainer').style.display = 'none';
+    document.getElementById('dataUpdateContainer').style.display = 'none';
+    document.getElementById('mtoContainer').style.display = 'none';
+    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
+    document.getElementById('navSubTitle').innerText = `| 🔥 Priority Spools Dashboard (${currentUser.name})`;
+    document.getElementById('priorityDashboardContainer').style.display = 'block';
+    await loadPriorityDashboardData();
+  }
 
+  async function loadPriorityDashboardData() {
+    const tbody = document.getElementById('priorityTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:15px; color:#be123c;">⏳ Filtering Priority Spools & Calculating Progress...</td></tr>';
+
+    const allRows = await ensureAllRecordsCached();
+
+    // Remarks કૉલમમાં કેસ-ઇન્સેન્સિટિવ "priority" મેચિંગ
+    const priorityRows = allRows.filter(r => {
+      const rem = String(r.Remarks || '').trim().toLowerCase();
+      return rem.includes('priority');
+    });
+
+    if (priorityRows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:15px; color:#64748b;">⚠️ No Priority records found in database (Remarks should contain "Priority").</td></tr>';
+      document.getElementById('priorityTotalSpools').innerText = '0';
+      document.getElementById('priorityTotalWelds').innerText = '0';
+      document.getElementById('priorityDispatchedSpools').innerText = '0';
+      document.getElementById('priorityBalanceSpools').innerText = '0';
+      return;
+    }
+
+    // Top Summary KPI Calculations
+    const totalPrioritySpoolsSet = new Set(priorityRows.map(r => r.Spool_number).filter(Boolean));
+    const totalPrioritySpoolsCount = totalPrioritySpoolsSet.size;
+    const totalPriorityWelds = calculateWeldSum(priorityRows);
+
+    // FD/Dispatched Spools
+    const dispatchedRows = priorityRows.filter(r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '');
+    const dispatchedSpoolsCount = new Set(dispatchedRows.map(r => r.Spool_number).filter(Boolean)).size;
+    const balanceSpoolsCount = totalPrioritySpoolsCount - dispatchedSpoolsCount;
+
+    document.getElementById('priorityTotalSpools').innerText = totalPrioritySpoolsCount;
+    document.getElementById('priorityTotalWelds').innerText = totalPriorityWelds;
+    document.getElementById('priorityDispatchedSpools').innerText = dispatchedSpoolsCount;
+    document.getElementById('priorityBalanceSpools').innerText = balanceSpoolsCount;
+
+    // 6 Stages Analysis Table for Priority Spools
+    const stagesConfig = [
+      { 
+        no: '01', 
+        name: 'ISSUED FOR BENDING', 
+        isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '', 
+        isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && (!r.Issued_for_bending || String(r.Issued_for_bending).trim() === '') 
+      },
+      { 
+        no: '02', 
+        name: 'BEND COMPLETED', 
+        isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '', 
+        isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && r.Issued_for_bending !== null && String(r.Issued_for_bending).trim() !== '' 
+      },
+      { 
+        no: '03', 
+        name: 'FIT UP COMPLETED', 
+        isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '', 
+        isBal: r => r.Bend_date !== null && String(r.Bend_date).trim() !== '' && (!r.Fit_up_date || String(r.Fit_up_date).trim() === '') 
+      },
+      { 
+        no: '04', 
+        name: 'WELD VISUAL COMPLETED', 
+        isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '', 
+        isBal: r => r.Fit_up_date !== null && String(r.Fit_up_date).trim() !== '' && (!r.Weld_visual_date || String(r.Weld_visual_date).trim() === '') 
+      },
+      { 
+        no: '05', 
+        name: 'NDT CLEARANCE', 
+        isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '', 
+        isBal: r => r.Weld_visual_date !== null && String(r.Weld_visual_date).trim() !== '' && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === '') 
+      },
+      { 
+        no: '06', 
+        name: 'FINAL DISPATCH & DC NO', 
+        isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', 
+        isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') 
+      }
+    ];
+
+    tbody.innerHTML = stagesConfig.map(st => {
+      const compRows = priorityRows.filter(st.isComp);
+      const balRows = priorityRows.filter(st.isBal);
+      const compSpools = new Set(compRows.map(r => r.Spool_number).filter(Boolean)).size;
+      const compWelds = calculateWeldSum(compRows);
+      const balSpools = new Set(balRows.map(r => r.Spool_number).filter(Boolean)).size;
+      const balWelds = calculateWeldSum(balRows);
+
+      return `
+        <tr>
+          <td style="text-align: center; font-weight: 800; background: #fff1f2; color: #be123c;">${st.no}</td>
+          <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
+          <td style="text-align: center; font-weight: bold; color: #15803d; background: #f0fdf4;">${compSpools}</td>
+          <td style="text-align: center; font-weight: bold; color: #166534; background: #f0fdf4;">${compWelds}</td>
+          <td style="text-align: center; font-weight: bold; color: #c2410c; background: #fff7ed;">${balSpools}</td>
+          <td style="text-align: center; font-weight: bold; color: #9a3412; background: #fff7ed;">${balWelds}</td>
+        </tr>
+      `;
+    }).join('');
+  }
   // --- SPOOL TRACKING MODULE (Point-1: 6 Stages Only) ---
   async function openSpoolTracking() {
     closeExcelPopup();
