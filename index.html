@@ -22,8 +22,7 @@
     }
 
     html, body {
-      height: 100vh;
-      overflow: hidden; /* બ્રાઉઝરનું મુખ્ય પેજ સ્ક્રોલ થતું બંધ કરશે */
+      height: 100%;
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -33,10 +32,9 @@
     }
 
     #appContent {
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
 
     .container {
@@ -44,13 +42,58 @@
       width: 100%;
       max-width: 100%;
       margin: 0;
-      padding: 8px 14px;
+      padding: 10px 14px;
       box-sizing: border-box;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
+    /* Main Menu: મોબાઈલમાં બધા બટનો આસાનીથી સ્ક્રોલ થઈને દેખાશે */
+    #mainMenu {
+      overflow-y: auto;
+    }
+
+    /* સ્ટેજ સ્ક્રીન: આ સ્ક્રીન 100% ફિક્સ રહેશે (નો-વિન્ડો સ્ક્રોલ) */
+    #stageContainer {
+      height: calc(100vh - 75px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ઉપરનું ફોર્મ, સર્ચ અને KPI કાર્ડ્સ સ્ક્રીન પર ફિક્સ રહેશે */
+    #stageContainer > .card:first-child {
+      flex-shrink: 0;
+      padding: 12px 14px;
+      margin-top: 4px;
+    }
+
+    /* નીચેનું બેલેન્સ લિસ્ટ બાકીની જગ્યામાં ફીટ થઈને અંદર જ સ્ક્રોલ થશે */
+    #stageContainer > .card:last-child {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 10px 14px;
+      margin-top: 8px;
+    }
+
+    .balance-table-container {
+      flex: 1;
+      overflow: auto;
+      margin-top: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+    }
+
+    .master-table-container {
+      flex: 1;
+      overflow: auto;
+      margin-top: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      height: calc(100vh - 145px);
+    }
     .card {
       background: var(--card-bg);
       padding: 14px 18px;
@@ -536,6 +579,29 @@
     .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .popup-btn-ok { background: #1e40af; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
     .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+  </style>
+  /* Mobile Responsive View Fix */
+    @media (max-width: 640px) {
+      .kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+      .kpi-card {
+        padding: 6px 8px;
+      }
+      .kpi-title {
+        font-size: 9.5px;
+      }
+      .kpi-val {
+        font-size: 15px;
+      }
+      .kpi-icon {
+        display: none; /* મોબાઈલમાં જગ્યા બચાવવા માટે આઈકોન હાઈડ થશે */
+      }
+      #stageContainer {
+        height: calc(100vh - 65px);
+      }
+    }
   </style>
 </head>
 <body>
