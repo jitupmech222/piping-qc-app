@@ -712,15 +712,16 @@
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
           <div style="display:flex; align-items:center; gap:8px;">
-  <h3 style="margin:0; border:none; color:#0f766e;">📋 MTO Register (<span id="mtoTotalCount">0</span>)</h3>
-  <span id="mtoCurrentFilterLabel" style="font-size:12px; font-weight:bold; color:#c2410c; background:#ffedd5; padding:2px 8px; border-radius:12px; display:none;"></span>
-  
-  <!-- 👉 આ બટનો ઉમેરો -->
-  <button type="button" id="btnMtoView" class="btn-mode-view" onclick="setMtoMode('view')">View</button>
-  <button type="button" id="btnMtoEdit" class="btn-mode-edit" onclick="requestMtoEditMode()">Edit</button>
-  <button type="button" id="btnMtoSave" class="btn-mode-save" onclick="saveMtoEditsToDb()">💾 SAVE</button>
-  <button type="button" class="btn-mode-sync" onclick="syncMtoFromMaster()">MTO UPDATE FROM MASTER</button>
-</div>
+            <h3 style="margin:0; border:none; color:#0f766e;">📋 MTO Register (<span id="mtoTotalCount">0</span>)</h3>
+            <span id="mtoCurrentFilterLabel" style="font-size:12px; font-weight:bold; color:#c2410c; background:#ffedd5; padding:2px 8px; border-radius:12px; display:none;"></span>
+            
+            <button type="button" id="btnMtoView" class="btn-mode-view" onclick="setMtoMode('view')">View</button>
+            <button type="button" id="btnMtoEdit" class="btn-mode-edit" onclick="requestMtoEditMode()">Edit</button>
+            <button type="button" id="btnMtoSave" class="btn-mode-save" onclick="saveMtoEditsToDb()">💾 SAVE</button>
+            
+            <!-- 👉 Admin Only: MTO UPDATE FROM MASTER બટન (ID અને display:none ઉમેર્યું) -->
+            <button type="button" id="btnMtoSyncFromMaster" class="btn-mode-sync" style="display:none;" onclick="syncMtoFromMaster()">MTO UPDATE FROM MASTER</button>
+          </div>
 
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <input type="text" id="mtoSearchInput" placeholder="Search in MTO..." oninput="handleMtoSearch(this.value)" style="padding:5px 8px; width:140px; font-size:12px; margin-top:0;">
@@ -730,13 +731,12 @@
             <button type="button" class="sub-filter-btn" id="btnFilterIssueBal" style="background:#fef3c7; color:#b45309; border-color:#fcd34d;" onclick="viewMtoBalanceCategory('issue_bal')"> Mat.Issue.Bal.</button>
             <button type="button" class="sub-filter-btn" id="btnFilterAllBal" style="background:#e0e7ff; color:#4338ca; border-color:#a5b4fc;" onclick="viewMtoBalanceCategory('all_bal')">All Bal.</button>
 
-            <!-- Download View Excel Button -->
-<button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px;" onclick="downloadFormattedMtoExcel()">Download View Excel</button>
+            <!-- 👉 Admin Only: Download View Excel બટન (ID અને display:none ઉમેર્યું) -->
+            <button type="button" id="btnMtoDownloadExcel" class="btn-save-action" style="background:#0284c7; padding:6px 10px; font-size:11.5px; display:none;" onclick="downloadFormattedMtoExcel()">Download View Excel</button>
 
-<!-- 👉 નવું ઉમેરો: 📥 Download View Summary Excel Button -->
-<button type="button" class="btn-save-action" style="background:#0d9488; padding:6px 10px; font-size:11.5px;" onclick="downloadMtoSummaryExcel()">Download View Summary Excel</button>
+            <!-- 👉 Admin Only: Download View Summary Excel બટન (ID અને display:none ઉમેર્યું) -->
+            <button type="button" id="btnMtoDownloadSummaryExcel" class="btn-save-action" style="background:#0d9488; padding:6px 10px; font-size:11.5px; display:none;" onclick="downloadMtoSummaryExcel()">Download View Summary Excel</button>
             
-
             <button type="button" class="btn-save-action" id="btnMtoUploadTrigger" style="background:#15803d; padding:6px 10px; font-size:11.5px; display:none;" onclick="document.getElementById('mtoFileInput').click()">📤 Upload & Update</button>
             <input type="file" id="mtoFileInput" accept=".xlsx, .xls" style="display:none;" onchange="uploadAndApplyMtoExcel(event)">
           </div>
@@ -990,12 +990,14 @@
             <button type="button" id="btnMasterView" class="btn-mode-view" onclick="setMasterMode('view')">👁️ View</button>
             <button type="button" id="btnMasterEdit" class="btn-mode-edit" onclick="requestEditMode()">✏️ Edit</button>
             <button type="button" id="btnMasterSave" class="btn-mode-save" onclick="saveMasterEditsToDb()">💾 SAVE CHANGES</button>
-            <button type="button" class="btn-mode-sync" style="background:#0f766e;" onclick="syncMasterFromMto()">🔄 MASTER UPDATE FROM MTO</button>
-</div>
+            
+            <!-- 👉 Admin Only: Master update from MTO બટન (ID અને display:none ઉમેર્યું) -->
+            <button type="button" id="btnMasterUpdateFromMto" class="btn-mode-sync" style="background:#0f766e; display:none;" onclick="syncMasterFromMto()">🔄 MASTER UPDATE FROM MTO</button>
+          </div>
           
           <div style="display:flex; align-items:center; gap:6px;">
-            <!-- Point-3: Download View Excel Button for Filtered Master Records -->
-            <button type="button" class="btn-save-action" style="background:#0284c7; padding:6px 12px; font-size:12px;" onclick="downloadFormattedMasterExcel()">📥 Download View Excel</button>
+            <!-- 👉 Admin Only: Download View Excel બટન (ID અને display:none ઉમેર્યું) -->
+            <button type="button" id="btnMasterDownloadExcel" class="btn-save-action" style="background:#0284c7; padding:6px 12px; font-size:12px; display:none;" onclick="downloadFormattedMasterExcel()">📥 Download View Excel</button>
             <button type="button" class="sub-filter-btn" onclick="clearAllMasterFilters()">🔄 Clear Filters</button>
           </div>
         </div>
@@ -1048,15 +1050,31 @@
 
   function updateDashboardUIForRole() {
     if (!currentUser) return;
+    const isAdmin = currentUser.username === 'admin';
+
+    // ૧. Main Menu & Report Actions
     const btnShareWA = document.getElementById('btnShareWhatsApp');
     const btnUpdateHub = document.getElementById('btnDataUpdateHub');
-    if (btnShareWA) btnShareWA.style.display = (currentUser.username === 'admin') ? 'inline-flex' : 'none';
-    if (btnUpdateHub) btnUpdateHub.style.display = (currentUser.username === 'admin') ? 'flex' : 'none';
+    if (btnShareWA) btnShareWA.style.display = isAdmin ? 'inline-flex' : 'none';
+    if (btnUpdateHub) btnUpdateHub.style.display = isAdmin ? 'flex' : 'none';
 
+    // ૨. Master Register Actions (Only Admin)
+    const btnMasterSync = document.getElementById('btnMasterUpdateFromMto');
+    const btnMasterDl = document.getElementById('btnMasterDownloadExcel');
+    if (btnMasterSync) btnMasterSync.style.display = isAdmin ? 'inline-block' : 'none';
+    if (btnMasterDl) btnMasterDl.style.display = isAdmin ? 'inline-flex' : 'none';
+
+    // ૩. MTO Register Actions (Only Admin)
+    const btnMtoSync = document.getElementById('btnMtoSyncFromMaster');
+    const btnMtoDl = document.getElementById('btnMtoDownloadExcel');
+    const btnMtoSummaryDl = document.getElementById('btnMtoDownloadSummaryExcel');
     const btnMtoUpload = document.getElementById('btnMtoUploadTrigger');
-    if (btnMtoUpload) btnMtoUpload.style.display = (currentUser.username === 'admin') ? 'inline-flex' : 'none';
-  }
 
+    if (btnMtoSync) btnMtoSync.style.display = isAdmin ? 'inline-block' : 'none';
+    if (btnMtoDl) btnMtoDl.style.display = isAdmin ? 'inline-flex' : 'none';
+    if (btnMtoSummaryDl) btnMtoSummaryDl.style.display = isAdmin ? 'inline-flex' : 'none';
+    if (btnMtoUpload) btnMtoUpload.style.display = isAdmin ? 'inline-flex' : 'none';
+  }
   function checkSessionAuth() {
     const sessionData = sessionStorage.getItem('piping_app_auth');
     if (sessionData) {
