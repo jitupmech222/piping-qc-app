@@ -1,1 +1,751 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MIN Number Issue Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
 
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 16px auto;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      margin-top: 0;
+      color: var(--navy);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label { font-size: 12.5px; font-weight: 700; color: #334155; margin-top: 10px; display: block; }
+    input, select {
+      width: 100%;
+      padding: 9px 12px;
+      margin-top: 4px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 13px;
+      background: #fff;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* Multi-Select Box */
+    .lot-select-box {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      margin-top: 4px;
+    }
+    .lot-options-list {
+      max-height: 160px;
+      overflow-y: auto;
+      border: 1px solid #f1f5f9;
+      border-radius: 6px;
+      padding: 6px;
+      margin-top: 6px;
+      background: #fafafa;
+    }
+    .lot-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+    .lot-item:hover { background: #f0fdf4; }
+    .lot-item input[type="checkbox"] { width: 15px; height: 15px; margin: 0; cursor: pointer; }
+
+    /* Searchable SAP Dropdown */
+    .sap-search-wrapper { position: relative; }
+    .sap-dropdown-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #ffffff;
+      border: 1.5px solid var(--primary);
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+      margin-top: 2px;
+    }
+    .sap-dropdown-item {
+      padding: 8px 12px;
+      font-size: 12.5px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sap-dropdown-item:hover {
+      background: #f0fdf4;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    /* Summary Metric Banner */
+    .balance-banner {
+      background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+      border: 1.5px solid #5eead4;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .balance-banner-val {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f766e;
+    }
+
+    /* Action Buttons */
+    .btn-action-save {
+      background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 16px;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+      transition: all 0.2s;
+    }
+    .btn-action-save:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(13, 148, 136, 0.35); }
+
+    /* Table Grid */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    th, td { border: 1px solid #e2e8f0; padding: 8px 10px; white-space: nowrap; }
+    th { background: #0f766e; color: white; font-weight: 700; }
+    tr:nth-child(even) td { background: #f8fafc; }
+
+    /* Allocation Status Badges */
+    .badge-allocated { background: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; }
+    .badge-skipped { background: #fee2e2; color: #dc2626; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; }
+    .badge-partial { background: #fef3c7; color: #b45309; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div class="top-navbar">
+    <div style="font-size: 16px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+      <span>📋 MIN ISSUE & ALLOCATION CONSOLE</span>
+    </div>
+    <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h3>⚙️ MIN Allocation Setup</h3>
+      
+      <div class="form-grid">
+        <!-- Option 1: Multi-Select Lot No -->
+        <div>
+          <label>Option 1: Select Lot No(s) (Where MIN is Blank):</label>
+          <div class="lot-select-box">
+            <input type="text" id="lotSearchInput" placeholder="🔍 Search Lot No..." oninput="filterLotCheckboxList(this.value)" style="margin-top:0; padding:6px 8px; font-size:12px;">
+            <div id="lotCheckboxList" class="lot-options-list">
+              <div style="padding:10px; text-align:center; color:#64748b;">⏳ Loading Lot Numbers...</div>
+            </div>
+          </div>
+          <small id="selectedLotDisplay" style="color:#0d9488; font-weight:600; margin-top:4px; display:block;">Selected: None</small>
+        </div>
+
+        <!-- Option 2: Searchable SAP Code -->
+        <div>
+          <label>Option 2: Select Material SAP Code:</label>
+          <div class="sap-search-wrapper">
+            <input type="text" id="sapSearchInput" placeholder="🔍 Type SAP Code or Description..." oninput="handleSapSearchInput(this.value)" onfocus="showSapDropdown()" autocomplete="off" disabled>
+            <input type="hidden" id="selectedSapCodeVal">
+            <div id="sapDropdownList" class="sap-dropdown-list"></div>
+          </div>
+          <small id="sapDescDisplay" style="color:#64748b; margin-top:4px; display:block;">Description: -</small>
+        </div>
+      </div>
+
+      <!-- Option 3: Display Total Balance Available -->
+      <div class="balance-banner">
+        <div>
+          <div style="font-size:12px; font-weight:700; color:#0f766e; text-transform:uppercase;">Option 3: Total Balance MIN Qty</div>
+          <div style="font-size:12.5px; color:#475569; margin-top:2px;">(Sum of MIN_qty where MIN_No is blank for selected Lot & SAP)</div>
+        </div>
+        <div class="balance-banner-val" id="totalBalanceVal">0.000</div>
+      </div>
+
+      <!-- Options 4, 5 & 6: Inputs -->
+      <div class="form-grid" style="margin-top: 14px;">
+        <div>
+          <label>Option 4: Enter MIN No:</label>
+          <input type="text" id="inputMinNo" placeholder="e.g. 11035" disabled>
+        </div>
+        <div>
+          <label>Option 5: Enter Total Issued MIN Qty to Allocate:</label>
+          <input type="number" id="inputIssuedMinQty" placeholder="e.g. 8" step="any" oninput="calculateSmartAllocationPreview()" disabled>
+        </div>
+        <div>
+          <label>Option 6: Enter MIN Date:</label>
+          <input type="date" id="inputMinDate" disabled>
+        </div>
+      </div>
+
+      <button type="button" class="btn-action-save" id="btnSaveMin" onclick="executeBatchMinSave()" disabled>💾 EXECUTE & SAVE MIN UPDATE TO DATABASE</button>
+    </div>
+
+    <!-- Live Allocation Preview Table -->
+    <div class="card" id="previewArea" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin:0; border:none; color:#0f766e;">🔍 Allocation Live Preview (<span id="previewRowCount">0</span> Rows)</h3>
+        <span id="allocationStatusTag" style="font-size:12px; font-weight:bold;"></span>
+      </div>
+      <p style="font-size:12.5px; color:#475569; margin-top:6px;">તમારા દાખલ કરેલા જથ્થા મુજબ સિસ્ટમે સચોટ કોમ્બિનેશન શોધીને રો ફાળવી છે. મિસમેચ હશે તો સેવ કરતાં પહેલાં કન્ફર્મેશન પૂછવામાં આવશે.</p>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px; text-align:center;">Sr.</th>
+              <th>Spool No</th>
+              <th>Lot No</th>
+              <th>SAP Code</th>
+              <th>Material Description</th>
+              <th style="text-align:right;">Row MIN Qty</th>
+              <th style="text-align:center;">Allocation Status</th>
+              <th style="text-align:center; background:#0f766e; color:white;">Assigned MIN No</th>
+            </tr>
+          </thead>
+          <tbody id="previewTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let mtoRecords = [];
+    let selectedLotSet = new Set();
+    let currentFilteredRows = [];
+    let allocatedBatchUpdates = [];
+    let currentAvailableSapList = [];
+    let isMismatchDetected = false;
+
+    // ૧. ઓથેન્ટિકેશન સુરક્ષા ચેક (Admin Only)
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ MIN Update કરવાની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    // ૨. MTO ડેટા ફેચિંગ
+    async function loadInitialMtoData() {
+      if (!verifyAdminAccess()) return;
+
+      document.getElementById('inputMinDate').value = new Date().toISOString().split('T')[0];
+      
+      let allRows = [];
+      let from = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db.from('mto').select('*').order('id', { ascending: true }).range(from, from + 999);
+        if (error) {
+          alert("Error fetching MTO: " + error.message);
+          return;
+        }
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += 1000;
+          if (data.length < 1000) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      mtoRecords = allRows;
+      buildLotCheckboxOptions();
+    }
+
+    // ૩. Option 1: માત્ર એવા Lot No જ્યાં MIN_No ખાલી છે
+    function buildLotCheckboxOptions() {
+      const lotMap = new Map();
+
+      mtoRecords.forEach(r => {
+        if (!r.lot_no) return;
+        const lot = String(r.lot_no).trim();
+        const minNo = r.MIN_No ? String(r.MIN_No).trim() : '';
+
+        // ફક્ત જ્યાં MIN_No ખાલી હોય
+        if (minNo === '' || minNo === '-' || minNo.toLowerCase() === 'null') {
+          const qty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          lotMap.set(lot, (lotMap.get(lot) || 0) + qty);
+        }
+      });
+
+      const container = document.getElementById('lotCheckboxList');
+      if (lotMap.size === 0) {
+        container.innerHTML = '<div style="padding:10px; color:#16a34a; font-weight:bold;">🎉 All Lot Numbers have MIN No Assigned!</div>';
+        return;
+      }
+
+      const sortedLots = Array.from(lotMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+      container.innerHTML = sortedLots.map(([lot, bal], idx) => `
+        <div class="lot-item">
+          <input type="checkbox" id="lot_chk_${idx}" value="${lot}" onchange="onLotSelectionChange(this.value, this.checked)">
+          <label for="lot_chk_${idx}" style="cursor:pointer; margin:0; font-weight:600;">
+            ${lot} <span style="color:#0f766e; font-size:11px;">(Bal: ${bal.toFixed(3)})</span>
+          </label>
+        </div>
+      `).join('');
+    }
+
+    function filterLotCheckboxList(searchTerm) {
+      const term = searchTerm.toLowerCase().trim();
+      document.querySelectorAll('#lotCheckboxList .lot-item').forEach(el => {
+        const text = el.innerText.toLowerCase();
+        el.style.display = text.includes(term) ? 'flex' : 'none';
+      });
+    }
+
+    function onLotSelectionChange(lotNo, isChecked) {
+      if (isChecked) selectedLotSet.add(lotNo);
+      else selectedLotSet.delete(lotNo);
+
+      const disp = document.getElementById('selectedLotDisplay');
+      if (selectedLotSet.size === 0) {
+        disp.innerText = "Selected: None";
+        resetLowerOptions();
+        return;
+      }
+
+      disp.innerText = `Selected (${selectedLotSet.size}): ${Array.from(selectedLotSet).join(', ')}`;
+      buildSapCodeDropdown();
+    }
+
+    // ૪. Option 2: પસંદ કરેલા Lot No માંથી બેલેન્સ SAP Code નું લિસ્ટ
+    function buildSapCodeDropdown() {
+      const sapSearchInput = document.getElementById('sapSearchInput');
+      const sapMap = new Map();
+
+      mtoRecords.forEach(r => {
+        if (!r.lot_no || !r.MAT_SAP_CODE) return;
+        const lot = String(r.lot_no).trim();
+        const minNo = r.MIN_No ? String(r.MIN_No).trim() : '';
+
+        if (selectedLotSet.has(lot) && (minNo === '' || minNo === '-' || minNo.toLowerCase() === 'null')) {
+          const sap = String(r.MAT_SAP_CODE).trim();
+          const desc = String(r.MAT_Description || '-').trim();
+          const qty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+
+          if (!sapMap.has(sap)) sapMap.set(sap, { desc: desc, totalBal: 0 });
+          sapMap.get(sap).totalBal += qty;
+        }
+      });
+
+      if (sapMap.size === 0) {
+        sapSearchInput.value = '';
+        sapSearchInput.placeholder = "-- No Balance Material in Selected Lots --";
+        sapSearchInput.disabled = true;
+        currentAvailableSapList = [];
+        return;
+      }
+
+      currentAvailableSapList = Array.from(sapMap.entries()).map(([sap, data]) => ({
+        sap: sap,
+        desc: data.desc,
+        bal: data.totalBal
+      }));
+
+      sapSearchInput.disabled = false;
+      sapSearchInput.value = '';
+      sapSearchInput.placeholder = "🔍 Type SAP Code or Description...";
+      renderSapDropdownOptions(currentAvailableSapList);
+    }
+
+    function renderSapDropdownOptions(list) {
+      const dropdown = document.getElementById('sapDropdownList');
+      if (list.length === 0) {
+        dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; text-align:center;">No Matching SAP Code Found</div>';
+        dropdown.style.display = 'block';
+        return;
+      }
+
+      dropdown.innerHTML = list.map(item => `
+        <div class="sap-dropdown-item" onclick="selectSapCodeOption('${item.sap}', '${escapeQuotes(item.desc)}')">
+          <div>
+            <span style="font-weight:bold; color:#0f172a;">${item.sap}</span>
+            <span style="color:#475569; margin-left:6px;">| ${item.desc}</span>
+          </div>
+          <span style="color:#0f766e; font-weight:bold; font-size:11.5px;">Bal: ${item.bal.toFixed(3)}</span>
+        </div>
+      `).join('');
+    }
+
+    function showSapDropdown() {
+      if (currentAvailableSapList.length > 0) {
+        document.getElementById('sapDropdownList').style.display = 'block';
+      }
+    }
+
+    function handleSapSearchInput(term) {
+      const q = term.toLowerCase().trim();
+      const filtered = currentAvailableSapList.filter(item => 
+        item.sap.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q)
+      );
+      renderSapDropdownOptions(filtered);
+      document.getElementById('sapDropdownList').style.display = 'block';
+    }
+
+    function selectSapCodeOption(sap, desc) {
+      document.getElementById('selectedSapCodeVal').value = sap;
+      document.getElementById('sapSearchInput').value = `${sap} | ${desc}`;
+      document.getElementById('sapDescDisplay').innerText = `Description: ${desc}`;
+      document.getElementById('sapDropdownList').style.display = 'none';
+
+      // ૫. પસંદ કરેલા Lot & SAP માટે રો ફિલ્ટર કરવી
+      currentFilteredRows = mtoRecords.filter(r => {
+        const lot = String(r.lot_no || '').trim();
+        const rowSap = String(r.MAT_SAP_CODE || '').trim();
+        const minNo = r.MIN_No ? String(r.MIN_No).trim() : '';
+
+        return selectedLotSet.has(lot) && rowSap === sap && (minNo === '' || minNo === '-' || minNo.toLowerCase() === 'null');
+      });
+
+      // કુલ સરવાળો (Option 3)
+      let totalBal = 0;
+      currentFilteredRows.forEach(r => {
+        const qty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        totalBal += qty;
+      });
+
+      document.getElementById('totalBalanceVal').innerText = totalBal.toFixed(3);
+
+      document.getElementById('inputMinNo').disabled = false;
+      document.getElementById('inputIssuedMinQty').disabled = false;
+      document.getElementById('inputMinDate').disabled = false;
+      document.getElementById('btnSaveMin').disabled = false;
+
+      calculateSmartAllocationPreview();
+    }
+
+    // ૬. Smart Subset-Sum Combination Finder
+    function findExactSubsetCombination(rows, target) {
+      // 0.001 ની ચોકસાઈ (Floating Precision Fix)
+      const targetClean = Math.round(target * 1000);
+      const n = rows.length;
+      let exactMatchIndices = null;
+
+      // તમામ સંભવિત કોમ્બિનેશન (Subsets) ચેક કરવા
+      function search(index, currentSum, chosenIndices) {
+        if (currentSum === targetClean) {
+          exactMatchIndices = [...chosenIndices];
+          return true;
+        }
+        if (index >= n || currentSum > targetClean) return false;
+
+        // ૧. વર્તમાન રો ને સમાવીને ચેક કરો
+        const rowVal = Math.round((parseFloat(rows[index].MIN_qty) || 0) * 1000);
+        chosenIndices.push(index);
+        if (search(index + 1, currentSum + rowVal, chosenIndices)) return true;
+        
+        // ૨. વર્તમાન રો ને સ્કીપ કરીને આગળ વધો
+        chosenIndices.pop();
+        if (search(index + 1, currentSum, chosenIndices)) return true;
+
+        return false;
+      }
+
+      search(0, 0, []);
+      return exactMatchIndices;
+    }
+
+    // ૭. Option 4 & 5: સ્માર્ટ એલોકેશન અને લાઈવ પ્રિવ્યૂ
+    function calculateSmartAllocationPreview() {
+      const minNoVal = document.getElementById('inputMinNo').value.trim() || 'PENDING';
+      const inputVal = parseFloat(document.getElementById('inputIssuedMinQty').value) || 0;
+      const previewArea = document.getElementById('previewArea');
+      const tbody = document.getElementById('previewTableBody');
+      const statusTag = document.getElementById('allocationStatusTag');
+
+      if (inputVal <= 0 || currentFilteredRows.length === 0) {
+        previewArea.style.display = 'none';
+        allocatedBatchUpdates = [];
+        return;
+      }
+
+      allocatedBatchUpdates = [];
+      const previewRowsHtml = [];
+
+      // ૧. શું કોઈ પરફેક્ટ કોમ્બિનેશન મેચ થાય છે? (Exact Match Check)
+      const exactIndices = findExactSubsetCombination(currentFilteredRows, inputVal);
+
+      if (exactIndices !== null) {
+        // ✅ EXACT MATCH FOUND! (જેમ કે Row 1=3 અને Row 3=5 -> Target=8, Row 2 સ્કીપ થશે)
+        isMismatchDetected = false;
+        statusTag.innerHTML = `<span class="badge-allocated">✅ Exact Smart Fit Matched (100% Fit)</span>`;
+
+        const chosenSet = new Set(exactIndices);
+
+        currentFilteredRows.forEach((r, idx) => {
+          const qty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          const isChosen = chosenSet.has(idx);
+
+          if (isChosen) {
+            allocatedBatchUpdates.push({ id: r.id, minNo: minNoVal });
+          }
+
+          previewRowsHtml.push(`
+            <tr style="${isChosen ? 'background:#f0fdf4;' : 'opacity:0.6;'}">
+              <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+              <td><b>${r.Spool_number || '-'}</b></td>
+              <td>${r.lot_no || '-'}</td>
+              <td>${r.MAT_SAP_CODE || '-'}</td>
+              <td>${r.MAT_Description || '-'}</td>
+              <td style="text-align:right; font-weight:bold;">${qty.toFixed(3)}</td>
+              <td style="text-align:center;">
+                ${isChosen ? '<span class="badge-allocated">Allocated</span>' : '<span class="badge-skipped">Skipped</span>'}
+              </td>
+              <td style="text-align:center; font-weight:bold; color:${isChosen ? '#0f766e' : '#94a3b8'};">
+                ${isChosen ? minNoVal : '-'}
+              </td>
+            </tr>
+          `);
+        });
+
+      } else {
+        // ⚠️ MISMATCH DETECTED: કોઈ એક્ઝેક્ટ મેચ નથી
+        isMismatchDetected = true;
+        statusTag.innerHTML = `<span class="badge-partial">⚠️ Allocation Mismatch (Partial / FIFO Order)</span>`;
+
+        let remaining = inputVal;
+
+        currentFilteredRows.forEach((r, idx) => {
+          const qty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          let isChosen = false;
+
+          if (remaining > 0) {
+            allocatedBatchUpdates.push({ id: r.id, minNo: minNoVal });
+            remaining -= qty;
+            isChosen = true;
+          }
+
+          previewRowsHtml.push(`
+            <tr style="${isChosen ? 'background:#fffbeb;' : 'opacity:0.6;'}">
+              <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+              <td><b>${r.Spool_number || '-'}</b></td>
+              <td>${r.lot_no || '-'}</td>
+              <td>${r.MAT_SAP_CODE || '-'}</td>
+              <td>${r.MAT_Description || '-'}</td>
+              <td style="text-align:right; font-weight:bold;">${qty.toFixed(3)}</td>
+              <td style="text-align:center;">
+                ${isChosen ? '<span class="badge-partial">Sequential Fit</span>' : '<span class="badge-skipped">Remaining</span>'}
+              </td>
+              <td style="text-align:center; font-weight:bold; color:${isChosen ? '#b45309' : '#94a3b8'};">
+                ${isChosen ? minNoVal : '-'}
+              </td>
+            </tr>
+          `);
+        });
+      }
+
+      document.getElementById('previewRowCount').innerText = currentFilteredRows.length;
+      tbody.innerHTML = previewRowsHtml.join('');
+      previewArea.style.display = 'block';
+    }
+
+    // ૮. Option 6: બેચ સેવ લોજિક (કન્ફર્મેશન સાથે)
+    async function executeBatchMinSave() {
+      const minNo = document.getElementById('inputMinNo').value.trim();
+      const minDate = document.getElementById('inputMinDate').value;
+      const inputVal = parseFloat(document.getElementById('inputIssuedMinQty').value) || 0;
+
+      if (!minNo || !minDate) {
+        return alert("⚠️ કૃપા કરીને MIN No અને MIN Date બંને દાખલ કરો!");
+      }
+      if (inputVal <= 0 || allocatedBatchUpdates.length === 0) {
+        return alert("⚠️ ફાળવણી કરવા માટે યોગ્ય Issued Qty દાખલ કરો!");
+      }
+
+      // જો મિસમેચ હોય તો સ્પષ્ટપણે પૂછવું:
+      if (isMismatchDetected) {
+        const proceed = confirm(`⚠️ Allocation is mismatch!\n\nદાખલ કરેલ જથ્થો (${inputVal}) ઉપલબ્ધ રો ના સચોટ માપ સાથે મેળ ખાતો નથી.\n\nશું તમે standard allocation સાથે આગળ વધવા માંગો છો?\n(Yes = Proceed, Cancel = Skip/Cancel)`);
+        if (!proceed) return;
+      } else {
+        if (!confirm(`શું તમે ખરેખર ${allocatedBatchUpdates.length} રો માં MIN No: "${minNo}" Save કરવા માંગો છો?`)) return;
+      }
+
+      const saveBtn = document.getElementById('btnSaveMin');
+      saveBtn.disabled = true;
+      saveBtn.innerText = "⏳ Saving Updates to Database...";
+
+      try {
+        const updateBatch = allocatedBatchUpdates.map(item => ({
+          id: item.id,
+          MIN_No: minNo,
+          MIN_Date: minDate
+        }));
+
+        const batchSize = 50;
+        for (let i = 0; i < updateBatch.length; i += batchSize) {
+          const chunk = updateBatch.slice(i, i + batchSize);
+          const { error } = await db.from('mto').upsert(chunk, { onConflict: 'id' });
+          if (error) throw error;
+        }
+
+        alert(`🎉 સફળતાપૂર્વક ${updateBatch.length} MTO રો માં MIN No "${minNo}" અને MIN Date અપડેટ થઈ ગયા!`);
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("સેવ કરવામાં ભૂલ આવી: " + err.message);
+        saveBtn.disabled = false;
+        saveBtn.innerText = "💾 EXECUTE & SAVE MIN UPDATE TO DATABASE";
+      }
+    }
+
+    function resetLowerOptions() {
+      const sapInput = document.getElementById('sapSearchInput');
+      if (sapInput) {
+        sapInput.value = '';
+        sapInput.placeholder = '-- First Select Lot No --';
+        sapInput.disabled = true;
+      }
+      document.getElementById('selectedSapCodeVal').value = '';
+      document.getElementById('sapDropdownList').style.display = 'none';
+      document.getElementById('sapDescDisplay').innerText = 'Description: -';
+      document.getElementById('totalBalanceVal').innerText = '0.000';
+      document.getElementById('inputMinNo').value = '';
+      document.getElementById('inputMinNo').disabled = true;
+      document.getElementById('inputIssuedMinQty').value = '';
+      document.getElementById('inputIssuedMinQty').disabled = true;
+      document.getElementById('inputMinDate').disabled = true;
+      document.getElementById('btnSaveMin').disabled = true;
+      document.getElementById('previewArea').style.display = 'none';
+      currentFilteredRows = [];
+      allocatedBatchUpdates = [];
+      currentAvailableSapList = [];
+    }
+
+    function escapeQuotes(str) {
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.sap-search-wrapper')) {
+        const drop = document.getElementById('sapDropdownList');
+        if (drop) drop.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', loadInitialMtoData);
+  </script>
+</body>
+</html>
