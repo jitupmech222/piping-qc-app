@@ -1,1 +1,598 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IGP Material Issue Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
 
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 16px auto;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      margin-top: 0;
+      color: var(--navy);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label { font-size: 12.5px; font-weight: 700; color: #334155; margin-top: 10px; display: block; }
+    input, select {
+      width: 100%;
+      padding: 9px 12px;
+      margin-top: 4px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 13px;
+      background: #fff;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    /* Form Layout Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* Multi-Select Dropdown Container */
+    .min-select-box {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      margin-top: 4px;
+    }
+    .min-options-list {
+      max-height: 160px;
+      overflow-y: auto;
+      border: 1px solid #f1f5f9;
+      border-radius: 6px;
+      padding: 6px;
+      margin-top: 6px;
+      background: #fafafa;
+    }
+    .min-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+    .min-item:hover { background: #f0fdf4; }
+    .min-item input[type="checkbox"] { width: 15px; height: 15px; margin: 0; cursor: pointer; }
+
+    /* Summary Metric Banner */
+    .balance-banner {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1.5px solid #93c5fd;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .balance-banner-val {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1d4ed8;
+    }
+
+    /* Action Buttons */
+    .btn-action-save {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 16px;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+      transition: all 0.2s;
+    }
+    .btn-action-save:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35); }
+
+    /* Table Grid */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    th, td { border: 1px solid #e2e8f0; padding: 8px 10px; white-space: nowrap; }
+    th { background: #0f4c81; color: white; font-weight: 700; }
+    tr:nth-child(even) td { background: #f8fafc; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div class="top-navbar">
+    <div style="font-size: 16px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+      <span>📦 IGP ISSUE & UPDATE CONSOLE</span>
+    </div>
+    <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h3>📋 Option Selection & Allocation Parameters</h3>
+      
+      <div class="form-grid">
+        <!-- Option 1: Multi-Select MIN No -->
+        <div>
+          <label>Option 1: Select MIN No(s) (Balance Only):</label>
+          <div class="min-select-box">
+            <input type="text" id="minSearchInput" placeholder="🔍 Search MIN No..." oninput="filterMinCheckboxList(this.value)" style="margin-top:0; padding:6px 8px; font-size:12px;">
+            <div id="minCheckboxList" class="min-options-list">
+              <div style="padding:10px; text-align:center; color:#64748b;">⏳ Loading MIN Numbers...</div>
+            </div>
+          </div>
+          <small id="selectedMinDisplay" style="color:#0284c7; font-weight:600; margin-top:4px; display:block;">Selected: None</small>
+        </div>
+
+        <!-- Option 2: Select MAT_SAP_CODE -->
+        <div>
+          <label>Option 2: Select Material SAP Code:</label>
+          <select id="sapCodeSelect" onchange="onSapCodeSelected()" disabled>
+            <option value="">-- First Select MIN No --</option>
+          </select>
+          <small id="sapDescDisplay" style="color:#64748b; margin-top:4px; display:block;">Description: -</small>
+        </div>
+      </div>
+
+      <!-- Option 3: Display Total Balance Available -->
+      <div class="balance-banner">
+        <div>
+          <div style="font-size:12px; font-weight:700; color:#1e40af; text-transform:uppercase;">Option 3: Total Balance Required / Available</div>
+          <div style="font-size:12.5px; color:#475569; margin-top:2px;">(Sum of MIN_qty - Issued_qty for selected MIN & SAP Code)</div>
+        </div>
+        <div class="balance-banner-val" id="totalBalanceVal">0.000</div>
+      </div>
+
+      <!-- Options 4 & 5: Issue Allocation Inputs -->
+      <div class="form-grid" style="margin-top: 14px;">
+        <div>
+          <label>Option 4: Enter New Total Issued Qty to Allocate:</label>
+          <input type="number" id="inputNewIssuedQty" placeholder="e.g. 5" step="any" oninput="calculateLiveAllocationPreview()" disabled>
+        </div>
+        <div>
+          <label>Option 5: Enter IGP No:</label>
+          <input type="text" id="inputIgpNo" placeholder="e.g. 45678" disabled>
+        </div>
+        <div>
+          <label>Option 5: Enter IGP Date:</label>
+          <input type="date" id="inputIgpDate" disabled>
+        </div>
+      </div>
+
+      <button type="button" class="btn-action-save" id="btnSaveIgp" onclick="executeBatchIgpSave()" disabled>💾 EXECUTE & SAVE IGP UPDATE TO DATABASE</button>
+    </div>
+
+    <!-- Live Allocation Preview Table -->
+    <div class="card" id="previewArea" style="display: none;">
+      <h3 style="color:#0f766e;">🔍 Allocation Live Preview (<span id="previewRowCount">0</span> Rows)</h3>
+      <p style="font-size:12.5px; color:#475569; margin-top:0;">તમે ભરેલો જથ્થો નીચે મુજબ રો-બાય-રો (FIFO ક્રમમાં) ફાળવવામાં આવ્યો છે. જો જથ્થો વધશે તો તે છેલ્લી રો માં ઉમેરાશે.</p>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px; text-align:center;">Sr.</th>
+              <th>Spool No</th>
+              <th>MIN No</th>
+              <th>SAP Code</th>
+              <th>Material Description</th>
+              <th style="text-align:right;">MIN Qty</th>
+              <th style="text-align:right; background:#fef3c7; color:#92400e;">Current Issued</th>
+              <th style="text-align:right; background:#dcfce7; color:#15803d;">Newly Allocated</th>
+              <th style="text-align:right; background:#15803d; color:white;">Final Issued Qty</th>
+            </tr>
+          </thead>
+          <tbody id="previewTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let mtoRecords = [];
+    let selectedMinSet = new Set();
+    let currentFilteredRows = [];
+    let allocatedBatchUpdates = [];
+
+    // ૧. ઓથેન્ટિકેશન સુરક્ષા ચેક (Admin Only)
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ IGP Update કરવાની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    // ૨. MTO ડેટા ફેચિંગ
+    async function loadInitialMtoData() {
+      if (!verifyAdminAccess()) return;
+
+      document.getElementById('inputIgpDate').value = new Date().toISOString().split('T')[0];
+      
+      let allRows = [];
+      let from = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db.from('mto').select('*').order('id', { ascending: true }).range(from, from + 999);
+        if (error) {
+          alert("Error fetching MTO: " + error.message);
+          return;
+        }
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += 1000;
+          if (data.length < 1000) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      mtoRecords = allRows;
+      buildMinCheckboxOptions();
+    }
+
+    // ૩. Option 1: માત્ર બેલેન્સ જથ્થો ધરાવતા યુનિક MIN No ની યાદી બનાવવી
+    function buildMinCheckboxOptions() {
+      const minMap = new Map();
+
+      mtoRecords.forEach(r => {
+        if (!r.MIN_No) return;
+        const minNo = String(r.MIN_No).trim();
+        const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        const issuedQty = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        const bal = minQty - issuedQty;
+
+        if (bal > 0) {
+          minMap.set(minNo, (minMap.get(minNo) || 0) + bal);
+        }
+      });
+
+      const container = document.getElementById('minCheckboxList');
+      if (minMap.size === 0) {
+        container.innerHTML = '<div style="padding:10px; color:#16a34a; font-weight:bold;">🎉 All MIN Numbers are Fully Issued!</div>';
+        return;
+      }
+
+      const sortedMins = Array.from(minMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+      container.innerHTML = sortedMins.map(([minNo, bal], idx) => `
+        <div class="min-item">
+          <input type="checkbox" id="min_chk_${idx}" value="${minNo}" onchange="onMinSelectionChange(this.value, this.checked)">
+          <label for="min_chk_${idx}" style="cursor:pointer; margin:0; font-weight:600;">
+            ${minNo} <span style="color:#c2410c; font-size:11px;">(Bal: ${bal.toFixed(3)})</span>
+          </label>
+        </div>
+      `).join('');
+    }
+
+    function filterMinCheckboxList(searchTerm) {
+      const term = searchTerm.toLowerCase().trim();
+      document.querySelectorAll('#minCheckboxList .min-item').forEach(el => {
+        const text = el.innerText.toLowerCase();
+        el.style.display = text.includes(term) ? 'flex' : 'none';
+      });
+    }
+
+    function onMinSelectionChange(minNo, isChecked) {
+      if (isChecked) selectedMinSet.add(minNo);
+      else selectedMinSet.delete(minNo);
+
+      const disp = document.getElementById('selectedMinDisplay');
+      if (selectedMinSet.size === 0) {
+        disp.innerText = "Selected: None";
+        resetLowerOptions();
+        return;
+      }
+
+      disp.innerText = `Selected (${selectedMinSet.size}): ${Array.from(selectedMinSet).join(', ')}`;
+      buildSapCodeDropdown();
+    }
+
+    // ૪. Option 2: પસંદ કરેલા MIN No માટેના SAP Code નું ડ્રોપડાઉન
+    function buildSapCodeDropdown() {
+      const sapSelect = document.getElementById('sapCodeSelect');
+      const sapMap = new Map();
+
+      mtoRecords.forEach(r => {
+        if (!r.MIN_No || !r.MAT_SAP_CODE) return;
+        const minNo = String(r.MIN_No).trim();
+        if (selectedMinSet.has(minNo)) {
+          const sap = String(r.MAT_SAP_CODE).trim();
+          const desc = String(r.MAT_Description || '-').trim();
+          const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          const issuedQty = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          const bal = minQty - issuedQty;
+
+          if (bal > 0) {
+            if (!sapMap.has(sap)) sapMap.set(sap, { desc: desc, totalBal: 0 });
+            sapMap.get(sap).totalBal += bal;
+          }
+        }
+      });
+
+      if (sapMap.size === 0) {
+        sapSelect.innerHTML = '<option value="">-- No Balance Material in Selected MIN --</option>';
+        sapSelect.disabled = true;
+        return;
+      }
+
+      sapSelect.disabled = false;
+      sapSelect.innerHTML = '<option value="">-- Select SAP Code --</option>' + 
+        Array.from(sapMap.entries()).map(([sap, data]) => `
+          <option value="${sap}" data-desc="${data.desc}">
+            ${sap} | ${data.desc} (Bal: ${data.totalBal.toFixed(3)})
+          </option>
+        `).join('');
+    }
+
+    // ૫. Option 3: કુલ બેલેન્સ ગણતરી (Total Available Balance)
+    function onSapCodeSelected() {
+      const sapSelect = document.getElementById('sapCodeSelect');
+      const sap = sapSelect.value;
+      const opt = sapSelect.options[sapSelect.selectedIndex];
+
+      if (!sap) {
+        resetLowerOptions();
+        return;
+      }
+
+      document.getElementById('sapDescDisplay').innerText = `Description: ${opt.getAttribute('data-desc') || '-'}`;
+
+      // સિલેક્ટ કરેલા MIN No અને SAP Code ની બધી રો ફિલ્ટર કરવી
+      currentFilteredRows = mtoRecords.filter(r => {
+        const minNo = String(r.MIN_No || '').trim();
+        const rowSap = String(r.MAT_SAP_CODE || '').trim();
+        if (selectedMinSet.has(minNo) && rowSap === sap) {
+          const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          const issuedQty = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          return (minQty - issuedQty) > 0;
+        }
+        return false;
+      });
+
+      // બેલેન્સ સરવાળો
+      let totalBal = 0;
+      currentFilteredRows.forEach(r => {
+        const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        const issuedQty = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        totalBal += (minQty - issuedQty);
+      });
+
+      document.getElementById('totalBalanceVal').innerText = totalBal.toFixed(3);
+
+      // ઇનપુટ્સ અનલોક કરવા
+      document.getElementById('inputNewIssuedQty').disabled = false;
+      document.getElementById('inputIgpNo').disabled = false;
+      document.getElementById('inputIgpDate').disabled = false;
+      document.getElementById('btnSaveIgp').disabled = false;
+    }
+
+    // ૬. Option 4: FIFO Allocation Algorithm (લાઇવ પ્રિવ્યૂ સાથે)
+    function calculateLiveAllocationPreview() {
+      const inputVal = parseFloat(document.getElementById('inputNewIssuedQty').value) || 0;
+      const previewArea = document.getElementById('previewArea');
+      const tbody = document.getElementById('previewTableBody');
+
+      if (inputVal <= 0 || currentFilteredRows.length === 0) {
+        previewArea.style.display = 'none';
+        allocatedBatchUpdates = [];
+        return;
+      }
+
+      let remainingToAllocate = inputVal;
+      allocatedBatchUpdates = [];
+      const previewRowsHtml = [];
+
+      currentFilteredRows.forEach((r, idx) => {
+        const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        const curIssued = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        const rowBal = Math.max(0, minQty - curIssued);
+
+        const isLastRow = (idx === currentFilteredRows.length - 1);
+        let allocatedNow = 0;
+
+        if (isLastRow) {
+          // છેલ્લી રો: બાકી બચેલો બધો જ જથ્થો (ઓવર-એલોકેશન સહિત) અહીં ઉમેરાશે
+          allocatedNow = remainingToAllocate;
+          remainingToAllocate = 0;
+        } else {
+          if (remainingToAllocate >= rowBal) {
+            allocatedNow = rowBal;
+            remainingToAllocate -= rowBal;
+          } else {
+            allocatedNow = remainingToAllocate;
+            remainingToAllocate = 0;
+          }
+        }
+
+        const finalIssued = curIssued + allocatedNow;
+
+        allocatedBatchUpdates.push({
+          id: r.id,
+          finalIssued: parseFloat(finalIssued.toFixed(3))
+        });
+
+        previewRowsHtml.push(`
+          <tr>
+            <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+            <td><b>${r.Spool_number || '-'}</b></td>
+            <td>${r.MIN_No || '-'}</td>
+            <td>${r.MAT_SAP_CODE || '-'}</td>
+            <td>${r.MAT_Description || '-'}</td>
+            <td style="text-align:right;">${minQty.toFixed(3)}</td>
+            <td style="text-align:right; font-weight:bold; color:#92400e;">${curIssued.toFixed(3)}</td>
+            <td style="text-align:right; font-weight:bold; color:#15803d;">+${allocatedNow.toFixed(3)}</td>
+            <td style="text-align:right; font-weight:800; color:#0f172a; background:#f0fdf4;">${finalIssued.toFixed(3)}</td>
+          </tr>
+        `);
+      });
+
+      document.getElementById('previewRowCount').innerText = currentFilteredRows.length;
+      tbody.innerHTML = previewRowsHtml.join('');
+      previewArea.style.display = 'block';
+    }
+
+    // ૭. Option 5: Supabase Database માં બેચ સેવ કરવું
+    async function executeBatchIgpSave() {
+      const igpNo = document.getElementById('inputIgpNo').value.trim();
+      const igpDate = document.getElementById('inputIgpDate').value;
+
+      if (!igpNo || !igpDate) {
+        return alert("⚠️ કૃપા કરીને IGP No અને IGP Date બંને દાખલ કરો!");
+      }
+      if (allocatedBatchUpdates.length === 0) {
+        return alert("⚠️ ફાળવણી કરવા માટે કોઈ વેલિડ જથ્થો દાખલ કરેલ નથી!");
+      }
+
+      if (!confirm(`શું તમે ખરેખર ${allocatedBatchUpdates.length} રો માં આ IGP ડેટા Save કરવા માંગો છો?`)) return;
+
+      const saveBtn = document.getElementById('btnSaveIgp');
+      saveBtn.disabled = true;
+      saveBtn.innerText = "⏳ Saving Updates to Database...";
+
+      try {
+        const updateBatch = allocatedBatchUpdates.map(item => ({
+          id: item.id,
+          Issued_qty: item.finalIssued,
+          IGP_No: igpNo,
+          IGP_Date: igpDate
+        }));
+
+        const batchSize = 50;
+        for (let i = 0; i < updateBatch.length; i += batchSize) {
+          const chunk = updateBatch.slice(i, i + batchSize);
+          const { error } = await db.from('mto').upsert(chunk, { onConflict: 'id' });
+          if (error) throw error;
+        }
+
+        alert(`🎉 સફળતાપૂર્વક ${updateBatch.length} MTO રો માં IGP Qty, IGP No અને IGP Date અપડેટ થઈ ગયા!`);
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("સેવ કરવામાં ભૂલ આવી: " + err.message);
+        saveBtn.disabled = false;
+        saveBtn.innerText = "💾 EXECUTE & SAVE IGP UPDATE TO DATABASE";
+      }
+    }
+
+    function resetLowerOptions() {
+      document.getElementById('sapCodeSelect').innerHTML = '<option value="">-- First Select MIN No --</option>';
+      document.getElementById('sapCodeSelect').disabled = true;
+      document.getElementById('sapDescDisplay').innerText = 'Description: -';
+      document.getElementById('totalBalanceVal').innerText = '0.000';
+      document.getElementById('inputNewIssuedQty').value = '';
+      document.getElementById('inputNewIssuedQty').disabled = true;
+      document.getElementById('inputIgpNo').value = '';
+      document.getElementById('inputIgpNo').disabled = true;
+      document.getElementById('inputIgpDate').disabled = true;
+      document.getElementById('btnSaveIgp').disabled = true;
+      document.getElementById('previewArea').style.display = 'none';
+      currentFilteredRows = [];
+      allocatedBatchUpdates = [];
+    }
+
+    window.addEventListener('DOMContentLoaded', loadInitialMtoData);
+  </script>
+</body>
+</html>
