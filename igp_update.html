@@ -221,21 +221,21 @@
   <!-- Top Navbar -->
   <div class="top-navbar">
     <div style="font-size: 16px; font-weight: 700; display:flex; align-items:center; gap:8px;">
-      <span>📦 IGP ISSUE & UPDATE CONSOLE</span>
+      <span>IGP UPDATE CONSOLE</span>
     </div>
     <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
   </div>
 
   <div class="container">
     <div class="card">
-      <h3>📋 Option Selection & Allocation Parameters</h3>
+      <h3>Selection & Allocation Parameters</h3>
       
       <div class="form-grid">
         <!-- Option 1: Multi-Select MIN No -->
         <div>
           <label>Select MIN No:</label>
           <div class="min-select-box">
-            <input type="text" id="minSearchInput" placeholder="🔍 Search MIN No..." oninput="filterMinCheckboxList(this.value)" style="margin-top:0; padding:6px 8px; font-size:12px;">
+            <input type="text" id="minSearchInput" placeholder=" Enter MIN No." oninput="filterMinCheckboxList(this.value)" style="margin-top:0; padding:6px 8px; font-size:12px;">
             <div id="minCheckboxList" class="min-options-list">
               <div style="padding:10px; text-align:center; color:#64748b;">⏳ Loading MIN Numbers...</div>
             </div>
@@ -245,9 +245,9 @@
 
         <!-- Option 2: Searchable & Filterable MAT_SAP_CODE -->
         <div>
-          <label>Select Material SAP Code (Type to Search & Filter):</label>
+          <label>Select Material SAP Code</label>
           <div class="sap-search-wrapper">
-            <input type="text" id="sapSearchInput" placeholder="🔍 Type SAP Code or Description to filter..." oninput="handleSapSearchInput(this.value)" onfocus="showSapDropdown()" autocomplete="off" disabled>
+            <input type="text" id="sapSearchInput" placeholder="Enter SAP Code" oninput="handleSapSearchInput(this.value)" onfocus="showSapDropdown()" autocomplete="off" disabled>
             <input type="hidden" id="selectedSapCodeVal">
             <div id="sapDropdownList" class="sap-dropdown-list"></div>
           </div>
