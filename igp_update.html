@@ -202,7 +202,7 @@
       <div class="form-grid">
         <!-- Option 1: Multi-Select MIN No -->
         <div>
-          <label>Option 1: Select MIN No(s) (Balance Only):</label>
+          <label>Select MIN No:</label>
           <div class="min-select-box">
             <input type="text" id="minSearchInput" placeholder="🔍 Search MIN No..." oninput="filterMinCheckboxList(this.value)" style="margin-top:0; padding:6px 8px; font-size:12px;">
             <div id="minCheckboxList" class="min-options-list">
@@ -214,7 +214,7 @@
 
         <!-- Option 2: Select MAT_SAP_CODE -->
         <div>
-          <label>Option 2: Select Material SAP Code:</label>
+          <label>Select Material SAP Code:</label>
           <select id="sapCodeSelect" onchange="onSapCodeSelected()" disabled>
             <option value="">-- First Select MIN No --</option>
           </select>
@@ -225,8 +225,8 @@
       <!-- Option 3: Display Total Balance Available -->
       <div class="balance-banner">
         <div>
-          <div style="font-size:12px; font-weight:700; color:#1e40af; text-transform:uppercase;">Option 3: Total Balance Required / Available</div>
-          <div style="font-size:12.5px; color:#475569; margin-top:2px;">(Sum of MIN_qty - Issued_qty for selected MIN & SAP Code)</div>
+          <div style="font-size:12px; font-weight:700; color:#1e40af; text-transform:uppercase;">Total Balance Qty</div>
+          <div style="font-size:12.5px; color:#475569; margin-top:2px;"></div>
         </div>
         <div class="balance-banner-val" id="totalBalanceVal">0.000</div>
       </div>
@@ -234,15 +234,15 @@
       <!-- Options 4 & 5: Issue Allocation Inputs -->
       <div class="form-grid" style="margin-top: 14px;">
         <div>
-          <label>Option 4: Enter New Total Issued Qty to Allocate:</label>
+          <label>Enter New Issued Qty to Allocate:</label>
           <input type="number" id="inputNewIssuedQty" placeholder="e.g. 5" step="any" oninput="calculateLiveAllocationPreview()" disabled>
         </div>
         <div>
-          <label>Option 5: Enter IGP No:</label>
+          <label>Enter IGP No:</label>
           <input type="text" id="inputIgpNo" placeholder="e.g. 45678" disabled>
         </div>
         <div>
-          <label>Option 5: Enter IGP Date:</label>
+          <label>Enter IGP Date:</label>
           <input type="date" id="inputIgpDate" disabled>
         </div>
       </div>
