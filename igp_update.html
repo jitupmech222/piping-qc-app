@@ -183,6 +183,37 @@
     th, td { border: 1px solid #e2e8f0; padding: 8px 10px; white-space: nowrap; }
     th { background: #0f4c81; color: white; font-weight: 700; }
     tr:nth-child(even) td { background: #f8fafc; }
+    /* Searchable SAP Dropdown Styles */
+    .sap-search-wrapper { position: relative; }
+    .sap-dropdown-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #ffffff;
+      border: 1.5px solid var(--primary);
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+      margin-top: 2px;
+    }
+    .sap-dropdown-item {
+      padding: 8px 12px;
+      font-size: 12.5px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sap-dropdown-item:hover {
+      background: #f0fdf4;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -212,12 +243,14 @@
           <small id="selectedMinDisplay" style="color:#0284c7; font-weight:600; margin-top:4px; display:block;">Selected: None</small>
         </div>
 
-        <!-- Option 2: Select MAT_SAP_CODE -->
+        <!-- Option 2: Searchable & Filterable MAT_SAP_CODE -->
         <div>
-          <label>Select Material SAP Code:</label>
-          <select id="sapCodeSelect" onchange="onSapCodeSelected()" disabled>
-            <option value="">-- First Select MIN No --</option>
-          </select>
+          <label>Select Material SAP Code (Type to Search & Filter):</label>
+          <div class="sap-search-wrapper">
+            <input type="text" id="sapSearchInput" placeholder="🔍 Type SAP Code or Description to filter..." oninput="handleSapSearchInput(this.value)" onfocus="showSapDropdown()" autocomplete="off" disabled>
+            <input type="hidden" id="selectedSapCodeVal">
+            <div id="sapDropdownList" class="sap-dropdown-list"></div>
+          </div>
           <small id="sapDescDisplay" style="color:#64748b; margin-top:4px; display:block;">Description: -</small>
         </div>
       </div>
@@ -389,9 +422,10 @@
       buildSapCodeDropdown();
     }
 
-    // ૪. Option 2: પસંદ કરેલા MIN No માટેના SAP Code નું ડ્રોપડાઉન
+    let currentAvailableSapList = [];
+
     function buildSapCodeDropdown() {
-      const sapSelect = document.getElementById('sapCodeSelect');
+      const sapSearchInput = document.getElementById('sapSearchInput');
       const sapMap = new Map();
 
       mtoRecords.forEach(r => {
@@ -412,18 +446,95 @@
       });
 
       if (sapMap.size === 0) {
-        sapSelect.innerHTML = '<option value="">-- No Balance Material in Selected MIN --</option>';
-        sapSelect.disabled = true;
+        sapSearchInput.value = '';
+        sapSearchInput.placeholder = "-- No Balance Material in Selected MIN --";
+        sapSearchInput.disabled = true;
+        currentAvailableSapList = [];
         return;
       }
 
-      sapSelect.disabled = false;
-      sapSelect.innerHTML = '<option value="">-- Select SAP Code --</option>' + 
-        Array.from(sapMap.entries()).map(([sap, data]) => `
-          <option value="${sap}" data-desc="${data.desc}">
-            ${sap} | ${data.desc} (Bal: ${data.totalBal.toFixed(3)})
-          </option>
-        `).join('');
+      // લિસ્ટને એરેમાં સ્ટોર કરવું જેથી સર્ચ કરતી વખતે ઝડપથી ફિલ્ટર થાય
+      currentAvailableSapList = Array.from(sapMap.entries()).map(([sap, data]) => ({
+        sap: sap,
+        desc: data.desc,
+        bal: data.totalBal
+      }));
+
+      sapSearchInput.disabled = false;
+      sapSearchInput.value = '';
+      sapSearchInput.placeholder = "🔍 Type SAP Code or Description...";
+      renderSapDropdownOptions(currentAvailableSapList);
+    }
+
+    function renderSapDropdownOptions(list) {
+      const dropdown = document.getElementById('sapDropdownList');
+      if (list.length === 0) {
+        dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; text-align:center;">No Matching SAP Code Found</div>';
+        dropdown.style.display = 'block';
+        return;
+      }
+
+      dropdown.innerHTML = list.map(item => `
+        <div class="sap-dropdown-item" onclick="selectSapCodeOption('${item.sap}', '${escapeQuotes(item.desc)}')">
+          <div>
+            <span style="font-weight:bold; color:#0f172a;">${item.sap}</span>
+            <span style="color:#475569; margin-left:6px;">| ${item.desc}</span>
+          </div>
+          <span style="color:#c2410c; font-weight:bold; font-size:11.5px;">Bal: ${item.bal.toFixed(3)}</span>
+        </div>
+      `).join('');
+    }
+
+    function showSapDropdown() {
+      if (currentAvailableSapList.length > 0) {
+        document.getElementById('sapDropdownList').style.display = 'block';
+      }
+    }
+
+    // ટાઈપ કરતી વખતે ફિલ્ટર કરવું (SAP Code અથવા Description બંનેમાંથી સર્ચ કરશે)
+    function handleSapSearchInput(term) {
+      const q = term.toLowerCase().trim();
+      const filtered = currentAvailableSapList.filter(item => 
+        item.sap.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q)
+      );
+      renderSapDropdownOptions(filtered);
+      document.getElementById('sapDropdownList').style.display = 'block';
+    }
+
+    // લિસ્ટમાંથી ક્લિક કરતાં સિલેક્ટ થવું
+    function selectSapCodeOption(sap, desc) {
+      document.getElementById('selectedSapCodeVal').value = sap;
+      document.getElementById('sapSearchInput').value = `${sap} | ${desc}`;
+      document.getElementById('sapDescDisplay').innerText = `Description: ${desc}`;
+      document.getElementById('sapDropdownList').style.display = 'none';
+
+      // સિલેક્ટ કરેલા SAP Code માટે બેલેન્સ કેલ્ક્યુલેટ કરવું
+      currentFilteredRows = mtoRecords.filter(r => {
+        const minNo = String(r.MIN_No || '').trim();
+        const rowSap = String(r.MAT_SAP_CODE || '').trim();
+        if (selectedMinSet.has(minNo) && rowSap === sap) {
+          const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          const issuedQty = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          return (minQty - issuedQty) > 0;
+        }
+        return false;
+      });
+
+      let totalBal = 0;
+      currentFilteredRows.forEach(r => {
+        const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        const issuedQty = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        totalBal += (minQty - issuedQty);
+      });
+
+      document.getElementById('totalBalanceVal').innerText = totalBal.toFixed(3);
+
+      document.getElementById('inputNewIssuedQty').disabled = false;
+      document.getElementById('inputIgpNo').disabled = false;
+      document.getElementById('inputIgpDate').disabled = false;
+      document.getElementById('btnSaveIgp').disabled = false;
+      
+      calculateLiveAllocationPreview();
     }
 
     // ૫. Option 3: કુલ બેલેન્સ ગણતરી (Total Available Balance)
@@ -577,8 +688,14 @@
     }
 
     function resetLowerOptions() {
-      document.getElementById('sapCodeSelect').innerHTML = '<option value="">-- First Select MIN No --</option>';
-      document.getElementById('sapCodeSelect').disabled = true;
+      const sapInput = document.getElementById('sapSearchInput');
+      if (sapInput) {
+        sapInput.value = '';
+        sapInput.placeholder = '-- First Select MIN No --';
+        sapInput.disabled = true;
+      }
+      document.getElementById('selectedSapCodeVal').value = '';
+      document.getElementById('sapDropdownList').style.display = 'none';
       document.getElementById('sapDescDisplay').innerText = 'Description: -';
       document.getElementById('totalBalanceVal').innerText = '0.000';
       document.getElementById('inputNewIssuedQty').value = '';
@@ -590,7 +707,20 @@
       document.getElementById('previewArea').style.display = 'none';
       currentFilteredRows = [];
       allocatedBatchUpdates = [];
+      currentAvailableSapList = [];
     }
+
+    function escapeQuotes(str) {
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // સ્ક્રીન પર બહાર ગમે ત્યાં ક્લિક કરતાં ડ્રોપડાઉન બંધ થાય તે માટે
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.sap-search-wrapper')) {
+        const drop = document.getElementById('sapDropdownList');
+        if (drop) drop.style.display = 'none';
+      }
+    });
 
     window.addEventListener('DOMContentLoaded', loadInitialMtoData);
   </script>
