@@ -690,7 +690,11 @@
           <span class="step-badge" style="background:#fff; color:#0284c7;">📦</span>
           <span>IGP UPDATE</span>
         </button>
-
+<!-- MIN UPDATE (Admin Only) -->
+<button class="menu-btn" id="btnMinUpdateHub" style="display: none; background: linear-gradient(135deg, #0d9488 0%, #115e59 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);" onclick="window.location.href='min_update.html'">
+  <span class="step-badge" style="background:#fff; color:#0d9488;">📋</span>
+  <span>MIN UPDATE</span>
+</button>
         <button class="menu-btn btn-view" onclick="openStage('view_records')"><span>📊 VIEW MASTER REGISTER</span></button>
       </div>
     </div>
@@ -1067,6 +1071,11 @@
     if (btnUpdateHub) btnUpdateHub.style.display = isAdmin ? 'flex' : 'none';
     if (btnIgpHub) btnIgpHub.style.display = isAdmin ? 'flex' : 'none'; // 👈 આ લાઈન ઉમેરો
 
+    <!-- MIN UPDATE (Admin Only) -->
+<button class="menu-btn" id="btnMinUpdateHub" style="display: none; background: linear-gradient(135deg, #0d9488 0%, #115e59 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);" onclick="window.location.href='min_update.html'">
+  <span class="step-badge" style="background:#fff; color:#0d9488;">📋</span>
+  <span>MIN UPDATE</span>
+</button>
     // ૨. Master Register Actions (Only Admin)
     const btnMasterSync = document.getElementById('btnMasterUpdateFromMto');
     const btnMasterDl = document.getElementById('btnMasterDownloadExcel');
