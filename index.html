@@ -683,18 +683,21 @@
         <button class="menu-btn btn-mto-hub" onclick="openMtoRegister()"><span class="step-badge" style="background:#fff; color:#0f766e;">📋</span><span>MTO REGISTER</span></button>
 
        <!-- Data Update Hub (Admin Only) -->
+        <!-- Data Update Hub (Admin Only) -->
         <button class="menu-btn btn-update-hub" id="btnDataUpdateHub" style="display: none;" onclick="openDataUpdateHub()"><span class="step-badge" style="background:#fff; color:#7c3aed;">🔄</span><span>DATA UPDATE</span></button>
 
-        <!-- 👉 નવું ઉમેરો: IGP UPDATE (Admin Only - Separate Program Link) -->
+        <!-- IGP UPDATE (Admin Only) -->
         <button class="menu-btn" id="btnIgpUpdateHub" style="display: none; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);" onclick="window.location.href='igp_update.html'">
           <span class="step-badge" style="background:#fff; color:#0284c7;">📦</span>
           <span>IGP UPDATE</span>
         </button>
-<!-- MIN UPDATE (Admin Only) -->
-<button class="menu-btn" id="btnMinUpdateHub" style="display: none; background: linear-gradient(135deg, #0d9488 0%, #115e59 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);" onclick="window.location.href='min_update.html'">
-  <span class="step-badge" style="background:#fff; color:#0d9488;">📋</span>
-  <span>MIN UPDATE</span>
-</button>
+
+        <!-- MIN UPDATE (Admin Only) -->
+        <button class="menu-btn" id="btnMinUpdateHub" style="display: none; background: linear-gradient(135deg, #0d9488 0%, #115e59 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);" onclick="window.location.href='min_update.html'">
+          <span class="step-badge" style="background:#fff; color:#0d9488;">📋</span>
+          <span>MIN UPDATE</span>
+        </button>
+
         <button class="menu-btn btn-view" onclick="openStage('view_records')"><span>📊 VIEW MASTER REGISTER</span></button>
       </div>
     </div>
@@ -1063,26 +1066,25 @@
     if (!currentUser) return;
     const isAdmin = currentUser.username === 'admin';
 
-    // ૧. Main Menu & Report Actions
+    // Main Menu & Report Actions
     const btnShareWA = document.getElementById('btnShareWhatsApp');
     const btnUpdateHub = document.getElementById('btnDataUpdateHub');
-    const btnIgpHub = document.getElementById('btnIgpUpdateHub'); // 👈 આ લાઈન ઉમેરો
     if (btnShareWA) btnShareWA.style.display = isAdmin ? 'inline-flex' : 'none';
     if (btnUpdateHub) btnUpdateHub.style.display = isAdmin ? 'flex' : 'none';
-    if (btnIgpHub) btnIgpHub.style.display = isAdmin ? 'flex' : 'none'; // 👈 આ લાઈન ઉમેરો
 
-    <!-- MIN UPDATE (Admin Only) -->
-<button class="menu-btn" id="btnMinUpdateHub" style="display: none; background: linear-gradient(135deg, #0d9488 0%, #115e59 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);" onclick="window.location.href='min_update.html'">
-  <span class="step-badge" style="background:#fff; color:#0d9488;">📋</span>
-  <span>MIN UPDATE</span>
-</button>
-    // ૨. Master Register Actions (Only Admin)
+    // 👉 આ બે લાઈનો ખાસ ચેક કરો / ઉમેરી દો:
+    const btnIgpHub = document.getElementById('btnIgpUpdateHub');
+    const btnMinHub = document.getElementById('btnMinUpdateHub');
+    if (btnIgpHub) btnIgpHub.style.display = isAdmin ? 'flex' : 'none';
+    if (btnMinHub) btnMinHub.style.display = isAdmin ? 'flex' : 'none';
+
+    // Master Register Actions (Only Admin)
     const btnMasterSync = document.getElementById('btnMasterUpdateFromMto');
     const btnMasterDl = document.getElementById('btnMasterDownloadExcel');
     if (btnMasterSync) btnMasterSync.style.display = isAdmin ? 'inline-block' : 'none';
     if (btnMasterDl) btnMasterDl.style.display = isAdmin ? 'inline-flex' : 'none';
 
-    // ૩. MTO Register Actions (Only Admin)
+    // MTO Register Actions (Only Admin)
     const btnMtoSync = document.getElementById('btnMtoSyncFromMaster');
     const btnMtoDl = document.getElementById('btnMtoDownloadExcel');
     const btnMtoSummaryDl = document.getElementById('btnMtoDownloadSummaryExcel');
