@@ -233,12 +233,12 @@
 
   <div class="container">
     <div class="card">
-      <h3>⚙️ MIN Allocation Setup</h3>
+      <h3> MIN Allocation</h3>
       
       <div class="form-grid">
         <!-- Option 1: Multi-Select Lot No -->
         <div>
-          <label>Option 1: Select Lot No(s) (Where MIN is Blank):</label>
+          <label>Select Lot No:</label>
           <div class="lot-select-box">
             <input type="text" id="lotSearchInput" placeholder="🔍 Search Lot No..." oninput="filterLotCheckboxList(this.value)" style="margin-top:0; padding:6px 8px; font-size:12px;">
             <div id="lotCheckboxList" class="lot-options-list">
@@ -250,7 +250,7 @@
 
         <!-- Option 2: Searchable SAP Code -->
         <div>
-          <label>Option 2: Select Material SAP Code:</label>
+          <label>Select Material SAP Code:</label>
           <div class="sap-search-wrapper">
             <input type="text" id="sapSearchInput" placeholder="🔍 Type SAP Code or Description..." oninput="handleSapSearchInput(this.value)" onfocus="showSapDropdown()" autocomplete="off" disabled>
             <input type="hidden" id="selectedSapCodeVal">
@@ -263,8 +263,8 @@
       <!-- Option 3: Display Total Balance Available -->
       <div class="balance-banner">
         <div>
-          <div style="font-size:12px; font-weight:700; color:#0f766e; text-transform:uppercase;">Option 3: Total Balance MIN Qty</div>
-          <div style="font-size:12.5px; color:#475569; margin-top:2px;">(Sum of MIN_qty where MIN_No is blank for selected Lot & SAP)</div>
+          <div style="font-size:12px; font-weight:700; color:#0f766e; text-transform:uppercase;">Total Balance MIN Qty</div>
+          <div style="font-size:12.5px; color:#475569; margin-top:2px;"></div>
         </div>
         <div class="balance-banner-val" id="totalBalanceVal">0.000</div>
       </div>
@@ -272,15 +272,15 @@
       <!-- Options 4, 5 & 6: Inputs -->
       <div class="form-grid" style="margin-top: 14px;">
         <div>
-          <label>Option 4: Enter MIN No:</label>
+          <label>Enter MIN No:</label>
           <input type="text" id="inputMinNo" placeholder="e.g. 11035" disabled>
         </div>
         <div>
-          <label>Option 5: Enter Total Issued MIN Qty to Allocate:</label>
+          <label>Enter Total Issued MIN Qty to Allocate:</label>
           <input type="number" id="inputIssuedMinQty" placeholder="e.g. 8" step="any" oninput="calculateSmartAllocationPreview()" disabled>
         </div>
         <div>
-          <label>Option 6: Enter MIN Date:</label>
+          <label>Enter MIN Date:</label>
           <input type="date" id="inputMinDate" disabled>
         </div>
       </div>
