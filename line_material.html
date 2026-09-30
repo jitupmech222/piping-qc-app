@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Line List & Material Console</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- પ્રોફેશનલ Excel ફાઇલ બનાવવા/વાંચવા માટે ExcelJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+
+    .container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 12px 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    }
+
+    .sub-btn {
+      border: none;
+      border-radius: 30px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      transition: all 0.2s;
+    }
+
+    .btn-action {
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .master-table-container {
+      overflow: auto;
+      margin-top: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      height: calc(100vh - 145px);
+    }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; background-color: #fff; }
+    th { background-color: #0f4c81; color: white; font-weight: 700; position: sticky; top: 0; z-index: 5; }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <div class="top-navbar">
+    <div style="font-size: 15px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+      <span>📑 LINE LIST & MATERIAL CONSOLE (ADMIN)</span>
+    </div>
+    <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+        <!-- Two Sub Selection Buttons -->
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button type="button" id="btnSubLineList" class="sub-btn" style="background:#0284c7;" onclick="switchModuleView('line_list')">
+            📋 1. Line List (<span id="llTotalCount">0</span>)
+          </button>
+          <button type="button" id="btnSubSapCode" class="sub-btn" style="background:#64748b;" onclick="switchModuleView('sap_code')">
+            📦 2. Sap Code (<span id="sapTotalCount">0</span>)
+          </button>
+        </div>
+
+        <!-- Download & Upload Actions -->
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <input type="text" id="searchInput" placeholder="Search..." oninput="handleSearch(this.value)" style="padding:6px 10px; width:150px; font-size:12px; border:1.5px solid #cbd5e1; border-radius:6px;">
+          <button type="button" class="btn-action" style="background:#0284c7;" onclick="downloadModuleExcel()">📥 Download Excel</button>
+          <button type="button" class="btn-action" id="btnUploadTrigger" style="background:#15803d;" onclick="document.getElementById('fileInput').click()">📤 Upload & Update</button>
+          <input type="file" id="fileInput" accept=".xlsx, .xls" style="display:none;" onchange="uploadAndApplyExcel(event)">
+        </div>
+      </div>
+
+      <!-- Live Master-Style Register Table -->
+      <div class="master-table-container">
+        <table>
+          <thead>
+            <tr id="tableHeaderRow"></tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="20" style="text-align:center; padding:20px;">⏳ Loading Data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Schema Columns
+    const LINE_LIST_COLS = [
+      { key: 'CWP', label: 'CWP' },
+      { key: 'System_UG_AG', label: 'System_UG_AG' },
+      { key: 'Unit_WBS', label: 'Unit_WBS' },
+      { key: 'UNIT', label: 'UNIT' },
+      { key: 'Service', label: 'Service' },
+      { key: 'Drawing_no', label: 'Drawing_no' },
+      { key: 'Spool_number', label: 'Spool_number' },
+      { key: 'Spool_size', label: 'Spool_size' },
+      { key: 'Rev_no', label: 'Rev_no' },
+      { key: 'Allocation', label: 'Allocation' },
+      { key: 'MOC', label: 'MOC' },
+      { key: 'IBR_NON_IBR', label: 'IBR_NON_IBR' },
+      { key: 'Paint_code', label: 'Paint_code' },
+      { key: 'Pipe_Class', label: 'Pipe_Class' },
+      { key: 'Fab_Type', label: 'Fab_Type' }
+    ];
+
+    const SAP_CODE_COLS = [
+      { key: 'MAT_SAP_CODE', label: 'MAT_SAP_CODE' },
+      { key: 'Size_1', label: 'Size_1' },
+      { key: 'Size_2', label: 'Size_2' },
+      { key: 'Unit', label: 'Unit' },
+      { key: 'MAT_Description', label: 'MAT_Description' }
+    ];
+
+    let currentModule = 'line_list';
+    let lineListCache = [];
+    let sapCodeCache = [];
+    let activeDisplayRows = [];
+
+    // ૧. ઓથેન્ટિકેશન સુરક્ષા ચેક (Admin Only)
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ આ પેજ જોવાની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    // ૨. સબ-વ્યુ સ્વિચ કરવું
+    async function switchModuleView(type) {
+      currentModule = type;
+      document.getElementById('searchInput').value = '';
+      const btnLL = document.getElementById('btnSubLineList');
+      const btnSap = document.getElementById('btnSubSapCode');
+
+      if (type === 'line_list') {
+        btnLL.style.background = '#0284c7';
+        btnSap.style.background = '#64748b';
+        buildHeader(LINE_LIST_COLS);
+        await loadData('Line_list');
+      } else {
+        btnLL.style.background = '#64748b';
+        btnSap.style.background = '#0d9488';
+        buildHeader(SAP_CODE_COLS);
+        await loadData('Sap_code');
+      }
+    }
+
+    function buildHeader(cols) {
+      const tr = document.getElementById('tableHeaderRow');
+      tr.innerHTML = `
+        <th style="width:40px; text-align:center;">Sr.</th>
+        <th style="width:50px; text-align:center;">id</th>
+        ${cols.map(c => `<th>${c.key}</th>`).join('')}
+      `;
+    }
+
+    // ૩. Supabase માંથી ડેટા ફેચિંગ
+    async function loadData(tableName) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = `<tr><td colspan="22" style="text-align:center; padding:20px;">⏳ Loading ${tableName}...</td></tr>`;
+
+      let allRows = [];
+      let from = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db.from(tableName).select('*').order('id', { ascending: true }).range(from, from + 999);
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="22" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
+          return;
+        }
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += 1000;
+          if (data.length < 1000) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      if (tableName === 'Line_list') {
+        lineListCache = allRows;
+        activeDisplayRows = lineListCache;
+        document.getElementById('llTotalCount').innerText = lineListCache.length;
+      } else {
+        sapCodeCache = allRows;
+        activeDisplayRows = sapCodeCache;
+        document.getElementById('sapTotalCount').innerText = sapCodeCache.length;
+      }
+
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      const cols = currentModule === 'line_list' ? LINE_LIST_COLS : SAP_CODE_COLS;
+
+      if (activeDisplayRows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px; color:#64748b;">No records found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = activeDisplayRows.slice(0, 1000).map((r, idx) => `
+        <tr>
+          <td style="text-align:center; font-weight:600;">${idx + 1}</td>
+          <td style="text-align:center; font-weight:bold; color:#0369a1;">${r.id}</td>
+          ${cols.map(c => `<td>${r[c.key] !== null && r[c.key] !== undefined ? r[c.key] : '-'}</td>`).join('')}
+        </tr>
+      `).join('');
+    }
+
+    // ૪. લાઈવ સર્ચ ફિલ્ટર
+    function handleSearch(term) {
+      const q = term.toLowerCase().trim();
+      const source = currentModule === 'line_list' ? lineListCache : sapCodeCache;
+      const cols = currentModule === 'line_list' ? LINE_LIST_COLS : SAP_CODE_COLS;
+
+      if (!q) {
+        activeDisplayRows = source;
+      } else {
+        activeDisplayRows = source.filter(r => {
+          return cols.some(c => String(r[c.key] || '').toLowerCase().includes(q)) || String(r.id).includes(q);
+        });
+      }
+      renderTable();
+    }
+
+    // ૫. Database Header સાથે Excel ડાઉનલોડ
+    async function downloadModuleExcel() {
+      if (!activeDisplayRows || activeDisplayRows.length === 0) {
+        return alert("⚠️ ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
+      }
+
+      const cols = currentModule === 'line_list' ? LINE_LIST_COLS : SAP_CODE_COLS;
+      const headers = ["id", ...cols.map(c => c.key)];
+
+      const excelRows = activeDisplayRows.map(r => {
+        const obj = { id: r.id };
+        cols.forEach(c => {
+          obj[c.key] = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+        });
+        return obj;
+      });
+
+      const fileName = currentModule === 'line_list' ? 'Line_list_Database' : 'Sap_code_Database';
+      const today = new Date().toISOString().split('T')[0];
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Sheet1', { views: [{ showGridLines: true }] });
+
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 26;
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9EAD3' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+      });
+
+      excelRows.forEach(rowItem => {
+        const rowValues = headers.map(col => rowItem[col] !== undefined && rowItem[col] !== null ? rowItem[col] : '');
+        const dataRow = worksheet.addRow(rowValues);
+        dataRow.height = 20;
+        dataRow.eachCell((cell) => {
+          cell.font = { name: 'Calibri', size: 11 };
+          cell.border = { top: { style: 'thin', color: { argb: 'FFD3D3D3' } }, left: { style: 'thin', color: { argb: 'FFD3D3D3' } }, bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } }, right: { style: 'thin', color: { argb: 'FFD3D3D3' } } };
+        });
+      });
+
+      worksheet.columns.forEach((column) => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          const val = cell.value ? cell.value.toString() : '';
+          if (val.length > maxLength) maxLength = val.length;
+        });
+        column.width = Math.max(maxLength + 4, 12);
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${fileName}_${today}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    // ૬. Excel Upload & Batch Database Update
+    async function uploadAndApplyExcel(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const tableName = currentModule === 'line_list' ? 'Line_list' : 'Sap_code';
+      const cols = currentModule === 'line_list' ? LINE_LIST_COLS : SAP_CODE_COLS;
+
+      const reader = new FileReader();
+      reader.onload = async function (e) {
+        try {
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(e.target.result);
+          const worksheet = workbook.worksheets[0];
+
+          const rows = [];
+          const headers = [];
+          worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) {
+              row.eachCell((cell, colNumber) => {
+                headers[colNumber] = String(cell.value || '').trim();
+              });
+            } else {
+              const rowObj = {};
+              row.eachCell((cell, colNumber) => {
+                const h = headers[colNumber];
+                if (h) rowObj[h] = cell.value;
+              });
+              if (Object.keys(rowObj).length > 0) rows.push(rowObj);
+            }
+          });
+
+          if (rows.length === 0) {
+            alert("ફાઈલમાં કોઈ ડેટા મળ્યો નથી!");
+            event.target.value = '';
+            return;
+          }
+
+          const hasId = rows[0].hasOwnProperty('id') || rows[0].hasOwnProperty('ID');
+          if (!hasId) {
+            alert("❌ ભૂલ: Excel ફાઈલમાં 'id' કૉલમ હોવી ફરજિયાત છે! ડાઉનલોડ કરેલી ફાઈલમાં જ એડિટ કરીને અપલોડ કરો.");
+            event.target.value = '';
+            return;
+          }
+
+          if (!confirm(`શું તમે ખરેખર ${rows.length} રેકોર્ડ્સ ${tableName} Database માં અપડેટ કરવા માંગો છો?`)) {
+            event.target.value = '';
+            return;
+          }
+
+          const tbody = document.getElementById('tableBody');
+          tbody.innerHTML = `<tr><td colspan="22" style="text-align:center; padding:20px; color:#2563eb;">⏳ Updating ${tableName} Database in batches...</td></tr>`;
+
+          const batchSize = 50;
+          let updatedCount = 0;
+
+          for (let i = 0; i < rows.length; i += batchSize) {
+            const batch = rows.slice(i, i + batchSize).map(r => {
+              const rowId = r.id !== undefined ? r.id : r.ID;
+              const cleanObj = { id: rowId };
+
+              cols.forEach(c => {
+                let rawVal = r[c.key] !== undefined ? r[c.key] : r[c.label];
+                if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) {
+                  cleanObj[c.key] = null;
+                } else {
+                  cleanObj[c.key] = String(rawVal).trim();
+                }
+              });
+
+              return cleanObj;
+            });
+
+            const { error } = await db.from(tableName).upsert(batch, { onConflict: 'id' });
+            if (error) throw error;
+            updatedCount += batch.length;
+          }
+
+          alert(`🎉 સફળતાપૂર્વક ${updatedCount} રેકોર્ડ્સ ${tableName} માં અપડેટ થઈ ગયા!`);
+          event.target.value = '';
+          await loadData(tableName);
+        } catch (err) {
+          console.error(err);
+          alert("અપડેટ કરવામાં ભૂલ આવી: " + err.message);
+          event.target.value = '';
+          await loadData(tableName);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifyAdminAccess()) {
+        switchModuleView('line_list');
+      }
+    });
+  </script>
+</body>
+</html>
