@@ -233,8 +233,7 @@
     function buildHeader(cols) {
       const tr = document.getElementById('tableHeaderRow');
       tr.innerHTML = `
-        <th style="width:40px; text-align:center;">Sr.</th>
-        <th style="width:50px; text-align:center;">id</th>
+        <th style="width:60px; text-align:center;">id</th>
         ${cols.map(c => `<th>${c.key}</th>`).join('')}
       `;
     }
@@ -285,14 +284,12 @@
         return;
       }
 
-      tbody.innerHTML = activeDisplayRows.slice(0, 1000).map((r, idx) => `
+      tbody.innerHTML = activeDisplayRows.slice(0, 1000).map(r => `
         <tr>
-          <td style="text-align:center; font-weight:600;">${idx + 1}</td>
           <td style="text-align:center; font-weight:bold; color:#0369a1;">${r.id}</td>
           ${cols.map(c => `<td>${r[c.key] !== null && r[c.key] !== undefined ? r[c.key] : '-'}</td>`).join('')}
         </tr>
       `).join('');
-    }
 
     // ૪. લાઈવ સર્ચ ફિલ્ટર
     function handleSearch(term) {
