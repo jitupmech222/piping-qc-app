@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTO Fast Entry & Update Console</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-dark: #6d28d9;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+
+    /* 50% - 50% Responsive Split Container */
+    .split-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 20px;
+      box-sizing: border-box;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 900px) {
+      .split-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+      box-sizing: border-box;
+    }
+
+    .panel-header {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--navy);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+      margin-top: 0;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 14px;
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 5px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 13.5px;
+      background: #fff;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+    }
+
+    .info-badge {
+      display: block;
+      margin-top: 5px;
+      font-size: 12.5px;
+      font-weight: 600;
+      min-height: 18px;
+    }
+
+    .badge-success { color: #16a34a; }
+    .badge-error { color: #dc2626; }
+    .badge-neutral { color: var(--text-muted); }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 22px;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+      transition: all 0.2s;
+    }
+    .btn-submit:hover { opacity: 0.95; transform: translateY(-1px); }
+    .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* Right Table Style */
+    .table-wrapper {
+      max-height: calc(100vh - 190px);
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 9px 12px;
+      white-space: nowrap;
+    }
+
+    th {
+      background-color: #0f172a;
+      color: white;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    tr:nth-child(even) td { background-color: #f8fafc; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div class="top-navbar">
+    <div style="font-size: 16px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+      <span>📦 MTO ENTRY & UPDATE CONSOLE</span>
+    </div>
+    <a href="line_material.html" class="btn-back">⬅️ Back to Line List & Material</a>
+  </div>
+
+  <div class="split-container">
+    
+    <!-- ૫૦% ડાબી બાજુ: Data Entry Form -->
+    <div class="panel-card">
+      <h3 class="panel-header">✏️ Input Material Details</h3>
+
+      <!-- Input 1: Spool Number -->
+      <div>
+        <label>1. Spool Number:</label>
+        <input type="text" id="inputSpoolNo" placeholder="Type Spool No (e.g. 7-14582)" oninput="handleSpoolLookup(this.value.trim())" autocomplete="off">
+        <span id="spoolLookupMsg" class="info-badge badge-neutral">Line List માંથી Drawing No ચકાસવા માટે Spool દાખલ કરો...</span>
+      </div>
+
+      <!-- Input 2: SAP Code (Last 5 digits or full) -->
+      <div>
+        <label>2. Material SAP Code (Enter Last 5 Digits or Full):</label>
+        <input type="text" id="inputSapSearch" placeholder="Type last 5 digits (e.g. 50333)" oninput="handleSapLookup(this.value.trim())" autocomplete="off" disabled>
+        <span id="sapLookupMsg" class="info-badge badge-neutral">Sap Code માંથી Description જોવા માટે 5 આંકડા દાખલ કરો...</span>
+      </div>
+
+      <!-- Input 3: MIN Quantity -->
+      <div>
+        <label>3. MIN Quantity:</label>
+        <input type="number" id="inputMinQty" placeholder="Enter quantity (e.g. 5)" step="any" disabled>
+      </div>
+
+      <button type="button" class="btn-submit" id="btnAddMto" onclick="submitMtoEntry()" disabled>➕ ADD TO MTO</button>
+    </div>
+
+    <!-- ૫૦% જમણી બાજુ: Live Information Table -->
+    <div class="panel-card">
+      <h3 class="panel-header">
+        <span>📋 Material History (For Information)</span>
+        <span id="spoolHistoryBadge" style="font-size:12px; font-weight:600; color:#7c3aed;">No Spool Selected</span>
+      </h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0;">
+        આ Spool સામે MTO ટેબલમાં અગાઉ સેવ થયેલા મટિરિયલની લાઈવ વિગતો અહીં દેખાશે:
+      </p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 45px; text-align: center;">Sr No</th>
+              <th>MAT_SAP_CODE</th>
+              <th>MAT_Description</th>
+              <th style="text-align: right; width: 80px;">MIN_qty</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 25px;">
+                માહિતી જોવા માટે ડાબી બાજુ Spool Number દાખલ કરો.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Dynamic State
+    let lineListData = null;
+    let selectedSapData = null;
+    let currentSpoolMtoHistory = [];
+
+    // ૧. Admin ઓથેન્ટિકેશન સુરક્ષા
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ આ પેજ જોવાની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    // ૨. Input 1: Spool Lookup in Line_list & MTO History
+    async function handleSpoolLookup(spoolVal) {
+      const spoolMsg = document.getElementById('spoolLookupMsg');
+      const sapInput = document.getElementById('inputSapSearch');
+      const qtyInput = document.getElementById('inputMinQty');
+      const btnAdd = document.getElementById('btnAddMto');
+      const historyBadge = document.getElementById('spoolHistoryBadge');
+
+      lineListData = null;
+      resetSapFields();
+
+      if (!spoolVal) {
+        spoolMsg.className = 'info-badge badge-neutral';
+        spoolMsg.innerText = 'Line List માંથી Drawing No ચકાસવા માટે Spool દાખલ કરો...';
+        historyBadge.innerText = 'No Spool Selected';
+        renderHistoryTable([]);
+        sapInput.disabled = true;
+        qtyInput.disabled = true;
+        btnAdd.disabled = true;
+        return;
+      }
+
+      spoolMsg.className = 'info-badge badge-neutral';
+      spoolMsg.innerText = '🔍 Checking Line List & MTO records...';
+
+      // Line_list ટેબલમાંથી ચેક કરવું
+      const { data: lineRows, error: lineErr } = await db
+        .from('Line_list')
+        .select('*')
+        .eq('Spool_number', spoolVal)
+        .limit(1);
+
+      if (lineErr) {
+        spoolMsg.className = 'info-badge badge-error';
+        spoolMsg.innerText = 'Error checking Line List: ' + lineErr.message;
+        return;
+      }
+
+      if (!lineRows || lineRows.length === 0) {
+        spoolMsg.className = 'info-badge badge-error';
+        spoolMsg.innerText = `❌ Spool "${spoolVal}" Line_list ટેબલમાં મળ્યો નથી!`;
+        historyBadge.innerText = 'Not Found';
+        renderHistoryTable([]);
+        sapInput.disabled = true;
+        qtyInput.disabled = true;
+        btnAdd.disabled = true;
+        return;
+      }
+
+      // Line List Record Found!
+      lineListData = lineRows[0];
+      spoolMsg.className = 'info-badge badge-success';
+      spoolMsg.innerText = `✅ Drawing No: ${lineListData.Drawing_no || '-'} | Lot: ${lineListData.Allocation || '-'}`;
+      historyBadge.innerText = `Spool: ${spoolVal}`;
+
+      sapInput.disabled = false;
+      qtyInput.disabled = false;
+
+      // mto ટેબલમાંથી લાઈવ હિસ્ટ્રી ચેક કરવી (For Information)
+      await fetchMtoHistoryForSpool(spoolVal);
+    }
+
+    // ૩. Spool સામે mto ટેબલમાંથી ઇન્ફો ડેટા લાવવો
+    async function fetchMtoHistoryForSpool(spoolVal) {
+      const { data: mtoRows, error } = await db
+        .from('mto')
+        .select('id, MAT_SAP_CODE, MAT_Description, MIN_qty')
+        .eq('Spool_number', spoolVal)
+        .order('id', { ascending: true });
+
+      if (error) {
+        console.error("MTO History Fetch Error:", error);
+        return;
+      }
+
+      currentSpoolMtoHistory = mtoRows || [];
+      renderHistoryTable(currentSpoolMtoHistory);
+    }
+
+    function renderHistoryTable(rows) {
+      const tbody = document.getElementById('historyTableBody');
+      if (rows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 25px;">
+              આ Spool માટે MTO માં હાલ કોઈ ડેટા નોંધાયેલ નથી.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = rows.map((r, index) => `
+        <tr>
+          <td style="text-align: center; font-weight: bold; color: #64748b;">${index + 1}</td>
+          <td style="font-weight: 600; color: #0369a1;">${r.MAT_SAP_CODE || '-'}</td>
+          <td>${r.MAT_Description || '-'}</td>
+          <td style="text-align: right; font-weight: bold; color: #0f766e;">${parseFloat(r.MIN_qty || 0).toFixed(3)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ૪. Input 2: Last 5 Digits SAP Code Lookup in Sap_code table
+    async function handleSapLookup(searchVal) {
+      const sapMsg = document.getElementById('sapLookupMsg');
+      const btnAdd = document.getElementById('btnAddMto');
+      selectedSapData = null;
+
+      if (!searchVal || searchVal.length < 3) {
+        sapMsg.className = 'info-badge badge-neutral';
+        sapMsg.innerText = 'ઓછામાં ઓછા 3 થી 5 આંકડા દાખલ કરો...';
+        btnAdd.disabled = true;
+        return;
+      }
+
+      sapMsg.className = 'info-badge badge-neutral';
+      sapMsg.innerText = '🔍 Searching SAP Code...';
+
+      // Supabase ilike query (ends with or contains searchVal)
+      const { data: sapRows, error } = await db
+        .from('Sap_code')
+        .select('*')
+        .ilike('MAT_SAP_CODE', `%${searchVal}`)
+        .limit(1);
+
+      if (error) {
+        sapMsg.className = 'info-badge badge-error';
+        sapMsg.innerText = 'Error searching Sap_code: ' + error.message;
+        btnAdd.disabled = true;
+        return;
+      }
+
+      if (!sapRows || sapRows.length === 0) {
+        sapMsg.className = 'info-badge badge-error';
+        sapMsg.innerText = `❌ "${searchVal}" સાથે મેળ ખાતો કોઈ SAP Code મળ્યો નથી!`;
+        btnAdd.disabled = true;
+        return;
+      }
+
+      selectedSapData = sapRows[0];
+      sapMsg.className = 'info-badge badge-success';
+      sapMsg.innerText = `✅ Code: ${selectedSapData.MAT_SAP_CODE} | ${selectedSapData.MAT_Description || '-'}`;
+      
+      checkFormReady();
+    }
+
+    function checkFormReady() {
+      const btnAdd = document.getElementById('btnAddMto');
+      const qty = parseFloat(document.getElementById('inputMinQty').value);
+      if (lineListData && selectedSapData && qty > 0) {
+        btnAdd.disabled = false;
+      } else {
+        btnAdd.disabled = true;
+      }
+    }
+
+    document.getElementById('inputMinQty').addEventListener('input', checkFormReady);
+
+    // ૫. Input 3: Submit & Insert into mto table
+    async function submitMtoEntry() {
+      const btnAdd = document.getElementById('btnAddMto');
+      const qtyInput = document.getElementById('inputMinQty');
+      const qtyVal = parseFloat(qtyInput.value);
+
+      if (!lineListData) return alert("⚠️ કૃપા કરીને માન્ય Spool Number દાખલ કરો!");
+      if (!selectedSapData) return alert("⚠️ કૃપા કરીને માન્ય SAP Code પસંદ કરો!");
+      if (!qtyVal || qtyVal <= 0) return alert("⚠️ કૃપા કરીને યોગ્ય MIN Quantity દાખલ કરો!");
+
+      btnAdd.disabled = true;
+      btnAdd.innerText = "⏳ Adding Record...";
+
+      const newMtoRecord = {
+        Spool_number: lineListData.Spool_number,
+        Drawing_no: lineListData.Drawing_no || null,
+        MAT_SAP_CODE: selectedSapData.MAT_SAP_CODE,
+        Size_1: selectedSapData.Size_1 || null,
+        Size_2: selectedSapData.Size_2 || null,
+        Unit: selectedSapData.Unit || null,
+        MAT_Description: selectedSapData.MAT_Description || null,
+        lot_no: lineListData.Allocation || null,
+        MIN_qty: qtyVal
+      };
+
+      try {
+        const { data, error } = await db.from('mto').insert([newMtoRecord]).select();
+        if (error) throw error;
+
+        // જમણી બાજુના ટેબલમાં નવો રેકોર્ડ લાઈવ ઉમેરવો
+        if (data && data.length > 0) {
+          currentSpoolMtoHistory.push(data[0]);
+          renderHistoryTable(currentSpoolMtoHistory);
+        }
+
+        alert(`🎉 Spool "${lineListData.Spool_number}" માટે Material સફળતાપૂર્વક MTO માં ઉમેરાઈ ગયું!`);
+
+        // સ્પોલ એ જ રાખવો જેથી તે જ સ્પોલનું બીજું મટિરિયલ ઝડપથી નાખી શકાય
+        resetSapFields();
+        qtyInput.value = '';
+        document.getElementById('inputSapSearch').focus();
+      } catch (err) {
+        console.error(err);
+        alert("સેવ કરવામાં ભૂલ આવી: " + err.message);
+      } finally {
+        btnAdd.disabled = false;
+        btnAdd.innerText = "➕ ADD TO MTO";
+      }
+    }
+
+    function resetSapFields() {
+      document.getElementById('inputSapSearch').value = '';
+      const sapMsg = document.getElementById('sapLookupMsg');
+      sapMsg.className = 'info-badge badge-neutral';
+      sapMsg.innerText = 'Sap Code માંથી Description જોવા માટે 5 આંકડા દાખલ કરો...';
+      selectedSapData = null;
+      document.getElementById('btnAddMto').disabled = true;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      verifyAdminAccess();
+    });
+  </script>
+</body>
+</html>
