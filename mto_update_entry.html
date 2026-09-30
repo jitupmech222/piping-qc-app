@@ -197,25 +197,25 @@
     
     <!-- ૫૦% ડાબી બાજુ: Data Entry Form -->
     <div class="panel-card">
-      <h3 class="panel-header">✏️ Input Material Details</h3>
+      <h3 class="panel-header"> Input Material Details</h3>
 
       <!-- Input 1: Spool Number -->
       <div>
-        <label>1. Spool Number:</label>
-        <input type="text" id="inputSpoolNo" placeholder="Type Spool No (e.g. 7-14582)" oninput="handleSpoolLookup(this.value.trim())" autocomplete="off">
+        <label>Spool Number:</label>
+        <input type="text" id="inputSpoolNo" placeholder="Enter Spool No" oninput="handleSpoolLookup(this.value.trim())" autocomplete="off">
         <span id="spoolLookupMsg" class="info-badge badge-neutral"></span>
       </div>
 
       <!-- Input 2: SAP Code (Last 5 digits or full) -->
       <div>
-        <label>2. Material SAP Code (Enter Last 5 Digits or Full):</label>
-        <input type="text" id="inputSapSearch" placeholder="Type last 5 digits (e.g. 50333)" oninput="handleSapLookup(this.value.trim())" autocomplete="off" disabled>
-        <span id="sapLookupMsg" class="info-badge badge-neutral">Sap Code માંથી Description જોવા માટે 5 આંકડા દાખલ કરો...</span>
+        <label>Material SAP Code (Enter Last 5 Digits or Full):</label>
+        <input type="text" id="inputSapSearch" placeholder="Enter Sap Code" oninput="handleSapLookup(this.value.trim())" autocomplete="off" disabled>
+        <span id="sapLookupMsg" class="info-badge badge-neutral"></span>
       </div>
 
       <!-- Input 3: MIN Quantity -->
       <div>
-        <label>3. MIN Quantity:</label>
+        <label>MIN Quantity:</label>
         <input type="number" id="inputMinQty" placeholder="Enter quantity (e.g. 5)" step="any" disabled>
       </div>
 
