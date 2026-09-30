@@ -203,7 +203,7 @@
       <div>
         <label>1. Spool Number:</label>
         <input type="text" id="inputSpoolNo" placeholder="Type Spool No (e.g. 7-14582)" oninput="handleSpoolLookup(this.value.trim())" autocomplete="off">
-        <span id="spoolLookupMsg" class="info-badge badge-neutral">Line List માંથી Drawing No ચકાસવા માટે Spool દાખલ કરો...</span>
+        <span id="spoolLookupMsg" class="info-badge badge-neutral"></span>
       </div>
 
       <!-- Input 2: SAP Code (Last 5 digits or full) -->
@@ -229,7 +229,7 @@
         <span id="spoolHistoryBadge" style="font-size:12px; font-weight:600; color:#7c3aed;">No Spool Selected</span>
       </h3>
       <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0;">
-        આ Spool સામે MTO ટેબલમાં અગાઉ સેવ થયેલા મટિરિયલની લાઈવ વિગતો અહીં દેખાશે:
+        Existing Details
       </p>
 
       <div class="table-wrapper">
@@ -245,7 +245,7 @@
           <tbody id="historyTableBody">
             <tr>
               <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 25px;">
-                માહિતી જોવા માટે ડાબી બાજુ Spool Number દાખલ કરો.
+                Enter the Spool Number on the left side to view the information.
               </td>
             </tr>
           </tbody>
@@ -494,7 +494,7 @@
       document.getElementById('inputSapSearch').value = '';
       const sapMsg = document.getElementById('sapLookupMsg');
       sapMsg.className = 'info-badge badge-neutral';
-      sapMsg.innerText = 'Sap Code માંથી Description જોવા માટે 5 આંકડા દાખલ કરો...';
+      sapMsg.innerText = '';
       selectedSapData = null;
       document.getElementById('btnAddMto').disabled = true;
     }
