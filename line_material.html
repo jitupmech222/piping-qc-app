@@ -108,6 +108,50 @@
     th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; background-color: #fff; }
     th { background-color: #0f4c81; color: white; font-weight: 700; position: sticky; top: 0; z-index: 5; }
     tr:nth-child(even) td { background-color: #f8fafc; }
+
+    /* Filter Headers & Icon */
+    .header-cell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .filter-btn-icon {
+      background: #1d4ed8;
+      color: #fff;
+      border: 1px solid #93c5fd;
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 10.5px;
+      cursor: pointer;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-btn-icon:hover { background: #2563eb; }
+    .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
+
+    /* Floating Excel Filter Modal */
+    #excelFilterPopup {
+      position: absolute;
+      display: none;
+      z-index: 1000;
+      background: #ffffff;
+      border: 1.5px solid #0284c7;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      width: 260px;
+      padding: 12px;
+      font-family: inherit;
+    }
+    .popup-search { width: 100%; padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 12.5px; box-sizing: border-box; margin-bottom: 8px; }
+    .popup-options-list { max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px; margin-bottom: 10px; background: #fafafa; }
+    .popup-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #1e293b; padding: 4px 2px; }
+    .popup-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; }
+    .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .popup-btn-ok { background: #1e40af; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
   </style>
 </head>
 <body>
@@ -135,7 +179,8 @@
 
         <!-- Download & Upload Actions -->
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <input type="text" id="searchInput" placeholder="Search..." oninput="handleSearch(this.value)" style="padding:6px 10px; width:150px; font-size:12px; border:1.5px solid #cbd5e1; border-radius:6px;">
+          <input type="text" id="searchInput" placeholder="Search..." oninput="handleSearch(this.value)" style="padding:6px 10px; width:140px; font-size:12px; border:1.5px solid #cbd5e1; border-radius:6px;">
+          <button type="button" class="btn-action" style="background:#64748b;" onclick="clearAllFilters()">🔄 Clear Filters</button>
           <button type="button" class="btn-action" style="background:#0284c7;" onclick="downloadModuleExcel()">📥 Download Excel</button>
           <button type="button" class="btn-action" id="btnUploadTrigger" style="background:#15803d;" onclick="document.getElementById('fileInput').click()">📤 Upload & Update</button>
           <input type="file" id="fileInput" accept=".xlsx, .xls" style="display:none;" onchange="uploadAndApplyExcel(event)">
@@ -153,6 +198,20 @@
           </tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- Floating Excel Filter Modal -->
+  <div id="excelFilterPopup">
+    <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search..." oninput="onPopupSearch(this.value)">
+    <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
+      <input type="checkbox" id="popupSelectAll" onchange="togglePopupSelectAll(this.checked)">
+      <label for="popupSelectAll" style="font-size: 12px; font-weight: bold; margin: 0; cursor: pointer;">(Select All)</label>
+    </div>
+    <div id="popupOptionsList" class="popup-options-list"></div>
+    <div class="popup-actions">
+      <button type="button" class="popup-btn-ok" onclick="applyPopupFilter()">OK</button>
+      <button type="button" class="popup-btn-clear" onclick="clearCurrentPopupFilter()">Clear</button>
     </div>
   </div>
 
@@ -192,6 +251,8 @@
     let lineListCache = [];
     let sapCodeCache = [];
     let activeDisplayRows = [];
+    let columnFilters = {};
+    let currentPopupContext = { colKey: '', allValues: [] };
 
     // ૧. ઓથેન્ટિકેશન સુરક્ષા ચેક (Admin Only)
     function verifyAdminAccess() {
@@ -203,7 +264,7 @@
       }
       const user = JSON.parse(sessionData);
       if (user.username !== 'admin') {
-        alert("⚠️ માત્ર Admin પાસે જ આ પેજ જોવાની પરમિશન છે!");
+        alert("⚠️️ માત્ર Admin પાસે જ આ પેજ જોવાની પરમિશન છે!");
         window.location.href = 'index.html';
         return false;
       }
@@ -213,6 +274,7 @@
     // ૨. સબ-વ્યુ સ્વિચ કરવું
     async function switchModuleView(type) {
       currentModule = type;
+      columnFilters = {};
       document.getElementById('searchInput').value = '';
       const btnLL = document.getElementById('btnSubLineList');
       const btnSap = document.getElementById('btnSubSapCode');
@@ -230,11 +292,24 @@
       }
     }
 
+    // Header માં ફિલ્ટર આઇકોન ઉમેરવું
     function buildHeader(cols) {
       const tr = document.getElementById('tableHeaderRow');
       tr.innerHTML = `
-        <th style="width:60px; text-align:center;">id</th>
-        ${cols.map(c => `<th>${c.key}</th>`).join('')}
+        <th style="width:70px;">
+          <div class="header-cell">
+            <span>id</span>
+            <button class="filter-btn-icon ${columnFilters['id'] ? 'active' : ''}" onclick="openExcelFilter(event, 'id')">🔽</button>
+          </div>
+        </th>
+        ${cols.map(c => `
+          <th>
+            <div class="header-cell">
+              <span>${c.key}</span>
+              <button class="filter-btn-icon ${columnFilters[c.key] ? 'active' : ''}" onclick="openExcelFilter(event, '${c.key}')">🔽</button>
+            </div>
+          </th>
+        `).join('')}
       `;
     }
 
@@ -264,14 +339,43 @@
 
       if (tableName === 'Line_list') {
         lineListCache = allRows;
-        activeDisplayRows = lineListCache;
-        document.getElementById('llTotalCount').innerText = lineListCache.length;
       } else {
         sapCodeCache = allRows;
-        activeDisplayRows = sapCodeCache;
-        document.getElementById('sapTotalCount').innerText = sapCodeCache.length;
       }
 
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const source = currentModule === 'line_list' ? lineListCache : sapCodeCache;
+      const cols = currentModule === 'line_list' ? LINE_LIST_COLS : SAP_CODE_COLS;
+      const term = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      activeDisplayRows = source.filter(r => {
+        // ૧. Search Input Filter
+        if (term) {
+          const matchSearch = cols.some(c => String(r[c.key] || '').toLowerCase().includes(term)) || String(r.id).includes(term);
+          if (!matchSearch) return false;
+        }
+
+        // ૨. Column-wise Excel Filters
+        for (const [colKey, allowedSet] of Object.entries(columnFilters)) {
+          let val = r[colKey] !== undefined ? r[colKey] : '';
+          val = String(val === null ? '' : val).trim();
+          const displayVal = val === '' ? '(Blank)' : val;
+          if (!allowedSet.has(displayVal)) return false;
+        }
+
+        return true;
+      });
+
+      if (currentModule === 'line_list') {
+        document.getElementById('llTotalCount').innerText = activeDisplayRows.length;
+      } else {
+        document.getElementById('sapTotalCount').innerText = activeDisplayRows.length;
+      }
+
+      buildHeader(cols);
       renderTable();
     }
 
@@ -290,23 +394,125 @@
           ${cols.map(c => `<td>${r[c.key] !== null && r[c.key] !== undefined ? r[c.key] : '-'}</td>`).join('')}
         </tr>
       `).join('');
-    } // 👈 અહીં બ્રેકેટ સુધારી લીધું છે
+    }
 
     // ૪. લાઈવ સર્ચ ફિલ્ટર
     function handleSearch(term) {
-      const q = term.toLowerCase().trim();
-      const source = currentModule === 'line_list' ? lineListCache : sapCodeCache;
-      const cols = currentModule === 'line_list' ? LINE_LIST_COLS : SAP_CODE_COLS;
-
-      if (!q) {
-        activeDisplayRows = source;
-      } else {
-        activeDisplayRows = source.filter(r => {
-          return cols.some(c => String(r[c.key] || '').toLowerCase().includes(q)) || String(r.id).includes(q);
-        });
-      }
-      renderTable();
+      applyFilters();
     }
+
+    function clearAllFilters() {
+      columnFilters = {};
+      document.getElementById('searchInput').value = '';
+      applyFilters();
+    }
+
+    // --- એક્સેલ ફિલ્ટર પોપઅપ લોજિક ---
+    function openExcelFilter(e, colKey) {
+      e.stopPropagation();
+      const popup = document.getElementById('excelFilterPopup');
+      const rect = e.target.getBoundingClientRect();
+      let top = rect.bottom + window.scrollY + 6;
+      let left = rect.left + window.scrollX - 100;
+      if (left + 270 > window.innerWidth) left = window.innerWidth - 280;
+      if (left < 10) left = 10;
+
+      popup.style.top = `${top}px`;
+      popup.style.left = `${left}px`;
+      popup.style.display = 'block';
+
+      currentPopupContext.colKey = colKey;
+
+      const baseRows = currentModule === 'line_list' ? lineListCache : sapCodeCache;
+
+      // સક્રિય અન્ય ફિલ્ટર્સ મુજબ યુનિક વેલ્યુ લિસ્ટ બનાવવું
+      const sourceRows = baseRows.filter(r => {
+        for (const [filterCol, allowedSet] of Object.entries(columnFilters)) {
+          if (filterCol === colKey) continue;
+          let val = r[filterCol] !== undefined ? r[filterCol] : '';
+          val = String(val === null ? '' : val).trim();
+          const displayVal = val === '' ? '(Blank)' : val;
+          if (!allowedSet.has(displayVal)) return false;
+        }
+        return true;
+      });
+
+      const valueMap = new Map();
+      sourceRows.forEach(r => {
+        let val = r[colKey] !== undefined ? r[colKey] : '';
+        val = String(val === null ? '' : val).trim();
+        const displayVal = val === '' ? '(Blank)' : val;
+        valueMap.set(displayVal, (valueMap.get(displayVal) || 0) + 1);
+      });
+
+      const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+      currentPopupContext.allValues = distinctSorted;
+
+      const currentSelectedSet = columnFilters[colKey] || null;
+      document.getElementById('popupSearchInput').value = '';
+      renderPopupCheckboxes(distinctSorted, currentSelectedSet);
+    }
+
+    function renderPopupCheckboxes(items, selectedSet) {
+      const container = document.getElementById('popupOptionsList');
+      container.innerHTML = items.map(([val, count], idx) => {
+        const isChecked = selectedSet === null || selectedSet.has(val);
+        return `
+          <div class="popup-item">
+            <input type="checkbox" id="chk_opt_${idx}" value="${escapeHtml(val)}" ${isChecked ? 'checked' : ''}>
+            <label for="chk_opt_${idx}" style="cursor:pointer; font-size:12px; margin:0;">${escapeHtml(val)} <span style="color:#64748b;">(${count})</span></label>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('popupSelectAll').checked = items.every(([val]) => selectedSet === null || selectedSet.has(val));
+    }
+
+    function onPopupSearch(term) {
+      const q = term.toLowerCase().trim();
+      const filtered = currentPopupContext.allValues.filter(([val]) => val.toLowerCase().includes(q));
+      const currentSelectedSet = columnFilters[currentPopupContext.colKey] || null;
+      renderPopupCheckboxes(filtered, currentSelectedSet);
+    }
+
+    function togglePopupSelectAll(checked) {
+      document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(chk => { chk.checked = checked; });
+    }
+
+    function applyPopupFilter() {
+      const selected = new Set();
+      document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(c => { if (c.checked) selected.add(c.value); });
+      const { colKey, allValues } = currentPopupContext;
+
+      if (selected.size === allValues.length) {
+        delete columnFilters[colKey];
+      } else {
+        columnFilters[colKey] = selected;
+      }
+
+      closeExcelPopup();
+      applyFilters();
+    }
+
+    function clearCurrentPopupFilter() {
+      delete columnFilters[currentPopupContext.colKey];
+      closeExcelPopup();
+      applyFilters();
+    }
+
+    function closeExcelPopup() {
+      document.getElementById('excelFilterPopup').style.display = 'none';
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('excelFilterPopup');
+      if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
+        closeExcelPopup();
+      }
+    });
 
     // ૫. Database Header સાથે Excel ડાઉનલોડ
     async function downloadModuleExcel() {
