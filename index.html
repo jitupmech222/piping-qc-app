@@ -1802,13 +1802,16 @@
       return;
     }
 
-    const headers = ["Sr No", ...MTO_COLS.map(c => c.label)];
-    const excelRows = mtoDisplayRows.map((r, index) => {
-      const rowObj = { "Sr No": index + 1 };
+    // 👉 Label ના બદલે Database Column Name (key) વાપરવું
+    const headers = ["id", ...MTO_COLS.map(c => c.key)];
+    
+    const excelRows = mtoDisplayRows.map(r => {
+      const rowObj = { "id": r.id }; // ડેટાબેઝ ID સાથે
       MTO_COLS.forEach(c => {
         let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
         const isDate = c.key.toLowerCase().includes('date');
-        rowObj[c.label] = isDate ? formatDateDisplay(val) : val;
+        // c.label ના બદલે c.key થી ડેટા મેપ થશે:
+        rowObj[c.key] = isDate ? formatDateDisplay(val) : val;
       });
       return rowObj;
     });
