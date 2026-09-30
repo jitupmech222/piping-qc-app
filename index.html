@@ -1097,6 +1097,9 @@
     if (btnIgpHub) btnIgpHub.style.display = isAdmin ? 'flex' : 'none';
     if (btnMinHub) btnMinHub.style.display = isAdmin ? 'flex' : 'none';
 
+    const btnLineMat = document.getElementById('btnLineMatHub');
+    if (btnLineMat) btnLineMat.style.display = isAdmin ? 'flex' : 'none';
+    
     // Master Register Actions (Only Admin)
     const btnMasterSync = document.getElementById('btnMasterUpdateFromMto');
     const btnMasterDl = document.getElementById('btnMasterDownloadExcel');
