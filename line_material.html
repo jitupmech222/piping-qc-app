@@ -149,7 +149,7 @@
             <tr id="tableHeaderRow"></tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="20" style="text-align:center; padding:20px;">⏳ Loading Data...</td></tr>
+            <tr><td colspan="22" style="text-align:center; padding:20px;">⏳ Loading Data...</td></tr>
           </tbody>
         </table>
       </div>
@@ -290,6 +290,7 @@
           ${cols.map(c => `<td>${r[c.key] !== null && r[c.key] !== undefined ? r[c.key] : '-'}</td>`).join('')}
         </tr>
       `).join('');
+    } // 👈 અહીં બ્રેકેટ સુધારી લીધું છે
 
     // ૪. લાઈવ સર્ચ ફિલ્ટર
     function handleSearch(term) {
