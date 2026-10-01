@@ -197,26 +197,26 @@
     
     <!-- ૫૦% ડાબી બાજુ: Data Entry Form -->
     <div class="panel-card">
-      <h3 class="panel-header"> Input Material Details</h3>
+      <h3 class="panel-header">✏️ Input Material Details</h3>
 
       <!-- Input 1: Spool Number -->
       <div>
         <label>Spool Number:</label>
-        <input type="text" id="inputSpoolNo" placeholder="Enter Spool No" oninput="handleSpoolLookup(this.value.trim())" autocomplete="off">
-        <span id="spoolLookupMsg" class="info-badge badge-neutral"></span>
+        <input type="text" id="inputSpoolNo" placeholder="Enter Spool No (e.g. 5-46516)" oninput="handleSpoolLookup(this.value)" autocomplete="off">
+        <span id="spoolLookupMsg" class="info-badge badge-neutral">Line List માંથી Drawing No ચકાસવા માટે Spool દાખલ કરો...</span>
       </div>
 
       <!-- Input 2: SAP Code (Last 5 digits or full) -->
       <div>
         <label>Material SAP Code (Enter Last 5 Digits or Full):</label>
-        <input type="text" id="inputSapSearch" placeholder="Enter Sap Code" oninput="handleSapLookup(this.value.trim())" autocomplete="off" disabled>
-        <span id="sapLookupMsg" class="info-badge badge-neutral"></span>
+        <input type="text" id="inputSapSearch" placeholder="Enter Sap Code (e.g. 50333)" oninput="handleSapLookup(this.value)" autocomplete="off" disabled>
+        <span id="sapLookupMsg" class="info-badge badge-neutral">Sap Code માંથી Description જોવા માટે 5 આંકડા દાખલ કરો...</span>
       </div>
 
       <!-- Input 3: MIN Quantity -->
       <div>
         <label>MIN Quantity:</label>
-        <input type="number" id="inputMinQty" placeholder="Enter quantity (e.g. 5)" step="any" disabled>
+        <input type="number" id="inputMinQty" placeholder="Enter quantity (e.g. 5)" step="any" oninput="checkFormReady()" disabled>
       </div>
 
       <button type="button" class="btn-submit" id="btnAddMto" onclick="submitMtoEntry()" disabled>➕ ADD TO MTO</button>
@@ -229,7 +229,7 @@
         <span id="spoolHistoryBadge" style="font-size:12px; font-weight:600; color:#7c3aed;">No Spool Selected</span>
       </h3>
       <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0;">
-        Existing Details
+        આ Spool સામે MTO ટેબલમાં અગાઉ સેવ થયેલા મટિરિયલની લાઈવ વિગતો અહીં દેખાશે:
       </p>
 
       <div class="table-wrapper">
@@ -245,7 +245,7 @@
           <tbody id="historyTableBody">
             <tr>
               <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 25px;">
-                Enter the Spool Number on the left side to view the information.
+                માહિતી જોવા માટે ડાબી બાજુ Spool Number દાખલ કરો.
               </td>
             </tr>
           </tbody>
@@ -282,7 +282,7 @@
       return true;
     }
 
-// ૨. Input 1: Spool Lookup in Line_list & MTO History (Flexible Case & Space Matching)
+    // ૨. Input 1: Spool Lookup in Line_list & MTO History
     async function handleSpoolLookup(spoolVal) {
       const spoolMsg = document.getElementById('spoolLookupMsg');
       const sapInput = document.getElementById('inputSapSearch');
@@ -309,7 +309,7 @@
       spoolMsg.className = 'info-badge badge-neutral';
       spoolMsg.innerText = '🔍 Checking Line List & MTO records...';
 
-      // ilike વાપરવાથી કેપિટલ/સ્મોલ કે આજુબાજુની સ્પેસને કારણે સર્ચ ફેલ નહીં થાય
+      // ilike વડે કેસ અને વધારાની space બંને હેન્ડલ થશે
       const { data: lineRows, error: lineErr } = await db
         .from('Line_list')
         .select('*')
@@ -342,7 +342,7 @@
       sapInput.disabled = false;
       qtyInput.disabled = false;
 
-      // mto ટેબલમાંથી લાઈવ હિસ્ટ્રી ચેક કરવી
+      // mto ટેબલમાંથી લાઈવ હિસ્ટ્રી લાવવી
       await fetchMtoHistoryForSpool(lineListData.Spool_number);
     }
 
@@ -386,7 +386,7 @@
       `).join('');
     }
 
-   // ૪. Input 2: Last 5 Digits or Contains SAP Code Lookup in Sap_code table
+    // ૪. Input 2: Last 5 Digits or Contains SAP Code Lookup in Sap_code table
     async function handleSapLookup(searchVal) {
       const sapMsg = document.getElementById('sapLookupMsg');
       const btnAdd = document.getElementById('btnAddMto');
@@ -404,7 +404,6 @@
       sapMsg.className = 'info-badge badge-neutral';
       sapMsg.innerText = '🔍 Searching SAP Code...';
 
-      // કોડમાં ગમે ત્યાં અથવા છેડે ૫ આંકડા મળતાં જ ફેચ કરશે
       const { data: sapRows, error: sapErr } = await db
         .from('Sap_code')
         .select('*')
@@ -432,6 +431,16 @@
       checkFormReady();
     }
 
+    function checkFormReady() {
+      const btnAdd = document.getElementById('btnAddMto');
+      const qty = parseFloat(document.getElementById('inputMinQty').value);
+      if (lineListData && selectedSapData && qty > 0) {
+        btnAdd.disabled = false;
+      } else {
+        btnAdd.disabled = true;
+      }
+    }
+
     // ૫. Input 3: Submit & Insert into mto table
     async function submitMtoEntry() {
       const btnAdd = document.getElementById('btnAddMto');
@@ -439,7 +448,7 @@
       const qtyVal = parseFloat(qtyInput.value);
 
       if (!lineListData) return alert("⚠️ કૃપા કરીને માન્ય Spool Number દાખલ કરો!");
-      if (!selectedSapData) return alert("⚠️ કૃપા કરીને માન્ય SAP Code પસંદ કરો!");
+      if (!selectedSapData) return alert("⚠️️ કૃપા કરીને માન્ય SAP Code પસંદ કરો!");
       if (!qtyVal || qtyVal <= 0) return alert("⚠️ કૃપા કરીને યોગ્ય MIN Quantity દાખલ કરો!");
 
       btnAdd.disabled = true;
@@ -458,7 +467,6 @@
       };
 
       try {
-        // સુરક્ષિત ID મેળવવો જેથી pkey એરર ક્યારેય ન આવે
         const { data: maxRow } = await db
           .from('mto')
           .select('id')
@@ -471,7 +479,6 @@
         const { data, error } = await db.from('mto').insert([newMtoRecord]).select();
         if (error) throw error;
 
-        // જમણી બાજુના ટેબલમાં નવો રેકોર્ડ લાઈવ ઉમેરવો
         if (data && data.length > 0) {
           currentSpoolMtoHistory.push(data[0]);
           renderHistoryTable(currentSpoolMtoHistory);
@@ -479,7 +486,6 @@
 
         alert(`🎉 Spool "${lineListData.Spool_number}" માટે Material સફળતાપૂર્વક MTO માં ઉમેરાઈ ગયું!`);
 
-        // સ્પોલ એ જ રાખવો જેથી તે જ સ્પોલનું બીજું મટિરિયલ ઝડપથી નાખી શકાય
         resetSapFields();
         qtyInput.value = '';
         document.getElementById('inputSapSearch').focus();
@@ -491,3 +497,19 @@
         btnAdd.innerText = "➕ ADD TO MTO";
       }
     }
+
+    function resetSapFields() {
+      document.getElementById('inputSapSearch').value = '';
+      const sapMsg = document.getElementById('sapLookupMsg');
+      sapMsg.className = 'info-badge badge-neutral';
+      sapMsg.innerText = 'Sap Code માંથી Description જોવા માટે 5 આંકડા દાખલ કરો...';
+      selectedSapData = null;
+      document.getElementById('btnAddMto').disabled = true;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      verifyAdminAccess();
+    });
+  </script>
+</body>
+</html>
