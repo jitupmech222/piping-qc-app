@@ -282,7 +282,7 @@
       return true;
     }
 
-    // ૨. Input 1: Spool Lookup in Line_list & MTO History
+// ૨. Input 1: Spool Lookup in Line_list & MTO History (Flexible Case & Space Matching)
     async function handleSpoolLookup(spoolVal) {
       const spoolMsg = document.getElementById('spoolLookupMsg');
       const sapInput = document.getElementById('inputSapSearch');
@@ -293,7 +293,9 @@
       lineListData = null;
       resetSapFields();
 
-      if (!spoolVal) {
+      const cleanSpool = (spoolVal || '').trim();
+
+      if (!cleanSpool) {
         spoolMsg.className = 'info-badge badge-neutral';
         spoolMsg.innerText = 'Line List માંથી Drawing No ચકાસવા માટે Spool દાખલ કરો...';
         historyBadge.innerText = 'No Spool Selected';
@@ -307,11 +309,11 @@
       spoolMsg.className = 'info-badge badge-neutral';
       spoolMsg.innerText = '🔍 Checking Line List & MTO records...';
 
-      // Line_list ટેબલમાંથી ચેક કરવું
+      // ilike વાપરવાથી કેપિટલ/સ્મોલ કે આજુબાજુની સ્પેસને કારણે સર્ચ ફેલ નહીં થાય
       const { data: lineRows, error: lineErr } = await db
         .from('Line_list')
         .select('*')
-        .eq('Spool_number', spoolVal)
+        .ilike('Spool_number', cleanSpool)
         .limit(1);
 
       if (lineErr) {
@@ -322,7 +324,7 @@
 
       if (!lineRows || lineRows.length === 0) {
         spoolMsg.className = 'info-badge badge-error';
-        spoolMsg.innerText = `❌ Spool "${spoolVal}" Line_list ટેબલમાં મળ્યો નથી!`;
+        spoolMsg.innerText = `❌ Spool "${cleanSpool}" Line_list ટેબલમાં મળ્યો નથી!`;
         historyBadge.innerText = 'Not Found';
         renderHistoryTable([]);
         sapInput.disabled = true;
@@ -331,17 +333,17 @@
         return;
       }
 
-      // Line List Record Found!
+      // Record Found!
       lineListData = lineRows[0];
       spoolMsg.className = 'info-badge badge-success';
       spoolMsg.innerText = `✅ Drawing No: ${lineListData.Drawing_no || '-'} | Lot: ${lineListData.Allocation || '-'}`;
-      historyBadge.innerText = `Spool: ${spoolVal}`;
+      historyBadge.innerText = `Spool: ${lineListData.Spool_number}`;
 
       sapInput.disabled = false;
       qtyInput.disabled = false;
 
-      // mto ટેબલમાંથી લાઈવ હિસ્ટ્રી ચેક કરવી (For Information)
-      await fetchMtoHistoryForSpool(spoolVal);
+      // mto ટેબલમાંથી લાઈવ હિસ્ટ્રી ચેક કરવી
+      await fetchMtoHistoryForSpool(lineListData.Spool_number);
     }
 
     // ૩. Spool સામે mto ટેબલમાંથી ઇન્ફો ડેટા લાવવો
@@ -384,13 +386,15 @@
       `).join('');
     }
 
-    // ૪. Input 2: Last 5 Digits SAP Code Lookup in Sap_code table
+   // ૪. Input 2: Last 5 Digits or Contains SAP Code Lookup in Sap_code table
     async function handleSapLookup(searchVal) {
       const sapMsg = document.getElementById('sapLookupMsg');
       const btnAdd = document.getElementById('btnAddMto');
       selectedSapData = null;
 
-      if (!searchVal || searchVal.length < 3) {
+      const cleanSearch = (searchVal || '').trim();
+
+      if (!cleanSearch || cleanSearch.length < 3) {
         sapMsg.className = 'info-badge badge-neutral';
         sapMsg.innerText = 'ઓછામાં ઓછા 3 થી 5 આંકડા દાખલ કરો...';
         btnAdd.disabled = true;
@@ -400,23 +404,23 @@
       sapMsg.className = 'info-badge badge-neutral';
       sapMsg.innerText = '🔍 Searching SAP Code...';
 
-      // Supabase ilike query (ends with or contains searchVal)
-      const { data: sapRows, error } = await db
+      // કોડમાં ગમે ત્યાં અથવા છેડે ૫ આંકડા મળતાં જ ફેચ કરશે
+      const { data: sapRows, error: sapErr } = await db
         .from('Sap_code')
         .select('*')
-        .ilike('MAT_SAP_CODE', `%${searchVal}`)
+        .ilike('MAT_SAP_CODE', `%${cleanSearch}%`)
         .limit(1);
 
-      if (error) {
+      if (sapErr) {
         sapMsg.className = 'info-badge badge-error';
-        sapMsg.innerText = 'Error searching Sap_code: ' + error.message;
+        sapMsg.innerText = 'Error searching Sap_code: ' + sapErr.message;
         btnAdd.disabled = true;
         return;
       }
 
       if (!sapRows || sapRows.length === 0) {
         sapMsg.className = 'info-badge badge-error';
-        sapMsg.innerText = `❌ "${searchVal}" સાથે મેળ ખાતો કોઈ SAP Code મળ્યો નથી!`;
+        sapMsg.innerText = `❌ "${cleanSearch}" સાથે મેળ ખાતો કોઈ SAP Code મળ્યો નથી!`;
         btnAdd.disabled = true;
         return;
       }
@@ -427,18 +431,6 @@
       
       checkFormReady();
     }
-
-    function checkFormReady() {
-      const btnAdd = document.getElementById('btnAddMto');
-      const qty = parseFloat(document.getElementById('inputMinQty').value);
-      if (lineListData && selectedSapData && qty > 0) {
-        btnAdd.disabled = false;
-      } else {
-        btnAdd.disabled = true;
-      }
-    }
-
-    document.getElementById('inputMinQty').addEventListener('input', checkFormReady);
 
     // ૫. Input 3: Submit & Insert into mto table
     async function submitMtoEntry() {
