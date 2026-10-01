@@ -537,35 +537,43 @@
       calculateSmartAllocationPreview();
     }
 
-    // ૬. Smart Subset-Sum Combination Finder
+// ૬. Ultra-Fast Subset-Sum Finder (Never Freezes / DP Approach)
     function findExactSubsetCombination(rows, target) {
-      // 0.001 ની ચોકસાઈ (Floating Precision Fix)
       const targetClean = Math.round(target * 1000);
-      const n = rows.length;
-      let exactMatchIndices = null;
+      if (targetClean <= 0) return null;
 
-      // તમામ સંભવિત કોમ્બિનેશન (Subsets) ચેક કરવા
-      function search(index, currentSum, chosenIndices) {
-        if (currentSum === targetClean) {
-          exactMatchIndices = [...chosenIndices];
-          return true;
+      // ૧. રો વધારે હોય (30+) ત્યારે બ્રાઉઝર ક્રેશ ન થાય તે માટે DP Map નો ઉપયોગ
+      // dp[sum] = એ સમ બનાવવા માટે પસંદ કરેલા row indices નો એરે
+      const dp = new Map();
+      dp.set(0, []);
+
+      // સમય મર્યાદા (Loop Safety)
+      let operations = 0;
+      const maxOps = 150000;
+
+      for (let i = 0; i < rows.length; i++) {
+        const val = Math.round((parseFloat(rows[i].MIN_qty) || 0) * 1000);
+        if (val <= 0 || val > targetClean) continue;
+
+        // હાલના બનેલા સરવાળાઓ તપાસો
+        const currentEntries = Array.from(dp.entries());
+        for (const [sum, indices] of currentEntries) {
+          operations++;
+          if (operations > maxOps) break; // સેફ્ટી લિમિટ જેથી ક્યારેય હેંગ ન થાય
+
+          const newSum = sum + val;
+          if (newSum === targetClean) {
+            return [...indices, i]; // પરફેક્ટ મેચ મળી ગયું!
+          }
+
+          if (newSum < targetClean && !dp.has(newSum)) {
+            dp.set(newSum, [...indices, i]);
+          }
         }
-        if (index >= n || currentSum > targetClean) return false;
-
-        // ૧. વર્તમાન રો ને સમાવીને ચેક કરો
-        const rowVal = Math.round((parseFloat(rows[index].MIN_qty) || 0) * 1000);
-        chosenIndices.push(index);
-        if (search(index + 1, currentSum + rowVal, chosenIndices)) return true;
-        
-        // ૨. વર્તમાન રો ને સ્કીપ કરીને આગળ વધો
-        chosenIndices.pop();
-        if (search(index + 1, currentSum, chosenIndices)) return true;
-
-        return false;
+        if (operations > maxOps) break;
       }
 
-      search(0, 0, []);
-      return exactMatchIndices;
+      return null; // જો એક્ઝેક્ટ મેચ ન મળે તો
     }
 
     // ૭. Option 4 & 5: સ્માર્ટ એલોકેશન અને લાઈવ પ્રિવ્યૂ
