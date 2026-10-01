@@ -466,6 +466,16 @@
       };
 
       try {
+        // સુરક્ષિત ID મેળવવો જેથી pkey એરર ક્યારેય ન આવે
+        const { data: maxRow } = await db
+          .from('mto')
+          .select('id')
+          .order('id', { ascending: false })
+          .limit(1);
+
+        const nextId = (maxRow && maxRow.length > 0 && maxRow[0].id) ? Number(maxRow[0].id) + 1 : 1;
+        newMtoRecord.id = nextId;
+
         const { data, error } = await db.from('mto').insert([newMtoRecord]).select();
         if (error) throw error;
 
@@ -489,19 +499,3 @@
         btnAdd.innerText = "➕ ADD TO MTO";
       }
     }
-
-    function resetSapFields() {
-      document.getElementById('inputSapSearch').value = '';
-      const sapMsg = document.getElementById('sapLookupMsg');
-      sapMsg.className = 'info-badge badge-neutral';
-      sapMsg.innerText = '';
-      selectedSapData = null;
-      document.getElementById('btnAddMto').disabled = true;
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      verifyAdminAccess();
-    });
-  </script>
-</body>
-</html>
