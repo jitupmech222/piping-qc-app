@@ -2298,9 +2298,11 @@ async function uploadAndApplyExcelUpdate() {
     URL.revokeObjectURL(link.href);
   }
 
-  async function uploadAndApplyMtoExcel(event) {
+async function uploadAndApplyMtoExcel(event) {
     const file = event.target.files[0];
     if (!file) return;
+
+    const tbody = document.getElementById('mtoTableBody');
 
     const reader = new FileReader();
     reader.onload = async function (e) {
@@ -2318,86 +2320,109 @@ async function uploadAndApplyExcelUpdate() {
             });
           } else {
             const rowObj = {};
-            row.eachCell((cell, colNumber) => {
+            row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
               const h = headers[colNumber];
               if (h) rowObj[h] = cell.value;
             });
-            if (Object.keys(rowObj).length > 0) rows.push(rowObj);
+            // જો રો માં કોઈ પણ ડેટા હોય તો જ ઉમેરવી
+            const hasData = Object.values(rowObj).some(v => v !== null && v !== undefined && String(v).trim() !== '');
+            if (hasData) rows.push(rowObj);
           }
         });
 
         if (rows.length === 0) {
-          alert("ફાઈલમાં કોઈ ડેટા મળ્યો નથી!");
+          alert("❌ ફાઈલમાં કોઈ ડેટા મળ્યો નથી!");
           event.target.value = '';
           return;
         }
 
-        const hasId = rows[0].hasOwnProperty('id') || rows[0].hasOwnProperty('ID');
-        if (!hasId) {
-          alert("❌ ભૂલ: Excel ફાઈલમાં 'id' કૉલમ હોવી ફરજિયાત છે! કૃપા કરીને ડાઉનલોડ કરેલી ફાઈલમાં જ એડિટ કરીને અપલોડ કરો.");
+        const confirmMsg = `⚠️ ચેતવણી: આ પ્રક્રિયાથી MTO Database નો જૂનો તમામ ડેટા સાફ થઈ જશે અને Excel ફાઈલ મુજબ ${rows.length} રેકોર્ડ્સ નવેસરથી ગોઠવાઈ જશે.\n\nશું તમે ખરેખર આગળ વધવા માંગો છો?`;
+        if (!confirm(confirmMsg)) {
           event.target.value = '';
           return;
         }
 
-        if (!confirm(`શું તમે ખરેખર ${rows.length} રેકોર્ડ્સ MTO Database માં અપડેટ કરવા માંગો છો?`)) {
-          event.target.value = '';
-          return;
+        tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#c2410c; font-weight:bold;">⏳ Clearing Old MTO Database Records...</td></tr>';
+
+        // 👉 ૧. જૂનો સંપૂર્ણ MTO ડેટા સાફ કરવો (Delete All Existing Rows)
+        const { error: delError } = await db
+          .from('mto')
+          .delete()
+          .neq('id', 0); // તમામ રેકોર્ડ્સ સાફ કરશે
+
+        if (delError) {
+          throw new Error("જૂનો MTO ડેટા સાફ કરવામાં એરર: " + delError.message);
         }
 
-        const tbody = document.getElementById('mtoTableBody');
-        tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#2563eb;">⏳ Updating MTO Database...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#2563eb; font-weight:bold;">⏳ Inserting New MTO Records from Excel...</td></tr>';
 
-        const batchSize = 50;
-        let updatedCount = 0;
+        // 👉 ૨. એક્સેલમાંથી દરેક કૉલમને ચોક્કસ રીતે મેપ કરવી (ખાલી સેલ માટે null સાથે)
+        const preparedRows = rows.map(r => {
+          const cleanObj = {};
 
-        for (let i = 0; i < rows.length; i += batchSize) {
-          const batch = rows.slice(i, i + batchSize).map(r => {
-            const rowId = r.id !== undefined ? r.id : r.ID;
-            const cleanObj = { id: rowId };
+          // જો Excel માં id હાજર હોય તો વાપરવું
+          if (r.id !== undefined && r.id !== null && String(r.id).trim() !== '') {
+            cleanObj.id = Number(r.id);
+          }
 
-            MTO_COLS.forEach(c => {
-              let rawVal = undefined;
+          MTO_COLS.forEach(c => {
+            let rawVal = undefined;
 
-              if (r.hasOwnProperty(c.key)) {
-                rawVal = r[c.key];
-              } else if (r.hasOwnProperty(c.label)) {
-                rawVal = r[c.label];
+            if (r.hasOwnProperty(c.key)) {
+              rawVal = r[c.key];
+            } else if (r.hasOwnProperty(c.label)) {
+              rawVal = r[c.label];
+            } else {
+              const matchedKey = Object.keys(r).find(k =>
+                k.toLowerCase().replace(/[\s_-]/g, '') === c.key.toLowerCase().replace(/[\s_-]/g, '') ||
+                k.toLowerCase().replace(/[\s_-]/g, '') === c.label.toLowerCase().replace(/[\s_-]/g, '')
+              );
+              if (matchedKey) rawVal = r[matchedKey];
+            }
+
+            // જો વેલ્યુ ખાલી, null કે '-' હોય તો સ્પષ્ટપણે null સેટ થશે
+            if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) {
+              cleanObj[c.key] = null;
+            } else {
+              const isDateCol = c.key.toLowerCase().includes('date');
+              if (isDateCol) {
+                cleanObj[c.key] = formatExcelDate(rawVal);
               } else {
-                const matchedKey = Object.keys(r).find(k => 
-                  k.toLowerCase().replace(/[\s_-]/g, '') === c.key.toLowerCase().replace(/[\s_-]/g, '') ||
-                  k.toLowerCase().replace(/[\s_-]/g, '') === c.label.toLowerCase().replace(/[\s_-]/g, '')
-                );
-                if (matchedKey) rawVal = r[matchedKey];
+                cleanObj[c.key] = String(rawVal).trim();
               }
-
-              if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) {
-                cleanObj[c.key] = null;
-              } else {
-                const isDateCol = c.key.toLowerCase().includes('date');
-                if (isDateCol) {
-                  cleanObj[c.key] = formatExcelDate(rawVal);
-                } else {
-                  cleanObj[c.key] = String(rawVal).trim();
-                }
-              }
-            });
-
-            return cleanObj;
+            }
           });
 
-          const { error } = await db.from('mto').upsert(batch, { onConflict: 'id' });
-          if (error) throw error;
-          updatedCount += batch.length;
+          return cleanObj;
+        });
+
+        // 👉 ૩. ૫૦-૫૦ ના બેચમાં નવો ડેટા Insert કરવો
+        const batchSize = 50;
+        let insertedCount = 0;
+
+        for (let i = 0; i < preparedRows.length; i += batchSize) {
+          const batch = preparedRows.slice(i, i + batchSize);
+          const { error: insError } = await db.from('mto').insert(batch);
+          if (insError) throw insError;
+          insertedCount += batch.length;
+          tbody.innerHTML = `<tr><td colspan="19" style="text-align:center; padding:20px; color:#2563eb;">⏳ Uploading (${insertedCount}/${preparedRows.length})...</td></tr>`;
         }
 
-        alert(`🎉 સફળતાપૂર્વક ${updatedCount} MTO રેકોર્ડ્સ અપડેટ થઈ ગયા!`);
+        // 👉 ૪. ભવિષ્યની નવી એન્ટ્રી માટે ID Sequence ફરીથી સેટ કરવો
+        await db.rpc('setval', {
+          seq: 'mto_id_seq',
+          val: insertedCount
+        }).catch(() => {});
+
+        alert(`🎉 સફળતાપૂર્વક જૂનો MTO ડેટા સાફ થઈ ગયો અને ${insertedCount} રેકોર્ડ્સ નવેસરથી Database માં બેસી ગયા!`);
         event.target.value = '';
         await loadMtoData();
+
       } catch (err) {
         console.error(err);
-        alert("MTO ડેટા અપડેટ કરવામાં ભૂલ આવી: " + err.message);
+        alert("❌ MTO ડેટા અપડેટ કરવામાં ભૂલ આવી: " + err.message);
         event.target.value = '';
-        loadMtoData();
+        await loadMtoData();
       }
     };
     reader.readAsArrayBuffer(file);
