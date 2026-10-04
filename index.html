@@ -1423,7 +1423,7 @@
     }
   }
 
-  async function uploadAndApplyExcelUpdate() {
+async function uploadAndApplyExcelUpdate() {
     const fileInput = document.getElementById('excelFileInput');
     if (!fileInput.files || fileInput.files.length === 0) {
       alert("⚠️ કૃપા કરીને અપડેટ કરેલી Excel ફાઇલ સિલેક્ટ કરો!");
@@ -1448,74 +1448,100 @@
         const headers = [];
         worksheet.eachRow((row, rowNumber) => {
           if (rowNumber === 1) {
-            row.eachCell((cell, colNumber) => { headers[colNumber] = cell.value; });
+            row.eachCell((cell, colNumber) => { 
+              headers[colNumber] = String(cell.value || '').trim(); 
+            });
           } else {
             const rowObj = {};
-            row.eachCell((cell, colNumber) => {
+            row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
               const h = headers[colNumber];
               if (h) rowObj[h] = cell.value;
             });
-            if (Object.keys(rowObj).length > 0) rows.push(rowObj);
+            // જો આખી રો ખાલી ન હોય તો જ એડ કરો
+            const hasData = Object.values(rowObj).some(v => v !== null && v !== undefined && String(v).trim() !== '');
+            if (hasData) rows.push(rowObj);
           }
         });
 
         if (rows.length === 0) {
-          alert("ફાઈલમાં કોઈ ડેટા મળ્યો નથી!");
+          alert("❌ ફાઈલમાં કોઈ ડેટા મળ્યો નથી!");
           updateBtn.innerHTML = orgText;
           updateBtn.disabled = false;
           return;
         }
 
-        if (!rows[0].hasOwnProperty('id')) {
-          alert("❌ ભૂલ: ફાઈલમાં 'id' કૉલમ નથી! સાચી ડાઉનલોડ કરેલી ફાઇલ અપલોડ કરો.");
+        const confirmMsg = `⚠️️ ચેતવણી: આ પ્રક્રિયાથી ડેટાબેઝનો જૂનો તમામ ડેટા નીકળી જશે અને Excel ફાઈલ મુજબ ${rows.length} રેકોર્ડ્સ નવેસરથી બેસી જશે.\n\nશું તમે ખરેખર આગળ વધવા માંગો છો?`;
+        if (!confirm(confirmMsg)) {
           updateBtn.innerHTML = orgText;
           updateBtn.disabled = false;
           return;
         }
 
-        if (!confirm(`શું તમે ખરેખર ${rows.length} રેકોર્ડ્સ Database માં અપડેટ કરવા માંગો છો?`)) {
-          updateBtn.innerHTML = orgText;
-          updateBtn.disabled = false;
-          return;
+        // 👉 ૧. જૂનો સંપૂર્ણ ડેટાબેઝ સાફ કરવો (Delete All Old Records)
+        updateBtn.innerHTML = "⏳ Clearing Old Database Records...";
+        const { error: delError } = await db
+          .from('piping_joints')
+          .delete()
+          .neq('id', 0); // તમામ રો ડિલીટ કરશે
+
+        if (delError) {
+          throw new Error("જૂનો ડેટા ડિલીટ કરવામાં એરર: " + delError.message);
         }
 
-        updateBtn.innerHTML = "⏳ Updating Supabase in batches...";
+        // 👉 ૨. એક્સેલમાંથી દરેક કૉલમને ચોક્કસ રીતે મેપ કરવી (ખાલી સેલ માટે null સાથે)
+        updateBtn.innerHTML = "⏳ Inserting New Records...";
 
-        const batchSize = 50;
-        let updatedCount = 0;
+        const preparedRows = rows.map(r => {
+          const cleanObj = {};
+          
+          // જો Excel માં id હોય તો નવો auto-increment pkey ક્લેશ ન થાય તે માટે તેને છોડી પણ શકાય અથવા વાપરી શકાય
+          if (r.id !== undefined && r.id !== null && String(r.id).trim() !== '') {
+            cleanObj.id = Number(r.id);
+          }
 
-        for (let i = 0; i < rows.length; i += batchSize) {
-          const batch = rows.slice(i, i + batchSize).map(r => {
-            const cleanObj = { id: r.id };
-            MASTER_COLS_ALL.forEach(c => {
-              if (r.hasOwnProperty(c.key)) {
-                let v = r[c.key];
-                if (v === '' || v === undefined || v === 'null') {
-                  v = null;
-                } else {
-                  const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issue') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
-                  if (isDateCol) {
-                    v = formatExcelDate(v);
-                  }
-                }
-                cleanObj[c.key] = v;
+          MASTER_COLS_ALL.forEach(c => {
+            let v = r[c.key] !== undefined ? r[c.key] : r[c.label];
+            
+            // જો કૉલમ એક્સેલમાં ખાલી, સ્પેસ કે null હોય તો ડેટાબેઝમાં સ્પષ્ટપણે null સેટ થશે
+            if (v === '' || v === undefined || v === null || String(v).trim().toLowerCase() === 'null') {
+              cleanObj[c.key] = null;
+            } else {
+              const isDateCol = c.key.toLowerCase().includes('date') || 
+                                c.key.toLowerCase().includes('issue') || 
+                                c.key.toLowerCase().includes('clearance') || 
+                                c.key.toLowerCase().includes('insp');
+              if (isDateCol) {
+                cleanObj[c.key] = formatExcelDate(v);
+              } else {
+                cleanObj[c.key] = String(v).trim();
               }
-            });
-            return cleanObj;
+            }
           });
 
-          const { error } = await db.from('piping_joints').upsert(batch, { onConflict: 'id' });
-          if (error) throw error;
-          updatedCount += batch.length;
-          updateBtn.innerHTML = `⏳ Updating (${updatedCount}/${rows.length})...`;
+          return cleanObj;
+        });
+
+        // 👉 ૩. ૫૦-૫૦ ના બેચમાં નવો ડેટા Insert કરવો
+        const batchSize = 50;
+        let insertedCount = 0;
+
+        for (let i = 0; i < preparedRows.length; i += batchSize) {
+          const batch = preparedRows.slice(i, i + batchSize);
+          const { error: insError } = await db.from('piping_joints').insert(batch);
+          if (insError) throw insError;
+          insertedCount += batch.length;
+          updateBtn.innerHTML = `⏳ Uploading (${insertedCount}/${preparedRows.length})...`;
         }
 
-        alert(`🎉 સફળતાપૂર્વક ${updatedCount} રેકોર્ડ્સ Supabase માં અપડેટ થઈ ગયા!`);
+        alert(`🎉 સફળતાપૂર્વક જૂનો ડેટા સાફ થઈ ગયો અને ${insertedCount} રેકોર્ડ્સ નવેસરથી Database માં અપડેટ થઈ ગયા!`);
         fileInput.value = '';
-        allRecordsCache = [];
+        allRecordsCache = []; // લોકલ કેશ ક્લિયર
+        await ensureAllRecordsCached();
+        backToMenu();
+
       } catch (err) {
         console.error(err);
-        alert("અપડેટ કરવામાં ભૂલ આવી: " + err.message);
+        alert("❌ અપડેટ કરવામાં ભૂલ આવી: " + err.message);
       } finally {
         updateBtn.innerHTML = orgText;
         updateBtn.disabled = false;
