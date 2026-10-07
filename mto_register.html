@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MTO Register Console</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    :root {
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+
+    .container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 10px 14px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    }
+
+    .master-table-container {
+      overflow: auto;
+      margin-top: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      height: calc(100vh - 125px);
+    }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
+    th, td { border: 1px solid #cbd5e1; padding: 7px 10px; white-space: nowrap; background-color: #fff; }
+    th { background-color: #0f766e; color: white; font-weight: 700; font-size: 13px; position: sticky; top: 0; z-index: 5; }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
+    .btn-mode-sync { background: #7c3aed; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+    .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; }
+    .sub-filter-btn.active { background: #0f766e; color: white; border-color: #115e59; }
+
+    .btn-save-action {
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
+    .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
+
+    .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .filter-btn-icon { background: #0f766e; color: #fff; border: 1px solid #5eead4; border-radius: 3px; padding: 2px 6px; font-size: 10.5px; cursor: pointer; line-height: 1; }
+    .filter-btn-icon:hover { background: #115e59; }
+
+    #excelFilterPopup {
+      position: absolute;
+      display: none;
+      z-index: 1000;
+      background: #ffffff;
+      border: 1.5px solid #0d9488;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      width: 260px;
+      padding: 12px;
+      font-family: inherit;
+    }
+    .popup-search { width: 100%; padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 12.5px; box-sizing: border-box; margin-bottom: 8px; }
+    .popup-options-list { max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px; margin-bottom: 10px; background: #fafafa; }
+    .popup-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #1e293b; padding: 4px 2px; }
+    .popup-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; }
+    .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .popup-btn-ok { background: #0f766e; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div class="top-navbar">
+    <div style="font-size: 15px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+      <span>📋 MTO REGISTER CONSOLE</span>
+      <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;"></span>
+    </div>
+    <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h3 style="margin:0; border:none; color:#0f766e; font-size:16px;">📋 Records (<span id="mtoTotalCount">0</span>)</h3>
+          <span id="mtoCurrentFilterLabel" style="font-size:12px; font-weight:bold; color:#c2410c; background:#ffedd5; padding:2px 8px; border-radius:12px; display:none;"></span>
+          
+          <button type="button" id="btnMtoView" class="btn-mode-view" onclick="setMtoMode('view')">View</button>
+          <button type="button" id="btnMtoEdit" class="btn-mode-edit" onclick="requestMtoEditMode()">Edit</button>
+          <button type="button" id="btnMtoSave" class="btn-mode-save" onclick="saveMtoEditsToDb()">💾 SAVE</button>
+          
+          <!-- Admin Only -->
+          <button type="button" id="btnMtoSyncFromMaster" class="btn-mode-sync" style="display:none;" onclick="syncMtoFromMaster()">MTO UPDATE FROM MASTER</button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <input type="text" id="mtoSearchInput" placeholder="Search in MTO..." oninput="handleMtoSearch(this.value)" style="padding:5px 8px; width:130px; font-size:12px; border:1px solid #cbd5e1; border-radius:6px;">
+          <button type="button" class="sub-filter-btn" onclick="clearAllMtoFiltersAndLoad()">Reset/All</button>
+          
+          <button type="button" class="sub-filter-btn" id="btnFilterMinBal" style="background:#ffedd5; color:#c2410c; border-color:#fdba74;" onclick="viewMtoBalanceCategory('min_bal')">MIN Bal.</button>
+          <button type="button" class="sub-filter-btn" id="btnFilterIssueBal" style="background:#fef3c7; color:#b45309; border-color:#fcd34d;" onclick="viewMtoBalanceCategory('issue_bal')">Mat.Issue.Bal.</button>
+          <button type="button" class="sub-filter-btn" id="btnFilterAllBal" style="background:#e0e7ff; color:#4338ca; border-color:#a5b4fc;" onclick="viewMtoBalanceCategory('all_bal')">All Bal.</button>
+
+          <!-- Admin Only Export/Import Actions -->
+          <button type="button" id="btnMtoDownloadExcel" class="btn-save-action" style="background:#0284c7; display:none;" onclick="downloadFormattedMtoExcel()">📥 Download View</button>
+          <button type="button" id="btnMtoDownloadSummaryExcel" class="btn-save-action" style="background:#0d9488; display:none;" onclick="downloadMtoSummaryExcel()">📊 Download Summary</button>
+          <button type="button" id="btnMtoUploadTrigger" class="btn-save-action" style="background:#15803d; display:none;" onclick="document.getElementById('mtoFileInput').click()">📤 Upload & Update</button>
+          <input type="file" id="mtoFileInput" accept=".xlsx, .xls" style="display:none;" onchange="uploadAndApplyMtoExcel(event)">
+        </div>
+      </div>
+
+      <!-- Main Register Table -->
+      <div class="master-table-container">
+        <table>
+          <thead>
+            <tr id="mtoHeaderRow"></tr>
+          </thead>
+          <tbody id="mtoTableBody">
+            <tr><td colspan="19" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Excel Filter Floating Modal -->
+  <div id="excelFilterPopup">
+    <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search..." oninput="onPopupSearch(this.value)">
+    <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
+      <input type="checkbox" id="popupSelectAll" onchange="togglePopupSelectAll(this.checked)">
+      <label for="popupSelectAll" style="font-size: 12px; font-weight: bold; margin: 0; cursor: pointer;">(Select All)</label>
+    </div>
+    <div id="popupOptionsList" class="popup-options-list"></div>
+    <div class="popup-actions">
+      <button type="button" class="popup-btn-ok" onclick="applyPopupFilter()">OK</button>
+      <button type="button" class="popup-btn-clear" onclick="clearCurrentPopupFilter()">Clear</button>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const EDIT_MODE_PASSWORD = "edit@6038";
+
+    const MTO_COLS = [
+      { key: 'Spool_number', label: 'Spool No' },
+      { key: 'Drawing_no', label: 'Drawing No' },
+      { key: 'MAT_SAP_CODE', label: 'SAP Code' },
+      { key: 'Size_1', label: 'Size 1' },
+      { key: 'Size_2', label: 'Size 2' },
+      { key: 'Unit', label: 'Unit' },
+      { key: 'MAT_Description', label: 'Material Description' },
+      { key: 'lot_no', label: 'Lot No' },
+      { key: 'MIN_No', label: 'MIN No' },
+      { key: 'MIN_Date', label: 'MIN Date' },
+      { key: 'MIN_qty', label: 'MIN Qty' },
+      { key: 'Issued_qty', label: 'Issued Qty' },
+      { key: 'IGP_No', label: 'IGP No' },
+      { key: 'IGP_Date', label: 'IGP Date' },
+      { key: 'Heat_number', label: 'Heat No' },
+      { key: 'Bend_date', label: 'Bend Date' },
+      { key: 'Fit_up_date', label: 'Fit Up Date' }
+    ];
+
+    let currentUser = null;
+    let isMtoEditMode = false;
+    let mtoPendingUpdates = new Map();
+    let mtoCache = [];
+    let mtoBaseRows = [];
+    let mtoDisplayRows = [];
+    let activeMtoCategory = 'all';
+    let mtoColumnFilters = {};
+    let currentPopupContext = { colKey: '', colLabel: '', allValues: [] };
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (str === '' || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return str;
+    }
+
+    function formatExcelDate(val) {
+      if (!val) return null;
+      if (val instanceof Date) return isNaN(val.getTime()) ? null : val.toISOString().split('T')[0];
+      if (typeof val === 'number' || (!isNaN(val) && !String(val).includes('-') && !String(val).includes('/'))) {
+        const num = parseFloat(val);
+        const date = new Date(Math.round((num - 25569) * 86400 * 1000));
+        return date.toISOString().split('T')[0];
+      }
+      const str = String(val).trim();
+      if (str === '' || str.toLowerCase() === 'null') return null;
+      if (str.includes('/') || str.includes('-')) {
+        const delimiter = str.includes('/') ? '/' : '-';
+        const parts = str.split('T')[0].split(delimiter);
+        if (parts.length === 3) {
+          if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+          if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+      }
+      return str;
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function verifySession() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      currentUser = JSON.parse(sessionData);
+      document.getElementById('navSubTitle').innerText = `| Logged in: ${currentUser.name}`;
+
+      const isAdmin = currentUser.username === 'admin';
+      const btnSync = document.getElementById('btnMtoSyncFromMaster');
+      const btnDl = document.getElementById('btnMtoDownloadExcel');
+      const btnSumDl = document.getElementById('btnMtoDownloadSummaryExcel');
+      const btnUp = document.getElementById('btnMtoUploadTrigger');
+
+      if (btnSync) btnSync.style.display = isAdmin ? 'inline-block' : 'none';
+      if (btnDl) btnDl.style.display = isAdmin ? 'inline-flex' : 'none';
+      if (btnSumDl) btnSumDl.style.display = isAdmin ? 'inline-flex' : 'none';
+      if (btnUp) btnUp.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      return true;
+    }
+
+    function buildMtoRegisterHeader() {
+      const tr = document.getElementById('mtoHeaderRow');
+      tr.innerHTML = `
+        <th style="width:40px; text-align:center;">Sr.</th>
+        ${MTO_COLS.map(c => `
+          <th>
+            <div class="header-cell">
+              <span>${c.label}</span>
+              <button class="filter-btn-icon" onclick="openExcelFilter(event, '${c.key}', '${c.label}')">🔽</button>
+            </div>
+          </th>
+        `).join('')}
+      `;
+    }
+
+    async function loadMtoData() {
+      const tbody = document.getElementById('mtoTableBody');
+      tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>';
+
+      let allRows = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db.from('mto').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="19" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
+          return;
+        }
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += step;
+          if (data.length < step) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      mtoCache = allRows || [];
+      applyMtoCategoryFilter(activeMtoCategory);
+    }
+
+    function clearAllMtoFiltersAndLoad() {
+      mtoColumnFilters = {};
+      activeMtoCategory = 'all';
+      document.getElementById('mtoSearchInput').value = '';
+      document.getElementById('mtoCurrentFilterLabel').style.display = 'none';
+      resetCategoryButtonStyles();
+      applyMtoCategoryFilter('all');
+    }
+
+    function resetCategoryButtonStyles() {
+      ['btnFilterMinBal', 'btnFilterIssueBal', 'btnFilterAllBal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+    }
+
+    function viewMtoBalanceCategory(type) {
+      activeMtoCategory = type;
+      mtoColumnFilters = {};
+      resetCategoryButtonStyles();
+      
+      const lbl = document.getElementById('mtoCurrentFilterLabel');
+      lbl.style.display = 'inline-block';
+
+      if (type === 'min_bal') {
+        document.getElementById('btnFilterMinBal').classList.add('active');
+        lbl.innerText = "Filter: MIN Balance Only";
+      } else if (type === 'issue_bal') {
+        document.getElementById('btnFilterIssueBal').classList.add('active');
+        lbl.innerText = "Filter: Mat.Issue.Bal";
+      } else if (type === 'all_bal') {
+        document.getElementById('btnFilterAllBal').classList.add('active');
+        lbl.innerText = "Filter: All Balance (MIN + Issue)";
+      }
+
+      applyMtoCategoryFilter(type);
+    }
+
+    function applyMtoCategoryFilter(type) {
+      const isBlank = val => {
+        if (val === null || val === undefined) return true;
+        const s = String(val).trim().toLowerCase();
+        return s === '' || s === 'null' || s === 'undefined' || s === '-';
+      };
+      const isFilled = val => !isBlank(val);
+
+      if (type === 'min_bal') {
+        mtoBaseRows = mtoCache.filter(r => isBlank(r.MIN_No) || isBlank(r.MIN_Date));
+      } else if (type === 'issue_bal') {
+        mtoBaseRows = mtoCache.filter(r => 
+          (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && 
+          (isBlank(r.IGP_No) || isBlank(r.IGP_Date))
+        );
+      } else if (type === 'all_bal') {
+        mtoBaseRows = mtoCache.filter(r => {
+          const isMinPending = isBlank(r.MIN_No) || isBlank(r.MIN_Date);
+          const isIssuePending = (isFilled(r.MIN_No) || isFilled(r.MIN_Date)) && (isBlank(r.IGP_No) || isBlank(r.IGP_Date));
+          return isMinPending || isIssuePending;
+        });
+      } else {
+        mtoBaseRows = mtoCache;
+      }
+
+      applyMtoDataFilters();
+    }
+
+    function applyMtoDataFilters() {
+      mtoDisplayRows = mtoBaseRows.filter(r => {
+        for (const [colKey, allowedSet] of Object.entries(mtoColumnFilters)) {
+          let val = r[colKey] !== undefined ? r[colKey] : '';
+          val = String(val || '').trim();
+          const isDateCol = colKey.toLowerCase().includes('date');
+          const displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
+          if (!allowedSet.has(displayVal)) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('mtoTotalCount').innerText = mtoDisplayRows.length;
+      renderMtoTable(mtoDisplayRows);
+    }
+
+    function handleMtoSearch(term) {
+      const q = term.toLowerCase().trim();
+      if (!q) {
+        applyMtoDataFilters();
+        return;
+      }
+      const filtered = mtoDisplayRows.filter(r => 
+        String(r.Spool_number || '').toLowerCase().includes(q) ||
+        String(r.Drawing_no || '').toLowerCase().includes(q) ||
+        String(r.MAT_SAP_CODE || '').toLowerCase().includes(q) ||
+        String(r.lot_no || '').toLowerCase().includes(q)
+      );
+      renderMtoTable(filtered);
+    }
+
+    function renderMtoTable(rows) {
+      const tbody = document.getElementById('mtoTableBody');
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:15px; color:#64748b;">No MTO records found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.slice(0, 1000).map((r, idx) => {
+        if (isMtoEditMode) {
+          return `
+            <tr>
+              <td style="text-align:center; font-weight:600;">${idx + 1}</td>
+              ${MTO_COLS.map(c => {
+                let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+                let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+                return `<td><input type="text" class="cell-input" value="${escapeHtml(editVal)}" onchange="handleMtoCellChange(${r.id}, '${c.key}', this.value)"></td>`;
+              }).join('')}
+            </tr>
+          `;
+        } else {
+          return `
+            <tr>
+              <td style="text-align:center; font-weight:600;">${idx + 1}</td>
+              <td><b>${r.Spool_number || '-'}</b></td>
+              <td>${r.Drawing_no || '-'}</td>
+              <td>${r.MAT_SAP_CODE || '-'}</td>
+              <td>${r.Size_1 || '-'}</td>
+              <td>${r.Size_2 || '-'}</td>
+              <td>${r.Unit || '-'}</td>
+              <td>${r.MAT_Description || '-'}</td>
+              <td style="font-weight:bold; color:#0f766e;">${r.lot_no || '-'}</td>
+              <td>${r.MIN_No || '-'}</td>
+              <td>${formatDateDisplay(r.MIN_Date)}</td>
+              <td>${r.MIN_qty || '-'}</td>
+              <td>${r.Issued_qty || '-'}</td>
+              <td>${r.IGP_No || '-'}</td>
+              <td>${formatDateDisplay(r.IGP_Date)}</td>
+              <td>${r.Heat_number || '-'}</td>
+              <td>${formatDateDisplay(r.Bend_date)}</td>
+              <td>${formatDateDisplay(r.Fit_up_date)}</td>
+            </tr>
+          `;
+        }
+      }).join('');
+    }
+
+    function setMtoMode(mode) {
+      if (mode === 'view') {
+        isMtoEditMode = false;
+        document.getElementById('btnMtoView').style.outline = '2px solid #0369a1';
+        document.getElementById('btnMtoEdit').style.outline = 'none';
+        document.getElementById('btnMtoSave').style.display = 'none';
+        renderMtoTable(mtoDisplayRows);
+      } else if (mode === 'edit') {
+        isMtoEditMode = true;
+        document.getElementById('btnMtoEdit').style.outline = '2px solid #b45309';
+        document.getElementById('btnMtoView').style.outline = 'none';
+        document.getElementById('btnMtoSave').style.display = 'inline-block';
+        renderMtoTable(mtoDisplayRows);
+      }
+    }
+
+    function requestMtoEditMode() {
+      if (!currentUser || currentUser.username !== 'admin') {
+        return alert("⚠️ માત્ર Admin પાસે જ MTO Register Edit કરવાની પરમિશન છે!");
+      }
+      const inputPass = prompt("🔐 Enter MTO Register Edit Password:");
+      if (inputPass === null) return;
+      if (inputPass === EDIT_MODE_PASSWORD) {
+        alert("✅ MTO Edit Mode Unlocked! You can edit any cell directly.");
+        setMtoMode('edit');
+      } else {
+        alert("❌ Incorrect Edit Password! Access Denied.");
+      }
+    }
+
+    function handleMtoCellChange(id, colKey, newVal) {
+      if (!mtoPendingUpdates.has(id)) mtoPendingUpdates.set(id, {});
+      mtoPendingUpdates.get(id)[colKey] = newVal.trim() === '' ? null : newVal.trim();
+      const item = mtoCache.find(x => x.id === id);
+      if (item) item[colKey] = newVal.trim() === '' ? null : newVal.trim();
+    }
+
+    async function saveMtoEditsToDb() {
+      if (mtoPendingUpdates.size === 0) return alert("⚠️ કોઈ ફેરફાર થયેલ નથી.");
+      if (!confirm(`શું તમે ખરેખર ${mtoPendingUpdates.size} રો ના ફેરફારો MTO Database માં Save કરવા માંગો છો?`)) return;
+
+      const saveBtn = document.getElementById('btnMtoSave');
+      saveBtn.disabled = true;
+      saveBtn.innerText = "⏳ Saving...";
+
+      let updateErrors = 0;
+      for (const [id, rowData] of mtoPendingUpdates.entries()) {
+        const cleanData = {};
+        for (const k in rowData) {
+          let v = rowData[k];
+          const isDateCol = k.toLowerCase().includes('date');
+          cleanData[k] = isDateCol ? formatExcelDate(v) : v;
+        }
+        const { error } = await db.from('mto').update(cleanData).eq('id', id);
+        if (error) { console.error("MTO Update error for row " + id, error); updateErrors++; }
+      }
+
+      saveBtn.disabled = false;
+      saveBtn.innerText = "💾 SAVE";
+
+      if (updateErrors === 0) {
+        alert(`🎉 સફળતાપૂર્વક ${mtoPendingUpdates.size} MTO રેકોર્ડ્સ Database માં અપડેટ થઈ ગયા!`);
+        mtoPendingUpdates.clear();
+        setMtoMode('view');
+      } else {
+        alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી.`);
+      }
+    }
+
+    // Mirror Sync from piping_joints
+    async function syncMtoFromMaster() {
+      if (!confirm("શું તમે Master Data (piping_joints) મુજબ Bend Date અને Fit Up Date ને MTO માં સિન્ક કરવા માંગો છો?\n(નોંધ: જો Master માં તારીખ ખાલી હશે તો MTO માંથી પણ ખાલી થઈ જશે)")) return;
+
+      const tbody = document.getElementById('mtoTableBody');
+      tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#7c3aed;">⏳ Syncing MTO from Master Data (Mirror Update)... Please wait...</td></tr>';
+
+      try {
+        let masterRows = [];
+        let fromMaster = 0;
+        let moreMaster = true;
+        while (moreMaster) {
+          const { data, error } = await db.from('piping_joints').select('*').range(fromMaster, fromMaster + 999);
+          if (error) throw error;
+          if (data && data.length > 0) {
+            masterRows = masterRows.concat(data);
+            fromMaster += 1000;
+            if (data.length < 1000) moreMaster = false;
+          } else {
+            moreMaster = false;
+          }
+        }
+
+        const masterMap = new Map();
+        masterRows.forEach(r => {
+          if (!r.Spool_number) return;
+          const spNo = String(r.Spool_number).trim();
+          const bDate = r.Bend_date ? String(r.Bend_date).split('T')[0] : null;
+          const fDate = r.Fit_up_date ? String(r.Fit_up_date).split('T')[0] : null;
+
+          if (!masterMap.has(spNo)) {
+            masterMap.set(spNo, { Bend_date: bDate, Fit_up_date: fDate });
+          } else {
+            const cur = masterMap.get(spNo);
+            if (!cur.Bend_date && bDate) cur.Bend_date = bDate;
+            if (!cur.Fit_up_date && fDate) cur.Fit_up_date = fDate;
+          }
+        });
+
+        let mtoAll = [];
+        let from = 0;
+        let hasMore = true;
+        while (hasMore) {
+          const { data, error } = await db.from('mto').select('id, Spool_number, Bend_date, Fit_up_date').range(from, from + 999);
+          if (error) throw error;
+          if (data && data.length > 0) {
+            mtoAll = mtoAll.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        const updateBatch = [];
+        mtoAll.forEach(mRow => {
+          if (!mRow.Spool_number) return;
+          const spKey = String(mRow.Spool_number).trim();
+          
+          if (masterMap.has(spKey)) {
+            const masterDates = masterMap.get(spKey);
+            const mtoBDate = mRow.Bend_date ? String(mRow.Bend_date).split('T')[0] : null;
+            const mtoFDate = mRow.Fit_up_date ? String(mRow.Fit_up_date).split('T')[0] : null;
+
+            let needsUpdate = false;
+            const patch = { id: mRow.id };
+
+            if (masterDates.Bend_date !== mtoBDate) {
+              patch.Bend_date = masterDates.Bend_date;
+              needsUpdate = true;
+            }
+            if (masterDates.Fit_up_date !== mtoFDate) {
+              patch.Fit_up_date = masterDates.Fit_up_date;
+              needsUpdate = true;
+            }
+
+            if (needsUpdate) updateBatch.push(patch);
+          }
+        });
+
+        if (updateBatch.length === 0) {
+          alert("ℹ️ MTO ટેબલ પહેલેથી જ Master Data સાથે ૧૦૦% મેચ છે. કોઈ ફેરફાર જરૂરી નથી.");
+          await loadMtoData();
+          return;
+        }
+
+        const batchSize = 50;
+        for (let i = 0; i < updateBatch.length; i += batchSize) {
+          const batch = updateBatch.slice(i, i + batchSize);
+          const { error } = await db.from('mto').upsert(batch, { onConflict: 'id' });
+          if (error) throw error;
+        }
+
+        alert(`🎉 સફળતાપૂર્વક MTO ની ${updateBatch.length} રો માં Master મુજબ ફેરફાર અપડેટ થઈ ગયા!`);
+        await loadMtoData();
+      } catch (err) {
+        console.error(err);
+        alert("MTO Sync કરવામાં ભૂલ આવી: " + err.message);
+        await loadMtoData();
+      }
+    }
+
+    // Excel Exporter Helper
+    async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Sheet1', { views: [{ showGridLines: true }] });
+
+      const headerRow = worksheet.addRow(columnHeaders);
+      headerRow.height = 26;
+
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9EAD3' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+      });
+
+      rowsData.forEach(rowItem => {
+        const rowValues = columnHeaders.map(col => rowItem[col] !== undefined && rowItem[col] !== null ? rowItem[col] : '');
+        const dataRow = worksheet.addRow(rowValues);
+        dataRow.height = 20;
+
+        dataRow.eachCell((cell) => {
+          cell.font = { name: 'Calibri', size: 11 };
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+            left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+            bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+            right: { style: 'thin', color: { argb: 'FFD3D3D3' } }
+          };
+        });
+      });
+
+      worksheet.columns.forEach((column) => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          const val = cell.value ? cell.value.toString() : '';
+          if (val.length > maxLength) maxLength = val.length;
+        });
+        column.width = Math.max(maxLength + 4, 12);
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${fileName}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    async function downloadFormattedMtoExcel() {
+      if (!mtoDisplayRows || mtoDisplayRows.length === 0) {
+        return alert("⚠️ હાલ સ્ક્રીન પર ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
+      }
+
+      const headers = ["id", ...MTO_COLS.map(c => c.key)];
+      const excelRows = mtoDisplayRows.map(r => {
+        const rowObj = { "id": r.id };
+        MTO_COLS.forEach(c => {
+          let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+          const isDate = c.key.toLowerCase().includes('date');
+          rowObj[c.key] = isDate ? formatDateDisplay(val) : val;
+        });
+        return rowObj;
+      });
+
+      let catName = activeMtoCategory === 'all' ? 'MTO_Full' : `MTO_${activeMtoCategory}`;
+      const today = new Date().toISOString().split('T')[0];
+      await exportStyledExcelWorkbook(excelRows, headers, `${catName}_List_${today}`);
+    }
+
+    async function downloadMtoSummaryExcel() {
+      if (!mtoDisplayRows || mtoDisplayRows.length === 0) {
+        return alert("⚠️ હાલ સમરી ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
+      }
+
+      const summaryMap = new Map();
+      mtoDisplayRows.forEach(r => {
+        const sap = String(r.MAT_SAP_CODE || '-').trim();
+        const desc = String(r.MAT_Description || '-').trim();
+        const lot = String(r.lot_no || '-').trim();
+        const minNo = String(r.MIN_No || '-').trim();
+        const groupKey = `${sap}___${desc}___${lot}___${minNo}`;
+
+        const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+        const issQty = parseFloat(String(r.Issued_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+
+        if (!summaryMap.has(groupKey)) {
+          summaryMap.set(groupKey, {
+            MAT_SAP_CODE: sap,
+            MAT_Description: desc,
+            lot_no: lot,
+            MIN_No: minNo,
+            MIN_qty_sum: minQty,
+            Issued_qty_sum: issQty
+          });
+        } else {
+          const item = summaryMap.get(groupKey);
+          item.MIN_qty_sum += minQty;
+          item.Issued_qty_sum += issQty;
+        }
+      });
+
+      const summaryHeaders = [
+        "Sr no.",
+        "MAT_SAP_CODE",
+        "MAT_Description",
+        "lot_no",
+        "MIN_No",
+        "sum of MIN_qty",
+        "sum of Issued_qty"
+      ];
+
+      let totalMinQty = 0;
+      let totalIssuedQty = 0;
+      let srNo = 1;
+
+      const summaryRows = [];
+      for (const val of summaryMap.values()) {
+        const minQtyClean = parseFloat(val.MIN_qty_sum.toFixed(3));
+        const issQtyClean = parseFloat(val.Issued_qty_sum.toFixed(3));
+        totalMinQty += minQtyClean;
+        totalIssuedQty += issQtyClean;
+
+        summaryRows.push({
+          "Sr no.": srNo++,
+          "MAT_SAP_CODE": val.MAT_SAP_CODE,
+          "MAT_Description": val.MAT_Description,
+          "lot_no": val.lot_no,
+          "MIN_No": val.MIN_No,
+          "sum of MIN_qty": minQtyClean,
+          "sum of Issued_qty": issQtyClean
+        });
+      }
+
+      summaryRows.push({
+        "Sr no.": "TOTAL",
+        "MAT_SAP_CODE": "",
+        "MAT_Description": "",
+        "lot_no": "",
+        "MIN_No": "",
+        "sum of MIN_qty": parseFloat(totalMinQty.toFixed(3)),
+        "sum of Issued_qty": parseFloat(totalIssuedQty.toFixed(3))
+      });
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('MTO_Summary', { views: [{ showGridLines: true }] });
+
+      const headerRow = worksheet.addRow(summaryHeaders);
+      headerRow.height = 26;
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F766E' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+      });
+
+      summaryRows.forEach((rowItem, index) => {
+        const isTotalRow = index === summaryRows.length - 1;
+        const rowValues = summaryHeaders.map(col => rowItem[col]);
+        const dataRow = worksheet.addRow(rowValues);
+        dataRow.height = isTotalRow ? 24 : 20;
+
+        dataRow.eachCell((cell, colNumber) => {
+          cell.font = { name: 'Calibri', size: 11, bold: isTotalRow };
+          cell.border = {
+            top: { style: isTotalRow ? 'medium' : 'thin', color: { argb: 'FF94A3B8' } },
+            left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            bottom: { style: isTotalRow ? 'double' : 'thin', color: { argb: 'FF94A3B8' } },
+            right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+          };
+
+          if (isTotalRow) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+            cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF92400E' } };
+          }
+
+          if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          else if (colNumber >= 6) cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          else cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        });
+      });
+
+      worksheet.columns.forEach((column) => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          const val = cell.value ? cell.value.toString() : '';
+          if (val.length > maxLength) maxLength = val.length;
+        });
+        column.width = Math.max(maxLength + 4, 14);
+      });
+
+      const today = new Date().toISOString().split('T')[0];
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `MTO_Summary_Report_${today}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    // Full Replace Batch Upload Logic
+    async function uploadAndApplyMtoExcel(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const tbody = document.getElementById('mtoTableBody');
+      const reader = new FileReader();
+
+      reader.onload = async function (e) {
+        try {
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(e.target.result);
+          const worksheet = workbook.worksheets[0];
+
+          const rows = [];
+          const headers = [];
+          worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) {
+              row.eachCell((cell, colNumber) => {
+                headers[colNumber] = String(cell.value || '').trim();
+              });
+            } else {
+              const rowObj = {};
+              row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                const h = headers[colNumber];
+                if (h) rowObj[h] = cell.value;
+              });
+              const hasData = Object.values(rowObj).some(v => v !== null && v !== undefined && String(v).trim() !== '');
+              if (hasData) rows.push(rowObj);
+            }
+          });
+
+          if (rows.length === 0) {
+            alert("❌ ફાઈલમાં કોઈ ડેટા મળ્યો નથી!");
+            event.target.value = '';
+            return;
+          }
+
+          const confirmMsg = `⚠️ ચેતવણી: આ પ્રક્રિયાથી MTO Database નો જૂનો તમામ ડેટા સાફ થઈ જશે અને Excel ફાઈલ મુજબ ${rows.length} રેકોર્ડ્સ નવેસરથી ગોઠવાઈ જશે.\n\nશું તમે ખરેખર આગળ વધવા માંગો છો?`;
+          if (!confirm(confirmMsg)) {
+            event.target.value = '';
+            return;
+          }
+
+          tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#c2410c; font-weight:bold;">⏳ Clearing Old MTO Database Records...</td></tr>';
+
+          const { error: delError } = await db.from('mto').delete().neq('id', 0);
+          if (delError) throw new Error("જૂનો MTO ડેટા સાફ કરવામાં એરર: " + delError.message);
+
+          tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#2563eb; font-weight:bold;">⏳ Inserting New MTO Records from Excel...</td></tr>';
+
+          const preparedRows = rows.map(r => {
+            const cleanObj = {};
+            if (r.id !== undefined && r.id !== null && String(r.id).trim() !== '') {
+              cleanObj.id = Number(r.id);
+            }
+
+            MTO_COLS.forEach(c => {
+              let rawVal = undefined;
+              if (r.hasOwnProperty(c.key)) rawVal = r[c.key];
+              else if (r.hasOwnProperty(c.label)) rawVal = r[c.label];
+              else {
+                const matchedKey = Object.keys(r).find(k =>
+                  k.toLowerCase().replace(/[\s_-]/g, '') === c.key.toLowerCase().replace(/[\s_-]/g, '') ||
+                  k.toLowerCase().replace(/[\s_-]/g, '') === c.label.toLowerCase().replace(/[\s_-]/g, '')
+                );
+                if (matchedKey) rawVal = r[matchedKey];
+              }
+
+              if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) {
+                cleanObj[c.key] = null;
+              } else {
+                const isDateCol = c.key.toLowerCase().includes('date');
+                cleanObj[c.key] = isDateCol ? formatExcelDate(rawVal) : String(rawVal).trim();
+              }
+            });
+            return cleanObj;
+          });
+
+          const batchSize = 50;
+          let insertedCount = 0;
+
+          for (let i = 0; i < preparedRows.length; i += batchSize) {
+            const batch = preparedRows.slice(i, i + batchSize);
+            const { error: insError } = await db.from('mto').insert(batch);
+            if (insError) throw insError;
+            insertedCount += batch.length;
+            tbody.innerHTML = `<tr><td colspan="19" style="text-align:center; padding:20px; color:#2563eb;">⏳ Uploading (${insertedCount}/${preparedRows.length})...</td></tr>`;
+          }
+
+          alert(`🎉 સફળતાપૂર્વક જૂનો MTO ડેટા સાફ થઈ ગયો અને ${insertedCount} રેકોર્ડ્સ નવેસરથી Database માં બેસી ગયા!`);
+          event.target.value = '';
+          await loadMtoData();
+
+        } catch (err) {
+          console.error(err);
+          alert("❌ MTO ડેટા અપડેટ કરવામાં ભૂલ આવી: " + err.message);
+          event.target.value = '';
+          await loadMtoData();
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // Popup Checkbox Filter Handlers
+    function openExcelFilter(e, colKey, colLabel) {
+      e.stopPropagation();
+      const popup = document.getElementById('excelFilterPopup');
+      const rect = e.target.getBoundingClientRect();
+      let top = rect.bottom + window.scrollY + 6;
+      let left = rect.left + window.scrollX - 100;
+      if (left + 270 > window.innerWidth) left = window.innerWidth - 280;
+      if (left < 10) left = 10;
+
+      popup.style.top = `${top}px`;
+      popup.style.left = `${left}px`;
+      popup.style.display = 'block';
+
+      currentPopupContext.colKey = colKey;
+      currentPopupContext.colLabel = colLabel;
+
+      const sourceRows = mtoBaseRows.filter(r => {
+        for (const [filterCol, allowedSet] of Object.entries(mtoColumnFilters)) {
+          if (filterCol === colKey) continue;
+          let val = r[filterCol] !== undefined ? r[filterCol] : '';
+          val = String(val || '').trim();
+          const isDate = filterCol.toLowerCase().includes('date');
+          const displayVal = val === '' ? '(Blank)' : (isDate ? formatDateDisplay(val) : val);
+          if (!allowedSet.has(displayVal)) return false;
+        }
+        return true;
+      });
+
+      const valueMap = new Map();
+      const isDateCol = colKey.toLowerCase().includes('date');
+
+      sourceRows.forEach(r => {
+        let val = r[colKey] !== undefined ? r[colKey] : '';
+        val = String(val || '').trim();
+        let displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
+        valueMap.set(displayVal, (valueMap.get(displayVal) || 0) + 1);
+      });
+
+      const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+      currentPopupContext.allValues = distinctSorted;
+
+      const currentSelectedSet = mtoColumnFilters[colKey] || null;
+      document.getElementById('popupSearchInput').value = '';
+      document.getElementById('popupSearchInput').placeholder = `Search in ${colLabel}...`;
+      renderPopupCheckboxes(distinctSorted, currentSelectedSet);
+    }
+
+    function renderPopupCheckboxes(items, selectedSet) {
+      const container = document.getElementById('popupOptionsList');
+      container.innerHTML = items.map(([val, count], idx) => {
+        const isChecked = selectedSet === null || selectedSet.has(val);
+        return `
+          <div class="popup-item">
+            <input type="checkbox" id="chk_opt_${idx}" value="${escapeHtml(val)}" ${isChecked ? 'checked' : ''}>
+            <label for="chk_opt_${idx}" style="cursor:pointer; font-size:12px; margin:0;">${escapeHtml(val)} <span style="color:#64748b;">(${count})</span></label>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('popupSelectAll').checked = items.every(([val]) => selectedSet === null || selectedSet.has(val));
+    }
+
+    function onPopupSearch(term) {
+      const q = term.toLowerCase().trim();
+      const filtered = currentPopupContext.allValues.filter(([val]) => val.toLowerCase().includes(q));
+      const currentSelectedSet = mtoColumnFilters[currentPopupContext.colKey] || null;
+      renderPopupCheckboxes(filtered, currentSelectedSet);
+    }
+
+    function togglePopupSelectAll(checked) {
+      document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(chk => { chk.checked = checked; });
+    }
+
+    function applyPopupFilter() {
+      const selected = new Set();
+      document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(c => { if (c.checked) selected.add(c.value); });
+      const { colKey, allValues } = currentPopupContext;
+
+      if (selected.size === allValues.length) delete mtoColumnFilters[colKey];
+      else mtoColumnFilters[colKey] = selected;
+
+      closeExcelPopup();
+      applyMtoDataFilters();
+    }
+
+    function clearCurrentPopupFilter() {
+      delete mtoColumnFilters[currentPopupContext.colKey];
+      closeExcelPopup();
+      applyMtoDataFilters();
+    }
+
+    function closeExcelPopup() {
+      document.getElementById('excelFilterPopup').style.display = 'none';
+    }
+
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('excelFilterPopup');
+      if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
+        closeExcelPopup();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifySession()) {
+        buildMtoRegisterHeader();
+        setMtoMode('view');
+        loadMtoData();
+      }
+    });
+  </script>
+</body>
+</html>
