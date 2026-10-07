@@ -9,7 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <!-- પ્રોફેશનલ સ્ટાઇલિંગ સાથે Excel ફાઈલ બનાવવા માટે ExcelJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
- <style>
+  <style>
     :root {
       --primary: #0284c7;
       --primary-dark: #0369a1;
@@ -48,12 +48,10 @@
       flex-direction: column;
     }
 
-    /* Main Menu: મોબાઈલમાં બધા બટનો આસાનીથી સ્ક્રોલ થઈને દેખાશે */
     #mainMenu {
       overflow-y: auto;
     }
 
-    /* સ્ટેજ સ્ક્રીન: આ સ્ક્રીન 100% ફિક્સ રહેશે (નો-વિન્ડો સ્ક્રોલ) */
     #stageContainer {
       height: calc(100vh - 75px);
       display: flex;
@@ -61,14 +59,12 @@
       overflow: hidden;
     }
 
-    /* ઉપરનું ફોર્મ, સર્ચ અને KPI કાર્ડ્સ સ્ક્રીન પર ફિક્સ રહેશે */
     #stageContainer > .card:first-child {
       flex-shrink: 0;
       padding: 12px 14px;
       margin-top: 4px;
     }
 
-    /* નીચેનું બેલેન્સ લિસ્ટ બાકીની જગ્યામાં ફીટ થઈને અંદર જ સ્ક્રોલ થશે */
     #stageContainer > .card:last-child {
       flex: 1;
       display: flex;
@@ -131,11 +127,10 @@
     input:focus, select:focus { 
       outline: none; 
       border-color: var(--primary); 
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); 
       background: #f8fafc;
     }
 
-    /* Top Navigation Bar - Glass Effect */
     .top-navbar {
       background: rgba(15, 23, 42, 0.94);
       backdrop-filter: blur(10px);
@@ -201,7 +196,6 @@
       transform: translateY(-1px);
     }
 
-    /* Step 3: Compact Fixed KPI Grid */
     .kpi-grid { 
       display: grid; 
       grid-template-columns: repeat(3, 1fr); 
@@ -244,7 +238,6 @@
       font-size: 15px; 
     }
 
-    /* Inbuilt Dedicated Login Page View */
     #loginOverlay {
       min-height: 100vh;
       width: 100%;
@@ -268,22 +261,6 @@
       box-sizing: border-box;
     }
 
-    .login-header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .login-logo-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 52px;
-      height: 52px;
-      background: #e0f2fe;
-      border-radius: 14px;
-      font-size: 26px;
-      margin-bottom: 10px;
-    }
     .btn-login {
       background: #0284c7;
       color: white;
@@ -308,14 +285,13 @@
       cursor: pointer;
     }
 
-    /* Master Register Toolbar & Controls */
     .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
+    .btn-mode-sync { background: #7c3aed; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
     .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
 
-    /* Modern Dashboard Grid */
     .menu-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -372,7 +348,6 @@
     .menu-btn.stage-ndt { border-left: 4px solid #d97706; }
     .menu-btn.stage-fd { border-left: 4px solid #059669; }
 
-    /* Special Accent Buttons */
     .btn-progress-hub {
       background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
       color: #ffffff;
@@ -432,7 +407,6 @@
 
     .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
 
-    /* Action Buttons */
     .btn-save-action {
       background: #15803d;
       color: white;
@@ -487,50 +461,6 @@
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; text-align: center; }
     .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
 
-    /* Tables & Scrolling */
-    /* Step 2: Fixed Display & Internal Scrolling Layout */
-    #stageContainer {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* ઉપરનું ફોર્મ અને કંટ્રોલ બોક્સ - ફિક્સ રહેશે */
-    #stageContainer > .card:first-child {
-      flex-shrink: 0;
-      padding: 10px 14px;
-      margin-top: 4px;
-    }
-
-    /* નીચેનું બેલેન્સ લિસ્ટ કાર્ડ - બાકી રહેલી જગ્યા આપોઆપ લેશે */
-    #stageContainer > .card:last-child {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      padding: 8px 14px;
-      margin-top: 8px;
-    }
-
-    /* ટેબલનું જ ઇન્ડિપેન્ડન્ટ સ્ક્રોલિંગ (પેજ કે બટન સ્ક્રોલ નહીં થાય) */
-    .balance-table-container {
-      flex: 1;
-      overflow: auto;
-      margin-top: 6px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-    }
-
-    .master-table-container {
-      flex: 1;
-      overflow: auto;
-      margin-top: 8px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      height: calc(100vh - 125px);
-    }
-
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
     th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; background-color: #fff; }
     th { background-color: #0f4c81; color: white; font-weight: 700; font-size: 13px; user-select: none; position: sticky; top: 0; z-index: 5; }
@@ -541,7 +471,6 @@
     .filter-btn-icon:hover { background: #2563eb; }
     .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
 
-    /* Timeline Tracking Card Styling */
     .timeline-container { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
     .timeline-card {
       display: flex;
@@ -567,14 +496,8 @@
       border-radius: 4px;
       letter-spacing: 0.5px;
     }
-    .tag-completed {
-      background: #15803d;
-      color: #ffffff;
-    }
-    .tag-hold {
-      background: #c2410c;
-      color: #ffffff;
-    }
+    .tag-completed { background: #15803d; color: #ffffff; }
+    .tag-hold { background: #c2410c; color: #ffffff; }
 
     #excelFilterPopup {
       position: absolute;
@@ -596,27 +519,13 @@
     .popup-btn-ok { background: #1e40af; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
     .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
 
-    /* Mobile Responsive View Fix */
     @media (max-width: 640px) {
-      .kpi-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-      }
-      .kpi-card {
-        padding: 6px 8px;
-      }
-      .kpi-title {
-        font-size: 9.5px;
-      }
-      .kpi-val {
-        font-size: 15px;
-      }
-      .kpi-icon {
-        display: none; /* મોબાઈલમાં જગ્યા બચાવવા માટે આઈકોન હાઈડ થશે */
-      }
-      #stageContainer {
-        height: calc(100vh - 65px);
-      }
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .kpi-card { padding: 6px 8px; }
+      .kpi-title { font-size: 9.5px; }
+      .kpi-val { font-size: 15px; }
+      .kpi-icon { display: none; }
+      #stageContainer { height: calc(100vh - 65px); }
     }
   </style>
 </head>
@@ -652,12 +561,10 @@
 
 <!-- Main App -->
 <div id="appContent" style="display: none;">
-  <!-- Universal Top Navigation Bar -->
   <div class="top-navbar">
     <div class="top-nav-title">
       <span>⚙️ PIPING CONSOLE</span>
       <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;">| Progress Tracking</span>
-      <!-- નવો પ્રોફેશનલ લાઈવ બેજ -->
       <div class="live-dot"><div class="live-dot-pulse"></div></div>
     </div>
     <div style="display: flex; align-items: center; gap: 10px;">
@@ -667,7 +574,7 @@
   </div>
 
   <div class="container">
-    <!-- Hub / Main Dashboard (Point-1: 03, 04, 05, 07, 08 Removed) -->
+    <!-- Hub / Main Dashboard -->
     <div id="mainMenu" class="card">
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
         <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">Piping Dashboard</h3>
@@ -682,25 +589,22 @@
         <button class="menu-btn stage-ndt" onclick="openStage('ndt_clearance')"><span class="step-badge">05</span><span>NDT CLEARANCE</span></button>
         <button class="menu-btn stage-fd" onclick="openStage('fd')"><span class="step-badge">06</span><span>FD & DC NO</span></button>
 
-        <!-- 👉 શોધો (લગભગ લાઇન 270): -->
-<button class="menu-btn btn-progress-hub" onclick="openProgressDashboard()"><span class="step-badge" style="background:#fff; color:#4338ca;">📈</span><span>PROGRESS DASHBOARD</span></button>
+        <button class="menu-btn btn-progress-hub" onclick="openProgressDashboard()"><span class="step-badge" style="background:#fff; color:#4338ca;">📈</span><span>PROGRESS DASHBOARD</span></button>
 
-<!-- 👉 આની તરત નીચે નવું બટન ઉમેરો: -->
-<button class="menu-btn" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.25);" onclick="openPriorityDashboard()">
-  <span class="step-badge" style="background:#fff; color:#be123c;">🔥</span>
-  <span>PRIORITY SPOOLS DASHBOARD</span>
-</button>
+        <button class="menu-btn" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.25);" onclick="openPriorityDashboard()">
+          <span class="step-badge" style="background:#fff; color:#be123c;">🔥</span>
+          <span>PRIORITY SPOOLS DASHBOARD</span>
+        </button>
         
         <button class="menu-btn btn-track-hub" onclick="openSpoolTracking()"><span class="step-badge" style="background:#fff; color:#b45309;">🔍</span><span>SPOOL TRACKING</span></button>
         <button class="menu-btn btn-report-hub" onclick="openProgressReport()"><span class="step-badge" style="background:#fff; color:#0369a1;">📅</span><span>PROGRESS REPORT</span></button>
 
-        <!-- MTO Register Button -->
+        <!-- MTO Register (Redirects to standalone module) -->
         <button class="menu-btn btn-mto-hub" onclick="window.location.href='mto_register.html'">
-  <span class="step-badge" style="background:#fff; color:#0f766e;">📋</span>
-  <span>MTO REGISTER</span>
-</button>
+          <span class="step-badge" style="background:#fff; color:#0f766e;">📋</span>
+          <span>MTO REGISTER</span>
+        </button>
 
-       <!-- Data Update Hub (Admin Only) -->
         <!-- Data Update Hub (Admin Only) -->
         <button class="menu-btn btn-update-hub" id="btnDataUpdateHub" style="display: none;" onclick="openDataUpdateHub()"><span class="step-badge" style="background:#fff; color:#7c3aed;">🔄</span><span>DATA UPDATE</span></button>
 
@@ -715,22 +619,22 @@
           <span class="step-badge" style="background:#fff; color:#0d9488;">📋</span>
           <span>MIN UPDATE</span>
         </button>
-        <!-- Line List & Material Hub (Admin Only - Separate Program) -->
+
+        <!-- Line List & Material Hub (Admin Only) -->
         <button class="menu-btn" id="btnLineMatHub" style="display: none; background: linear-gradient(135deg, #0284c7 0%, #075985 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);" onclick="window.location.href='line_material.html'">
           <span class="step-badge" style="background:#fff; color:#0284c7;">📑</span>
           <span>LINE LIST & MATERIAL</span>
         </button>
+
         <button class="menu-btn btn-view" onclick="openStage('view_records')"><span>📊 VIEW MASTER REGISTER</span></button>
       </div>
     </div>
 
-    <!-- Data Update Screen (Admin Only - Unaltered Full DB Update) -->
+    <!-- Data Update Screen (Admin Only) -->
     <div id="dataUpdateContainer" style="display: none;">
       <div class="card">
         <h3 style="color:#6d28d9;">🔄 Database Excel Batch Update (Admin)</h3>
-        <p style="font-size: 13px; color: #475569; margin-top: 4px;">
-          
-        </p>
+        <p style="font-size: 13px; color: #475569; margin-top: 4px;">Excel ફાઇલ ડાઉનલોડ કરીને એડિટ કર્યા પછી અહીંથી નવેસરથી અપડેટ કરી શકાય છે.</p>
         <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 18px;">
           <button type="button" class="btn-save-action" style="background: #0284c7; padding: 12px 20px;" onclick="downloadDataForExcel()">📥 1. Download Master Data (.xlsx)</button>
         </div>
@@ -743,7 +647,6 @@
       </div>
     </div>
 
-    
     <!-- Progress Dashboard Screen -->
     <div id="progressDashboardContainer" style="display: none;">
       <div class="card">
@@ -768,10 +671,10 @@
         </div>
       </div>
     </div>
+
     <!-- Priority Spools Dashboard Screen -->
     <div id="priorityDashboardContainer" style="display: none;">
       <div class="card">
-        <!-- Top Executive KPI Summary Widgets -->
         <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 14px;">
           <div class="kpi-card" style="border-left: 4px solid #e11d48;">
             <div>
@@ -884,10 +787,8 @@
     </div>
 
     <!-- Stage Screen -->
-    <!-- Stage Screen -->
     <div id="stageContainer" style="display: none;">
       <div class="card">
-        <!-- પ્રોફેશનલ KPI વિજેટ્સ -->
         <div class="kpi-grid">
           <div class="kpi-card">
             <div>
@@ -970,7 +871,7 @@
       </div>
     </div>
 
-    <!-- Master Register (Point-2 & Point-3: Hidden Columns & Download View Excel Button) -->
+    <!-- Master Register -->
     <div id="recordsContainer" style="display: none;">
       <div class="card" style="padding: 10px 14px; margin-top: 4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
@@ -980,12 +881,10 @@
             <button type="button" id="btnMasterEdit" class="btn-mode-edit" onclick="requestEditMode()">✏️ Edit</button>
             <button type="button" id="btnMasterSave" class="btn-mode-save" onclick="saveMasterEditsToDb()">💾 SAVE CHANGES</button>
             
-            <!-- 👉 Admin Only: Master update from MTO બટન (ID અને display:none ઉમેર્યું) -->
             <button type="button" id="btnMasterUpdateFromMto" class="btn-mode-sync" style="background:#0f766e; display:none;" onclick="syncMasterFromMto()">🔄 MASTER UPDATE FROM MTO</button>
           </div>
           
           <div style="display:flex; align-items:center; gap:6px;">
-            <!-- 👉 Admin Only: Download View Excel બટન (ID અને display:none ઉમેર્યું) -->
             <button type="button" id="btnMasterDownloadExcel" class="btn-save-action" style="background:#0284c7; padding:6px 12px; font-size:12px; display:none;" onclick="downloadFormattedMasterExcel()">📥 Download View Excel</button>
             <button type="button" class="sub-filter-btn" onclick="clearAllMasterFilters()">🔄 Clear Filters</button>
           </div>
@@ -1018,7 +917,6 @@
 </div>
 
 <script>
-  // USER ROLES & PERMISSIONS DEFINITION (Point-1 Aligned)
   const USER_ROLES = {
     "admin": { pass: "ruhi@2018", name: "Admin", allowed: ["all"] },
     "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry"] },
@@ -1033,21 +931,16 @@
   let currentUser = null;
   let isMasterEditMode = false;
   let masterPendingUpdates = new Map();
-  // MTO Edit Mode States
-  let isMtoEditMode = false;
-  let mtoPendingUpdates = new Map();
 
   function updateDashboardUIForRole() {
     if (!currentUser) return;
     const isAdmin = currentUser.username === 'admin';
 
-    // Main Menu & Report Actions
     const btnShareWA = document.getElementById('btnShareWhatsApp');
     const btnUpdateHub = document.getElementById('btnDataUpdateHub');
     if (btnShareWA) btnShareWA.style.display = isAdmin ? 'inline-flex' : 'none';
     if (btnUpdateHub) btnUpdateHub.style.display = isAdmin ? 'flex' : 'none';
 
-    // 👉 આ બે લાઈનો ખાસ ચેક કરો / ઉમેરી દો:
     const btnIgpHub = document.getElementById('btnIgpUpdateHub');
     const btnMinHub = document.getElementById('btnMinUpdateHub');
     if (btnIgpHub) btnIgpHub.style.display = isAdmin ? 'flex' : 'none';
@@ -1056,23 +949,12 @@
     const btnLineMat = document.getElementById('btnLineMatHub');
     if (btnLineMat) btnLineMat.style.display = isAdmin ? 'flex' : 'none';
     
-    // Master Register Actions (Only Admin)
     const btnMasterSync = document.getElementById('btnMasterUpdateFromMto');
     const btnMasterDl = document.getElementById('btnMasterDownloadExcel');
     if (btnMasterSync) btnMasterSync.style.display = isAdmin ? 'inline-block' : 'none';
     if (btnMasterDl) btnMasterDl.style.display = isAdmin ? 'inline-flex' : 'none';
-
-    // MTO Register Actions (Only Admin)
-    const btnMtoSync = document.getElementById('btnMtoSyncFromMaster');
-    const btnMtoDl = document.getElementById('btnMtoDownloadExcel');
-    const btnMtoSummaryDl = document.getElementById('btnMtoDownloadSummaryExcel');
-    const btnMtoUpload = document.getElementById('btnMtoUploadTrigger');
-
-    if (btnMtoSync) btnMtoSync.style.display = isAdmin ? 'inline-block' : 'none';
-    if (btnMtoDl) btnMtoDl.style.display = isAdmin ? 'inline-flex' : 'none';
-    if (btnMtoSummaryDl) btnMtoSummaryDl.style.display = isAdmin ? 'inline-flex' : 'none';
-    if (btnMtoUpload) btnMtoUpload.style.display = isAdmin ? 'inline-flex' : 'none';
   }
+
   function checkSessionAuth() {
     const sessionData = sessionStorage.getItem('piping_app_auth');
     if (sessionData) {
@@ -1134,17 +1016,10 @@
   let allRecordsCache = [];
   let masterDisplayRows = [];
 
-  let mtoCache = [];
-  let mtoBaseRows = [];
-  let mtoDisplayRows = [];
-  let activeMtoCategory = 'all';
-
   let balanceColumnFilters = {};
   let masterColumnFilters = {};
-  let mtoColumnFilters = {};
   let currentPopupContext = { targetTable: '', colKey: '', colLabel: '', allValues: [] };
 
-  // Database Schema (સંપૂર્ણ ટેબલ કૉલમ્સ અકબંધ રાખવામાં આવ્યા છે)
   const MASTER_COLS_ALL = [
     { key: 'Drawing_no', label: 'Drawing No' },
     { key: 'Spool_number', label: 'Spool Unique No' },
@@ -1169,12 +1044,11 @@
     { key: 'Fd_date', label: 'FD Date' },
     { key: 'Shift_dc_no', label: 'DC No' },
     { key: 'Bill', label: 'BILL' },
-    { key: 'pipe', label: 'PIPE' },          // 👈 નવી કૉલમ
-    { key: 'fittings', label: 'FITTINGS' },  // 👈 નવી કૉલમ
+    { key: 'pipe', label: 'PIPE' },
+    { key: 'fittings', label: 'FITTINGS' },
     { key: 'Remarks', label: 'REMARKS' }
   ];
 
-  // Point-2: આ ૮ કૉલમ્સને View Master Record માંથી હાઈડ કરવાના છે
   const HIDDEN_MASTER_KEYS = new Set([
     'Issued_for_bending',
     'Issue_for_fitup',
@@ -1186,28 +1060,7 @@
     'Ready_for_weld_visual'
   ]);
 
-  // View Master Record માં ફક્ત આ જ કૉલમ્સ દેખાશે અને ડાઉનલોડ થશે
   const MASTER_COLS_VISIBLE = MASTER_COLS_ALL.filter(c => !HIDDEN_MASTER_KEYS.has(c.key));
-
-  const MTO_COLS = [
-    { key: 'Spool_number', label: 'Spool No' },
-    { key: 'Drawing_no', label: 'Drawing No' },
-    { key: 'MAT_SAP_CODE', label: 'SAP Code' },
-    { key: 'Size_1', label: 'Size 1' },
-    { key: 'Size_2', label: 'Size 2' },
-    { key: 'Unit', label: 'Unit' },
-    { key: 'MAT_Description', label: 'Material Description' },
-    { key: 'lot_no', label: 'Lot No' },
-    { key: 'MIN_No', label: 'MIN No' },
-    { key: 'MIN_Date', label: 'MIN Date' },
-    { key: 'MIN_qty', label: 'MIN Qty' },
-    { key: 'Issued_qty', label: 'Issued Qty' },
-    { key: 'IGP_No', label: 'IGP No' },
-    { key: 'IGP_Date', label: 'IGP Date' },
-    { key: 'Heat_number', label: 'Heat No' },
-    { key: 'Bend_date', label: 'Bend Date' },
-    { key: 'Fit_up_date', label: 'Fit Up Date' }
-  ];
 
   function formatDateDisplay(val) {
     if (!val) return '-';
@@ -1292,7 +1145,6 @@
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
-    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('mainMenu').style.display = 'block';
     document.getElementById('btnTopDashboard').style.display = 'none';
     document.getElementById('navSubTitle').innerText = currentUser ? `| ${currentUser.name}` : '| Progress Tracking';
@@ -1309,7 +1161,6 @@
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('priorityDashboardContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
-    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
 
     if (stage === 'view_records') {
@@ -1340,7 +1191,6 @@
     document.getElementById('progressDashboardContainer').style.display = 'none';
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
-    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 🔄 Data Update (Admin)`;
     document.getElementById('dataUpdateContainer').style.display = 'block';
@@ -1362,7 +1212,6 @@
         return;
       }
 
-      // સંપૂર્ણ ડેટાબેઝ અપડેટ માટે તમામ કૉલમ્સ ડાઉનલોડ થશે
       const formatted = allRows.map(r => {
         const rowObj = { id: r.id };
         MASTER_COLS_ALL.forEach(c => {
@@ -1379,7 +1228,7 @@
     }
   }
 
-async function uploadAndApplyExcelUpdate() {
+  async function uploadAndApplyExcelUpdate() {
     const fileInput = document.getElementById('excelFileInput');
     if (!fileInput.files || fileInput.files.length === 0) {
       alert("⚠️ કૃપા કરીને અપડેટ કરેલી Excel ફાઇલ સિલેક્ટ કરો!");
@@ -1413,7 +1262,6 @@ async function uploadAndApplyExcelUpdate() {
               const h = headers[colNumber];
               if (h) rowObj[h] = cell.value;
             });
-            // જો આખી રો ખાલી ન હોય તો જ એડ કરો
             const hasData = Object.values(rowObj).some(v => v !== null && v !== undefined && String(v).trim() !== '');
             if (hasData) rows.push(rowObj);
           }
@@ -1426,31 +1274,28 @@ async function uploadAndApplyExcelUpdate() {
           return;
         }
 
-        const confirmMsg = `⚠️️ ચેતવણી: આ પ્રક્રિયાથી ડેટાબેઝનો જૂનો તમામ ડેટા નીકળી જશે અને Excel ફાઈલ મુજબ ${rows.length} રેકોર્ડ્સ નવેસરથી બેસી જશે.\n\nશું તમે ખરેખર આગળ વધવા માંગો છો?`;
+        const confirmMsg = `⚠ ચેતવણી: આ પ્રક્રિયાથી ડેટાબેઝનો જૂનો તમામ ડેટા નીકળી જશે અને Excel ફાઈલ મુજબ ${rows.length} રેકોર્ડ્સ નવેસરથી બેસી જશે.\n\nશું તમે ખરેખર આગળ વધવા માંગો છો?`;
         if (!confirm(confirmMsg)) {
           updateBtn.innerHTML = orgText;
           updateBtn.disabled = false;
           return;
         }
 
-        // 👉 ૧. જૂનો સંપૂર્ણ ડેટાબેઝ સાફ કરવો (Delete All Old Records)
         updateBtn.innerHTML = "⏳ Clearing Old Database Records...";
         const { error: delError } = await db
           .from('piping_joints')
           .delete()
-          .neq('id', 0); // તમામ રો ડિલીટ કરશે
+          .neq('id', 0);
 
         if (delError) {
           throw new Error("જૂનો ડેટા ડિલીટ કરવામાં એરર: " + delError.message);
         }
 
-        // 👉 ૨. એક્સેલમાંથી દરેક કૉલમને ચોક્કસ રીતે મેપ કરવી (ખાલી સેલ માટે null સાથે)
         updateBtn.innerHTML = "⏳ Inserting New Records...";
 
         const preparedRows = rows.map(r => {
           const cleanObj = {};
           
-          // જો Excel માં id હોય તો નવો auto-increment pkey ક્લેશ ન થાય તે માટે તેને છોડી પણ શકાય અથવા વાપરી શકાય
           if (r.id !== undefined && r.id !== null && String(r.id).trim() !== '') {
             cleanObj.id = Number(r.id);
           }
@@ -1458,7 +1303,6 @@ async function uploadAndApplyExcelUpdate() {
           MASTER_COLS_ALL.forEach(c => {
             let v = r[c.key] !== undefined ? r[c.key] : r[c.label];
             
-            // જો કૉલમ એક્સેલમાં ખાલી, સ્પેસ કે null હોય તો ડેટાબેઝમાં સ્પષ્ટપણે null સેટ થશે
             if (v === '' || v === undefined || v === null || String(v).trim().toLowerCase() === 'null') {
               cleanObj[c.key] = null;
             } else {
@@ -1477,7 +1321,6 @@ async function uploadAndApplyExcelUpdate() {
           return cleanObj;
         });
 
-        // 👉 ૩. ૫૦-૫૦ ના બેચમાં નવો ડેટા Insert કરવો
         const batchSize = 50;
         let insertedCount = 0;
 
@@ -1491,7 +1334,7 @@ async function uploadAndApplyExcelUpdate() {
 
         alert(`🎉 સફળતાપૂર્વક જૂનો ડેટા સાફ થઈ ગયો અને ${insertedCount} રેકોર્ડ્સ નવેસરથી Database માં અપડેટ થઈ ગયા!`);
         fileInput.value = '';
-        allRecordsCache = []; // લોકલ કેશ ક્લિયર
+        allRecordsCache = [];
         await ensureAllRecordsCached();
         backToMenu();
 
@@ -1505,9 +1348,6 @@ async function uploadAndApplyExcelUpdate() {
     };
     reader.readAsArrayBuffer(file);
   }
-
-  
-  
 
   async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
     const workbook = new ExcelJS.Workbook();
@@ -1567,10 +1407,6 @@ async function uploadAndApplyExcelUpdate() {
     URL.revokeObjectURL(link.href);
   }
 
-  
-
-  
-  // 👉 MASTER UPDATE FROM MTO LOGIC
   async function syncMasterFromMto() {
     if (!currentUser || currentUser.username !== 'admin') {
       return alert("⚠️ માત્ર Admin પાસે જ Master Data Update કરવાની પરમિશન છે!");
@@ -1581,7 +1417,6 @@ async function uploadAndApplyExcelUpdate() {
     tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Fetching MTO & Master Data to Calculate Pipe/Fittings Status... Please wait...</td></tr>';
 
     try {
-      // ૧. MTO ટેબલમાંથી તમામ રેકોર્ડ્સ ફેચ કરવા
       let mtoAll = [];
       let from = 0;
       let hasMore = true;
@@ -1597,8 +1432,6 @@ async function uploadAndApplyExcelUpdate() {
         }
       }
 
-      // ૨. દરેક Spool Number માટે Pipe અને Fittings નું ગ્રુપિંગ બનાવવું
-      // spoolMap: Spool_number => { pipeItems: [], fittingItems: [] }
       const spoolMap = new Map();
 
       mtoAll.forEach(r => {
@@ -1611,7 +1444,6 @@ async function uploadAndApplyExcelUpdate() {
         const desc = String(r.MAT_Description || '').trim().toUpperCase();
         const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
         
-        // Issued_qty ખાલી/નલ છે કે નહીં તેનો ચોક્કસ ચેક
         const rawIssued = r.Issued_qty;
         const isIssuedBlank = rawIssued === null || rawIssued === undefined || String(rawIssued).trim() === '' || String(rawIssued).trim() === '-';
         const issuedQty = isIssuedBlank ? null : (parseFloat(String(rawIssued).replace(/[^0-9.]/g, '')) || 0);
@@ -1622,7 +1454,6 @@ async function uploadAndApplyExcelUpdate() {
           isBlank: isIssuedBlank
         };
 
-        // જો MAT_Description "PIPE" થી શરૂ થાય તો Pipe, નહિતર Fittings
         if (desc.startsWith('PIPE')) {
           spoolMap.get(spNo).pipeItems.push(itemData);
         } else {
@@ -1630,23 +1461,18 @@ async function uploadAndApplyExcelUpdate() {
         }
       });
 
-      // ૩. શરતો મુજબ સ્ટેટસ (Issued / Partially / Balance) નક્કી કરતું હેલ્પર ફંક્શન
       function evaluateStatus(items) {
-        if (!items || items.length === 0) return null; // જો MTO માં એવો કોઈ સામાન જ ન હોય
+        if (!items || items.length === 0) return null;
 
-        // શરત ૨: બધા જ રો માં Issued_qty ખાલી (Blank) હોય
         const allBlank = items.every(x => x.isBlank);
         if (allBlank) return 'Balance';
 
-        // શરત ૧: બધી જ રો માં Issued_qty >= MIN_qty હોય (અને ખાલી ન હોય)
         const allFullyIssued = items.every(x => !x.isBlank && x.issuedQty >= x.minQty);
         if (allFullyIssued) return 'Issued';
 
-        // શરત ૩: કોઈ રો માં ઓછો જથ્થો હોય, કોઈ બેલેન્સ હોય, અથવા પાર્શિયલ હોય
         return 'Partially';
       }
 
-      // ૪. Master Data (piping_joints) ના તમામ રેકોર્ડ્સ સાથે સરખામણી
       const masterRows = await ensureAllRecordsCached();
       const updateBatch = [];
 
@@ -1685,7 +1511,6 @@ async function uploadAndApplyExcelUpdate() {
         return;
       }
 
-      // ૫. બેચમાં Supabase માં અપડેટ મોકલવું (50-50 ના બેચ)
       const batchSize = 50;
       for (let i = 0; i < updateBatch.length; i += batchSize) {
         const batch = updateBatch.slice(i, i + batchSize);
@@ -1694,7 +1519,7 @@ async function uploadAndApplyExcelUpdate() {
       }
 
       alert(`🎉 સફળતાપૂર્વક Master Data ની ${updateBatch.length} રો માં MTO મુજબ Pipe અને Fittings ની સ્થિતિ અપડેટ થઈ ગઈ!`);
-      allRecordsCache = []; // કેશ ક્લીયર કરવી જેથી નવો ડેટા ફેચ થાય
+      allRecordsCache = [];
       await loadFullRegister();
 
     } catch (err) {
@@ -1704,11 +1529,7 @@ async function uploadAndApplyExcelUpdate() {
       await loadFullRegister();
     }
   }
- 
 
-
-
-  // --- PROGRESS DASHBOARD MODULE (Point-1: 6 Stages Only) ---
   async function openProgressDashboard() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
@@ -1717,7 +1538,6 @@ async function uploadAndApplyExcelUpdate() {
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
-    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 📈 Progress Dashboard (${currentUser.name})`;
     document.getElementById('progressDashboardContainer').style.display = 'block';
@@ -1764,7 +1584,7 @@ async function uploadAndApplyExcelUpdate() {
       `;
     }).join('');
   }
- // --- PRIORITY SPOOLS DASHBOARD MODULE ---
+
   async function openPriorityDashboard() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
@@ -1774,7 +1594,6 @@ async function uploadAndApplyExcelUpdate() {
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
-    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 🔥 Priority Spools Dashboard (${currentUser.name})`;
     document.getElementById('priorityDashboardContainer').style.display = 'block';
@@ -1787,7 +1606,6 @@ async function uploadAndApplyExcelUpdate() {
 
     const allRows = await ensureAllRecordsCached();
 
-    // Remarks કૉલમમાં કેસ-ઇન્સેન્સિટિવ "priority" મેચિંગ
     const priorityRows = allRows.filter(r => {
       const rem = String(r.Remarks || '').trim().toLowerCase();
       return rem.includes('priority');
@@ -1802,12 +1620,10 @@ async function uploadAndApplyExcelUpdate() {
       return;
     }
 
-    // Top Summary KPI Calculations
     const totalPrioritySpoolsSet = new Set(priorityRows.map(r => r.Spool_number).filter(Boolean));
     const totalPrioritySpoolsCount = totalPrioritySpoolsSet.size;
     const totalPriorityWelds = calculateWeldSum(priorityRows);
 
-    // FD/Dispatched Spools
     const dispatchedRows = priorityRows.filter(r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '');
     const dispatchedSpoolsCount = new Set(dispatchedRows.map(r => r.Spool_number).filter(Boolean)).size;
     const balanceSpoolsCount = totalPrioritySpoolsCount - dispatchedSpoolsCount;
@@ -1817,44 +1633,13 @@ async function uploadAndApplyExcelUpdate() {
     document.getElementById('priorityDispatchedSpools').innerText = dispatchedSpoolsCount;
     document.getElementById('priorityBalanceSpools').innerText = balanceSpoolsCount;
 
-    // 6 Stages Analysis Table for Priority Spools
     const stagesConfig = [
-      { 
-        no: '01', 
-        name: 'ISSUED FOR BENDING', 
-        isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '', 
-        isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && (!r.Issued_for_bending || String(r.Issued_for_bending).trim() === '') 
-      },
-      { 
-        no: '02', 
-        name: 'BEND COMPLETED', 
-        isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '', 
-        isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && r.Issued_for_bending !== null && String(r.Issued_for_bending).trim() !== '' 
-      },
-      { 
-        no: '03', 
-        name: 'FIT UP COMPLETED', 
-        isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '', 
-        isBal: r => r.Bend_date !== null && String(r.Bend_date).trim() !== '' && (!r.Fit_up_date || String(r.Fit_up_date).trim() === '') 
-      },
-      { 
-        no: '04', 
-        name: 'WELD VISUAL COMPLETED', 
-        isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '', 
-        isBal: r => r.Fit_up_date !== null && String(r.Fit_up_date).trim() !== '' && (!r.Weld_visual_date || String(r.Weld_visual_date).trim() === '') 
-      },
-      { 
-        no: '05', 
-        name: 'NDT CLEARANCE', 
-        isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '', 
-        isBal: r => r.Weld_visual_date !== null && String(r.Weld_visual_date).trim() !== '' && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === '') 
-      },
-      { 
-        no: '06', 
-        name: 'FINAL DISPATCH & DC NO', 
-        isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', 
-        isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') 
-      }
+      { no: '01', name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && (!r.Issued_for_bending || String(r.Issued_for_bending).trim() === '') },
+      { no: '02', name: 'BEND COMPLETED', isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && r.Issued_for_bending !== null && String(r.Issued_for_bending).trim() !== '' },
+      { no: '03', name: 'FIT UP COMPLETED', isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '', isBal: r => r.Bend_date !== null && String(r.Bend_date).trim() !== '' && (!r.Fit_up_date || String(r.Fit_up_date).trim() === '') },
+      { no: '04', name: 'WELD VISUAL COMPLETED', isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '', isBal: r => r.Fit_up_date !== null && String(r.Fit_up_date).trim() !== '' && (!r.Weld_visual_date || String(r.Weld_visual_date).trim() === '') },
+      { no: '05', name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '', isBal: r => r.Weld_visual_date !== null && String(r.Weld_visual_date).trim() !== '' && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === '') },
+      { no: '06', name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') }
     ];
 
     tbody.innerHTML = stagesConfig.map(st => {
@@ -1877,7 +1662,7 @@ async function uploadAndApplyExcelUpdate() {
       `;
     }).join('');
   }
-  // --- SPOOL TRACKING MODULE (Point-1: 6 Stages Only) ---
+
   async function openSpoolTracking() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
@@ -1886,7 +1671,6 @@ async function uploadAndApplyExcelUpdate() {
     document.getElementById('progressDashboardContainer').style.display = 'none';
     document.getElementById('progressReportContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
-    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 🔍 Spool Tracking (${currentUser.name})`;
     document.getElementById('spoolTrackingContainer').style.display = 'block';
@@ -1957,7 +1741,6 @@ async function uploadAndApplyExcelUpdate() {
     `).join('');
   }
 
-  // --- PROGRESS REPORT MODULE (Point-1: 6 Stages Only) ---
   async function openProgressReport() {
     closeExcelPopup();
     document.getElementById('mainMenu').style.display = 'none';
@@ -1966,7 +1749,6 @@ async function uploadAndApplyExcelUpdate() {
     document.getElementById('progressDashboardContainer').style.display = 'none';
     document.getElementById('spoolTrackingContainer').style.display = 'none';
     document.getElementById('dataUpdateContainer').style.display = 'none';
-    document.getElementById('mtoContainer').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
     document.getElementById('navSubTitle').innerText = `| 📅 Progress Report (${currentUser.name})`;
     document.getElementById('progressReportContainer').style.display = 'block';
@@ -2190,7 +1972,6 @@ async function uploadAndApplyExcelUpdate() {
     }
   }
 
-  // Point-1: Stage Form Setup (Only 6 Stages)
   function setupStageUI(stage) {
     const title = document.getElementById('stageTitle');
     const subArea = document.getElementById('subFilterArea');
@@ -2261,7 +2042,6 @@ async function uploadAndApplyExcelUpdate() {
     }
   }
 
-  // Point-1: Direct Stage Routing Queries
   async function loadStageData(stage) {
     document.getElementById('metricSpools').innerText = '...';
     document.getElementById('metricWelds').innerText = '...';
@@ -2275,11 +2055,9 @@ async function uploadAndApplyExcelUpdate() {
       query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
     } 
     else if (stage === 'fitup_entry') {
-      // 02-Bend Completed is filled then direct show for 06/03-Fit-up Completed
       query = query.not('Bend_date', 'is', null).is('Fit_up_date', null);
     } 
     else if (stage === 'weld_visual') {
-      // 06/03-Fit-up Completed is filled then direct show for Weld Visual Completed
       query = query.not('Fit_up_date', 'is', null).is('Weld_visual_date', null);
     } 
     else if (stage === 'ndt_clearance') {
@@ -2305,7 +2083,6 @@ async function uploadAndApplyExcelUpdate() {
 
     document.getElementById('metricSpools').innerText = cumSpools.size;
     document.getElementById('metricWelds').innerText = cumWeldSum;
-    // નવો KPI કાઉન્ટર
     const qEl = document.getElementById('metricQueueCount');
     if (qEl) qEl.innerText = selectedQueue.length;
     
@@ -2355,7 +2132,6 @@ async function uploadAndApplyExcelUpdate() {
     document.getElementById('spoolSearch').value = '';
     document.getElementById('searchDropdown').style.display = 'none';
 
-    // Direct Stages without intermediate modal fields
     const isDirectStage = ['bending_issue', 'fitup_entry', 'weld_visual', 'ndt_clearance', 'fd'].includes(currentStage);
     if (isDirectStage) {
       selectedQueue.push(item);
@@ -2438,7 +2214,6 @@ async function uploadAndApplyExcelUpdate() {
     }).join('');
   }
 
-  // --- સાચું મલ્ટિ-લેવલ એક્સેલ ફિલ્ટર (Dependent Cascading Filter) ---
   function openExcelFilter(e, targetTable, colKey, colLabel) {
     e.stopPropagation();
     const popup = document.getElementById('excelFilterPopup');
@@ -2456,24 +2231,12 @@ async function uploadAndApplyExcelUpdate() {
     currentPopupContext.colKey = colKey;
     currentPopupContext.colLabel = colLabel;
 
-    let baseRows = [];
-    let activeFilters = {};
+    let baseRows = targetTable === 'balance' ? stageFilteredRows : allRecordsCache;
+    let activeFilters = targetTable === 'balance' ? balanceColumnFilters : masterColumnFilters;
 
-    if (targetTable === 'balance') {
-      baseRows = stageFilteredRows;
-      activeFilters = balanceColumnFilters;
-    } else if (targetTable === 'master') {
-      baseRows = allRecordsCache;
-      activeFilters = masterColumnFilters;
-    } else if (targetTable === 'mto') {
-      baseRows = mtoBaseRows;
-      activeFilters = mtoColumnFilters;
-    }
-
-    // 👉 મુખ્ય સુધારો: જે કૉલમનું પોપઅપ ખુલ્લું છે (colKey) તે સિવાયના બાકીના સક્રિય ફિલ્ટર્સ લાગુ કરીને ડેટા શોર્ટ કરવો
     const sourceRows = baseRows.filter(r => {
       for (const [filterCol, allowedSet] of Object.entries(activeFilters)) {
-        if (filterCol === colKey) continue; // વર્તમાન કૉલમ ફિલ્ટરને સ્કીપ કરો
+        if (filterCol === colKey) continue;
         let val = r[filterCol] !== undefined ? r[filterCol] : (r[filterCol.toLowerCase()] !== undefined ? r[filterCol.toLowerCase()] : '');
         val = String(val || '').trim();
         const isDate = filterCol.toLowerCase().includes('date') || filterCol.toLowerCase().includes('issue') || filterCol.toLowerCase().includes('clearance') || filterCol.toLowerCase().includes('insp');
@@ -2520,7 +2283,7 @@ async function uploadAndApplyExcelUpdate() {
   function onPopupSearch(term) {
     const q = term.toLowerCase().trim();
     const filtered = currentPopupContext.allValues.filter(([val]) => val.toLowerCase().includes(q));
-    let activeFilters = currentPopupContext.targetTable === 'balance' ? balanceColumnFilters : (currentPopupContext.targetTable === 'mto' ? mtoColumnFilters : masterColumnFilters);
+    let activeFilters = currentPopupContext.targetTable === 'balance' ? balanceColumnFilters : masterColumnFilters;
     const currentSelectedSet = activeFilters[currentPopupContext.colKey] || null;
     renderPopupCheckboxes(filtered, currentSelectedSet);
   }
@@ -2533,24 +2296,22 @@ async function uploadAndApplyExcelUpdate() {
     const selected = new Set();
     document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(c => { if (c.checked) selected.add(c.value); });
     const { targetTable, colKey, allValues } = currentPopupContext;
-    let activeFilters = targetTable === 'balance' ? balanceColumnFilters : (targetTable === 'mto' ? mtoColumnFilters : masterColumnFilters);
+    let activeFilters = targetTable === 'balance' ? balanceColumnFilters : masterColumnFilters;
 
     if (selected.size === allValues.length) delete activeFilters[colKey];
     else activeFilters[colKey] = selected;
 
     closeExcelPopup();
     if (targetTable === 'balance') applyBalanceDataFilters();
-    else if (targetTable === 'mto') applyMtoDataFilters();
     else applyMasterDataFilters();
   }
 
   function clearCurrentPopupFilter() {
     const { targetTable, colKey } = currentPopupContext;
-    let activeFilters = targetTable === 'balance' ? balanceColumnFilters : (targetTable === 'mto' ? mtoColumnFilters : masterColumnFilters);
+    let activeFilters = targetTable === 'balance' ? balanceColumnFilters : masterColumnFilters;
     delete activeFilters[colKey];
     closeExcelPopup();
     if (targetTable === 'balance') applyBalanceDataFilters();
-    else if (targetTable === 'mto') applyMtoDataFilters();
     else applyMasterDataFilters();
   }
 
@@ -2598,7 +2359,6 @@ async function uploadAndApplyExcelUpdate() {
     `).join('');
   }
 
-  // Point-2: Master Register Header (Hidden 8 Columns Excluded)
   function buildMasterRegisterHeader() {
     const tr = document.getElementById('masterHeaderRow');
     tr.innerHTML = MASTER_COLS_VISIBLE.map(c => `
@@ -2641,7 +2401,6 @@ async function uploadAndApplyExcelUpdate() {
     applyMasterDataFilters();
   }
 
-  // Point-2: Master Register Render (Only Visible Columns)
   function renderMasterTable() {
     const tbody = document.getElementById('tableBody');
     if (masterDisplayRows.length === 0) {
@@ -2678,7 +2437,6 @@ async function uploadAndApplyExcelUpdate() {
     `).join('');
   }
 
-  // Point-3: Download Filtered Master Records (Without Hidden Columns)
   async function downloadFormattedMasterExcel() {
     if (!masterDisplayRows || masterDisplayRows.length === 0) {
       alert("⚠️ હાલ સ્ક્રીન પર ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
@@ -2700,7 +2458,6 @@ async function uploadAndApplyExcelUpdate() {
     await exportStyledExcelWorkbook(excelRows, headers, `Master_Register_View_${today}`);
   }
 
-  // Point-1: Stage Data Submission (Direct Routing)
   async function submitCurrentStage() {
     if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
       return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
