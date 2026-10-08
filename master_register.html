@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Master Register Console</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+
+    .container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 10px 14px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    }
+
+    .master-table-container {
+      overflow: auto;
+      margin-top: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      height: calc(100vh - 125px);
+    }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
+    th, td { border: 1px solid #cbd5e1; padding: 7px 10px; white-space: nowrap; background-color: #fff; }
+    th { background-color: #0f4c81; color: white; font-weight: 700; font-size: 13px; position: sticky; top: 0; z-index: 5; user-select: none; }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
+    .btn-mode-sync { background: #0f766e; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+    .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; }
+    .sub-filter-btn:hover { background: #cbd5e1; }
+
+    .btn-save-action {
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-save-action:hover { background: #0369a1; }
+
+    .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
+    .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
+
+    .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .filter-btn-icon { background: #1d4ed8; color: #fff; border: 1px solid #93c5fd; border-radius: 3px; padding: 2px 6px; font-size: 10.5px; cursor: pointer; line-height: 1; }
+    .filter-btn-icon:hover { background: #2563eb; }
+
+    #excelFilterPopup {
+      position: absolute;
+      display: none;
+      z-index: 1000;
+      background: #ffffff;
+      border: 1.5px solid #0284c7;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      width: 260px;
+      padding: 12px;
+      font-family: inherit;
+    }
+    .popup-search { width: 100%; padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 12.5px; box-sizing: border-box; margin-bottom: 8px; }
+    .popup-options-list { max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px; margin-bottom: 10px; background: #fafafa; }
+    .popup-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #1e293b; padding: 4px 2px; }
+    .popup-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; }
+    .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .popup-btn-ok { background: #1e40af; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div class="top-navbar">
+    <div style="font-size: 15px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+      <span>📊 MASTER REGISTER CONSOLE</span>
+      <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;"></span>
+    </div>
+    <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; padding-bottom: 6px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:14.5px; font-weight: bold; color: #0f172a;">📊 Live Master Records (<span id="masterTotalCount">0</span>)</span>
+          <button type="button" id="btnMasterView" class="btn-mode-view" onclick="setMasterMode('view')">👁️ View</button>
+          <button type="button" id="btnMasterEdit" class="btn-mode-edit" onclick="requestEditMode()">✏️ Edit</button>
+          <button type="button" id="btnMasterSave" class="btn-mode-save" onclick="saveMasterEditsToDb()">💾 SAVE CHANGES</button>
+          
+          <button type="button" id="btnMasterUpdateFromMto" class="btn-mode-sync" style="display:none;" onclick="syncMasterFromMto()">🔄 MASTER UPDATE FROM MTO</button>
+        </div>
+        
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button type="button" id="btnMasterDownloadExcel" class="btn-save-action" style="display:none;" onclick="downloadFormattedMasterExcel()">📥 Download View Excel</button>
+          <button type="button" class="sub-filter-btn" onclick="clearAllMasterFilters()">🔄 Clear Filters</button>
+        </div>
+      </div>
+
+      <div class="master-table-container">
+        <table id="qcDataTable">
+          <thead>
+            <tr id="masterHeaderRow"></tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="20" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Excel Filter Floating Modal -->
+  <div id="excelFilterPopup">
+    <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
+    <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
+      <input type="checkbox" id="popupSelectAll" onchange="togglePopupSelectAll(this.checked)">
+      <label for="popupSelectAll" style="font-size: 12px; font-weight: bold; margin: 0; cursor: pointer;">(Select All)</label>
+    </div>
+    <div id="popupOptionsList" class="popup-options-list"></div>
+    <div class="popup-actions">
+      <button type="button" class="popup-btn-ok" onclick="applyPopupFilter()">OK</button>
+      <button type="button" class="popup-btn-clear" onclick="clearCurrentPopupFilter()">Clear</button>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const EDIT_MODE_PASSWORD = "edit@6038";
+
+    let currentUser = null;
+    let isMasterEditMode = false;
+    let masterPendingUpdates = new Map();
+    let allRecordsCache = [];
+    let masterDisplayRows = [];
+    let masterColumnFilters = {};
+    let currentPopupContext = { colKey: '', colLabel: '', allValues: [] };
+
+    const MASTER_COLS_ALL = [
+      { key: 'Drawing_no', label: 'Drawing No' },
+      { key: 'Spool_number', label: 'Spool Unique No' },
+      { key: 'Spool_size', label: 'Spool Size' },
+      { key: 'Rev_no', label: 'Rev No' },
+      { key: 'Allocation', label: 'Allocation' },
+      { key: 'Bend_qty', label: 'BEND QTY' },
+      { key: 'Issued_for_bending', label: 'ISSUED FOR BENDING' },
+      { key: 'Bend_date', label: 'BEND DATE' },
+      { key: 'Weld_id', label: 'WELD ID' },
+      { key: 'Issue_for_fitup', label: 'ISSUE FOR FIT-UP' },
+      { key: 'Fitter_name', label: 'FITTER NAME' },
+      { key: 'issued_to_fitter_date', label: 'FITTER ISSUE DATE' },
+      { key: 'Ready_for_fitup_insp', label: 'READY FIT-UP INSP' },
+      { key: 'Report_no', label: 'REPORT NO' },
+      { key: 'Fit_up_date', label: 'FIT UP Date' },
+      { key: 'Welder_no', label: 'WELDER NAME' },
+      { key: 'issued_to_welder_date', label: 'WELDER ISSUE DATE' },
+      { key: 'Ready_for_weld_visual', label: 'READY WELD VISUAL' },
+      { key: 'Weld_visual_date', label: 'VISUAL Date' },
+      { key: 'Ndt_clearance', label: 'NDT CLEARANCE' },
+      { key: 'Fd_date', label: 'FD Date' },
+      { key: 'Shift_dc_no', label: 'DC No' },
+      { key: 'Bill', label: 'BILL' },
+      { key: 'pipe', label: 'PIPE' },
+      { key: 'fittings', label: 'FITTINGS' },
+      { key: 'Remarks', label: 'REMARKS' }
+    ];
+
+    const HIDDEN_MASTER_KEYS = new Set([
+      'Issued_for_bending',
+      'Issue_for_fitup',
+      'Fitter_name',
+      'issued_to_fitter_date',
+      'Ready_for_fitup_insp',
+      'Welder_no',
+      'issued_to_welder_date',
+      'Ready_for_weld_visual'
+    ]);
+
+    const MASTER_COLS_VISIBLE = MASTER_COLS_ALL.filter(c => !HIDDEN_MASTER_KEYS.has(c.key));
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (str === '' || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return str;
+    }
+
+    function formatExcelDate(val) {
+      if (!val) return null;
+      if (val instanceof Date) return isNaN(val.getTime()) ? null : val.toISOString().split('T')[0];
+      if (typeof val === 'number' || (!isNaN(val) && !String(val).includes('-') && !String(val).includes('/'))) {
+        const num = parseFloat(val);
+        const date = new Date(Math.round((num - 25569) * 86400 * 1000));
+        return date.toISOString().split('T')[0];
+      }
+      const str = String(val).trim();
+      if (str === '' || str.toLowerCase() === 'null') return null;
+      if (str.includes('/') || str.includes('-')) {
+        const delimiter = str.includes('/') ? '/' : '-';
+        const parts = str.split('T')[0].split(delimiter);
+        if (parts.length === 3) {
+          if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+          if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+      }
+      return str;
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function verifySession() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      currentUser = JSON.parse(sessionData);
+      document.getElementById('navSubTitle').innerText = `| Logged in: ${currentUser.name}`;
+
+      const isAdmin = currentUser.username === 'admin';
+      const btnSync = document.getElementById('btnMasterUpdateFromMto');
+      const btnDl = document.getElementById('btnMasterDownloadExcel');
+
+      if (btnSync) btnSync.style.display = isAdmin ? 'inline-block' : 'none';
+      if (btnDl) btnDl.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      return true;
+    }
+
+    function buildMasterRegisterHeader() {
+      const tr = document.getElementById('masterHeaderRow');
+      tr.innerHTML = MASTER_COLS_VISIBLE.map(c => `
+        <th>
+          <div class="header-cell">
+            <span>${c.label}</span>
+            <button class="filter-btn-icon" onclick="openExcelFilter(event, '${c.key}', '${c.label}')">🔽</button>
+          </div>
+        </th>
+      `).join('');
+    }
+
+    async function ensureAllRecordsCached() {
+      if (allRecordsCache.length > 0) return allRecordsCache;
+      let allRows = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+        if (error) break;
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += step;
+          if (data.length < step) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+      allRecordsCache = allRows;
+      return allRecordsCache;
+    }
+
+    async function loadFullRegister() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:20px;">⏳ Loading Master Register...</td></tr>';
+
+      allRecordsCache = await ensureAllRecordsCached();
+      masterColumnFilters = {};
+      applyMasterDataFilters();
+    }
+
+    function applyMasterDataFilters() {
+      masterDisplayRows = allRecordsCache.filter(r => {
+        for (const [colKey, allowedSet] of Object.entries(masterColumnFilters)) {
+          let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
+          val = String(val || '').trim();
+          const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issue') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+          const displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
+          if (!allowedSet.has(displayVal)) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('masterTotalCount').innerText = masterDisplayRows.length;
+      renderMasterTable();
+    }
+
+    function clearAllMasterFilters() {
+      masterColumnFilters = {};
+      applyMasterDataFilters();
+    }
+
+    function renderMasterTable() {
+      const tbody = document.getElementById('tableBody');
+      if (masterDisplayRows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:15px;">No records found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = masterDisplayRows.slice(0, 1000).map(r => `
+        <tr>
+          ${MASTER_COLS_VISIBLE.map(c => {
+            let val = r[c.key] !== undefined ? r[c.key] : (r[c.key.toLowerCase()] !== undefined ? r[c.key.toLowerCase()] : '');
+            if (val === null || val === undefined) val = '';
+            const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issue') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
+            let displayVal = isDateCol ? formatDateDisplay(val) : String(val);
+
+            if (['pipe', 'fittings'].includes(c.key)) {
+              if (val === 'Issued') {
+                displayVal = `<span style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:12px; font-weight:bold; font-size:11px;">Issued</span>`;
+              } else if (val === 'Partially') {
+                displayVal = `<span style="background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:12px; font-weight:bold; font-size:11px;">Partially</span>`;
+              } else if (val === 'Balance') {
+                displayVal = `<span style="background:#fee2e2; color:#dc2626; padding:2px 8px; border-radius:12px; font-weight:bold; font-size:11px;">Balance</span>`;
+              }
+            }
+
+            if (isMasterEditMode) {
+              let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+              return `<td><input type="text" class="cell-input" value="${escapeHtml(editVal)}" onchange="handleMasterCellChange(${r.id}, '${c.key}', this.value)"></td>`;
+            } else {
+              return `<td>${displayVal || '-'}</td>`;
+            }
+          }).join('')}
+        </tr>
+      `).join('');
+    }
+
+    function setMasterMode(mode) {
+      if (mode === 'view') {
+        isMasterEditMode = false;
+        document.getElementById('btnMasterView').style.outline = '2px solid #0369a1';
+        document.getElementById('btnMasterEdit').style.outline = 'none';
+        document.getElementById('btnMasterSave').style.display = 'none';
+        renderMasterTable();
+      } else if (mode === 'edit') {
+        isMasterEditMode = true;
+        document.getElementById('btnMasterEdit').style.outline = '2px solid #b45309';
+        document.getElementById('btnMasterView').style.outline = 'none';
+        document.getElementById('btnMasterSave').style.display = 'inline-block';
+        renderMasterTable();
+      }
+    }
+
+    function requestEditMode() {
+      if (!currentUser || currentUser.username !== 'admin') {
+        return alert("⚠️ માત્ર Admin પાસે જ Master Register Edit કરવાની પરમિશન છે!");
+      }
+      const inputPass = prompt("🔐 Enter Master Register Edit Password:");
+      if (inputPass === null) return;
+      if (inputPass === EDIT_MODE_PASSWORD) {
+        alert("✅ Edit Mode Unlocked! You can edit any cell directly.");
+        setMasterMode('edit');
+      } else {
+        alert("❌ Incorrect Edit Password! Access Denied.");
+      }
+    }
+
+    function handleMasterCellChange(id, colKey, newVal) {
+      if (!masterPendingUpdates.has(id)) masterPendingUpdates.set(id, {});
+      masterPendingUpdates.get(id)[colKey] = newVal.trim() === '' ? null : newVal.trim();
+      const item = allRecordsCache.find(x => x.id === id);
+      if (item) item[colKey] = newVal.trim() === '' ? null : newVal.trim();
+    }
+
+    async function saveMasterEditsToDb() {
+      if (masterPendingUpdates.size === 0) return alert("⚠️ કોઈ ફેરફાર થયેલ નથી.");
+      if (!confirm(`શું તમે ખરેખર ${masterPendingUpdates.size} રો ના ફેરફારો Database માં Save કરવા માંગો છો?`)) return;
+
+      const saveBtn = document.getElementById('btnMasterSave');
+      saveBtn.disabled = true;
+      saveBtn.innerText = "⏳ Saving...";
+
+      let updateErrors = 0;
+      for (const [id, rowData] of masterPendingUpdates.entries()) {
+        const { error } = await db.from('piping_joints').update(rowData).eq('id', id);
+        if (error) { console.error("Update error for row " + id, error); updateErrors++; }
+      }
+
+      saveBtn.disabled = false;
+      saveBtn.innerText = "💾 SAVE CHANGES";
+
+      if (updateErrors === 0) {
+        alert(`🎉 સફળતાપૂર્વક ${masterPendingUpdates.size} રેકોર્ડ્સ Database માં અપડેટ થઈ ગયા!`);
+        masterPendingUpdates.clear();
+        setMasterMode('view');
+      } else {
+        alert(`⚠️ ${updateErrors} રેકોર્ડ્સ અપડેટ કરવામાં એરર આવી.`);
+      }
+    }
+
+    async function syncMasterFromMto() {
+      if (!currentUser || currentUser.username !== 'admin') {
+        return alert("⚠️ માત્ર Admin પાસે જ Master Data Update કરવાની પરમિશન છે!");
+      }
+      if (!confirm("શું તમે MTO ટેબલમાંથી Pipe અને Fittings ની સ્થિતિ (Issued / Partially / Balance) Master Data (piping_joints) માં અપડેટ કરવા માંગો છો?")) return;
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Fetching MTO & Master Data to Calculate Pipe/Fittings Status... Please wait...</td></tr>';
+
+      try {
+        let mtoAll = [];
+        let from = 0;
+        let hasMore = true;
+        while (hasMore) {
+          const { data, error } = await db.from('mto').select('Spool_number, MAT_Description, MIN_qty, Issued_qty').range(from, from + 999);
+          if (error) throw error;
+          if (data && data.length > 0) {
+            mtoAll = mtoAll.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        const spoolMap = new Map();
+
+        mtoAll.forEach(r => {
+          if (!r.Spool_number) return;
+          const spNo = String(r.Spool_number).trim();
+          if (!spoolMap.has(spNo)) {
+            spoolMap.set(spNo, { pipeItems: [], fittingItems: [] });
+          }
+
+          const desc = String(r.MAT_Description || '').trim().toUpperCase();
+          const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+          
+          const rawIssued = r.Issued_qty;
+          const isIssuedBlank = rawIssued === null || rawIssued === undefined || String(rawIssued).trim() === '' || String(rawIssued).trim() === '-';
+          const issuedQty = isIssuedBlank ? null : (parseFloat(String(rawIssued).replace(/[^0-9.]/g, '')) || 0);
+
+          const itemData = { minQty, issuedQty, isBlank: isIssuedBlank };
+
+          if (desc.startsWith('PIPE')) {
+            spoolMap.get(spNo).pipeItems.push(itemData);
+          } else {
+            spoolMap.get(spNo).fittingItems.push(itemData);
+          }
+        });
+
+        function evaluateStatus(items) {
+          if (!items || items.length === 0) return null;
+          const allBlank = items.every(x => x.isBlank);
+          if (allBlank) return 'Balance';
+          const allFullyIssued = items.every(x => !x.isBlank && x.issuedQty >= x.minQty);
+          if (allFullyIssued) return 'Issued';
+          return 'Partially';
+        }
+
+        const masterRows = await ensureAllRecordsCached();
+        const updateBatch = [];
+
+        masterRows.forEach(mRow => {
+          if (!mRow.Spool_number) return;
+          const spNo = String(mRow.Spool_number).trim();
+
+          if (spoolMap.has(spNo)) {
+            const { pipeItems, fittingItems } = spoolMap.get(spNo);
+            const calculatedPipe = evaluateStatus(pipeItems);
+            const calculatedFittings = evaluateStatus(fittingItems);
+
+            let needsUpdate = false;
+            const patch = { id: mRow.id };
+
+            if (calculatedPipe !== undefined && calculatedPipe !== mRow.pipe) {
+              patch.pipe = calculatedPipe;
+              needsUpdate = true;
+            }
+            if (calculatedFittings !== undefined && calculatedFittings !== mRow.fittings) {
+              patch.fittings = calculatedFittings;
+              needsUpdate = true;
+            }
+
+            if (needsUpdate) updateBatch.push(patch);
+          }
+        });
+
+        if (updateBatch.length === 0) {
+          alert("ℹ️ Master ટેબલ પહેલેથી જ MTO મુજબ અપ-ટુ-ડેટ છે. કોઈ નવા ફેરફાર મળ્યા નથી.");
+          allRecordsCache = [];
+          await loadFullRegister();
+          return;
+        }
+
+        const batchSize = 50;
+        for (let i = 0; i < updateBatch.length; i += batchSize) {
+          const batch = updateBatch.slice(i, i + batchSize);
+          const { error } = await db.from('piping_joints').upsert(batch, { onConflict: 'id' });
+          if (error) throw error;
+        }
+
+        alert(`🎉 સફળતાપૂર્વક Master Data ની ${updateBatch.length} રો માં MTO મુજબ Pipe અને Fittings ની સ્થિતિ અપડેટ થઈ ગઈ!`);
+        allRecordsCache = [];
+        await loadFullRegister();
+
+      } catch (err) {
+        console.error(err);
+        alert("Master Data Sync કરવામાં ભૂલ આવી: " + err.message);
+        allRecordsCache = [];
+        await loadFullRegister();
+      }
+    }
+
+    async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Sheet1', { views: [{ showGridLines: true }] });
+
+      const headerRow = worksheet.addRow(columnHeaders);
+      headerRow.height = 26;
+
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9EAD3' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+      });
+
+      rowsData.forEach(rowItem => {
+        const rowValues = columnHeaders.map(col => rowItem[col] !== undefined && rowItem[col] !== null ? rowItem[col] : '');
+        const dataRow = worksheet.addRow(rowValues);
+        dataRow.height = 20;
+
+        dataRow.eachCell((cell) => {
+          cell.font = { name: 'Calibri', size: 11 };
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+            left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+            bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+            right: { style: 'thin', color: { argb: 'FFD3D3D3' } }
+          };
+        });
+      });
+
+      worksheet.columns.forEach((column) => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          const val = cell.value ? cell.value.toString() : '';
+          if (val.length > maxLength) maxLength = val.length;
+        });
+        column.width = Math.max(maxLength + 4, 12);
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${fileName}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    async function downloadFormattedMasterExcel() {
+      if (!masterDisplayRows || masterDisplayRows.length === 0) {
+        return alert("⚠️ હાલ સ્ક્રીન પર ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
+      }
+
+      const headers = ["Sr No", ...MASTER_COLS_VISIBLE.map(c => c.label)];
+      const excelRows = masterDisplayRows.map((r, index) => {
+        const rowObj = { "Sr No": index + 1 };
+        MASTER_COLS_VISIBLE.forEach(c => {
+          let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+          const isDate = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('issue');
+          rowObj[c.label] = isDate ? formatDateDisplay(val) : val;
+        });
+        return rowObj;
+      });
+
+      const today = new Date().toISOString().split('T')[0];
+      await exportStyledExcelWorkbook(excelRows, headers, `Master_Register_View_${today}`);
+    }
+
+    function openExcelFilter(e, colKey, colLabel) {
+      e.stopPropagation();
+      const popup = document.getElementById('excelFilterPopup');
+      const rect = e.target.getBoundingClientRect();
+      let top = rect.bottom + window.scrollY + 6;
+      let left = rect.left + window.scrollX - 100;
+      if (left + 270 > window.innerWidth) left = window.innerWidth - 280;
+      if (left < 10) left = 10;
+
+      popup.style.top = `${top}px`;
+      popup.style.left = `${left}px`;
+      popup.style.display = 'block';
+
+      currentPopupContext.colKey = colKey;
+      currentPopupContext.colLabel = colLabel;
+
+      const sourceRows = allRecordsCache.filter(r => {
+        for (const [filterCol, allowedSet] of Object.entries(masterColumnFilters)) {
+          if (filterCol === colKey) continue;
+          let val = r[filterCol] !== undefined ? r[filterCol] : (r[filterCol.toLowerCase()] !== undefined ? r[filterCol.toLowerCase()] : '');
+          val = String(val || '').trim();
+          const isDate = filterCol.toLowerCase().includes('date') || filterCol.toLowerCase().includes('issue') || filterCol.toLowerCase().includes('clearance') || filterCol.toLowerCase().includes('insp');
+          const displayVal = val === '' ? '(Blank)' : (isDate ? formatDateDisplay(val) : val);
+          if (!allowedSet.has(displayVal)) return false;
+        }
+        return true;
+      });
+
+      const valueMap = new Map();
+      const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('issue') || colKey.toLowerCase().includes('clearance') || colKey.toLowerCase().includes('insp');
+
+      sourceRows.forEach(r => {
+        let val = r[colKey] !== undefined ? r[colKey] : (r[colKey.toLowerCase()] !== undefined ? r[colKey.toLowerCase()] : '');
+        if (val === null || val === undefined) val = '';
+        val = String(val).trim();
+        let displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
+        valueMap.set(displayVal, (valueMap.get(displayVal) || 0) + 1);
+      });
+
+      const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+      currentPopupContext.allValues = distinctSorted;
+
+      const currentSelectedSet = masterColumnFilters[colKey] || null;
+      document.getElementById('popupSearchInput').value = '';
+      document.getElementById('popupSearchInput').placeholder = `Search in ${colLabel}...`;
+      renderPopupCheckboxes(distinctSorted, currentSelectedSet);
+    }
+
+    function renderPopupCheckboxes(items, selectedSet) {
+      const container = document.getElementById('popupOptionsList');
+      container.innerHTML = items.map(([val, count], idx) => {
+        const isChecked = selectedSet === null || selectedSet.has(val);
+        return `
+          <div class="popup-item">
+            <input type="checkbox" id="chk_opt_${idx}" value="${escapeHtml(val)}" ${isChecked ? 'checked' : ''}>
+            <label for="chk_opt_${idx}" style="cursor:pointer; font-size:12px; margin:0;">${escapeHtml(val)} <span style="color:#64748b;">(${count})</span></label>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('popupSelectAll').checked = items.every(([val]) => selectedSet === null || selectedSet.has(val));
+    }
+
+    function onPopupSearch(term) {
+      const q = term.toLowerCase().trim();
+      const filtered = currentPopupContext.allValues.filter(([val]) => val.toLowerCase().includes(q));
+      const currentSelectedSet = masterColumnFilters[currentPopupContext.colKey] || null;
+      renderPopupCheckboxes(filtered, currentSelectedSet);
+    }
+
+    function togglePopupSelectAll(checked) {
+      document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(chk => { chk.checked = checked; });
+    }
+
+    function applyPopupFilter() {
+      const selected = new Set();
+      document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(c => { if (c.checked) selected.add(c.value); });
+      const { colKey, allValues } = currentPopupContext;
+
+      if (selected.size === allValues.length) delete masterColumnFilters[colKey];
+      else masterColumnFilters[colKey] = selected;
+
+      closeExcelPopup();
+      applyMasterDataFilters();
+    }
+
+    function clearCurrentPopupFilter() {
+      delete masterColumnFilters[currentPopupContext.colKey];
+      closeExcelPopup();
+      applyMasterDataFilters();
+    }
+
+    function closeExcelPopup() {
+      document.getElementById('excelFilterPopup').style.display = 'none';
+    }
+
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('excelFilterPopup');
+      if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
+        closeExcelPopup();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifySession()) {
+        buildMasterRegisterHeader();
+        setMasterMode('view');
+        loadFullRegister();
+      }
+    });
+  </script>
+</body>
+</html>
