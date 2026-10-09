@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Progress Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 16px auto;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 18px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+    }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; text-align: left; }
+    th, td { border: 1px solid #cbd5e1; padding: 10px 14px; white-space: nowrap; }
+    th { background: #1e40af; color: white; font-weight: 700; }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    .btn-refresh {
+      background: #1e40af;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 16px;
+      font-size: 12.5px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-refresh:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+
+  <div class="top-navbar">
+    <div style="font-size: 15px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+      <span>📈 STAGE-WISE PROGRESS DASHBOARD</span>
+      <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;"></span>
+    </div>
+    <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+        <h3 style="margin:0; color:#1e3a8a; font-size:17px;">Stage-Wise Progress Analysis</h3>
+        <button type="button" class="btn-refresh" onclick="loadProgressDashboardData()">🔄 Refresh Data</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 45px; text-align: center;">Stage</th>
+              <th>Stage Description</th>
+              <th style="text-align: center; background:#15803d;">Completed Spools</th>
+              <th style="text-align: center; background:#166534;">Completed Weld ID</th>
+              <th style="text-align: center; background:#c2410c;">Balance Spools</th>
+              <th style="text-align: center; background:#9a3412;">Balance Weld ID</th>
+            </tr>
+          </thead>
+          <tbody id="progressTableBody">
+            <tr><td colspan="6" style="text-align:center; padding:20px; color:#2563eb;">⏳ Loading Progress Data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allRecordsCache = [];
+
+    function verifySession() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      document.getElementById('navSubTitle').innerText = `| User: ${user.name}`;
+      return true;
+    }
+
+    function calculateWeldSum(rows) {
+      let sum = 0;
+      rows.forEach(r => {
+        const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+        if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+          const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+          const num = parseFloat(cleaned);
+          if (!isNaN(num)) sum += num;
+        }
+      });
+      return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
+    }
+
+    async function ensureAllRecordsCached() {
+      let allRows = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+        if (error) break;
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += step;
+          if (data.length < step) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+      allRecordsCache = allRows;
+      return allRecordsCache;
+    }
+
+    async function loadProgressDashboardData() {
+      const tbody = document.getElementById('progressTableBody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#2563eb;">⏳ Calculating Progress Data...</td></tr>';
+
+      const allRows = await ensureAllRecordsCached();
+
+      if (allRows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:15px;">No records found in database.</td></tr>';
+        return;
+      }
+
+      const stagesConfig = [
+        { no: '01', name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && (!r.Issued_for_bending || String(r.Issued_for_bending).trim() === '') },
+        { no: '02', name: 'BEND COMPLETED', isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && r.Issued_for_bending !== null && String(r.Issued_for_bending).trim() !== '' },
+        { no: '03', name: 'FIT UP COMPLETED', isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '', isBal: r => r.Bend_date !== null && String(r.Bend_date).trim() !== '' && (!r.Fit_up_date || String(r.Fit_up_date).trim() === '') },
+        { no: '04', name: 'WELD VISUAL COMPLETED', isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '', isBal: r => r.Fit_up_date !== null && String(r.Fit_up_date).trim() !== '' && (!r.Weld_visual_date || String(r.Weld_visual_date).trim() === '') },
+        { no: '05', name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '', isBal: r => r.Weld_visual_date !== null && String(r.Weld_visual_date).trim() !== '' && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === '') },
+        { no: '06', name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') }
+      ];
+
+      tbody.innerHTML = stagesConfig.map(st => {
+        const compRows = allRows.filter(st.isComp);
+        const balRows = allRows.filter(st.isBal);
+        const compSpools = new Set(compRows.map(r => r.Spool_number).filter(Boolean)).size;
+        const compWelds = calculateWeldSum(compRows);
+        const balSpools = new Set(balRows.map(r => r.Spool_number).filter(Boolean)).size;
+        const balWelds = calculateWeldSum(balRows);
+
+        return `
+          <tr>
+            <td style="text-align: center; font-weight: 800; background: #f1f5f9;">${st.no}</td>
+            <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
+            <td style="text-align: center; font-weight: bold; color: #15803d; background: #f0fdf4;">${compSpools}</td>
+            <td style="text-align: center; font-weight: bold; color: #166534; background: #f0fdf4;">${compWelds}</td>
+            <td style="text-align: center; font-weight: bold; color: #c2410c; background: #fff7ed;">${balSpools}</td>
+            <td style="text-align: center; font-weight: bold; color: #9a3412; background: #fff7ed;">${balWelds}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifySession()) {
+        loadProgressDashboardData();
+      }
+    });
+  </script>
+</body>
+</html>
