@@ -633,6 +633,10 @@
                 let rawVal = r[c.key] !== undefined ? r[c.key] : r[c.label];
                 if (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) {
                   cleanObj[c.key] = null;
+                } else if (c.key === 'Weld_id') {
+                  // Weld_id ને નંબર તરીકે કન્વર્ટ કરવું
+                  const numVal = parseFloat(String(rawVal).replace(/[^0-9.]/g, ''));
+                  cleanObj[c.key] = isNaN(numVal) ? null : numVal;
                 } else {
                   cleanObj[c.key] = String(rawVal).trim();
                 }
