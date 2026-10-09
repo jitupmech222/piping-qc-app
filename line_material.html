@@ -167,18 +167,18 @@
   <div class="container">
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
-        <!-- Two Sub Selection Buttons -->
+        <!-- Selection Buttons -->
         <div style="display:flex; align-items:center; gap:8px;">
-         <button type="button" id="btnSubLineList" class="sub-btn" style="background:#0284c7;" onclick="switchModuleView('line_list')">
-  📋 1. Line List (<span id="llTotalCount">0</span>)
-</button>
-<button type="button" id="btnSubSapCode" class="sub-btn" style="background:#64748b;" onclick="switchModuleView('sap_code')">
-  📦 2. Sap Code (<span id="sapTotalCount">0</span>)
-</button>
-<button type="button" class="sub-btn" style="background:#7c3aed;" onclick="window.location.href='mto_update_entry.html'">
-  📦 3. MTO Update
-</button>
-         </div>
+          <button type="button" id="btnSubLineList" class="sub-btn" style="background:#0284c7;" onclick="switchModuleView('line_list')">
+            📋 1. Line List (<span id="llTotalCount">0</span>)
+          </button>
+          <button type="button" id="btnSubSapCode" class="sub-btn" style="background:#64748b;" onclick="switchModuleView('sap_code')">
+            📦 2. Sap Code (<span id="sapTotalCount">0</span>)
+          </button>
+          <button type="button" class="sub-btn" style="background:#7c3aed;" onclick="window.location.href='mto_update_entry.html'">
+            📦 3. MTO Update
+          </button>
+        </div>
 
         <!-- Download & Upload Actions -->
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -197,7 +197,7 @@
             <tr id="tableHeaderRow"></tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="22" style="text-align:center; padding:20px;">⏳ Loading Data...</td></tr>
+            <tr><td colspan="25" style="text-align:center; padding:20px;">⏳ Loading Data...</td></tr>
           </tbody>
         </table>
       </div>
@@ -223,7 +223,7 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Schema Columns
+    // Schema Columns (Updated with Weld_id and Remarks)
     const LINE_LIST_COLS = [
       { key: 'CWP', label: 'CWP' },
       { key: 'System_UG_AG', label: 'System_UG_AG' },
@@ -233,13 +233,15 @@
       { key: 'Drawing_no', label: 'Drawing_no' },
       { key: 'Spool_number', label: 'Spool_number' },
       { key: 'Spool_size', label: 'Spool_size' },
+      { key: 'Weld_id', label: 'Weld_id' },
       { key: 'Rev_no', label: 'Rev_no' },
       { key: 'Allocation', label: 'Allocation' },
       { key: 'MOC', label: 'MOC' },
       { key: 'IBR_NON_IBR', label: 'IBR_NON_IBR' },
       { key: 'Paint_code', label: 'Paint_code' },
       { key: 'Pipe_Class', label: 'Pipe_Class' },
-      { key: 'Fab_Type', label: 'Fab_Type' }
+      { key: 'Fab_Type', label: 'Fab_Type' },
+      { key: 'Remarks', label: 'Remarks' }
     ];
 
     const SAP_CODE_COLS = [
@@ -257,7 +259,6 @@
     let columnFilters = {};
     let currentPopupContext = { colKey: '', allValues: [] };
 
-    // ૧. ઓથેન્ટિકેશન સુરક્ષા ચેક (Admin Only)
     function verifyAdminAccess() {
       const sessionData = sessionStorage.getItem('piping_app_auth');
       if (!sessionData) {
@@ -267,14 +268,13 @@
       }
       const user = JSON.parse(sessionData);
       if (user.username !== 'admin') {
-        alert("⚠️️ માત્ર Admin પાસે જ આ પેજ જોવાની પરમિશન છે!");
+        alert("⚠️ માત્ર Admin પાસે જ આ પેજ જોવાની પરમિશન છે!");
         window.location.href = 'index.html';
         return false;
       }
       return true;
     }
 
-    // ૨. સબ-વ્યુ સ્વિચ કરવું
     async function switchModuleView(type) {
       currentModule = type;
       columnFilters = {};
@@ -295,7 +295,6 @@
       }
     }
 
-    // Header માં ફિલ્ટર આઇકોન ઉમેરવું
     function buildHeader(cols) {
       const tr = document.getElementById('tableHeaderRow');
       tr.innerHTML = `
@@ -316,10 +315,9 @@
       `;
     }
 
-    // ૩. Supabase માંથી ડેટા ફેચિંગ
     async function loadData(tableName) {
       const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = `<tr><td colspan="22" style="text-align:center; padding:20px;">⏳ Loading ${tableName}...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="25" style="text-align:center; padding:20px;">⏳ Loading ${tableName}...</td></tr>`;
 
       let allRows = [];
       let from = 0;
@@ -328,7 +326,7 @@
       while (hasMore) {
         const { data, error } = await db.from(tableName).select('*').order('id', { ascending: true }).range(from, from + 999);
         if (error) {
-          tbody.innerHTML = `<tr><td colspan="22" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="25" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
           return;
         }
         if (data && data.length > 0) {
@@ -355,13 +353,11 @@
       const term = document.getElementById('searchInput').value.toLowerCase().trim();
 
       activeDisplayRows = source.filter(r => {
-        // ૧. Search Input Filter
         if (term) {
           const matchSearch = cols.some(c => String(r[c.key] || '').toLowerCase().includes(term)) || String(r.id).includes(term);
           if (!matchSearch) return false;
         }
 
-        // ૨. Column-wise Excel Filters
         for (const [colKey, allowedSet] of Object.entries(columnFilters)) {
           let val = r[colKey] !== undefined ? r[colKey] : '';
           val = String(val === null ? '' : val).trim();
@@ -387,7 +383,7 @@
       const cols = currentModule === 'line_list' ? LINE_LIST_COLS : SAP_CODE_COLS;
 
       if (activeDisplayRows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="22" style="text-align:center; padding:15px; color:#64748b;">No records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="25" style="text-align:center; padding:15px; color:#64748b;">No records found.</td></tr>';
         return;
       }
 
@@ -399,7 +395,6 @@
       `).join('');
     }
 
-    // ૪. લાઈવ સર્ચ ફિલ્ટર
     function handleSearch(term) {
       applyFilters();
     }
@@ -410,7 +405,6 @@
       applyFilters();
     }
 
-    // --- એક્સેલ ફિલ્ટર પોપઅપ લોજિક ---
     function openExcelFilter(e, colKey) {
       e.stopPropagation();
       const popup = document.getElementById('excelFilterPopup');
@@ -428,7 +422,6 @@
 
       const baseRows = currentModule === 'line_list' ? lineListCache : sapCodeCache;
 
-      // સક્રિય અન્ય ફિલ્ટર્સ મુજબ યુનિક વેલ્યુ લિસ્ટ બનાવવું
       const sourceRows = baseRows.filter(r => {
         for (const [filterCol, allowedSet] of Object.entries(columnFilters)) {
           if (filterCol === colKey) continue;
@@ -517,7 +510,6 @@
       }
     });
 
-    // ૫. Database Header સાથે Excel ડાઉનલોડ
     async function downloadModuleExcel() {
       if (!activeDisplayRows || activeDisplayRows.length === 0) {
         return alert("⚠️ ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
@@ -577,7 +569,6 @@
       URL.revokeObjectURL(link.href);
     }
 
-    // ૬. Excel Upload & Batch Database Update
     async function uploadAndApplyExcel(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -601,7 +592,7 @@
               });
             } else {
               const rowObj = {};
-              row.eachCell((cell, colNumber) => {
+              row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
                 const h = headers[colNumber];
                 if (h) rowObj[h] = cell.value;
               });
@@ -628,7 +619,7 @@
           }
 
           const tbody = document.getElementById('tableBody');
-          tbody.innerHTML = `<tr><td colspan="22" style="text-align:center; padding:20px; color:#2563eb;">⏳ Updating ${tableName} Database in batches...</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="25" style="text-align:center; padding:20px; color:#2563eb;">⏳ Updating ${tableName} Database in batches...</td></tr>`;
 
           const batchSize = 50;
           let updatedCount = 0;
