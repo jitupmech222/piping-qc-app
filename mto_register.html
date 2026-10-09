@@ -110,6 +110,26 @@
     .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
     .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
 
+    /* Action Delete Button Styling */
+    .btn-row-delete {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-row-delete:hover {
+      background: #dc2626;
+      color: white;
+    }
+
     .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .filter-btn-icon { background: #0f766e; color: #fff; border: 1px solid #5eead4; border-radius: 3px; padding: 2px 6px; font-size: 10.5px; cursor: pointer; line-height: 1; }
     .filter-btn-icon:hover { background: #115e59; }
@@ -184,7 +204,7 @@
             <tr id="mtoHeaderRow"></tr>
           </thead>
           <tbody id="mtoTableBody">
-            <tr><td colspan="19" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>
+            <tr><td colspan="20" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>
           </tbody>
         </table>
       </div>
@@ -303,9 +323,15 @@
       return true;
     }
 
+    // Edit Mode માં હોય ત્યારે Action કૉલમ ડાયનેમિક હેડર ઉમેરશે
     function buildMtoRegisterHeader() {
       const tr = document.getElementById('mtoHeaderRow');
+      let actionTh = '';
+      if (isMtoEditMode) {
+        actionTh = `<th style="width:45px; text-align:center; background:#be123c;">Action</th>`;
+      }
       tr.innerHTML = `
+        ${actionTh}
         <th style="width:40px; text-align:center;">Sr.</th>
         ${MTO_COLS.map(c => `
           <th>
@@ -320,7 +346,7 @@
 
     async function loadMtoData() {
       const tbody = document.getElementById('mtoTableBody');
-      tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:20px;">⏳ Loading MTO Data...</td></tr>';
 
       let allRows = [];
       let from = 0;
@@ -330,7 +356,7 @@
       while (hasMore) {
         const { data, error } = await db.from('mto').select('*').order('id', { ascending: true }).range(from, from + step - 1);
         if (error) {
-          tbody.innerHTML = `<tr><td colspan="19" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="20" style="text-align:center; color:red; padding:15px;">Error: ${error.message}</td></tr>`;
           return;
         }
         if (data && data.length > 0) {
@@ -445,15 +471,19 @@
 
     function renderMtoTable(rows) {
       const tbody = document.getElementById('mtoTableBody');
+      const colSpan = isMtoEditMode ? 19 : 18;
       if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:15px; color:#64748b;">No MTO records found.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding:15px; color:#64748b;">No MTO records found.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = rows.slice(0, 1000).map((r, idx) => {
         if (isMtoEditMode) {
           return `
-            <tr>
+            <tr id="mto_row_${r.id}">
+              <td style="text-align:center;">
+                <button type="button" class="btn-row-delete" onclick="deleteMtoRow(${r.id}, '${escapeHtml(r.Spool_number || '')}')" title="Delete Row">🗑️</button>
+              </td>
               <td style="text-align:center; font-weight:600;">${idx + 1}</td>
               ${MTO_COLS.map(c => {
                 let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
@@ -495,12 +525,14 @@
         document.getElementById('btnMtoView').style.outline = '2px solid #0369a1';
         document.getElementById('btnMtoEdit').style.outline = 'none';
         document.getElementById('btnMtoSave').style.display = 'none';
+        buildMtoRegisterHeader();
         renderMtoTable(mtoDisplayRows);
       } else if (mode === 'edit') {
         isMtoEditMode = true;
         document.getElementById('btnMtoEdit').style.outline = '2px solid #b45309';
         document.getElementById('btnMtoView').style.outline = 'none';
         document.getElementById('btnMtoSave').style.display = 'inline-block';
+        buildMtoRegisterHeader();
         renderMtoTable(mtoDisplayRows);
       }
     }
@@ -512,10 +544,39 @@
       const inputPass = prompt("🔐 Enter MTO Register Edit Password:");
       if (inputPass === null) return;
       if (inputPass === EDIT_MODE_PASSWORD) {
-        alert("✅ MTO Edit Mode Unlocked! You can edit any cell directly.");
+        alert("✅ MTO Edit Mode Unlocked! You can edit any cell directly or delete rows.");
         setMtoMode('edit');
       } else {
         alert("❌ Incorrect Edit Password! Access Denied.");
+      }
+    }
+
+    // 👉 રો ડિલીટ કરવાનું ફંક્શન (Delete Single Row from Supabase)
+    async function deleteMtoRow(id, spoolNo) {
+      if (!currentUser || currentUser.username !== 'admin') {
+        return alert("⚠️ માત્ર Admin પાસે જ રો ડિલીટ કરવાની પરમિશન છે!");
+      }
+
+      const msg = spoolNo ? `શું તમે ખરેખર Spool "${spoolNo}" વાળી રો ને Database માંથી કાયમ માટે Delete કરવા માંગો છો?` : `શું તમે ખરેખર આ રો ને Database માંથી કાયમ માટે Delete કરવા માંગો છો?`;
+      if (!confirm(msg)) return;
+
+      try {
+        const { error } = await db.from('mto').delete().eq('id', id);
+        if (error) throw error;
+
+        // લોકલ ડેટામાંથી રો કાઢી નાખવી
+        mtoCache = mtoCache.filter(x => x.id !== id);
+        mtoBaseRows = mtoBaseRows.filter(x => x.id !== id);
+        mtoDisplayRows = mtoDisplayRows.filter(x => x.id !== id);
+        if (mtoPendingUpdates.has(id)) mtoPendingUpdates.delete(id);
+
+        document.getElementById('mtoTotalCount').innerText = mtoDisplayRows.length;
+        renderMtoTable(mtoDisplayRows);
+
+        alert("🗑️ રો સફળતાપૂર્વક Database માંથી ડિલીટ થઈ ગઈ છે!");
+      } catch (err) {
+        console.error(err);
+        alert("રો ડિલીટ કરવામાં એરર આવી: " + err.message);
       }
     }
 
@@ -563,7 +624,8 @@
       if (!confirm("શું તમે Master Data (piping_joints) મુજબ Bend Date અને Fit Up Date ને MTO માં સિન્ક કરવા માંગો છો?\n(નોંધ: જો Master માં તારીખ ખાલી હશે તો MTO માંથી પણ ખાલી થઈ જશે)")) return;
 
       const tbody = document.getElementById('mtoTableBody');
-      tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#7c3aed;">⏳ Syncing MTO from Master Data (Mirror Update)... Please wait...</td></tr>';
+      const colSpan = isMtoEditMode ? 19 : 18;
+      tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding:20px; color:#7c3aed;">⏳ Syncing MTO from Master Data (Mirror Update)... Please wait...</td></tr>`;
 
       try {
         let masterRows = [];
@@ -660,7 +722,6 @@
       }
     }
 
-    // Excel Exporter Helper
     async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Sheet1', { views: [{ showGridLines: true }] });
@@ -862,7 +923,6 @@
       URL.revokeObjectURL(link.href);
     }
 
-    // Full Replace Batch Upload Logic
     async function uploadAndApplyMtoExcel(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -906,12 +966,13 @@
             return;
           }
 
-          tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#c2410c; font-weight:bold;">⏳ Clearing Old MTO Database Records...</td></tr>';
+          const colSpan = isMtoEditMode ? 19 : 18;
+          tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding:20px; color:#c2410c; font-weight:bold;">⏳ Clearing Old MTO Database Records...</td></tr>`;
 
           const { error: delError } = await db.from('mto').delete().neq('id', 0);
           if (delError) throw new Error("જૂનો MTO ડેટા સાફ કરવામાં એરર: " + delError.message);
 
-          tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:20px; color:#2563eb; font-weight:bold;">⏳ Inserting New MTO Records from Excel...</td></tr>';
+          tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding:20px; color:#2563eb; font-weight:bold;">⏳ Inserting New MTO Records from Excel...</td></tr>`;
 
           const preparedRows = rows.map(r => {
             const cleanObj = {};
@@ -949,7 +1010,7 @@
             const { error: insError } = await db.from('mto').insert(batch);
             if (insError) throw insError;
             insertedCount += batch.length;
-            tbody.innerHTML = `<tr><td colspan="19" style="text-align:center; padding:20px; color:#2563eb;">⏳ Uploading (${insertedCount}/${preparedRows.length})...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding:20px; color:#2563eb;">⏳ Uploading (${insertedCount}/${preparedRows.length})...</td></tr>`;
           }
 
           alert(`🎉 સફળતાપૂર્વક જૂનો MTO ડેટા સાફ થઈ ગયો અને ${insertedCount} રેકોર્ડ્સ નવેસરથી Database માં બેસી ગયા!`);
@@ -966,7 +1027,6 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // Popup Checkbox Filter Handlers
     function openExcelFilter(e, colKey, colLabel) {
       e.stopPropagation();
       const popup = document.getElementById('excelFilterPopup');
