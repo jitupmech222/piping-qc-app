@@ -2,7 +2,7 @@
 <html lang="gu">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MTO Fast Entry & Update Console</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -17,12 +17,13 @@
       --text-muted: #64748b;
     }
 
-    body {
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text-main);
-      margin: 0;
-      padding: 0;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -30,7 +31,7 @@
       background: rgba(15, 23, 42, 0.94);
       backdrop-filter: blur(10px);
       color: white;
-      padding: 12px 20px;
+      padding: 10px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -56,30 +57,34 @@
     }
     .btn-back:hover { background: #f1f5f9; color: var(--primary); }
 
-    /* 50% - 50% Responsive Split Container */
+    /* ૧૦૦% Full Display Split Layout */
     .split-container {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      padding: 20px;
+      grid-template-columns: 420px 1fr; /* ડાબી બાજુ ફોર્મ અને બાકીની આખી પહોળાઈ જમણી બાજુ ટેબલને */
+      gap: 16px;
+      padding: 12px 16px;
       box-sizing: border-box;
-      max-width: 1500px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: 100%;
+      min-height: calc(100vh - 65px);
     }
 
     @media (max-width: 900px) {
       .split-container {
         grid-template-columns: 1fr;
+        min-height: auto;
       }
     }
 
     .panel-card {
       background: var(--card-bg);
-      padding: 20px;
+      padding: 18px 20px;
       border-radius: 12px;
       border: 1px solid var(--border);
       box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
     }
 
     .panel-header {
@@ -89,7 +94,7 @@
       border-bottom: 2px solid var(--border);
       padding-bottom: 10px;
       margin-top: 0;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -99,13 +104,13 @@
       font-size: 13px;
       font-weight: 700;
       color: #334155;
-      margin-top: 14px;
+      margin-top: 12px;
       display: block;
     }
 
     input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 9px 12px;
       margin-top: 5px;
       border: 1.5px solid #cbd5e1;
       border-radius: 8px;
@@ -142,20 +147,21 @@
       font-weight: 700;
       cursor: pointer;
       width: 100%;
-      margin-top: 22px;
+      margin-top: 20px;
       box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
       transition: all 0.2s;
     }
     .btn-submit:hover { opacity: 0.95; transform: translateY(-1px); }
     .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
 
-    /* Right Table Style */
+    /* Full Height Responsive Right Table */
     .table-wrapper {
-      max-height: calc(100vh - 190px);
+      flex: 1;
+      max-height: calc(100vh - 160px);
       overflow-y: auto;
       border: 1px solid var(--border);
       border-radius: 8px;
-      margin-top: 10px;
+      margin-top: 6px;
     }
 
     table {
@@ -182,7 +188,6 @@
 
     tr:nth-child(even) td { background-color: #f8fafc; }
 
-    /* Row Delete Button Styling */
     .btn-row-delete {
       background: #fee2e2;
       color: #dc2626;
@@ -207,7 +212,7 @@
 
   <!-- Top Navbar -->
   <div class="top-navbar">
-    <div style="font-size: 16px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+    <div style="font-size: 15px; font-weight: 700; display:flex; align-items:center; gap:8px;">
       <span>📦 MTO ENTRY & UPDATE CONSOLE</span>
     </div>
     <a href="line_material.html" class="btn-back">⬅️ Back to Line List & Material</a>
@@ -215,7 +220,7 @@
 
   <div class="split-container">
     
-    <!-- ૫૦% ડાબી બાજુ: Data Entry Form -->
+    <!-- ડાબી બાજુ: Data Entry Form -->
     <div class="panel-card">
       <h3 class="panel-header">✏️ Input Material Details</h3>
 
@@ -226,7 +231,7 @@
         <span id="spoolLookupMsg" class="info-badge badge-neutral"></span>
       </div>
 
-      <!-- Input 2: SAP Code (Last 5 digits or full) -->
+      <!-- Input 2: SAP Code -->
       <div>
         <label>Material SAP Code (Enter Last 5 Digits or Full):</label>
         <input type="text" id="inputSapSearch" placeholder="Enter Sap Code (e.g. 50333)" oninput="handleSapLookup(this.value)" autocomplete="off" disabled>
@@ -242,14 +247,14 @@
       <button type="button" class="btn-submit" id="btnAddMto" onclick="submitMtoEntry()" disabled>➕ ADD TO MTO</button>
     </div>
 
-    <!-- ૫૦% જમણી બાજુ: Live Information Table -->
+    <!-- જમણી બાજુ: Live Information Table (Full Width & Height) -->
     <div class="panel-card">
       <h3 class="panel-header">
         <span>📋 Material History</span>
         <span id="spoolHistoryBadge" style="font-size:12px; font-weight:600; color:#7c3aed;">No Spool Selected</span>
       </h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0;">
-        
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 8px 0;">
+        આ Spool સામે MTO માં અગાઉ નોંધાયેલા મટિરિયલની લાઈવ વિગતો:
       </p>
 
       <div class="table-wrapper">
@@ -259,14 +264,14 @@
               <th style="width: 45px; text-align: center;">Sr No</th>
               <th>MAT_SAP_CODE</th>
               <th>MAT_Description</th>
-              <th style="text-align: right; width: 80px;">MIN_qty</th>
+              <th style="text-align: right; width: 90px;">MIN_qty</th>
               <th style="width: 50px; text-align: center; background:#be123c;">Action</th>
             </tr>
           </thead>
           <tbody id="historyTableBody">
             <tr>
-              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">
-                
+              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 35px;">
+                માહિતી જોવા માટે ડાબી બાજુ Spool Number દાખલ કરો.
               </td>
             </tr>
           </tbody>
@@ -281,12 +286,10 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Dynamic State
     let lineListData = null;
     let selectedSapData = null;
     let currentSpoolMtoHistory = [];
 
-    // ૧. Admin ઓથેન્ટિકેશન સુરક્ષા
     function verifyAdminAccess() {
       const sessionData = sessionStorage.getItem('piping_app_auth');
       if (!sessionData) {
@@ -303,7 +306,6 @@
       return true;
     }
 
-    // ૨. Input 1: Spool Lookup in Line_list & MTO History
     async function handleSpoolLookup(spoolVal) {
       const spoolMsg = document.getElementById('spoolLookupMsg');
       const sapInput = document.getElementById('inputSapSearch');
@@ -353,7 +355,6 @@
         return;
       }
 
-      // Record Found!
       lineListData = lineRows[0];
       spoolMsg.className = 'info-badge badge-success';
       spoolMsg.innerText = `✅ Drawing No: ${lineListData.Drawing_no || '-'} | Lot: ${lineListData.Allocation || '-'}`;
@@ -362,11 +363,9 @@
       sapInput.disabled = false;
       qtyInput.disabled = false;
 
-      // mto ટેબલમાંથી લાઈવ હિસ્ટ્રી લાવવી
       await fetchMtoHistoryForSpool(lineListData.Spool_number);
     }
 
-    // ૩. Spool સામે mto ટેબલમાંથી ઇન્ફો ડેટા લાવવો
     async function fetchMtoHistoryForSpool(spoolVal) {
       const { data: mtoRows, error } = await db
         .from('mto')
@@ -388,7 +387,7 @@
       if (rows.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 35px;">
               આ Spool માટે MTO માં હાલ કોઈ ડેટા નોંધાયેલ નથી.
             </td>
           </tr>
@@ -409,7 +408,6 @@
       `).join('');
     }
 
-    // રો ડિલીટ કરવાનું ફંક્શન (Delete Single Entry from MTO Database)
     async function deleteHistoryRow(id, sapCode) {
       const confirmMsg = sapCode 
         ? `શું તમે ખરેખર Material "${sapCode}" વાળી આ એન્ટ્રી MTO Database માંથી Delete કરવા માંગો છો?` 
@@ -421,7 +419,6 @@
         const { error } = await db.from('mto').delete().eq('id', id);
         if (error) throw error;
 
-        // લોકલ એરેમાંથી રો હટાવીને ટેબલ તરત અપડેટ કરવું
         currentSpoolMtoHistory = currentSpoolMtoHistory.filter(item => item.id !== id);
         renderHistoryTable(currentSpoolMtoHistory);
 
@@ -432,7 +429,6 @@
       }
     }
 
-    // ૪. Input 2: Last 5 Digits or Contains SAP Code Lookup in Sap_code table
     async function handleSapLookup(searchVal) {
       const sapMsg = document.getElementById('sapLookupMsg');
       const btnAdd = document.getElementById('btnAddMto');
@@ -487,7 +483,6 @@
       }
     }
 
-    // ૫. Input 3: Submit & Insert into mto table
     async function submitMtoEntry() {
       const btnAdd = document.getElementById('btnAddMto');
       const qtyInput = document.getElementById('inputMinQty');
@@ -548,7 +543,7 @@
       document.getElementById('inputSapSearch').value = '';
       const sapMsg = document.getElementById('sapLookupMsg');
       sapMsg.className = 'info-badge badge-neutral';
-      sapMsg.innerText = 'Sap Code માંથી Description જોવા માટે 5 આંકડા દાખલ કરો...';
+      sapMsg.innerText = '';
       selectedSapData = null;
       document.getElementById('btnAddMto').disabled = true;
     }
