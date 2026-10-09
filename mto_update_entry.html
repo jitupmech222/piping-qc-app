@@ -181,6 +181,26 @@
     }
 
     tr:nth-child(even) td { background-color: #f8fafc; }
+
+    /* Row Delete Button Styling */
+    .btn-row-delete {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-row-delete:hover {
+      background: #dc2626;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -240,11 +260,12 @@
               <th>MAT_SAP_CODE</th>
               <th>MAT_Description</th>
               <th style="text-align: right; width: 80px;">MIN_qty</th>
+              <th style="width: 50px; text-align: center; background:#be123c;">Action</th>
             </tr>
           </thead>
           <tbody id="historyTableBody">
             <tr>
-              <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 25px;">
+              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">
                 માહિતી જોવા માટે ડાબી બાજુ Spool Number દાખલ કરો.
               </td>
             </tr>
@@ -309,7 +330,6 @@
       spoolMsg.className = 'info-badge badge-neutral';
       spoolMsg.innerText = '🔍 Checking Line List & MTO records...';
 
-      // ilike વડે કેસ અને વધારાની space બંને હેન્ડલ થશે
       const { data: lineRows, error: lineErr } = await db
         .from('Line_list')
         .select('*')
@@ -368,7 +388,7 @@
       if (rows.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 25px;">
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">
               આ Spool માટે MTO માં હાલ કોઈ ડેટા નોંધાયેલ નથી.
             </td>
           </tr>
@@ -377,13 +397,39 @@
       }
 
       tbody.innerHTML = rows.map((r, index) => `
-        <tr>
+        <tr id="mto_entry_row_${r.id}">
           <td style="text-align: center; font-weight: bold; color: #64748b;">${index + 1}</td>
           <td style="font-weight: 600; color: #0369a1;">${r.MAT_SAP_CODE || '-'}</td>
           <td>${r.MAT_Description || '-'}</td>
           <td style="text-align: right; font-weight: bold; color: #0f766e;">${parseFloat(r.MIN_qty || 0).toFixed(3)}</td>
+          <td style="text-align: center;">
+            <button type="button" class="btn-row-delete" onclick="deleteHistoryRow(${r.id}, '${escapeHtml(r.MAT_SAP_CODE || '')}')" title="Delete Entry">🗑️</button>
+          </td>
         </tr>
       `).join('');
+    }
+
+    // રો ડિલીટ કરવાનું ફંક્શન (Delete Single Entry from MTO Database)
+    async function deleteHistoryRow(id, sapCode) {
+      const confirmMsg = sapCode 
+        ? `શું તમે ખરેખર Material "${sapCode}" વાળી આ એન્ટ્રી MTO Database માંથી Delete કરવા માંગો છો?` 
+        : `શું તમે ખરેખર આ એન્ટ્રી MTO Database માંથી Delete કરવા માંગો છો?`;
+
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        const { error } = await db.from('mto').delete().eq('id', id);
+        if (error) throw error;
+
+        // લોકલ એરેમાંથી રો હટાવીને ટેબલ તરત અપડેટ કરવું
+        currentSpoolMtoHistory = currentSpoolMtoHistory.filter(item => item.id !== id);
+        renderHistoryTable(currentSpoolMtoHistory);
+
+        alert("🗑️ Material એન્ટ્રી MTO Database માંથી સફળતાપૂર્વક Delete થઈ ગઈ છે!");
+      } catch (err) {
+        console.error(err);
+        alert("ડિલીટ કરવામાં ભૂલ આવી: " + err.message);
+      }
     }
 
     // ૪. Input 2: Last 5 Digits or Contains SAP Code Lookup in Sap_code table
@@ -448,7 +494,7 @@
       const qtyVal = parseFloat(qtyInput.value);
 
       if (!lineListData) return alert("⚠️ કૃપા કરીને માન્ય Spool Number દાખલ કરો!");
-      if (!selectedSapData) return alert("⚠️️ કૃપા કરીને માન્ય SAP Code પસંદ કરો!");
+      if (!selectedSapData) return alert("⚠️ કૃપા કરીને માન્ય SAP Code પસંદ કરો!");
       if (!qtyVal || qtyVal <= 0) return alert("⚠️ કૃપા કરીને યોગ્ય MIN Quantity દાખલ કરો!");
 
       btnAdd.disabled = true;
@@ -505,6 +551,10 @@
       sapMsg.innerText = 'Sap Code માંથી Description જોવા માટે 5 આંકડા દાખલ કરો...';
       selectedSapData = null;
       document.getElementById('btnAddMto').disabled = true;
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     window.addEventListener('DOMContentLoaded', () => {
