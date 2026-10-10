@@ -154,41 +154,41 @@
 
   <div class="container">
     <div class="card">
-      <!-- 4 Top KPI Widgets -->
+      <!-- 4 Top KPI Widgets (Fixed Icons) -->
       <div class="kpi-grid">
         <div class="kpi-card" style="border-left: 4px solid #e11d48;">
           <div>
             <div class="kpi-title" style="color: #be123c;">Total Priority Spools</div>
             <div class="kpi-val" id="priorityTotalSpools">0</div>
           </div>
-          
+          <div class="kpi-icon" style="background: #ffe4e6; color: #e11d48;">🔥</div>
         </div>
         <div class="kpi-card" style="border-left: 4px solid #0284c7;">
           <div>
             <div class="kpi-title">Total Priority Joints (Weld ID)</div>
             <div class="kpi-val" id="priorityTotalWelds">0</div>
           </div>
-          
+          <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">⚡</div>
         </div>
         <div class="kpi-card" style="border-left: 4px solid #16a34a;">
           <div>
             <div class="kpi-title">Dispatched (FD) Spools</div>
             <div class="kpi-val" id="priorityDispatchedSpools" style="color: #15803d;">0</div>
           </div>
-          
+          <div class="kpi-icon" style="background: #dcfce7; color: #16a34a;">🚚</div>
         </div>
         <div class="kpi-card" style="border-left: 4px solid #ea580c;">
           <div>
             <div class="kpi-title">Balance Pending Spools</div>
             <div class="kpi-val" id="priorityBalanceSpools" style="color: #c2410c;">0</div>
           </div>
-          
+          <div class="kpi-icon" style="background: #ffedd5; color: #ea580c;">⏳</div>
         </div>
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #fecdd3; padding-bottom: 10px;">
         <h3 style="margin:0; color:#be123c; font-size:17px;">Priority Spools Details</h3>
-        <button type="button" class="btn-refresh" onclick="loadPriorityDashboardData()">🔄 Refresh Data</button>
+        <button type="button" class="btn-refresh" onclick="refreshDashboardData()">🔄 Refresh Data</button>
       </div>
 
       <div class="table-container">
@@ -262,6 +262,11 @@
       }
       allRecordsCache = allRows;
       return allRecordsCache;
+    }
+
+    async function refreshDashboardData() {
+      allRecordsCache = []; // કેશ ક્લિયર થશે જેથી નવો ડેટા ફેચ થાય
+      await loadPriorityDashboardData();
     }
 
     async function loadPriorityDashboardData() {
