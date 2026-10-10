@@ -9,8 +9,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <style>
     :root {
-      --primary: #0284c7;
-      --primary-dark: #0369a1;
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --teal-accent: #06b6d4;
+      --teal-light: #f0fdfa;
       --navy: #0f172a;
       --card-bg: #ffffff;
       --bg: #f8fafc;
@@ -24,7 +26,7 @@
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg);
+      background: radial-gradient(circle at 10% 20%, rgba(204, 251, 241, 0.4) 0%, rgba(255, 255, 255, 1) 70%);
       color: var(--text-main);
       -webkit-font-smoothing: antialiased;
     }
@@ -38,55 +40,197 @@
     .container {
       flex: 1;
       width: 100%;
-      max-width: 100%;
-      margin: 0;
-      padding: 10px 14px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 20px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
     }
 
-    #mainMenu {
-      overflow-y: auto;
-    }
-
-    #stageContainer {
-      height: calc(100vh - 75px);
+    /* Top Modern App Header */
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: white;
+      padding: 12px 24px;
       display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-
-    #stageContainer > .card:first-child {
-      flex-shrink: 0;
-      padding: 12px 14px;
-      margin-top: 4px;
-    }
-
-    #stageContainer > .card:last-child {
-      flex: 1;
+    
+    .top-nav-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
       display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      padding: 10px 14px;
-      margin-top: 8px;
+      align-items: center;
+      gap: 12px;
     }
 
-    .balance-table-container {
-      flex: 1;
-      overflow: auto;
-      margin-top: 6px;
+    .btn-nav-dashboard {
+      background: #ffffff;
+      color: var(--navy);
       border: 1px solid #cbd5e1;
-      border-radius: 8px;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-nav-dashboard:hover { 
+      background: var(--teal-light); 
+      color: var(--primary-dark); 
+      transform: translateY(-1px);
     }
 
+    .btn-logout {
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 12.5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-logout:hover { background: #dc2626; }
+
+    /* Modern Hero Header from Image */
+    .hero-banner {
+      text-align: center;
+      padding: 24px 10px 18px 10px;
+    }
+
+    .hero-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: #ccfbf1;
+      color: #0f766e;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: 0.3px;
+    }
+
+    .hero-title {
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1.25;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    /* Menu Grid as Rounded Feature Pills from Image */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .menu-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 18px;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: left;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .menu-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(13, 148, 136, 0.12);
+      border-color: #5eead4;
+      background: #ffffff;
+      color: var(--primary-dark);
+    }
+
+    .check-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #0d9488;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    /* Floating Hub Action Button at bottom */
+    .hub-bottom-banner {
+      margin-top: 28px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-view-master {
+      background: linear-gradient(135deg, #0d9488 0%, #0369a1 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 36px;
+      font-size: 14.5px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(13, 148, 136, 0.35);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-view-master:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(13, 148, 136, 0.45);
+    }
+
+    /* Internal Panels */
     .card {
       background: var(--card-bg);
-      padding: 14px 18px;
-      border-radius: 12px;
+      padding: 18px 22px;
+      border-radius: 16px;
       border: 1px solid var(--border);
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
-      margin-top: 6px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+      margin-top: 10px;
     }
     
     h3 { 
@@ -105,10 +249,10 @@
     
     input, select { 
       width: 100%; 
-      padding: 9px 12px; 
+      padding: 10px 14px; 
       margin-top: 4px; 
       border: 1.5px solid #cbd5e1; 
-      border-radius: 8px; 
+      border-radius: 10px; 
       box-sizing: border-box; 
       font-size: 13px; 
       background: #fff; 
@@ -117,88 +261,24 @@
     input:focus, select:focus { 
       outline: none; 
       border-color: var(--primary); 
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); 
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15); 
       background: #f8fafc;
     }
 
-    .top-navbar {
-      background: rgba(15, 23, 42, 0.94);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      color: white;
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    
-    .top-nav-title {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .live-dot {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      background: rgba(34, 197, 94, 0.15);
-      color: #4ade80;
-      padding: 3px 8px;
-      border-radius: 20px;
-      border: 1px solid rgba(34, 197, 94, 0.3);
-    }
-
-    .live-dot-pulse {
-      width: 7px;
-      height: 7px;
-      background: #22c55e;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #22c55e;
-    }
-
-    .btn-nav-dashboard {
-      background: #ffffff;
-      color: var(--navy);
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      padding: 6px 14px;
-      font-size: 12.5px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-    .btn-nav-dashboard:hover { 
-      background: #f8fafc; 
-      color: var(--primary); 
-      transform: translateY(-1px);
-    }
-
+    /* KPI Grid */
     .kpi-grid { 
       display: grid; 
       grid-template-columns: repeat(3, 1fr); 
-      gap: 10px; 
-      margin-bottom: 8px; 
+      gap: 12px; 
+      margin-bottom: 14px; 
     }
     
     .kpi-card {
       background: #ffffff;
       border: 1px solid #e2e8f0; 
-      border-radius: 10px; 
-      padding: 6px 12px; 
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      border-radius: 12px; 
+      padding: 10px 14px; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
       display: flex; 
       align-items: center; 
       justify-content: space-between;
@@ -208,30 +288,32 @@
       font-size: 11px; 
       font-weight: 700; 
       color: #64748b; 
+      text-transform: uppercase;
       letter-spacing: 0.5px; 
     }
     
     .kpi-val { 
-      font-size: 18px; 
+      font-size: 20px; 
       font-weight: 800; 
       color: #0f172a; 
       margin-top: 2px; 
     }
     
     .kpi-icon { 
-      width: 30px; 
-      height: 30px; 
-      border-radius: 8px; 
+      width: 34px; 
+      height: 34px; 
+      border-radius: 10px; 
       display: flex; 
       align-items: center; 
       justify-content: center; 
-      font-size: 15px; 
+      font-size: 16px; 
     }
 
+    /* Modal / Login Box */
     #loginOverlay {
       min-height: 100vh;
       width: 100%;
-      background: #f1f5f9;
+      background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 50%, #f8fafc 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -243,159 +325,35 @@
     .login-box {
       background: #ffffff;
       width: 100%;
-      max-width: 380px;
-      padding: 30px 24px;
-      border-radius: 16px;
+      max-width: 400px;
+      padding: 34px 28px;
+      border-radius: 20px;
       border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 20px 35px -5px rgba(13, 148, 136, 0.1);
       box-sizing: border-box;
     }
 
     .btn-login {
-      background: #0284c7;
+      background: linear-gradient(135deg, #0d9488 0%, #0369a1 100%);
       color: white;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 14.5px;
       border: none;
-      border-radius: 6px;
+      border-radius: 999px;
       padding: 12px;
       width: 100%;
-      margin-top: 16px;
+      margin-top: 18px;
       cursor: pointer;
+      box-shadow: 0 6px 14px rgba(13, 148, 136, 0.25);
     }
-    .btn-login:hover { background: #0369a1; }
-    .btn-logout {
-      background: #ef4444;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 12px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .menu-btn {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-      color: #1e293b;
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      text-align: left;
-      text-decoration: none;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .menu-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
-      border-color: #94a3b8;
-      background: #ffffff;
-      color: #0f172a;
-    }
-
-    .step-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 800;
-      background: #e2e8f0;
-      color: #475569;
-      flex-shrink: 0;
-    }
-    .menu-btn:hover .step-badge { background: #0284c7; color: #ffffff; }
-
-    .menu-btn.stage-bend { border-left: 4px solid #3b82f6; }
-    .menu-btn.stage-fitup { border-left: 4px solid #6366f1; }
-    .menu-btn.stage-weld { border-left: 4px solid #0f766e; }
-    .menu-btn.stage-ndt { border-left: 4px solid #d97706; }
-    .menu-btn.stage-fd { border-left: 4px solid #059669; }
-
-    .btn-progress-hub {
-      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-      color: #ffffff;
-      border: none;
-      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
-    }
-    .btn-progress-hub:hover { background: linear-gradient(135deg, #4338ca 0%, #312e81 100%); color: #fff; }
-
-    .btn-track-hub {
-      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-      color: #ffffff;
-      border: none;
-      box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
-    }
-    .btn-track-hub:hover { background: linear-gradient(135deg, #b45309 0%, #92400e 100%); color: #fff; }
-
-    .btn-report-hub {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #ffffff;
-      border: none;
-      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
-    }
-    .btn-report-hub:hover { background: linear-gradient(135deg, #0369a1 0%, #075985 100%); color: #fff; }
-
-    .btn-update-hub {
-      background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-      color: #ffffff;
-      border: none;
-      box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);
-    }
-    .btn-update-hub:hover { background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%); color: #fff; }
-
-    .btn-mto-hub {
-      background: linear-gradient(135deg, #0d9488 0%, #115e59 100%);
-      color: #ffffff;
-      border: none;
-      box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);
-    }
-    .btn-mto-hub:hover { background: linear-gradient(135deg, #0f766e 0%, #042f2e 100%); color: #fff; }
-
-    .btn-view {
-      grid-column: 1 / -1;
-      justify-content: center;
-      background: linear-gradient(135deg, #0f766e 0%, #047857 100%);
-      color: #ffffff;
-      border: none;
-      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
-      font-size: 14px;
-      padding: 16px;
-      border-radius: 10px;
-    }
-    .btn-view:hover {
-      background: linear-gradient(135deg, #115e59 0%, #065f46 100%);
-      color: #ffffff;
-      box-shadow: 0 8px 18px rgba(5, 150, 105, 0.35);
-    }
-
-    .btn-add-queue { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
+    .btn-login:hover { opacity: 0.95; }
 
     .btn-save-action {
       background: #15803d;
       color: white;
       border: none;
-      border-radius: 6px;
-      padding: 8px 18px;
+      border-radius: 8px;
+      padding: 9px 18px;
       font-size: 13px;
       font-weight: bold;
       cursor: pointer;
@@ -404,14 +362,13 @@
       gap: 6px;
       box-shadow: 0 2px 5px rgba(21, 128, 61, 0.3);
     }
-    .btn-save-action:hover { background: #166534; }
 
     .btn-whatsapp-action {
       background: #25d366;
       color: white;
       border: none;
-      border-radius: 6px;
-      padding: 8px 18px;
+      border-radius: 8px;
+      padding: 9px 18px;
       font-size: 13px;
       font-weight: bold;
       cursor: pointer;
@@ -420,53 +377,73 @@
       gap: 6px;
       box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3);
     }
-    .btn-whatsapp-action:hover { background: #1eb857; }
 
-    .metric-banner { background: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; justify-content: space-around; font-weight: bold; color: #0369a1; font-size: 13.5px; }
-    .sub-metric-banner { background: #fefce8; border: 1.5px solid #eab308; border-radius: 8px; padding: 8px; margin-top: 8px; margin-bottom: 10px; display: flex; justify-content: space-around; font-weight: bold; color: #854d0e; font-size: 13px; }
-    .metric-val { color: #dc2626; font-size: 17px; font-weight: 800; }
+    .btn-add-queue { 
+      background: var(--primary); 
+      color: white; 
+      border: none; 
+      border-radius: 8px; 
+      padding: 10px; 
+      font-size: 13.5px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      width: 100%; 
+      margin-top: 10px; 
+    }
+
+    .metric-banner { 
+      background: #f0fdfa; 
+      border: 1.5px solid #5eead4; 
+      border-radius: 10px; 
+      padding: 10px; 
+      margin-bottom: 12px; 
+      display: flex; 
+      justify-content: space-around; 
+      font-weight: bold; 
+      color: #0f766e; 
+      font-size: 13.5px; 
+    }
 
     .search-box-wrapper { position: relative; }
-    .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1.5px solid #0284c7; border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.12); display: none; }
+    .search-dropdown { 
+      position: absolute; 
+      top: 100%; 
+      left: 0; 
+      right: 0; 
+      background: white; 
+      border: 1.5px solid var(--primary); 
+      border-top: none; 
+      border-radius: 0 0 10px 10px; 
+      max-height: 200px; 
+      overflow-y: auto; 
+      z-index: 100; 
+      box-shadow: 0 12px 24px rgba(0,0,0,0.12); 
+      display: none; 
+    }
     .dropdown-row { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; }
-    .dropdown-row:hover { background: #f0fdf4; }
+    .dropdown-row:hover { background: #f0fdfa; }
 
-    .edit-form-box { background: #f8fafc; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 12px; margin-top: 10px; display: none; }
-    .edit-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
-
-    .selected-table-container { margin-top: 10px; border: 1px solid #0f172a; border-radius: 6px; overflow-x: auto; }
-    .selected-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
-    .selected-table th { background: #0f172a; color: white; padding: 8px 10px; text-align: left; font-weight: 600; font-size: 12.5px; }
-    .selected-table td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
-    .btn-remove { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: bold; cursor: pointer; }
-
-    .sub-filter-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; margin-bottom: 6px; }
-    .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; text-align: center; }
-    .sub-filter-btn.active { background: #1e40af; color: white; border-color: #1e3a8a; }
+    .balance-table-container {
+      flex: 1;
+      overflow: auto;
+      margin-top: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+    }
 
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; background-color: #fff; }
-    th { background-color: #0f4c81; color: white; font-weight: 700; font-size: 13px; user-select: none; position: sticky; top: 0; z-index: 5; }
+    th, td { border: 1px solid #e2e8f0; padding: 9px 12px; white-space: nowrap; background-color: #fff; }
+    th { background-color: #0f172a; color: white; font-weight: 700; font-size: 13px; position: sticky; top: 0; z-index: 5; }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
     .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .filter-btn-icon { background: #1d4ed8; color: #fff; border: 1px solid #93c5fd; border-radius: 3px; padding: 2px 6px; font-size: 10.5px; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
-    .filter-btn-icon:hover { background: #2563eb; }
-    .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
-
+    .filter-btn-icon { background: #0f766e; color: #fff; border: 1px solid #5eead4; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; }
+    
     .timeline-container { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-    .timeline-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-    }
+    .timeline-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; }
     .timeline-card.status-completed { background: #f0fdf4; border-color: #86efac; }
     .timeline-card.status-hold { background: #fff7ed; border-color: #fdba74; }
-    .stage-badge-tag { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.5px; }
+    .stage-badge-tag { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; }
     .tag-completed { background: #15803d; color: #ffffff; }
     .tag-hold { background: #c2410c; color: #ffffff; }
 
@@ -475,41 +452,43 @@
       display: none;
       z-index: 1000;
       background: #ffffff;
-      border: 1.5px solid #0284c7;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      border: 1.5px solid var(--primary);
+      border-radius: 10px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.2);
       width: 260px;
       padding: 12px;
-      font-family: inherit;
     }
-    .popup-search { width: 100%; padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 12.5px; box-sizing: border-box; margin-bottom: 8px; }
-    .popup-options-list { max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px; margin-bottom: 10px; background: #fafafa; }
-    .popup-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #1e293b; padding: 4px 2px; }
+    .popup-search { width: 100%; padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12.5px; box-sizing: border-box; margin-bottom: 8px; }
+    .popup-options-list { max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px; margin-bottom: 10px; background: #fafafa; }
+    .popup-item { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 4px 2px; }
     .popup-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; }
     .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
-    .popup-btn-ok { background: #1e40af; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
-    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-ok { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
 
-    @media (max-width: 640px) {
+    @media (max-width: 680px) {
+      .menu-grid { grid-template-columns: 1fr; }
+      .hero-title { font-size: 23px; }
       .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
       .kpi-card { padding: 6px 8px; }
-      .kpi-title { font-size: 9.5px; }
+      .kpi-title { font-size: 9px; }
       .kpi-val { font-size: 15px; }
       .kpi-icon { display: none; }
-      #stageContainer { height: calc(100vh - 65px); }
     }
   </style>
 </head>
 <body>
 
-<!-- Inbuilt Login Screen -->
+<!-- Login Screen Modal -->
 <div id="loginOverlay">
   <div class="login-box">
-    <div class="login-header" style="text-align: center; margin-bottom: 20px;">
-      <h3 style="margin: 0; border: none; font-size: 22px; font-weight: 800; color: #0f172a; justify-content: center;">Login</h3>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div style="width: 48px; height: 48px; background: #ccfbf1; color: #0d9488; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 10px auto;">🔐</div>
+      <h3 style="margin: 0; border: none; font-size: 22px; font-weight: 800; color: #0f172a; justify-content: center;">Console Portal Login</h3>
+      <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Piping Operations & Quality Tracking</p>
     </div>
     <div>
-      <label>Select User:</label>
+      <label>Select User Role:</label>
       <select id="loginUser">
         <option value="admin">Admin</option>
         <option value="bending">Bending</option>
@@ -526,7 +505,7 @@
     <div id="loginError" style="color: #dc2626; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; text-align: center;">
       ⚠️ Invalid Password!
     </div>
-    <button type="button" class="btn-login" onclick="verifyLogin()">Login</button>
+    <button type="button" class="btn-login" onclick="verifyLogin()">Login to Portal ➔</button>
   </div>
 </div>
 
@@ -534,9 +513,8 @@
 <div id="appContent" style="display: none;">
   <div class="top-navbar">
     <div class="top-nav-title">
-      <span>PIPING CONSOLE</span>
+      <span style="color:#2dd4bf;">✦ PIPING CONSOLE</span>
       <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;">| Progress Tracking</span>
-      
     </div>
     <div style="display: flex; align-items: center; gap: 10px;">
       <button type="button" id="btnTopDashboard" class="btn-nav-dashboard" style="display: none;" onclick="backToMenu()">🖥️ Dashboard</button>
@@ -545,61 +523,40 @@
   </div>
 
   <div class="container">
-    <div id="mainMenu" class="card">
-      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
-        <h3 style="margin: 0; border: none; font-size: 17px; color: #0f172a;">Piping Dashboard</h3>
-        <span style="font-size: 12px; font-weight: 600; color: #64748b;" id="dashboardUserBadge">Hostinger Cloud System</span>
+    <!-- Main Landing / Menu Section (Styled like image) -->
+    <div id="mainMenu">
+      <div class="hero-banner">
+        <div class="hero-badge-tag">⚡ HOSTINGER CLOUD REAL-TIME ENGINE</div>
+        <h1 class="hero-title">
+          All-in-one <span>Piping, QC</span> & Tracking Console
+        </h1>
+        <p class="hero-subtitle">Built for Indian Engineering & Fabrication Teams — Real-time Stage Synchronization</p>
       </div>
 
       <div class="menu-grid">
-        <button class="menu-btn stage-bend" onclick="openStage('bending_issue')"><span class="step-badge">01</span><span>ISSUED FOR BENDING</span></button>
-        <button class="menu-btn stage-bend" onclick="openStage('bend_entry')"><span class="step-badge">02</span><span>BEND COMPLETED</span></button>
-        <button class="menu-btn stage-fitup" onclick="openStage('fitup_entry')"><span class="step-badge">03</span><span>FIT UP COMPLETED</span></button>
-        <button class="menu-btn stage-weld" onclick="openStage('weld_visual')"><span class="step-badge">04</span><span>WELD VISUAL COMPLETED</span></button>
-        <button class="menu-btn stage-ndt" onclick="openStage('ndt_clearance')"><span class="step-badge">05</span><span>NDT CLEARANCE</span></button>
-        <button class="menu-btn stage-fd" onclick="openStage('fd')"><span class="step-badge">06</span><span>FD & DC NO</span></button>
+        <button class="menu-btn" onclick="openStage('bending_issue')"><span class="check-circle">✓</span><span>Issued for Bending</span></button>
+        <button class="menu-btn" onclick="openStage('bend_entry')"><span class="check-circle">✓</span><span>Bend Completed</span></button>
+        <button class="menu-btn" onclick="openStage('fitup_entry')"><span class="check-circle">✓</span><span>Fit Up Completed</span></button>
+        <button class="menu-btn" onclick="openStage('weld_visual')"><span class="check-circle">✓</span><span>Weld Visual Completed</span></button>
+        <button class="menu-btn" onclick="openStage('ndt_clearance')"><span class="check-circle">✓</span><span>NDT Clearance</span></button>
+        <button class="menu-btn" onclick="openStage('fd')"><span class="check-circle">✓</span><span>FD & Dispatch DC No</span></button>
 
-        <!-- Standalone Progress Dashboard -->
-        <button class="menu-btn btn-progress-hub" onclick="window.location.href='progress_dashboard.html'">
-          <span class="step-badge" style="background:#fff; color:#4338ca;">📈</span>
-          <span>PROGRESS DASHBOARD</span>
-        </button>
+        <button class="menu-btn" onclick="window.location.href='progress_dashboard.html'"><span class="check-circle" style="background:#4f46e5;">📈</span><span>Progress Dashboard</span></button>
+        <button class="menu-btn" onclick="window.location.href='priority_dashboard.html'"><span class="check-circle" style="background:#e11d48;">🔥</span><span>Priority Spools Dashboard</span></button>
+        <button class="menu-btn" onclick="openSpoolTracking()"><span class="check-circle" style="background:#d97706;">🔍</span><span>Live Spool Tracker</span></button>
+        <button class="menu-btn" onclick="openProgressReport()"><span class="check-circle" style="background:#0284c7;">📅</span><span>Daily Progress Report</span></button>
+        <button class="menu-btn" onclick="window.location.href='mto_register.html'"><span class="check-circle" style="background:#0d9488;">📋</span><span>MTO Register</span></button>
 
-        <!-- Standalone Priority Spools Dashboard -->
-        <button class="menu-btn" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.25);" onclick="window.location.href='priority_dashboard.html'">
-          <span class="step-badge" style="background:#fff; color:#be123c;">🔥</span>
-          <span>PRIORITY SPOOLS DASHBOARD</span>
-        </button>
-        
-        <button class="menu-btn btn-track-hub" onclick="openSpoolTracking()"><span class="step-badge" style="background:#fff; color:#b45309;">🔍</span><span>SPOOL TRACKING</span></button>
-        <button class="menu-btn btn-report-hub" onclick="openProgressReport()"><span class="step-badge" style="background:#fff; color:#0369a1;">📅</span><span>PROGRESS REPORT</span></button>
+        <button class="menu-btn" id="btnDataUpdateHub" style="display: none;" onclick="openDataUpdateHub()"><span class="check-circle" style="background:#7c3aed;">🔄</span><span>Batch Excel Update</span></button>
+        <button class="menu-btn" id="btnIgpUpdateHub" style="display: none;" onclick="window.location.href='igp_update.html'"><span class="check-circle" style="background:#0284c7;">📦</span><span>IGP Update</span></button>
+        <button class="menu-btn" id="btnMinUpdateHub" style="display: none;" onclick="window.location.href='min_update.html'"><span class="check-circle" style="background:#0d9488;">📋</span><span>MIN Update</span></button>
+        <button class="menu-btn" id="btnLineMatHub" style="display: none;" onclick="window.location.href='line_material.html'"><span class="check-circle" style="background:#0284c7;">📑</span><span>Line List & Material</span></button>
+      </div>
 
-        <!-- Standalone MTO Register Module -->
-        <button class="menu-btn btn-mto-hub" onclick="window.location.href='mto_register.html'">
-          <span class="step-badge" style="background:#fff; color:#0f766e;">📋</span>
-          <span>MTO REGISTER</span>
-        </button>
-
-        <button class="menu-btn btn-update-hub" id="btnDataUpdateHub" style="display: none;" onclick="openDataUpdateHub()"><span class="step-badge" style="background:#fff; color:#7c3aed;">🔄</span><span>DATA UPDATE</span></button>
-
-        <button class="menu-btn" id="btnIgpUpdateHub" style="display: none; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);" onclick="window.location.href='igp_update.html'">
-          <span class="step-badge" style="background:#fff; color:#0284c7;">📦</span>
-          <span>IGP UPDATE</span>
-        </button>
-
-        <button class="menu-btn" id="btnMinUpdateHub" style="display: none; background: linear-gradient(135deg, #0d9488 0%, #115e59 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);" onclick="window.location.href='min_update.html'">
-          <span class="step-badge" style="background:#fff; color:#0d9488;">📋</span>
-          <span>MIN UPDATE</span>
-        </button>
-
-        <button class="menu-btn" id="btnLineMatHub" style="display: none; background: linear-gradient(135deg, #0284c7 0%, #075985 100%); color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);" onclick="window.location.href='line_material.html'">
-          <span class="step-badge" style="background:#fff; color:#0284c7;">📑</span>
-          <span>LINE LIST & MATERIAL</span>
-        </button>
-
-        <!-- Standalone Master Register Module -->
-        <button class="menu-btn btn-view" onclick="window.location.href='master_register.html'">
-          <span>📊 VIEW MASTER REGISTER</span>
+      <div class="hub-bottom-banner">
+        <button class="btn-view-master" onclick="window.location.href='master_register.html'">
+          <span>📊 Open Master Register Full View</span>
+          <span>➔</span>
         </button>
       </div>
     </div>
@@ -607,13 +564,13 @@
     <!-- Data Update Screen (Admin Only) -->
     <div id="dataUpdateContainer" style="display: none;">
       <div class="card">
-        <h3 style="color:#6d28d9;">🔄 Database Excel Batch Update (Admin)</h3>
+        <h3 style="color:#7c3aed;">🔄 Database Excel Batch Update (Admin)</h3>
         <p style="font-size: 13px; color: #475569; margin-top: 4px;">Excel ફાઇલ ડાઉનલોડ કરીને એડિટ કર્યા પછી અહીંથી નવેસરથી અપડેટ કરી શકાય છે.</p>
         <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 18px;">
           <button type="button" class="btn-save-action" style="background: #0284c7; padding: 12px 20px;" onclick="downloadDataForExcel()">📥 1. Download Master Data (.xlsx)</button>
         </div>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-        <div style="max-width: 450px; background: #f8fafc; border: 1.5px dashed #94a3b8; border-radius: 8px; padding: 16px;">
+        <div style="max-width: 450px; background: #f8fafc; border: 1.5px dashed #94a3b8; border-radius: 12px; padding: 18px;">
           <label style="margin-top: 0; font-size: 13px; font-weight: bold; color: #0f172a;">Select Updated Excel File:</label>
           <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="background: #fff; margin-top: 6px;">
           <button type="button" class="btn-save-action" id="btnExecuteExcelUpdate" style="background: #15803d; width: 100%; margin-top: 14px; padding: 12px; justify-content: center;" onclick="uploadAndApplyExcelUpdate()">📤 2. Upload & Update Database</button>
@@ -624,17 +581,17 @@
     <!-- Spool Tracking Screen -->
     <div id="spoolTrackingContainer" style="display: none;">
       <div class="card">
-        <h3 style="color:#b45309;">🔍 Spool Live Stage Tracker</h3>
+        <h3 style="color:#d97706;">🔍 Spool Live Stage Tracker</h3>
         <label>Enter Spool Unique Number to Track:</label>
         <div class="search-box-wrapper" style="max-width: 500px;">
           <input type="text" id="trackSearchInput" placeholder="Type Spool Unique Number..." oninput="handleTrackSearchInput()" autocomplete="off">
           <div id="trackDropdown" class="search-dropdown"></div>
         </div>
-        <div id="spoolDetailsHeader" style="display: none; margin-top: 14px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 14px;">
+        <div id="spoolDetailsHeader" style="display: none; margin-top: 14px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 16px;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <div>
               <span style="font-size: 16px; font-weight: 800; color: #0f172a;" id="trackSpoolNo">Spool No</span>
-              <span style="margin-left: 8px; font-size: 12px; color: #0284c7; font-weight: 600;" id="trackDwgNo">Dwg No</span>
+              <span style="margin-left: 8px; font-size: 12px; color: #0d9488; font-weight: 600;" id="trackDwgNo">Dwg No</span>
             </div>
             <div style="font-size: 13px; font-weight: bold; color: #475569;" id="trackMeta"></div>
           </div>
@@ -646,7 +603,7 @@
     <!-- Progress Report Screen -->
     <div id="progressReportContainer" style="display: none;">
       <div class="card">
-        <h3 style="color:#0369a1;">📅 Daily Progress Report Generator</h3>
+        <h3 style="color:#0284c7;">📅 Daily Progress Report Generator</h3>
         <div style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
           <div style="width: 220px;">
             <label style="margin-top:0;">Select Report Date:</label>
@@ -656,13 +613,13 @@
           <button type="button" class="btn-whatsapp-action" id="btnShareWhatsApp" style="display: none;" onclick="shareReportToWhatsApp()">📲 Share on WhatsApp</button>
         </div>
         <div id="reportResultArea" style="display: none;">
-          <div class="metric-banner" style="background:#f0f9ff; border-color:#0284c7; margin-bottom: 12px; justify-content: center;">
-            <div style="font-size: 14.5px;">REPORT FOR DATE = <span id="reportSelectedDate" style="color:#0284c7; font-weight: 800; font-size:16px;">-</span></div>
+          <div class="metric-banner" style="background:#f0fdfa; border-color:#5eead4; margin-bottom: 12px; justify-content: center;">
+            <div style="font-size: 14.5px;">REPORT FOR DATE = <span id="reportSelectedDate" style="color:#0f766e; font-weight: 800; font-size:16px;">-</span></div>
           </div>
           <div class="balance-table-container" style="height: auto; max-height: 65vh;">
             <table>
               <thead>
-                <tr style="background:#0f4c81; color:white;">
+                <tr style="background:#0f172a; color:white;">
                   <th style="width: 40px; text-align: center;">Stage</th>
                   <th>Stage Description</th>
                   <th style="text-align: center; background:#15803d;">Completed Spools</th>
@@ -714,9 +671,9 @@
           <input type="text" id="spoolSearch" placeholder="Type spool no..." oninput="handleSearchInput()" autocomplete="off">
           <div id="searchDropdown" class="search-dropdown"></div>
         </div>
-        <div id="itemEditForm" class="edit-form-box">
-          <div style="font-weight: bold; color: #0369a1; margin-bottom: 6px;">📝 Edit Details:</div>
-          <div class="edit-grid">
+        <div id="itemEditForm" class="edit-form-box" style="display:none; background:#f8fafc; border:1.5px solid #99f6e4; border-radius:10px; padding:14px; margin-top:10px;">
+          <div style="font-weight: bold; color: #0f766e; margin-bottom: 6px;">📝 Edit Details:</div>
+          <div class="edit-grid" style="display:grid; grid-template-columns:1fr; gap:8px;">
             <div><label style="margin-top:0;">Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
             <div><label style="margin-top:0;">Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
             <div id="dynamicFormFields"></div>
@@ -724,14 +681,14 @@
           <input type="hidden" id="form_item_id">
           <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Selected List</button>
         </div>
-        <div id="selectedCardArea" style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+        <div id="selectedCardArea" style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">Selected Spools (<span id="queueCount">0</span>)</span>
             <button type="button" class="btn-save-action" id="btnSaveAction" onclick="submitCurrentStage()">💾 <span id="btnSaveLabel">SAVE ENTRY</span></button>
           </div>
           <div id="customInputsArea" style="margin-bottom: 12px;"></div>
-          <div class="selected-table-container">
-            <table class="selected-table">
+          <div class="selected-table-container" style="border: 1px solid #0f172a; border-radius: 8px; overflow-x: auto;">
+            <table class="selected-table" style="width:100%; border-collapse:collapse; font-size:12px;">
               <thead id="selectedTableHead"></thead>
               <tbody id="selectedTableBody"></tbody>
             </table>
@@ -741,13 +698,13 @@
 
       <div class="card" style="margin-top: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="margin: 0; border: none; color: #1e3a8a;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
-          <button type="button" class="sub-filter-btn" style="padding: 4px 8px; flex: initial;" onclick="clearAllBalanceFilters()">🔄 Clear All Filters</button>
+          <h3 style="margin: 0; border: none; color: #0f766e;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
+          <button type="button" class="sub-filter-btn" style="padding: 5px 12px; border-radius:999px; background:#e2e8f0; border:none; font-weight:bold; cursor:pointer;" onclick="clearAllBalanceFilters()">🔄 Clear All Filters</button>
         </div>
         <div class="balance-table-container">
           <table>
             <thead>
-              <tr style="background:#1e40af; color:white;">
+              <tr style="background:#0f172a; color:white;">
                 <th><div class="header-cell"><span>Drawing No</span><button class="filter-btn-icon" onclick="openExcelFilter(event, 'Drawing_no')">🔽</button></div></th>
                 <th><div class="header-cell"><span>Spool Unique No</span><button class="filter-btn-icon" onclick="openExcelFilter(event, 'Spool_number')">🔽</button></div></th>
                 <th><div class="header-cell"><span>Spool Size</span><button class="filter-btn-icon" onclick="openExcelFilter(event, 'Spool_size')">🔽</button></div></th>
@@ -814,7 +771,6 @@
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('appContent').style.display = 'block';
       document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
-      document.getElementById('dashboardUserBadge').innerText = `Logged in: ${currentUser.name}`;
       updateDashboardUIForRole();
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
@@ -836,7 +792,6 @@
       document.getElementById('appContent').style.display = 'block';
       document.getElementById('loginPass').value = '';
       document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
-      document.getElementById('dashboardUserBadge').innerText = `Logged in: ${currentUser.name}`;
       updateDashboardUIForRole();
     } else {
       err.style.display = 'block';
@@ -1242,7 +1197,7 @@
       <div class="dropdown-row" onclick="selectSpoolForTracking(${r.id})">
         <div>
           <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
-          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
+          <span style="font-size: 11px; color: #0d9488; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
         </div>
         <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || '-'}</span>
       </div>
@@ -1303,7 +1258,7 @@
     if (!selectedDate) return alert("કૃપા કરીને તારીખ પસંદ કરો!");
 
     const tbody = document.getElementById('reportTableBody');
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#2563eb;">⏳ Calculating Daily Report...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#0d9488;">⏳ Calculating Daily Report...</td></tr>';
     document.getElementById('reportResultArea').style.display = 'block';
     document.getElementById('reportSelectedDate').innerText = formatDateDisplay(selectedDate);
 
@@ -1520,7 +1475,7 @@
   async function loadStageData(stage) {
     document.getElementById('metricSpools').innerText = '...';
     document.getElementById('metricWelds').innerText = '...';
-    document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#2563eb;">⏳ Loading...</td></tr>';
+    document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#0d9488;">⏳ Loading...</td></tr>';
 
     let query = db.from('piping_joints').select('*');
     if (stage === 'bending_issue') {
@@ -1587,7 +1542,7 @@
       <div class="dropdown-row" onclick="onSpoolSelect(${r.id})">
         <div>
           <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
-          <span style="font-size: 11px; color: #0369a1; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
+          <span style="font-size: 11px; color: #0d9488; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
         </div>
         <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || '-'}</span>
       </div>
@@ -1626,8 +1581,8 @@
 
     if (currentStage === 'bend_entry') {
       dynArea.innerHTML = `
-        <div><label style="margin-top:0; color:#1e40af;">BEND QTY (Editable):</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
-        <div><label style="margin-top:0; color:#1e40af;">WELD ID (Editable):</label><input type="text" id="form_weld_id" value="${item.Weld_id || ''}" style="border-color:#2563eb; font-weight:bold;"></div>
+        <div><label style="margin-top:0; color:#0f766e;">BEND QTY (Editable):</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || ''}" style="border-color:#14b8a6; font-weight:bold;"></div>
+        <div><label style="margin-top:0; color:#0f766e;">WELD ID (Editable):</label><input type="text" id="form_weld_id" value="${item.Weld_id || ''}" style="border-color:#14b8a6; font-weight:bold;"></div>
       `;
     }
   }
@@ -1674,7 +1629,7 @@
     tbody.innerHTML = selectedQueue.map((r, idx) => {
       let customCol = '';
       if (currentStage === 'bend_entry') {
-        customCol = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td><td style="font-weight:bold; color:#0284c7;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>`;
+        customCol = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td><td style="font-weight:bold; color:#0d9488;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>`;
       }
 
       return `
@@ -1683,7 +1638,7 @@
           <td style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</td>
           <td style="color: #334155;">${r.Drawing_no || '-'}</td>
           ${customCol}
-          <td style="text-align: center;"><button type="button" class="btn-remove" onclick="removeSpoolFromQueue(${r.id})">✕ Remove</button></td>
+          <td style="text-align: center;"><button type="button" class="btn-remove" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 10px; font-weight:bold; cursor:pointer;" onclick="removeSpoolFromQueue(${r.id})">✕ Remove</button></td>
         </tr>
       `;
     }).join('');
