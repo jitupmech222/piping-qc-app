@@ -41,20 +41,33 @@
       height: 100vh;
       flex-shrink: 0;
       z-index: 100;
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* When Sidebar is Hidden */
+    .sidebar.collapsed {
+      margin-left: -250px;
+      transform: translateX(-100%);
     }
 
     .brand-area {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding-bottom: 20px;
+      justify-content: space-between;
+      padding-bottom: 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .brand-logo {
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       background: #0d9488;
       border-radius: 10px;
       display: flex;
@@ -65,13 +78,29 @@
       font-weight: 900;
     }
 
-    .brand-name {
-      font-size: 14.5px;
+    .brand-name { font-size: 14px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
+    .brand-sub { font-size: 10.5px; color: #64748b; }
+
+    /* Streamlit-style Collapse Button inside sidebar */
+    .btn-toggle-in {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
       font-weight: 800;
-      color: #ffffff;
-      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    .brand-sub { font-size: 11px; color: #64748b; }
+    .btn-toggle-in:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
 
     .nav-section-label {
       font-size: 10px;
@@ -96,7 +125,6 @@
       transition: all 0.2s;
       margin-bottom: 3px;
     }
-
     .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
     .nav-item.active { background: #0d9488; color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
 
@@ -120,25 +148,40 @@
     .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1e293b; color: #2dd4bf; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #334155; }
     .user-details { font-size: 12px; color: #ffffff; font-weight: 600; }
     .user-details span { display: block; font-size: 10px; color: #64748b; font-weight: normal; }
-
-    .btn-logout-icon {
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      cursor: pointer;
-      font-size: 16px;
-    }
+    .btn-logout-icon { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
     .btn-logout-icon:hover { color: #ef4444; }
 
-    /* Main Workspace Area */
+    /* Main Workspace */
     .main-workspace {
       flex: 1;
       padding: 24px 32px;
       overflow-y: auto;
       max-height: 100vh;
+      transition: all 0.3s;
     }
 
-    /* Top Action Bar */
+    /* Floating Streamlit-style Open Button (>>) */
+    .btn-toggle-out {
+      display: none;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: #334155;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      margin-right: 12px;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-toggle-out:hover {
+      background: #f1f5f9;
+      color: #0d9488;
+      border-color: #0d9488;
+    }
+
     .workspace-top {
       display: flex;
       justify-content: space-between;
@@ -151,10 +194,9 @@
       border: 1px solid #e2e8f0;
       border-radius: 999px;
       padding: 9px 18px;
-      width: 380px;
+      width: 360px;
       font-size: 13px;
       outline: none;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
     .search-input-pill:focus { border-color: #0d9488; }
 
@@ -172,7 +214,7 @@
     }
     .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
 
-    /* Green Welcome Banner */
+    /* Welcome Hero Banner */
     .welcome-hero {
       background: linear-gradient(135deg, #0d9488 0%, #047857 100%);
       border-radius: 18px;
@@ -184,10 +226,8 @@
       margin-bottom: 24px;
       box-shadow: 0 8px 20px rgba(13, 148, 136, 0.2);
     }
-
     .welcome-text h2 { font-size: 22px; font-weight: 800; }
     .welcome-text p { font-size: 13px; color: #ccfbf1; margin-top: 4px; }
-
     .btn-hero-action {
       background: #ffffff;
       color: #047857;
@@ -197,19 +237,17 @@
       font-size: 13px;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
       transition: all 0.2s;
     }
-    .btn-hero-action:hover { transform: translateY(-1px); background: #f0fdfa; }
+    .btn-hero-action:hover { background: #f0fdfa; transform: translateY(-1px); }
 
-    /* Top 4 KPI Widgets */
+    /* 4 Top KPI Cards */
     .kpi-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
-
     .kpi-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
@@ -220,11 +258,9 @@
       justify-content: space-between;
       align-items: flex-start;
     }
-
     .kpi-title { font-size: 12px; font-weight: 600; color: #64748b; }
     .kpi-val { font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 6px; letter-spacing: -0.5px; }
     .kpi-sub { font-size: 11px; font-weight: 700; color: #16a34a; margin-top: 6px; }
-
     .kpi-icon-box {
       width: 40px;
       height: 40px;
@@ -235,13 +271,12 @@
       font-size: 18px;
     }
 
-    /* 4 Major Category Cards */
+    /* 4 Department Module Hub Cards */
     .category-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 18px;
     }
-
     .category-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
@@ -255,41 +290,15 @@
       justify-content: space-between;
       min-height: 140px;
     }
-
-    .category-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
-      border-color: #cbd5e1;
-    }
-
-    .cat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .cat-icon-box {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-
-    .cat-badge {
-      font-size: 10.5px;
-      font-weight: 800;
-      padding: 4px 10px;
-      border-radius: 999px;
-    }
-
+    .category-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06); border-color: #cbd5e1; }
+    .cat-header { display: flex; justify-content: space-between; align-items: center; }
+    .cat-icon-box { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .cat-badge { font-size: 10.5px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
     .cat-body { margin-top: 14px; }
     .cat-title { font-size: 16px; font-weight: 800; color: #0f172a; }
     .cat-desc { font-size: 12.5px; color: #64748b; margin-top: 4px; line-height: 1.4; }
 
-    /* Sub-panels (Mechanical, Stage views) */
+    /* Sub panels & Stage operations */
     .sub-panel { display: none; margin-top: 10px; }
     .sub-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
     .sub-btn {
@@ -308,11 +317,9 @@
     }
     .sub-btn:hover { background: #f0fdfa; border-color: #5eead4; color: #0f766e; }
 
-    /* Card Panels & Forms inside stages */
     .card { background: #ffffff; padding: 18px 22px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 14px rgba(0,0,0,0.03); margin-top: 10px; }
     label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 8px; display: block; }
     input, select { width: 100%; padding: 10px 14px; margin-top: 4px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; background: #fff; }
-    
     .btn-save-action { background: #15803d; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; }
     .btn-add-queue { background: #0d9488; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
     
@@ -363,17 +370,21 @@
 </div>
 
 <!-- Main App Layout -->
-<div id="appContent" style="display: none; width: 100%; display: flex;">
+<div id="appContent" style="display: none; width: 100%;">
 
-  <!-- Left Sidebar (Reference Style) -->
-  <aside class="sidebar">
+  <!-- Left Sidebar with "<<" collapse button -->
+  <aside class="sidebar" id="appSidebar">
     <div>
       <div class="brand-area">
-        <div class="brand-logo">✦</div>
-        <div>
-          <div class="brand-name">PIPING CONSOLE</div>
-          <div class="brand-sub">Operations Admin v2.4</div>
+        <div class="brand-left">
+          <div class="brand-logo">✦</div>
+          <div>
+            <div class="brand-name">PIPING CONSOLE</div>
+            <div class="brand-sub">Operations Admin v2.4</div>
+          </div>
         </div>
+        <!-- Streamlit-style Collapse Button "<<" -->
+        <button class="btn-toggle-in" title="Close Sidebar" onclick="toggleSidebar(false)">«</button>
       </div>
 
       <div class="nav-section-label">Main Menu</div>
@@ -413,18 +424,22 @@
   </aside>
 
   <!-- Right Main Workspace -->
-  <main class="main-workspace">
+  <main class="main-workspace" id="mainWorkspace">
 
-    <!-- Top Action Bar -->
+    <!-- Top Action Bar with ">>" Expand Button -->
     <div class="workspace-top">
-      <input type="text" class="search-input-pill" placeholder="🔍 Search spools, lines, materials or reports..." oninput="handleUniversalQuickSearch(this.value)">
+      <div style="display:flex; align-items:center;">
+        <!-- Streamlit-style Expand Button ">>" -->
+        <button class="btn-toggle-out" id="btnSidebarOpen" title="Open Sidebar" onclick="toggleSidebar(true)">»</button>
+        <input type="text" class="search-input-pill" placeholder="🔍 Search spools, lines, materials or reports...">
+      </div>
       <div class="live-status-pill">
         <span class="live-dot"></span>
         <span>Live Database Sync</span>
       </div>
     </div>
 
-    <!-- MAIN DASHBOARD VIEW -->
+    <!-- MAIN DASHBOARD OVERVIEW -->
     <div id="hubMainMenu">
       <!-- Welcome Hero Banner -->
       <div class="welcome-hero">
@@ -661,6 +676,20 @@
   let currentStage = '';
   let selectedQueue = [];
   let cumulativeRows = [];
+
+  /* Sidebar Toggle Logic (Streamlit style << and >>) */
+  function toggleSidebar(show) {
+    const sidebar = document.getElementById('appSidebar');
+    const openBtn = document.getElementById('btnSidebarOpen');
+
+    if (show) {
+      sidebar.classList.remove('collapsed');
+      openBtn.style.display = 'none';
+    } else {
+      sidebar.classList.add('collapsed');
+      openBtn.style.display = 'inline-flex';
+    }
+  }
 
   function checkSessionAuth() {
     const sessionData = sessionStorage.getItem('piping_app_auth');
