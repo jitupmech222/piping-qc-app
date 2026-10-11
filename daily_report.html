@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Progress Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(224, 242, 254, 0.4) 0%, rgba(255, 255, 255, 1) 70%);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 7px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f0f9ff; color: var(--primary); }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+    }
+
+    h3 {
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    label { font-size: 13px; font-weight: 700; color: #334155; margin-top: 6px; display: block; }
+    input[type="date"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      box-sizing: border-box;
+      font-size: 13.5px;
+      margin-top: 4px;
+    }
+
+    .btn-action {
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-whatsapp {
+      background: #25d366;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-banner {
+      background: #f0f9ff;
+      border: 1.5px solid #0284c7;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: center;
+      font-weight: bold;
+      color: #0369a1;
+      font-size: 14.5px;
+    }
+
+    .balance-table-container {
+      overflow-x: auto;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+    }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; text-align: left; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 14px; white-space: nowrap; background-color: #fff; }
+    th { background-color: #0f172a; color: white; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div class="top-navbar">
+    <div style="font-size: 16px; font-weight: 800; display:flex; align-items:center; gap:8px;">
+      <span>📅 DAILY PROGRESS REPORT</span>
+      <span id="navSubTitle" style="font-size: 12px; color: #94a3b8;"></span>
+    </div>
+    <a href="index.html" class="btn-back">⬅️ Back to Console</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h3>📅 Daily Progress Report Generator</h3>
+      
+      <div style="display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="width: 220px;">
+          <label>Select Report Date:</label>
+          <input type="date" id="reportDateInput">
+        </div>
+        <button type="button" class="btn-action" onclick="generateDailyReport()">📊 Generate Report</button>
+        <button type="button" class="btn-whatsapp" id="btnShareWhatsApp" style="display: none;" onclick="shareReportToWhatsApp()">📲 Share on WhatsApp</button>
+      </div>
+
+      <div id="reportResultArea" style="display: none;">
+        <div class="metric-banner">
+          <div>REPORT FOR DATE = <span id="reportSelectedDate" style="color:#0284c7; font-weight: 800;">-</span></div>
+        </div>
+        <div class="balance-table-container">
+          <table>
+            <thead>
+              <tr style="background:#0f172a; color:white;">
+                <th style="width: 40px; text-align: center;">Stage</th>
+                <th>Stage Description</th>
+                <th style="text-align: center; background:#15803d;">Completed Spools</th>
+                <th style="text-align: center; background:#166534;">Completed Weld ID</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allRecordsCache = [];
+    let currentUser = null;
+
+    function verifySession() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      currentUser = JSON.parse(sessionData);
+      document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
+      return true;
+    }
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (str === '' || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
+
+    function calculateWeldSum(rows) {
+      let sum = 0;
+      rows.forEach(r => {
+        const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+        if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+          const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+          const num = parseFloat(cleaned);
+          if (!isNaN(num)) sum += num;
+        }
+      });
+      return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
+    }
+
+    async function ensureAllRecordsCached() {
+      if (allRecordsCache.length > 0) return allRecordsCache;
+      let allRows = [];
+      let from = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + 999);
+        if (error) break;
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += 1000;
+          if (data.length < 1000) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+      allRecordsCache = allRows;
+      return allRecordsCache;
+    }
+
+    async function generateDailyReport() {
+      const selectedDate = document.getElementById('reportDateInput').value;
+      if (!selectedDate) return alert("કૃપા કરીને તારીખ પસંદ કરો!");
+
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#0284c7;">⏳ Calculating Daily Report...</td></tr>';
+      document.getElementById('reportResultArea').style.display = 'block';
+      document.getElementById('reportSelectedDate').innerText = formatDateDisplay(selectedDate);
+
+      const allRows = await ensureAllRecordsCached();
+
+      function checkDateMatch(val) {
+        if (!val) return false;
+        const d = String(val).includes('T') ? String(val).split('T')[0] : String(val);
+        return d === selectedDate;
+      }
+
+      const reportStages = [
+        { no: '01', name: 'ISSUED FOR BENDING', match: r => checkDateMatch(r.Issued_for_bending) },
+        { no: '02', name: 'BEND COMPLETED', match: r => checkDateMatch(r.Bend_date) },
+        { no: '03', name: 'FIT UP COMPLETED', match: r => checkDateMatch(r.Fit_up_date) },
+        { no: '04', name: 'WELD VISUAL COMPLETED', match: r => checkDateMatch(r.Weld_visual_date) },
+        { no: '05', name: 'NDT CLEARANCE', match: r => checkDateMatch(r.Ndt_clearance) },
+        { no: '06', name: 'FINAL DISPATCH & DC NO', match: r => checkDateMatch(r.Fd_date) }
+      ];
+
+      tbody.innerHTML = reportStages.map(st => {
+        const matchedRows = allRows.filter(st.match);
+        const spoolsCount = new Set(matchedRows.map(r => r.Spool_number).filter(Boolean)).size;
+        const weldsCount = calculateWeldSum(matchedRows);
+
+        return `
+          <tr>
+            <td style="text-align: center; font-weight: 800; background: #f8fafc;">${st.no}</td>
+            <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
+            <td style="text-align: center; font-weight: bold; color: ${spoolsCount > 0 ? '#15803d' : '#64748b'}; background: ${spoolsCount > 0 ? '#f0fdf4' : '#fff'};">${spoolsCount}</td>
+            <td style="text-align: center; font-weight: bold; color: ${weldsCount > 0 ? '#166534' : '#64748b'}; background: ${weldsCount > 0 ? '#f0fdf4' : '#fff'};">${weldsCount}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const btnShareWA = document.getElementById('btnShareWhatsApp');
+      if (btnShareWA) btnShareWA.style.display = (currentUser && currentUser.username === 'admin') ? 'inline-flex' : 'none';
+    }
+
+    async function shareReportToWhatsApp() {
+      const selectedDate = document.getElementById('reportDateInput').value;
+      const reportArea = document.getElementById('reportResultArea');
+      const shareBtn = document.getElementById('btnShareWhatsApp');
+      const originalText = shareBtn.innerHTML;
+
+      shareBtn.innerHTML = '⏳ Creating Table Image...';
+      shareBtn.disabled = true;
+
+      try {
+        const canvas = await html2canvas(reportArea, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+        canvas.toBlob(async blob => {
+          const fileName = `Daily_Progress_Report_${selectedDate}.png`;
+          const file = new File([blob], fileName, { type: 'image/png' });
+
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Daily Piping Progress Report',
+              text: `Daily Piping Progress Report: ${formatDateDisplay(selectedDate)}`
+            });
+          } else {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            alert("✅ રિપોર્ટની સંપૂર્ણ ઈમેજ ડાઉનલોડ થઈ ગઈ છે! હવે WhatsApp માં શેર કરી દો.");
+            const text = encodeURIComponent(`⚙️ *DAILY PIPING PROGRESS REPORT*\n📅 *તારીખ:* ${formatDateDisplay(selectedDate)}\n(ટેબલ ઈમેજ અટેચ કરેલ છે)`);
+            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+          }
+          shareBtn.innerHTML = originalText;
+          shareBtn.disabled = false;
+        }, 'image/png');
+      } catch (err) {
+        alert("ઈમેજ બનાવવામાં ભૂલ આવી: " + err.message);
+        shareBtn.innerHTML = originalText;
+        shareBtn.disabled = false;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifySession()) {
+        document.getElementById('reportDateInput').value = new Date().toISOString().split('T')[0];
+      }
+    });
+  </script>
+</body>
+</html>
