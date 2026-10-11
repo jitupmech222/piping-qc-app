@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Excel Batch Update (Admin)</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(243, 232, 255, 0.4) 0%, rgba(255, 255, 255, 1) 70%);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 7px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f5f3ff; color: var(--primary); }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 28px auto;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 26px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+    }
+
+    h3 {
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .btn-download {
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+    .btn-download:hover { background: #0369a1; }
+
+    .upload-box {
+      background: #f8fafc;
+      border: 2px dashed #94a3b8;
+      border-radius: 14px;
+      padding: 24px;
+      margin-top: 20px;
+    }
+
+    .btn-upload {
+      background: #15803d;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 14px;
+      box-shadow: 0 4px 12px rgba(21, 128, 61, 0.25);
+    }
+    .btn-upload:hover { background: #166534; }
+  </style>
+</head>
+<body>
+
+  <div class="top-navbar">
+    <div style="font-size: 16px; font-weight: 800; display:flex; align-items:center; gap:8px;">
+      <span>🔄 DATABASE BATCH UPDATE</span>
+      <span style="font-size: 12px; color: #a78bfa;">| Admin Exclusive</span>
+    </div>
+    <a href="index.html" class="btn-back">⬅️ Back to Console</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h3>🔄 Database Excel Batch Update (Admin)</h3>
+      <p style="font-size: 13.5px; color: #475569; margin-top: 6px;">Excel ફાઇલ ડાઉનલોડ કરીને એડિટ કર્યા પછી અહીંથી નવેસરથી અપડેટ કરી શકાય છે.</p>
+
+      <div style="margin-top: 20px;">
+        <button type="button" class="btn-download" id="btnDownload" onclick="downloadDataForExcel()">📥 1. Download Master Data (.xlsx)</button>
+      </div>
+
+      <div class="upload-box">
+        <label style="font-size: 13px; font-weight: bold; color: #0f172a; display:block;">2. Select Updated Excel File:</label>
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="background:#fff; width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; margin-top:8px; box-sizing:border-box;">
+        <button type="button" class="btn-upload" id="btnExecuteExcelUpdate" onclick="uploadAndApplyExcelUpdate()">📤 Upload & Update Database</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const MASTER_COLS_ALL = [
+      { key: 'Drawing_no', label: 'Drawing No' },
+      { key: 'Spool_number', label: 'Spool Unique No' },
+      { key: 'Spool_size', label: 'Spool Size' },
+      { key: 'Rev_no', label: 'Rev No' },
+      { key: 'Allocation', label: 'Allocation' },
+      { key: 'Bend_qty', label: 'BEND QTY' },
+      { key: 'Issued_for_bending', label: 'ISSUED FOR BENDING' },
+      { key: 'Bend_date', label: 'BEND DATE' },
+      { key: 'Weld_id', label: 'WELD ID' },
+      { key: 'Issue_for_fitup', label: 'ISSUE FOR FIT-UP' },
+      { key: 'Fitter_name', label: 'FITTER NAME' },
+      { key: 'issued_to_fitter_date', label: 'FITTER ISSUE DATE' },
+      { key: 'Ready_for_fitup_insp', label: 'READY FIT-UP INSP' },
+      { key: 'Report_no', label: 'REPORT NO' },
+      { key: 'Fit_up_date', label: 'FIT UP Date' },
+      { key: 'Welder_no', label: 'WELDER NAME' },
+      { key: 'issued_to_welder_date', label: 'WELDER ISSUE DATE' },
+      { key: 'Ready_for_weld_visual', label: 'READY WELD VISUAL' },
+      { key: 'Weld_visual_date', label: 'VISUAL Date' },
+      { key: 'Ndt_clearance', label: 'NDT CLEARANCE' },
+      { key: 'Fd_date', label: 'FD Date' },
+      { key: 'Shift_dc_no', label: 'DC No' },
+      { key: 'Bill', label: 'BILL' },
+      { key: 'pipe', label: 'PIPE' },
+      { key: 'fittings', label: 'FITTINGS' },
+      { key: 'Remarks', label: 'REMARKS' }
+    ];
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ Database Update કરવાનો અધિકાર છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    function formatExcelDate(val) {
+      if (!val) return null;
+      if (val instanceof Date) return isNaN(val.getTime()) ? null : val.toISOString().split('T')[0];
+      if (typeof val === 'number' || (!isNaN(val) && !String(val).includes('-') && !String(val).includes('/'))) {
+        const num = parseFloat(val);
+        const date = new Date(Math.round((num - 25569) * 86400 * 1000));
+        return date.toISOString().split('T')[0];
+      }
+      const str = String(val).trim();
+      if (str === '' || str.toLowerCase() === 'null') return null;
+      if (str.includes('/') || str.includes('-')) {
+        const delimiter = str.includes('/') ? '/' : '-';
+        const parts = str.split('T')[0].split(delimiter);
+        if (parts.length === 3) {
+          if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+          if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+      }
+      return str;
+    }
+
+    async function downloadDataForExcel() {
+      const btn = document.getElementById('btnDownload');
+      const org = btn.innerHTML;
+      try {
+        btn.innerHTML = "⏳ Fetching Data from Supabase...";
+        btn.disabled = true;
+
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+        while (hasMore) {
+          const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + 999);
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        if (allRows.length === 0) {
+          alert("ડેટાબેઝમાં કોઈ રેકોર્ડ્સ મળ્યા નથી.");
+          btn.innerHTML = org;
+          btn.disabled = false;
+          return;
+        }
+
+        const formatted = allRows.map(r => {
+          const rowObj = { id: r.id };
+          MASTER_COLS_ALL.forEach(c => {
+            rowObj[c.key] = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
+          });
+          return rowObj;
+        });
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Sheet1', { views: [{ showGridLines: true }] });
+        const headers = Object.keys(formatted[0]);
+        const headerRow = worksheet.addRow(headers);
+        headerRow.height = 26;
+
+        headerRow.eachCell(cell => {
+          cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9EAD3' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+
+        formatted.forEach(r => worksheet.addRow(headers.map(h => r[h])));
+
+        worksheet.columns.forEach(column => {
+          let maxLength = 0;
+          column.eachCell({ includeEmpty: true }, cell => {
+            const val = cell.value ? cell.value.toString() : '';
+            if (val.length > maxLength) maxLength = val.length;
+          });
+          column.width = Math.max(maxLength + 4, 12);
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Piping_Master_Data_${new Date().toISOString().split('T')[0]}.xlsx`;
+        link.click();
+
+        btn.innerHTML = org;
+        btn.disabled = false;
+      } catch (err) {
+        alert("Error downloading data: " + err.message);
+        btn.innerHTML = org;
+        btn.disabled = false;
+      }
+    }
+
+    async function uploadAndApplyExcelUpdate() {
+      const fileInput = document.getElementById('excelFileInput');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("⚠️ કૃપા કરીને અપડેટ કરેલી Excel ફાઇલ સિલેક્ટ કરો!");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const updateBtn = document.getElementById('btnExecuteExcelUpdate');
+      const orgText = updateBtn.innerHTML;
+
+      const reader = new FileReader();
+      reader.onload = async function (e) {
+        try {
+          updateBtn.innerHTML = "⏳ Processing Excel...";
+          updateBtn.disabled = true;
+
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(e.target.result);
+          const worksheet = workbook.worksheets[0];
+
+          const rows = [];
+          const headers = [];
+          worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) {
+              row.eachCell((cell, colNumber) => {
+                headers[colNumber] = String(cell.value || '').trim();
+              });
+            } else {
+              const rowObj = {};
+              row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                const h = headers[colNumber];
+                if (h) rowObj[h] = cell.value;
+              });
+              const hasData = Object.values(rowObj).some(v => v !== null && v !== undefined && String(v).trim() !== '');
+              if (hasData) rows.push(rowObj);
+            }
+          });
+
+          if (rows.length === 0) {
+            alert("❌ ફાઈલમાં કોઈ ડેટા મળ્યો નથી!");
+            updateBtn.innerHTML = orgText;
+            updateBtn.disabled = false;
+            return;
+          }
+
+          const confirmMsg = `⚠ ચેતવણી: આ પ્રક્રિયાથી ડેટાબેઝનો જૂનો તમામ ડેટા નીકળી જશે અને Excel ફાઈલ મુજબ ${rows.length} રેકોર્ડ્સ નવેસરથી બેસી જશે.\n\nશું તમે ખરેખર આગળ વધવા માંગો છો?`;
+          if (!confirm(confirmMsg)) {
+            updateBtn.innerHTML = orgText;
+            updateBtn.disabled = false;
+            return;
+          }
+
+          updateBtn.innerHTML = "⏳ Clearing Old Database Records...";
+          const { error: delError } = await db.from('piping_joints').delete().neq('id', 0);
+          if (delError) throw new Error("જૂનો ડેટા ડિલીટ કરવામાં એરર: " + delError.message);
+
+          const preparedRows = rows.map(r => {
+            const cleanObj = {};
+            if (r.id !== undefined && r.id !== null && String(r.id).trim() !== '') cleanObj.id = Number(r.id);
+
+            MASTER_COLS_ALL.forEach(c => {
+              let v = r[c.key] !== undefined ? r[c.key] : r[c.label];
+              if (v === '' || v === undefined || v === null || String(v).trim().toLowerCase() === 'null') {
+                cleanObj[c.key] = null;
+              } else {
+                const isDateCol = c.key.toLowerCase().includes('date') || c.key.toLowerCase().includes('issue') || c.key.toLowerCase().includes('clearance') || c.key.toLowerCase().includes('insp');
+                cleanObj[c.key] = isDateCol ? formatExcelDate(v) : String(v).trim();
+              }
+            });
+            return cleanObj;
+          });
+
+          const batchSize = 50;
+          let insertedCount = 0;
+          for (let i = 0; i < preparedRows.length; i += batchSize) {
+            const batch = preparedRows.slice(i, i + batchSize);
+            const { error: insError } = await db.from('piping_joints').insert(batch);
+            if (insError) throw insError;
+            insertedCount += batch.length;
+            updateBtn.innerHTML = `⏳ Uploading (${insertedCount}/${preparedRows.length})...`;
+          }
+
+          alert(`🎉 સફળતાપૂર્વક જૂનો ડેટા સાફ થઈ ગયો અને ${insertedCount} રેકોર્ડ્સ નવેસરથી Database માં અપડેટ થઈ ગયા!`);
+          fileInput.value = '';
+          window.location.href = 'index.html';
+        } catch (err) {
+          console.error(err);
+          alert("❌ અપડેટ કરવામાં ભૂલ આવી: " + err.message);
+        } finally {
+          updateBtn.innerHTML = orgText;
+          updateBtn.disabled = false;
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    window.addEventListener('DOMContentLoaded', verifyAdminAccess);
+  </script>
+</body>
+</html>
