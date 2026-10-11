@@ -3,22 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Progress Dashboard</title>
+  <title>Dashboard Overview | Piping Console</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --primary: #0284c7;
-      --navy: #0f172a;
-      --card-bg: #ffffff;
       --bg: #f8fafc;
-      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
       --text-main: #0f172a;
       --text-muted: #64748b;
+      --border: #f1f5f9;
+      --badge-green: #dcfce7;
+      --badge-green-text: #16a34a;
     }
+
+    * { box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
+      background: #f8fafc;
       color: var(--text-main);
       margin: 0;
       padding: 0;
@@ -26,25 +31,23 @@
     }
 
     .top-navbar {
-      background: rgba(15, 23, 42, 0.94);
-      backdrop-filter: blur(10px);
-      color: white;
-      padding: 10px 20px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 12px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
     }
 
     .btn-back {
-      background: #ffffff;
-      color: var(--navy);
+      background: #f1f5f9;
+      color: #334155;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
-      padding: 6px 14px;
+      padding: 7px 16px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
@@ -52,175 +55,249 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      transition: all 0.2s;
     }
-    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+    .btn-back:hover { background: #e2e8f0; color: #0f172a; }
 
     .container {
       width: 100%;
-      max-width: 1260px;
-      margin: 16px auto;
-      padding: 0 16px;
-      box-sizing: border-box;
+      max-width: 1280px;
+      margin: 20px auto;
+      padding: 0 20px 40px 20px;
     }
 
-    .card {
-      background: var(--card-bg);
-      padding: 18px 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
-      margin-bottom: 16px;
-    }
-
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .kpi-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 14px 18px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    /* Top Reference Style Header */
+    .dashboard-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
     }
 
-    .kpi-title {
-      font-size: 11px;
+    .dashboard-title-area h2 {
+      margin: 0;
+      font-size: 26px;
       font-weight: 800;
-      color: white;
-      padding: 3px 8px;
-      border-radius: 4px;
-      display: inline-block;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      color: #0f172a;
+      letter-spacing: -0.5px;
     }
 
-    .kpi-val {
-      font-size: 24px;
-      font-weight: 900;
-      margin-top: 6px;
-      letter-spacing: 0.5px;
+    .dashboard-title-area p {
+      margin: 4px 0 0 0;
+      font-size: 14px;
+      color: var(--text-muted);
     }
 
-    .kpi-val span.disp-val { color: #15803d; }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-    .kpi-icon {
-      width: 44px;
-      height: 44px;
+    .date-badge {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .btn-export {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 18px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      transition: all 0.2s;
+    }
+    .btn-export:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+    /* 4 Top Sleek KPI Cards */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .modern-kpi-card {
+      background: var(--card-bg);
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      position: relative;
+    }
+
+    .kpi-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .kpi-icon-pill {
+      width: 38px;
+      height: 38px;
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      flex-shrink: 0;
+      font-size: 18px;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 14px;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .tag-growth {
+      color: #16a34a;
+      font-weight: 700;
+      background: #f0fdf4;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Charts Row */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1.1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .chart-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .chart-title-box h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .chart-title-box p {
+      margin: 2px 0 0 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .time-pills {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 3px;
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .time-pill-btn {
+      border: none;
+      background: transparent;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .time-pill-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    /* Lower Table Card & Filters */
+    .card-table {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      margin-top: 20px;
     }
 
     .table-container {
       overflow-x: auto;
       margin-top: 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
     }
 
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; }
-    th { background: #1e40af; color: white; font-weight: 700; position: sticky; top: 0; z-index: 5; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; white-space: nowrap; }
+    th { background: #0f172a; color: #ffffff; font-weight: 700; position: sticky; top: 0; z-index: 5; }
     tr:nth-child(even) td { background-color: #f8fafc; }
-
-    .btn-refresh {
-      background: #1e40af;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 7px 16px;
-      font-size: 12.5px;
-      font-weight: bold;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-refresh:hover { background: #1d4ed8; }
 
     /* Custom Filter Panel */
     .filter-panel {
       background: #f8fafc;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 14px 18px;
-      margin-top: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 14px 0;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      position: relative;
-    }
-
-    .filter-label {
-      font-size: 12.5px;
-      font-weight: 700;
-      color: #334155;
-    }
+    .filter-group { display: flex; align-items: center; gap: 8px; position: relative; }
+    .filter-label { font-size: 12px; font-weight: 700; color: #475569; }
 
     select, input[type="date"], input[type="text"] {
       padding: 7px 12px;
       border: 1.5px solid #cbd5e1;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 12.5px;
       background: #fff;
       color: #0f172a;
       outline: none;
     }
-    select:focus, input[type="date"]:focus, input[type="text"]:focus {
-      border-color: #0284c7;
-      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
-    }
 
-    .radio-pill-group {
-      display: inline-flex;
-      align-items: center;
-      gap: 14px;
-      background: #fff;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 20px;
-      padding: 5px 14px;
-    }
-
-    .radio-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12.5px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #1e293b;
-    }
-    .radio-label input[type="radio"] { cursor: pointer; accent-color: #0284c7; }
-
-    .btn-filter-reset {
-      background: #64748b;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 7px 14px;
-      font-size: 12.5px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    /* Type & Search Dropdown Box for DC */
     .searchable-select-wrap { position: relative; }
     .search-dropdown-menu {
       position: absolute;
@@ -230,7 +307,7 @@
       max-height: 220px;
       overflow-y: auto;
       background: white;
-      border: 1.5px solid #0284c7;
+      border: 1.5px solid #2563eb;
       border-top: none;
       border-radius: 0 0 8px 8px;
       z-index: 100;
@@ -243,125 +320,175 @@
       font-size: 12.5px;
       cursor: pointer;
     }
-    .search-dropdown-item:hover { background: #f0fdf4; color: #0284c7; font-weight: bold; }
+    .search-dropdown-item:hover { background: #f0fdf4; color: #2563eb; font-weight: bold; }
 
-    /* In-Header Filter Elements */
-    .header-cell {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-    }
+    .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
     .filter-btn-icon {
-      background: #1d4ed8;
-      color: #fff;
-      border: 1px solid #93c5fd;
-      border-radius: 3px;
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      border-radius: 4px;
       padding: 2px 5px;
       font-size: 10px;
       cursor: pointer;
-      line-height: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
     }
-    .filter-btn-icon:hover { background: #2563eb; }
-    .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
+    .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; }
 
-    /* Universal Floating Excel Filter Modal */
+    /* Floating Excel Filter Modal */
     #excelFilterPopup {
       position: absolute;
       display: none;
       z-index: 1000;
       background: #ffffff;
-      border: 1.5px solid #0284c7;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      border: 1.5px solid #2563eb;
+      border-radius: 10px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.2);
       width: 260px;
       padding: 12px;
-      font-family: inherit;
     }
-    .popup-search {
-      width: 100%;
-      padding: 7px 8px;
-      border: 1px solid #cbd5e1;
-      border-radius: 5px;
-      font-size: 12.5px;
-      box-sizing: border-box;
-      margin-bottom: 8px;
-    }
-    .popup-options-list {
-      max-height: 170px;
-      overflow-y: auto;
-      border: 1px solid #e2e8f0;
-      border-radius: 5px;
-      padding: 6px;
-      margin-bottom: 10px;
-      background: #fafafa;
-    }
-    .popup-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: #1e293b;
-      padding: 4px 2px;
-    }
-    .popup-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; }
+    .popup-search { width: 100%; padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; margin-bottom: 8px; }
+    .popup-options-list { max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px; margin-bottom: 10px; background: #fafafa; }
+    .popup-item { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 2px; }
     .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
-    .popup-btn-ok { background: #1e40af; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
-    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-ok { background: #2563eb; color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+
+    @media (max-width: 900px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .kpi-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
+  <!-- Top App Bar -->
   <div class="top-navbar">
-    <div style="font-size: 15px; font-weight: 700; display:flex; align-items:center; gap:8px;">
-      <span>📈 STAGE-WISE PROGRESS DASHBOARD</span>
+    <div style="font-size: 15px; font-weight: 800; display:flex; align-items:center; gap:8px;">
+      <span style="color:#2563eb;">✦ PIPING CONSOLE</span>
       <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;"></span>
     </div>
-    <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
+    <a href="index.html" class="btn-back">⬅️ Back to Console</a>
   </div>
 
   <div class="container">
     
-    <!-- Top Progress Card -->
-    <div class="card">
-      <div class="kpi-grid">
-        <div class="kpi-card" style="border-left: 5px solid #0284c7;">
-          <div>
-            <span class="kpi-title" style="background: #0284c7;">Total / Dispatched Spool</span>
-            <div class="kpi-val" style="color: #0f172a;">
-              <span id="kpiTotalSpool">0</span> / <span class="disp-val" id="kpiDispSpool">0</span>
-            </div>
-          </div>
-          <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">📦</div>
+    <!-- Header Area from Reference Image -->
+    <div class="dashboard-header">
+      <div class="dashboard-title-area">
+        <h2>Dashboard Overview</h2>
+        <p id="welcomeGreeting">Welcome back! Here's what's happening today in piping operations.</p>
+      </div>
+      <div class="header-actions">
+        <div class="date-badge">
+          <span>📅</span>
+          <span id="headerLiveDate">Oct 11, 2026</span>
         </div>
+        <button class="btn-export" onclick="window.location.href='master_register.html'">
+          <span>📥</span>
+          <span>Export Data</span>
+        </button>
+      </div>
+    </div>
 
-        <div class="kpi-card" style="border-left: 5px solid #0d9488;">
-          <div>
-            <span class="kpi-title" style="background: #0d9488;">Total / Dispatched Weld ID</span>
-            <div class="kpi-val" style="color: #0f172a;">
-              <span id="kpiTotalWeld">0</span> / <span class="disp-val" id="kpiDispWeld">0</span>
-            </div>
-          </div>
-          <div class="kpi-icon" style="background: #ccfbf1; color: #0d9488;">⚡</div>
+    <!-- 4 Sleek KPI Cards from Reference Image -->
+    <div class="kpi-row">
+      <!-- 1. Total Spools -->
+      <div class="modern-kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-name">Total Spool Scope</span>
+          <div class="kpi-icon-pill" style="background:#eff6ff; color:#2563eb;">📦</div>
         </div>
-
-        <div class="kpi-card" style="border-left: 5px solid #4f46e5;">
-          <div>
-            <span class="kpi-title" style="background: #4f46e5;">Total / Dispatched Bend</span>
-            <div class="kpi-val" style="color: #0f172a;">
-              <span id="kpiTotalBend">0</span> / <span class="disp-val" id="kpiDispBend">0</span>
-            </div>
-          </div>
-          <div class="kpi-icon" style="background: #ede9fe; color: #4f46e5;">📐</div>
+        <div class="kpi-value" id="cardTotalSpool">0</div>
+        <div class="kpi-footer">
+          <span class="tag-growth">Dispatched: <span id="cardDispSpool">0</span></span>
+          <span style="color:#64748b;">completed</span>
         </div>
       </div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
-        <h3 style="margin:0; color:#1e3a8a; font-size:17px;">Stage-Wise Progress Analysis</h3>
-        <button type="button" class="btn-refresh" onclick="refreshProgressData()">🔄 Refresh Data</button>
+      <!-- 2. Total Weld ID -->
+      <div class="modern-kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-name">Total Joints (Weld ID)</span>
+          <div class="kpi-icon-pill" style="background:#ede9fe; color:#7c3aed;">⚡</div>
+        </div>
+        <div class="kpi-value" id="cardTotalWeld">0</div>
+        <div class="kpi-footer">
+          <span class="tag-growth" style="color:#7c3aed; background:#f5f3ff;">Done: <span id="cardDispWeld">0</span></span>
+          <span style="color:#64748b;">welded joints</span>
+        </div>
+      </div>
+
+      <!-- 3. Total Bend Scope -->
+      <div class="modern-kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-name">Total Bend Scope</span>
+          <div class="kpi-icon-pill" style="background:#f0fdf4; color:#16a34a;">📐</div>
+        </div>
+        <div class="kpi-value" id="cardTotalBend">0</div>
+        <div class="kpi-footer">
+          <span class="tag-growth">Done: <span id="cardDispBend">0</span></span>
+          <span style="color:#64748b;">bended qty</span>
+        </div>
+      </div>
+
+      <!-- 4. Dispatch Rate -->
+      <div class="modern-kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-name">Dispatch Completion</span>
+          <div class="kpi-icon-pill" style="background:#fef3c7; color:#d97706;">📊</div>
+        </div>
+        <div class="kpi-value" id="cardCompletionRate">0%</div>
+        <div class="kpi-footer">
+          <span class="tag-growth" id="cardPendingSpools">0 Spools</span>
+          <span style="color:#64748b;">balance in shop</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row from Reference Image -->
+    <div class="charts-row">
+      <!-- Wave Line Chart (Stage Progress Pipeline) -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-title-box">
+            <h3>Stage Progression Pipeline</h3>
+            <p>Real-time spool completions across all 6 production stages</p>
+          </div>
+          <div class="time-pills">
+            <button class="time-pill-btn active">Live</button>
+            <button class="time-pill-btn" onclick="refreshProgressData()">Refresh</button>
+          </div>
+        </div>
+        <div style="height: 250px;">
+          <canvas id="pipelineWaveChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Donut Chart (Dispatched vs Balance) -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-title-box">
+            <h3>Spool Status Ratio</h3>
+            <p>Overall shop progress distribution</p>
+          </div>
+        </div>
+        <div style="height: 250px; display:flex; justify-content:center; align-items:center;">
+          <canvas id="statusDonutChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage-Wise Detailed Table Card -->
+    <div class="card-table">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:800; color:#0f172a;">Stage-Wise Progress Analysis</h3>
+          <p style="margin:2px 0 0 0; font-size:12px; color:#64748b;">Comparative breakdown of Spools, Weld IDs and Bend scope</p>
+        </div>
+        <button type="button" class="btn-export" style="background:#0f172a;" onclick="refreshProgressData()">🔄 Refresh</button>
       </div>
 
       <div class="table-container">
@@ -370,11 +497,11 @@
             <tr>
               <th style="width: 45px; text-align: center;">Stage</th>
               <th>Stage Description</th>
-              <th style="text-align: center; background:#15803d;">Completed Spools</th>
-              <th style="text-align: center; background:#166534;">Completed Weld ID</th>
+              <th style="text-align: center; background:#16a34a;">Completed Spools</th>
+              <th style="text-align: center; background:#15803d;">Completed Weld ID</th>
               <th style="text-align: center; background:#047857;">Completed Bend Qty</th>
-              <th style="text-align: center; background:#c2410c;">Balance Spools</th>
-              <th style="text-align: center; background:#9a3412;">Balance Weld ID</th>
+              <th style="text-align: center; background:#ea580c;">Balance Spools</th>
+              <th style="text-align: center; background:#c2410c;">Balance Weld ID</th>
               <th style="text-align: center; background:#b45309;">Balance Bend Qty</th>
             </tr>
           </thead>
@@ -386,13 +513,13 @@
     </div>
 
     <!-- Custom Stage & DC No Filter Query Section -->
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+    <div class="card-table">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <h3 style="margin:0; color:#0f766e; font-size:16px;">🔍 Custom Stage & DC No Filter Query</h3>
-          <span id="customFilteredCount" style="font-size:12.5px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:12px;">Records: 0</span>
+          <h3 style="margin:0; font-size:16px; font-weight:800; color:#0f172a;">🔍 Custom Stage & DC No Filter Query</h3>
+          <span id="customFilteredCount" style="font-size:12px; font-weight:bold; color:#2563eb; background:#eff6ff; padding:3px 10px; border-radius:12px;">Records: 0</span>
         </div>
-        <button type="button" class="btn-refresh" style="background:#64748b; padding:4px 10px; font-size:11.5px;" onclick="clearBottomTableColumnFilters()">🔄 Clear Column Filters</button>
+        <button type="button" class="btn-back" style="padding:4px 10px; font-size:11.5px;" onclick="clearBottomTableColumnFilters()">🔄 Clear Column Filters</button>
       </div>
 
       <div class="filter-panel">
@@ -409,31 +536,22 @@
           </select>
         </div>
 
-        <!-- Status Radio -->
         <div class="filter-group" id="customStatusRadioGroup" style="display: none;">
           <label class="filter-label">Status:</label>
-          <div class="radio-pill-group">
-            <label class="radio-label">
-              <input type="radio" name="customStatusRadio" value="completed" checked onchange="applyCustomFilter()">
-              <span>🔘 Completed</span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="customStatusRadio" value="not_completed" onchange="applyCustomFilter()">
-              <span>⚪ Not completed</span>
-            </label>
+          <div style="background:#fff; border:1px solid #cbd5e1; border-radius:20px; padding:4px 12px; display:flex; gap:12px;">
+            <label style="font-size:12px; font-weight:bold; cursor:pointer;"><input type="radio" name="customStatusRadio" value="completed" checked onchange="applyCustomFilter()"> Completed</label>
+            <label style="font-size:12px; font-weight:bold; cursor:pointer;"><input type="radio" name="customStatusRadio" value="not_completed" onchange="applyCustomFilter()"> Not completed</label>
           </div>
         </div>
 
-        <!-- Type & Search DC No Dropdown -->
         <div class="filter-group" id="customDcNoGroup" style="display: none;">
-          <label class="filter-label">Search / Select DC No:</label>
+          <label class="filter-label">Search DC No:</label>
           <div class="searchable-select-wrap">
-            <input type="text" id="dcSearchInput" placeholder="Type DC No (e.g. 53, AEPL)..." oninput="handleDcSearchInput(this.value)" autocomplete="off">
+            <input type="text" id="dcSearchInput" placeholder="Type DC No..." oninput="handleDcSearchInput(this.value)" autocomplete="off">
             <div id="dcDropdownList" class="search-dropdown-menu"></div>
           </div>
         </div>
 
-        <!-- Date Range Filter -->
         <div class="filter-group" id="customDateRangeGroup" style="display: none;">
           <label class="filter-label">From Date:</label>
           <input type="date" id="customDateFrom" onchange="applyCustomFilter()">
@@ -441,22 +559,15 @@
           <input type="date" id="customDateTo" onchange="applyCustomFilter()">
         </div>
 
-        <button type="button" class="btn-filter-reset" onclick="resetCustomFilter()">🔄 Reset All</button>
+        <button type="button" class="btn-back" onclick="resetCustomFilter()">🔄 Reset All</button>
       </div>
 
-      <!-- Result Table Area with Column-Level Excel Filters -->
-      <div class="table-container" style="max-height: 60vh;">
+      <div class="table-container" style="max-height: 55vh;">
         <table>
           <thead>
-            <tr id="customTableHeadRow" style="background:#0f766e; color:white;">
-              <th>Sr.</th>
-              <th>id</th>
-              <th>Drawing_no</th>
-              <th>Spool_number</th>
-              <th>Spool_size</th>
-              <th>Rev_no</th>
-              <th>Bend_qty</th>
-              <th>Weld_id</th>
+            <tr id="customTableHeadRow" style="background:#0f172a; color:white;">
+              <th>Sr.</th><th>id</th><th>Drawing_no</th><th>Spool_number</th><th>Spool_size</th>
+              <th>Rev_no</th><th>Bend_qty</th><th>Weld_id</th>
             </tr>
           </thead>
           <tbody id="customTableBody">
@@ -468,12 +579,12 @@
 
   </div>
 
-  <!-- Universal Floating Excel Filter Modal -->
+  <!-- Floating Excel Filter Modal -->
   <div id="excelFilterPopup">
     <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search..." oninput="onPopupSearch(this.value)">
-    <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
+    <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
       <input type="checkbox" id="popupSelectAll" onchange="togglePopupSelectAll(this.checked)">
-      <label for="popupSelectAll" style="font-size: 12px; font-weight: bold; margin: 0; cursor: pointer;">(Select All)</label>
+      <label for="popupSelectAll" style="font-size: 12px; font-weight: bold; cursor: pointer;">(Select All)</label>
     </div>
     <div id="popupOptionsList" class="popup-options-list"></div>
     <div class="popup-actions">
@@ -493,6 +604,9 @@
     let bottomTableColumnFilters = {};
     let currentPopupContext = { colKey: '', allValues: [] };
 
+    let waveChartInstance = null;
+    let donutChartInstance = null;
+
     function verifySession() {
       const sessionData = sessionStorage.getItem('piping_app_auth');
       if (!sessionData) {
@@ -502,6 +616,7 @@
       }
       const user = JSON.parse(sessionData);
       document.getElementById('navSubTitle').innerText = `| User: ${user.name}`;
+      document.getElementById('welcomeGreeting').innerText = `Welcome back, ${user.name}! Here's what's happening today in fabrication.`;
       return true;
     }
 
@@ -582,20 +697,28 @@
 
       const dispatchedRows = allRows.filter(r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '');
 
+      // 1. Spools
       const totalSpoolsCount = new Set(allRows.map(r => r.Spool_number).filter(Boolean)).size;
       const dispSpoolsCount = new Set(dispatchedRows.map(r => r.Spool_number).filter(Boolean)).size;
-      document.getElementById('kpiTotalSpool').innerText = totalSpoolsCount;
-      document.getElementById('kpiDispSpool').innerText = dispSpoolsCount;
+      document.getElementById('cardTotalSpool').innerText = totalSpoolsCount;
+      document.getElementById('cardDispSpool').innerText = dispSpoolsCount;
 
+      // 2. Weld ID
       const totalWeldSum = calculateWeldSum(allRows);
       const dispWeldSum = calculateWeldSum(dispatchedRows);
-      document.getElementById('kpiTotalWeld').innerText = totalWeldSum;
-      document.getElementById('kpiDispWeld').innerText = dispWeldSum;
+      document.getElementById('cardTotalWeld').innerText = totalWeldSum;
+      document.getElementById('cardDispWeld').innerText = dispWeldSum;
 
+      // 3. Bend Qty
       const totalBendSum = calculateBendSum(allRows);
       const dispBendSum = calculateBendSum(dispatchedRows);
-      document.getElementById('kpiTotalBend').innerText = totalBendSum;
-      document.getElementById('kpiDispBend').innerText = dispBendSum;
+      document.getElementById('cardTotalBend').innerText = totalBendSum;
+      document.getElementById('cardDispBend').innerText = dispBendSum;
+
+      // 4. Rate
+      const pct = totalSpoolsCount > 0 ? ((dispSpoolsCount / totalSpoolsCount) * 100).toFixed(1) : 0;
+      document.getElementById('cardCompletionRate').innerText = `${pct}%`;
+      document.getElementById('cardPendingSpools').innerText = `${totalSpoolsCount - dispSpoolsCount} Spools`;
 
       const stagesConfig = [
         { no: '01', name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && (!r.Issued_for_bending || String(r.Issued_for_bending).trim() === '') },
@@ -606,34 +729,107 @@
         { no: '06', name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') }
       ];
 
+      const stageLabels = [];
+      const stageCompletions = [];
+
       tbody.innerHTML = stagesConfig.map(st => {
         const compRows = allRows.filter(st.isComp);
         const balRows = allRows.filter(st.isBal);
+        
         const compSpools = new Set(compRows.map(r => r.Spool_number).filter(Boolean)).size;
         const compWelds = calculateWeldSum(compRows);
         const compBends = calculateBendSum(compRows);
+
         const balSpools = new Set(balRows.map(r => r.Spool_number).filter(Boolean)).size;
         const balWelds = calculateWeldSum(balRows);
         const balBends = calculateBendSum(balRows);
 
+        stageLabels.push(st.name.replace(' COMPLETED', ''));
+        stageCompletions.push(compSpools);
+
         return `
           <tr>
-            <td style="text-align: center; font-weight: 800; background: #f1f5f9;">${st.no}</td>
+            <td style="text-align: center; font-weight: 800; background: #f8fafc;">${st.no}</td>
             <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
-            <td style="text-align: center; font-weight: bold; color: #15803d; background: #f0fdf4;">${compSpools}</td>
-            <td style="text-align: center; font-weight: bold; color: #166534; background: #f0fdf4;">${compWelds}</td>
+            <td style="text-align: center; font-weight: bold; color: #16a34a; background: #f0fdf4;">${compSpools}</td>
+            <td style="text-align: center; font-weight: bold; color: #15803d; background: #f0fdf4;">${compWelds}</td>
             <td style="text-align: center; font-weight: bold; color: #047857; background: #ecfdf5;">${compBends}</td>
-            <td style="text-align: center; font-weight: bold; color: #c2410c; background: #fff7ed;">${balSpools}</td>
-            <td style="text-align: center; font-weight: bold; color: #9a3412; background: #fff7ed;">${balWelds}</td>
+            <td style="text-align: center; font-weight: bold; color: #ea580c; background: #fff7ed;">${balSpools}</td>
+            <td style="text-align: center; font-weight: bold; color: #c2410c; background: #fff7ed;">${balWelds}</td>
             <td style="text-align: center; font-weight: bold; color: #b45309; background: #fefce8;">${balBends}</td>
           </tr>
         `;
       }).join('');
+
+      renderFigmaCharts(stageLabels, stageCompletions, dispSpoolsCount, totalSpoolsCount - dispSpoolsCount);
     }
 
-    /* -------------------------------------------------------------
-       CUSTOM STAGE & DC NO QUERY FILTER LOGIC
-    -------------------------------------------------------------- */
+    function renderFigmaCharts(stageLabels, stageCompletions, dispCount, balCount) {
+      // 1. Wave Line Chart
+      const waveCtx = document.getElementById('pipelineWaveChart').getContext('2d');
+      if (waveChartInstance) waveChartInstance.destroy();
+
+      const gradient = waveCtx.createLinearGradient(0, 0, 0, 240);
+      gradient.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
+      gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+      waveChartInstance = new Chart(waveCtx, {
+        type: 'line',
+        data: {
+          labels: stageLabels,
+          datasets: [{
+            label: 'Completed Spools',
+            data: stageCompletions,
+            borderColor: '#2563eb',
+            borderWidth: 3,
+            fill: true,
+            backgroundColor: gradient,
+            tension: 0.45,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#2563eb',
+            pointBorderWidth: 2,
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: '#f1f5f9' }, beginAtZero: false }
+          }
+        }
+      });
+
+      // 2. Donut Chart
+      const donutCtx = document.getElementById('statusDonutChart').getContext('2d');
+      if (donutChartInstance) donutChartInstance.destroy();
+
+      donutChartInstance = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Dispatched', 'Shop Balance'],
+          datasets: [{
+            data: [dispCount, balCount],
+            backgroundColor: ['#2563eb', '#f59e0b'],
+            borderWidth: 4,
+            borderColor: '#ffffff',
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12, weight: 600 } } }
+          }
+        }
+      });
+    }
+
+    /* Custom Query Panel Logic */
     function onCustomStageChange() {
       const stage = document.getElementById('customStageSelect').value;
       const radioGroup = document.getElementById('customStatusRadioGroup');
@@ -752,7 +948,6 @@
       else if (stage === 'NDT CLEARANCE') dateFieldToCheck = 'Ndt_clearance';
       else if (stage === 'FINAL DISPATCH') dateFieldToCheck = 'Fd_date';
 
-      // Stage / DC Filter Execution
       customBaseRows = allRecordsCache.filter(r => {
         if (stage === 'DC NO') {
           const selectedDc = document.getElementById('dcSearchInput').value.trim();
@@ -783,9 +978,6 @@
       applyBottomTableColumnFilters();
     }
 
-    /* -------------------------------------------------------------
-       IN-HEADER FILTER LOGIC FOR BOTTOM TABLE
-    -------------------------------------------------------------- */
     function renderBottomTableHeader(cols) {
       const theadRow = document.getElementById('customTableHeadRow');
       theadRow.innerHTML = '<th>Sr.</th>' + cols.map(c => `
@@ -856,7 +1048,6 @@
 
       currentPopupContext.colKey = colKey;
 
-      // Cascading dependency filter logic
       const sourceRows = customBaseRows.filter(r => {
         for (const [filterCol, allowedSet] of Object.entries(bottomTableColumnFilters)) {
           if (filterCol === colKey) continue;
@@ -919,11 +1110,9 @@
       document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(c => { if (c.checked) selected.add(c.value); });
       const { colKey, allValues } = currentPopupContext;
 
-      if (selected.size === allValues.length) {
-        delete bottomTableColumnFilters[colKey];
-      } else {
-        bottomTableColumnFilters[colKey] = selected;
-      }
+      if (selected.size === allValues.length) delete bottomTableColumnFilters[colKey];
+      else bottomTableColumnFilters[colKey] = selected;
+
       closeExcelPopup();
       applyBottomTableColumnFilters();
     }
@@ -955,6 +1144,9 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       if (verifySession()) {
+        const today = new Date();
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        document.getElementById('headerLiveDate').innerText = today.toLocaleDateString('en-US', options);
         await loadProgressDashboardData();
       }
     });
