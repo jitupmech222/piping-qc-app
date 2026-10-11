@@ -44,7 +44,6 @@
       transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* When Sidebar is Hidden */
     .sidebar.collapsed {
       margin-left: -250px;
       transform: translateX(-100%);
@@ -81,7 +80,6 @@
     .brand-name { font-size: 14px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
     .brand-sub { font-size: 10.5px; color: #64748b; }
 
-    /* Streamlit-style Collapse Button inside sidebar */
     .btn-toggle-in {
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -160,7 +158,6 @@
       transition: all 0.3s;
     }
 
-    /* Floating Streamlit-style Open Button (>>) */
     .btn-toggle-out {
       display: none;
       background: #ffffff;
@@ -189,16 +186,56 @@
       margin-bottom: 20px;
     }
 
+    /* Global Search Box & Dropdown */
+    .global-search-wrapper {
+      position: relative;
+    }
+
     .search-input-pill {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 999px;
-      padding: 9px 18px;
-      width: 360px;
+      padding: 10px 20px;
+      width: 400px;
       font-size: 13px;
       outline: none;
+      transition: all 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
-    .search-input-pill:focus { border-color: #0d9488; }
+    .search-input-pill:focus {
+      border-color: #0d9488;
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+      width: 440px;
+    }
+
+    .search-dropdown-menu {
+      position: absolute;
+      top: 105%;
+      left: 0;
+      width: 440px;
+      max-height: 280px;
+      overflow-y: auto;
+      background: white;
+      border: 1.5px solid #0d9488;
+      border-radius: 12px;
+      z-index: 500;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+      display: none;
+    }
+
+    .search-dropdown-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .search-dropdown-item:hover {
+      background: #f0fdfa;
+      color: #0f766e;
+    }
 
     .live-status-pill {
       background: #f0fdf4;
@@ -328,6 +365,53 @@
     th { background: #0f172a; color: white; font-weight: 700; }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
+    /* Integrated Spool Tracker Modal Popup */
+    #spoolTrackerModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(5px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .tracker-modal-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 680px;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      border: 1px solid #e2e8f0;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .tracker-header-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .timeline-container { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .timeline-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+    }
+    .timeline-card.status-completed { background: #f0fdf4; border-color: #86efac; }
+    .timeline-card.status-hold { background: #fff7ed; border-color: #fdba74; }
+    .stage-badge-tag { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
+    .tag-completed { background: #15803d; color: #ffffff; }
+    .tag-hold { background: #c2410c; color: #ffffff; }
+
     /* Login Modal */
     #loginOverlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
     .login-box { background: white; width: 380px; padding: 30px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
@@ -369,6 +453,27 @@
   </div>
 </div>
 
+<!-- Integrated Spool Tracker Modal -->
+<div id="spoolTrackerModal">
+  <div class="tracker-modal-card">
+    <div class="tracker-header-box">
+      <div>
+        <h3 style="margin: 0; font-size: 18px; color: #b45309; border: none;">🔍 Spool Live Stage Tracker</h3>
+        <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Real-time progress inspection timeline</p>
+      </div>
+      <button onclick="closeSpoolTrackerModal()" style="background:#f1f5f9; border:none; padding:6px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">✕ Close</button>
+    </div>
+    <div id="modalSpoolInfo" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:16px; font-weight:800; color:#0f172a;" id="modalTrackSpoolNo">Spool No</span>
+        <span style="font-size:13px; font-weight:700; color:#0d9488;" id="modalTrackDwgNo">Drawing No</span>
+      </div>
+      <div style="font-size:12px; color:#475569; margin-top:4px;" id="modalTrackMeta">Meta</div>
+    </div>
+    <div class="timeline-container" id="modalTimelineList"></div>
+  </div>
+</div>
+
 <!-- Main App Layout -->
 <div id="appContent" style="display: none; width: 100%;">
 
@@ -383,7 +488,6 @@
             <div class="brand-sub">Operations Admin v2.4</div>
           </div>
         </div>
-        <!-- Streamlit-style Collapse Button "<<" -->
         <button class="btn-toggle-in" title="Close Sidebar" onclick="toggleSidebar(false)">«</button>
       </div>
 
@@ -426,12 +530,16 @@
   <!-- Right Main Workspace -->
   <main class="main-workspace" id="mainWorkspace">
 
-    <!-- Top Action Bar with ">>" Expand Button -->
+    <!-- Top Action Bar with Global Live Spool Tracker Search -->
     <div class="workspace-top">
       <div style="display:flex; align-items:center;">
-        <!-- Streamlit-style Expand Button ">>" -->
         <button class="btn-toggle-out" id="btnSidebarOpen" title="Open Sidebar" onclick="toggleSidebar(true)">»</button>
-        <input type="text" class="search-input-pill" placeholder="🔍 Search spools, lines, materials or reports...">
+        
+        <!-- Live Spool Tracker Integrated Search -->
+        <div class="global-search-wrapper">
+          <input type="text" id="globalSpoolSearchInput" class="search-input-pill" placeholder="🔍 Search across operations..." oninput="handleGlobalSpoolSearch(this.value)" autocomplete="off">
+          <div id="globalSpoolDropdown" class="search-dropdown-menu"></div>
+        </div>
       </div>
       <div class="live-status-pill">
         <span class="live-dot"></span>
@@ -441,7 +549,6 @@
 
     <!-- MAIN DASHBOARD OVERVIEW -->
     <div id="hubMainMenu">
-      <!-- Welcome Hero Banner -->
       <div class="welcome-hero">
         <div class="welcome-text">
           <h2 id="heroWelcomeTitle">Welcome back, Admin!</h2>
@@ -491,7 +598,6 @@
 
       <!-- 4 Department Module Hub Cards -->
       <div class="category-grid">
-        <!-- Mechanical Operations -->
         <div class="category-card" onclick="openCategoryHub('mechHub')">
           <div class="cat-header">
             <div class="cat-icon-box" style="background:#ccfbf1; color:#0f766e;">⚙️</div>
@@ -503,7 +609,6 @@
           </div>
         </div>
 
-        <!-- Material Management -->
         <div class="category-card" onclick="openCategoryHub('matHub')">
           <div class="cat-header">
             <div class="cat-icon-box" style="background:#e0f2fe; color:#0284c7;">📦</div>
@@ -515,7 +620,6 @@
           </div>
         </div>
 
-        <!-- Reports & Analytics -->
         <div class="category-card" onclick="openCategoryHub('reportHub')">
           <div class="cat-header">
             <div class="cat-icon-box" style="background:#ede9fe; color:#7c3aed;">📊</div>
@@ -527,7 +631,6 @@
           </div>
         </div>
 
-        <!-- Data Synchronization -->
         <div class="category-card" onclick="openCategoryHub('dataHub')">
           <div class="cat-header">
             <div class="cat-icon-box" style="background:#fce7f3; color:#db2777;">💾</div>
@@ -554,7 +657,7 @@
         <button class="sub-btn" onclick="openStage('weld_visual')"><span>04</span><span>Weld Visual Completed</span></button>
         <button class="sub-btn" onclick="openStage('ndt_clearance')"><span>05</span><span>NDT Clearance</span></button>
         <button class="sub-btn" onclick="openStage('fd')"><span>06</span><span>FD & Dispatch DC No</span></button>
-        <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#fffbeb; color:#b45309;" onclick="window.location.href='spool_tracking.html'"><span>🔍</span><span>Live Spool Tracker</span></button>
+        <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#fffbeb; color:#b45309;" onclick="window.location.href='spool_tracking.html'"><span>🔍</span><span>Open Spool Tracker Page</span></button>
       </div>
     </div>
 
@@ -677,11 +780,20 @@
   let selectedQueue = [];
   let cumulativeRows = [];
 
-  /* Sidebar Toggle Logic (Streamlit style << and >>) */
+  function formatDateDisplay(val) {
+    if (!val) return '-';
+    const str = String(val).trim();
+    if (str === '' || str.toLowerCase() === 'null') return '-';
+    const dPart = str.includes('T') ? str.split('T')[0] : str;
+    const parts = dPart.split('-');
+    if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return str;
+  }
+
+  /* Sidebar Toggle Logic */
   function toggleSidebar(show) {
     const sidebar = document.getElementById('appSidebar');
     const openBtn = document.getElementById('btnSidebarOpen');
-
     if (show) {
       sidebar.classList.remove('collapsed');
       openBtn.style.display = 'none';
@@ -746,11 +858,30 @@
     if (btnLine) btnLine.style.display = isAdmin ? 'flex' : 'none';
   }
 
-  async function loadTopDashboardMetrics() {
-    if (allRecordsCache.length === 0) {
-      const { data } = await db.from('piping_joints').select('*').limit(5000);
-      allRecordsCache = data || [];
+  async function ensureAllRecordsCached() {
+    if (allRecordsCache.length > 0) return allRecordsCache;
+    let allRows = [];
+    let from = 0;
+    const step = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+      if (error) break;
+      if (data && data.length > 0) {
+        allRows = allRows.concat(data);
+        from += step;
+        if (data.length < step) hasMore = false;
+      } else {
+        hasMore = false;
+      }
     }
+    allRecordsCache = allRows;
+    return allRecordsCache;
+  }
+
+  async function loadTopDashboardMetrics() {
+    await ensureAllRecordsCached();
 
     const totalSpools = new Set(allRecordsCache.map(r => r.Spool_number).filter(Boolean)).size;
     let weldSum = 0;
@@ -767,6 +898,81 @@
     document.getElementById('kpiTotalWeld').innerText = Number.isInteger(weldSum) ? weldSum : weldSum.toFixed(2);
     document.getElementById('kpiWeldingRate').innerText = `${weldPct}%`;
     document.getElementById('kpiPendingNdt').innerText = `${pendingNdtRows.length} items`;
+  }
+
+  /* -------------------------------------------------------------
+     INTEGRATED SPOOL TRACKER SEARCH IN HEADER BAR
+  -------------------------------------------------------------- */
+  function handleGlobalSpoolSearch(term) {
+    const q = term.trim().toLowerCase();
+    const dropdown = document.getElementById('globalSpoolDropdown');
+
+    if (!q) {
+      dropdown.style.display = 'none';
+      return;
+    }
+
+    const matched = allRecordsCache.filter(r => {
+      const spl = String(r.Spool_number || '').toLowerCase();
+      const dwg = String(r.Drawing_no || '').toLowerCase();
+      return spl.includes(q) || dwg.includes(q);
+    }).slice(0, 30);
+
+    if (matched.length === 0) {
+      dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px; text-align:center;">No matching spools found</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+
+    dropdown.innerHTML = matched.map(r => `
+      <div class="search-dropdown-item" onclick="openSpoolTrackerModal(${r.id})">
+        <div>
+          <span style="font-weight:bold; color:#0f172a;">${r.Spool_number || 'N/A'}</span>
+          <span style="font-size:11px; color:#0d9488; margin-left:6px;">(Size: ${r.Spool_size || '-'}, Weld: ${r.Weld_id || '-'})</span>
+        </div>
+        <span style="color:#64748b; font-size:11.5px;">${r.Drawing_no || '-'}</span>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+  }
+
+  function openSpoolTrackerModal(id) {
+    const item = allRecordsCache.find(r => r.id === id);
+    if (!item) return;
+
+    document.getElementById('globalSpoolDropdown').style.display = 'none';
+    document.getElementById('globalSpoolSearchInput').value = item.Spool_number || '';
+
+    document.getElementById('modalTrackSpoolNo').innerText = `Spool: ${item.Spool_number || 'N/A'}`;
+    document.getElementById('modalTrackDwgNo').innerText = `Drawing: ${item.Drawing_no || '-'}`;
+    document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend Qty: ${item.Bend_qty || '0'}`;
+
+    const stages = [
+      { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
+      { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
+      { no: '03', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
+      { no: '04', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
+      { no: '05', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
+      { no: '06', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
+    ];
+
+    document.getElementById('modalTimelineList').innerHTML = stages.map(s => `
+      <div class="timeline-card ${s.done ? 'status-completed' : 'status-hold'}">
+        <div>
+          <span style="font-size: 13.5px;"><b>${s.no}. ${s.title}</b></span>
+          <div style="font-size: 12px; margin-top: 3px; color: ${s.done ? '#15803d' : '#9a3412'}; font-weight: 500;">
+            ${s.done ? s.detail : 'Stage Pending / Not Reached'}
+          </div>
+        </div>
+        <span class="stage-badge-tag ${s.done ? 'tag-completed' : 'tag-hold'}">${s.done ? 'COMPLETED' : 'HOLD / PENDING'}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('spoolTrackerModal').style.display = 'flex';
+  }
+
+  function closeSpoolTrackerModal() {
+    document.getElementById('spoolTrackerModal').style.display = 'none';
   }
 
   function openCategoryHub(hubId) {
@@ -958,6 +1164,13 @@
     renderSelectedTable();
     loadStageData(currentStage);
   }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.global-search-wrapper')) {
+      const drop = document.getElementById('globalSpoolDropdown');
+      if (drop) drop.style.display = 'none';
+    }
+  });
 
   window.addEventListener('DOMContentLoaded', checkSessionAuth);
 </script>
