@@ -57,7 +57,7 @@
 
     .container {
       width: 100%;
-      max-width: 1240px;
+      max-width: 1260px;
       margin: 16px auto;
       padding: 0 16px;
       box-sizing: border-box;
@@ -72,7 +72,6 @@
       margin-bottom: 16px;
     }
 
-    /* Top 3 KPI Summary Cards */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -130,8 +129,8 @@
     }
 
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 9px 12px; white-space: nowrap; }
-    th { background: #1e40af; color: white; font-weight: 700; position: sticky; top: 0; z-index: 2; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; }
+    th { background: #1e40af; color: white; font-weight: 700; position: sticky; top: 0; z-index: 5; }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
     .btn-refresh {
@@ -149,7 +148,7 @@
     }
     .btn-refresh:hover { background: #1d4ed8; }
 
-    /* Custom Filter Panel Styles */
+    /* Custom Filter Panel */
     .filter-panel {
       background: #f8fafc;
       border: 1.5px solid #cbd5e1;
@@ -159,13 +158,14 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
     }
 
     .filter-group {
       display: flex;
       align-items: center;
       gap: 8px;
+      position: relative;
     }
 
     .filter-label {
@@ -174,7 +174,7 @@
       color: #334155;
     }
 
-    select, input[type="date"] {
+    select, input[type="date"], input[type="text"] {
       padding: 7px 12px;
       border: 1.5px solid #cbd5e1;
       border-radius: 6px;
@@ -183,7 +183,7 @@
       color: #0f172a;
       outline: none;
     }
-    select:focus, input[type="date"]:focus {
+    select:focus, input[type="date"]:focus, input[type="text"]:focus {
       border-color: #0284c7;
       box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
     }
@@ -207,25 +207,7 @@
       cursor: pointer;
       color: #1e293b;
     }
-    .radio-label input[type="radio"] {
-      cursor: pointer;
-      accent-color: #0284c7;
-    }
-
-    .btn-filter-apply {
-      background: #0284c7;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 7px 16px;
-      font-size: 12.5px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-filter-apply:hover { background: #0369a1; }
+    .radio-label input[type="radio"] { cursor: pointer; accent-color: #0284c7; }
 
     .btn-filter-reset {
       background: #64748b;
@@ -237,6 +219,98 @@
       font-weight: 700;
       cursor: pointer;
     }
+
+    /* Type & Search Dropdown Box for DC */
+    .searchable-select-wrap { position: relative; }
+    .search-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 250px;
+      max-height: 220px;
+      overflow-y: auto;
+      background: white;
+      border: 1.5px solid #0284c7;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      z-index: 100;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+      display: none;
+    }
+    .search-dropdown-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+    .search-dropdown-item:hover { background: #f0fdf4; color: #0284c7; font-weight: bold; }
+
+    /* In-Header Filter Elements */
+    .header-cell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .filter-btn-icon {
+      background: #1d4ed8;
+      color: #fff;
+      border: 1px solid #93c5fd;
+      border-radius: 3px;
+      padding: 2px 5px;
+      font-size: 10px;
+      cursor: pointer;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-btn-icon:hover { background: #2563eb; }
+    .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
+
+    /* Universal Floating Excel Filter Modal */
+    #excelFilterPopup {
+      position: absolute;
+      display: none;
+      z-index: 1000;
+      background: #ffffff;
+      border: 1.5px solid #0284c7;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      width: 260px;
+      padding: 12px;
+      font-family: inherit;
+    }
+    .popup-search {
+      width: 100%;
+      padding: 7px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font-size: 12.5px;
+      box-sizing: border-box;
+      margin-bottom: 8px;
+    }
+    .popup-options-list {
+      max-height: 170px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      padding: 6px;
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+    .popup-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #1e293b;
+      padding: 4px 2px;
+    }
+    .popup-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; }
+    .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .popup-btn-ok { background: #1e40af; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
   </style>
 </head>
 <body>
@@ -311,15 +385,17 @@
       </div>
     </div>
 
-    <!-- NEW SECTION: Custom Search & Drill-Down Query Filter -->
+    <!-- Custom Stage & DC No Filter Query Section -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
-        <h3 style="margin:0; color:#0f766e; font-size:16px;">🔍 Custom Stage & DC No Filter Query</h3>
-        <span id="customFilteredCount" style="font-size:12.5px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:12px;">Records: 0</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h3 style="margin:0; color:#0f766e; font-size:16px;">🔍 Custom Stage & DC No Filter Query</h3>
+          <span id="customFilteredCount" style="font-size:12.5px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:12px;">Records: 0</span>
+        </div>
+        <button type="button" class="btn-refresh" style="background:#64748b; padding:4px 10px; font-size:11.5px;" onclick="clearBottomTableColumnFilters()">🔄 Clear Column Filters</button>
       </div>
 
       <div class="filter-panel">
-        <!-- Main Select Option -->
         <div class="filter-group">
           <label class="filter-label">Select Option:</label>
           <select id="customStageSelect" onchange="onCustomStageChange()">
@@ -333,7 +409,7 @@
           </select>
         </div>
 
-        <!-- Status Radio: Completed / Not Completed -->
+        <!-- Status Radio -->
         <div class="filter-group" id="customStatusRadioGroup" style="display: none;">
           <label class="filter-label">Status:</label>
           <div class="radio-pill-group">
@@ -348,15 +424,16 @@
           </div>
         </div>
 
-        <!-- DC No Dropdown (Shift_dc_no) -->
+        <!-- Type & Search DC No Dropdown -->
         <div class="filter-group" id="customDcNoGroup" style="display: none;">
-          <label class="filter-label">Select DC No:</label>
-          <select id="customDcSelect" onchange="applyCustomFilter()">
-            <option value="">-- Select DC No --</option>
-          </select>
+          <label class="filter-label">Search / Select DC No:</label>
+          <div class="searchable-select-wrap">
+            <input type="text" id="dcSearchInput" placeholder="Type DC No (e.g. 53, AEPL)..." oninput="handleDcSearchInput(this.value)" autocomplete="off">
+            <div id="dcDropdownList" class="search-dropdown-menu"></div>
+          </div>
         </div>
 
-        <!-- Date Range Filter: From & To -->
+        <!-- Date Range Filter -->
         <div class="filter-group" id="customDateRangeGroup" style="display: none;">
           <label class="filter-label">From Date:</label>
           <input type="date" id="customDateFrom" onchange="applyCustomFilter()">
@@ -364,10 +441,10 @@
           <input type="date" id="customDateTo" onchange="applyCustomFilter()">
         </div>
 
-        <button type="button" class="btn-filter-reset" onclick="resetCustomFilter()">🔄 Reset Filter</button>
+        <button type="button" class="btn-filter-reset" onclick="resetCustomFilter()">🔄 Reset All</button>
       </div>
 
-      <!-- Result Table Area -->
+      <!-- Result Table Area with Column-Level Excel Filters -->
       <div class="table-container" style="max-height: 60vh;">
         <table>
           <thead>
@@ -391,12 +468,30 @@
 
   </div>
 
+  <!-- Universal Floating Excel Filter Modal -->
+  <div id="excelFilterPopup">
+    <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search..." oninput="onPopupSearch(this.value)">
+    <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
+      <input type="checkbox" id="popupSelectAll" onchange="togglePopupSelectAll(this.checked)">
+      <label for="popupSelectAll" style="font-size: 12px; font-weight: bold; margin: 0; cursor: pointer;">(Select All)</label>
+    </div>
+    <div id="popupOptionsList" class="popup-options-list"></div>
+    <div class="popup-actions">
+      <button type="button" class="popup-btn-ok" onclick="applyPopupFilter()">OK</button>
+      <button type="button" class="popup-btn-clear" onclick="clearCurrentPopupFilter()">Clear</button>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allRecordsCache = [];
+    let customBaseRows = [];
+    let activeCustomFilteredRows = [];
+    let bottomTableColumnFilters = {};
+    let currentPopupContext = { colKey: '', allValues: [] };
 
     function verifySession() {
       const sessionData = sessionStorage.getItem('piping_app_auth');
@@ -471,7 +566,6 @@
     async function refreshProgressData() {
       allRecordsCache = [];
       await loadProgressDashboardData();
-      populateDcNoDropdown();
       applyCustomFilter();
     }
 
@@ -486,74 +580,38 @@
         return;
       }
 
-      // Filter Dispatched Rows (Stage 06: FD Completed)
       const dispatchedRows = allRows.filter(r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '');
 
-      // 1. Spools (Total / Dispatched)
       const totalSpoolsCount = new Set(allRows.map(r => r.Spool_number).filter(Boolean)).size;
       const dispSpoolsCount = new Set(dispatchedRows.map(r => r.Spool_number).filter(Boolean)).size;
       document.getElementById('kpiTotalSpool').innerText = totalSpoolsCount;
       document.getElementById('kpiDispSpool').innerText = dispSpoolsCount;
 
-      // 2. Weld ID (Total / Dispatched)
       const totalWeldSum = calculateWeldSum(allRows);
       const dispWeldSum = calculateWeldSum(dispatchedRows);
       document.getElementById('kpiTotalWeld').innerText = totalWeldSum;
       document.getElementById('kpiDispWeld').innerText = dispWeldSum;
 
-      // 3. Bend Qty (Total Scope / Dispatched)
       const totalBendSum = calculateBendSum(allRows);
       const dispBendSum = calculateBendSum(dispatchedRows);
       document.getElementById('kpiTotalBend').innerText = totalBendSum;
       document.getElementById('kpiDispBend').innerText = dispBendSum;
 
       const stagesConfig = [
-        { 
-          no: '01', 
-          name: 'ISSUED FOR BENDING', 
-          isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '', 
-          isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && (!r.Issued_for_bending || String(r.Issued_for_bending).trim() === '') 
-        },
-        { 
-          no: '02', 
-          name: 'BEND COMPLETED', 
-          isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '', 
-          isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && r.Issued_for_bending !== null && String(r.Issued_for_bending).trim() !== '' 
-        },
-        { 
-          no: '03', 
-          name: 'FIT UP COMPLETED', 
-          isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '', 
-          isBal: r => r.Bend_date !== null && String(r.Bend_date).trim() !== '' && (!r.Fit_up_date || String(r.Fit_up_date).trim() === '') 
-        },
-        { 
-          no: '04', 
-          name: 'WELD VISUAL COMPLETED', 
-          isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '', 
-          isBal: r => r.Fit_up_date !== null && String(r.Fit_up_date).trim() !== '' && (!r.Weld_visual_date || String(r.Weld_visual_date).trim() === '') 
-        },
-        { 
-          no: '05', 
-          name: 'NDT CLEARANCE', 
-          isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '', 
-          isBal: r => r.Weld_visual_date !== null && String(r.Weld_visual_date).trim() !== '' && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === '') 
-        },
-        { 
-          no: '06', 
-          name: 'FINAL DISPATCH & DC NO', 
-          isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', 
-          isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') 
-        }
+        { no: '01', name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && (!r.Issued_for_bending || String(r.Issued_for_bending).trim() === '') },
+        { no: '02', name: 'BEND COMPLETED', isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && r.Issued_for_bending !== null && String(r.Issued_for_bending).trim() !== '' },
+        { no: '03', name: 'FIT UP COMPLETED', isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '', isBal: r => r.Bend_date !== null && String(r.Bend_date).trim() !== '' && (!r.Fit_up_date || String(r.Fit_up_date).trim() === '') },
+        { no: '04', name: 'WELD VISUAL COMPLETED', isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '', isBal: r => r.Fit_up_date !== null && String(r.Fit_up_date).trim() !== '' && (!r.Weld_visual_date || String(r.Weld_visual_date).trim() === '') },
+        { no: '05', name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '', isBal: r => r.Weld_visual_date !== null && String(r.Weld_visual_date).trim() !== '' && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === '') },
+        { no: '06', name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') }
       ];
 
       tbody.innerHTML = stagesConfig.map(st => {
         const compRows = allRows.filter(st.isComp);
         const balRows = allRows.filter(st.isBal);
-        
         const compSpools = new Set(compRows.map(r => r.Spool_number).filter(Boolean)).size;
         const compWelds = calculateWeldSum(compRows);
         const compBends = calculateBendSum(compRows);
-
         const balSpools = new Set(balRows.map(r => r.Spool_number).filter(Boolean)).size;
         const balWelds = calculateWeldSum(balRows);
         const balBends = calculateBendSum(balRows);
@@ -576,23 +634,14 @@
     /* -------------------------------------------------------------
        CUSTOM STAGE & DC NO QUERY FILTER LOGIC
     -------------------------------------------------------------- */
-    function populateDcNoDropdown() {
-      const select = document.getElementById('customDcSelect');
-      const dcSet = new Set();
-      allRecordsCache.forEach(r => {
-        if (r.Shift_dc_no && String(r.Shift_dc_no).trim() !== '' && String(r.Shift_dc_no).toLowerCase() !== 'null') {
-          dcSet.add(String(r.Shift_dc_no).trim());
-        }
-      });
-      const sortedDcs = Array.from(dcSet).sort();
-      select.innerHTML = '<option value="">-- Select DC No --</option>' + sortedDcs.map(dc => `<option value="${dc}">${dc}</option>`).join('');
-    }
-
     function onCustomStageChange() {
       const stage = document.getElementById('customStageSelect').value;
       const radioGroup = document.getElementById('customStatusRadioGroup');
       const dcGroup = document.getElementById('customDcNoGroup');
       const dateRangeGroup = document.getElementById('customDateRangeGroup');
+
+      bottomTableColumnFilters = {};
+      closeExcelPopup();
 
       if (!stage) {
         radioGroup.style.display = 'none';
@@ -606,6 +655,8 @@
         radioGroup.style.display = 'none';
         dcGroup.style.display = 'inline-flex';
         dateRangeGroup.style.display = 'none';
+        document.getElementById('dcSearchInput').value = '';
+        handleDcSearchInput('');
       } else {
         radioGroup.style.display = 'inline-flex';
         dcGroup.style.display = 'none';
@@ -615,16 +666,50 @@
       applyCustomFilter();
     }
 
+    function handleDcSearchInput(query) {
+      const dropdown = document.getElementById('dcDropdownList');
+      const val = query.toLowerCase().trim();
+
+      const dcSet = new Set();
+      allRecordsCache.forEach(r => {
+        if (r.Shift_dc_no && String(r.Shift_dc_no).trim() !== '' && String(r.Shift_dc_no).toLowerCase() !== 'null') {
+          dcSet.add(String(r.Shift_dc_no).trim());
+        }
+      });
+      const allDcs = Array.from(dcSet).sort();
+      const matched = allDcs.filter(dc => dc.toLowerCase().includes(val));
+
+      if (matched.length === 0) {
+        dropdown.innerHTML = '<div style="padding:8px 12px; color:#94a3b8; font-size:12px;">No DC No found</div>';
+        dropdown.style.display = 'block';
+        return;
+      }
+
+      dropdown.innerHTML = matched.map(dc => `
+        <div class="search-dropdown-item" onclick="selectDcNo('${escapeHtml(dc)}')">${escapeHtml(dc)}</div>
+      `).join('');
+      dropdown.style.display = 'block';
+    }
+
+    function selectDcNo(dc) {
+      document.getElementById('dcSearchInput').value = dc;
+      document.getElementById('dcDropdownList').style.display = 'none';
+      bottomTableColumnFilters = {};
+      applyCustomFilter();
+    }
+
     function resetCustomFilter() {
       document.getElementById('customStageSelect').value = '';
-      document.getElementById('customDcSelect').value = '';
+      document.getElementById('dcSearchInput').value = '';
       document.getElementById('customDateFrom').value = '';
       document.getElementById('customDateTo').value = '';
       document.getElementById('customStatusRadioGroup').style.display = 'none';
       document.getElementById('customDcNoGroup').style.display = 'none';
       document.getElementById('customDateRangeGroup').style.display = 'none';
       document.getElementById('customFilteredCount').innerText = 'Records: 0';
-      
+      bottomTableColumnFilters = {};
+      closeExcelPopup();
+
       const head = document.getElementById('customTableHeadRow');
       head.innerHTML = `
         <th>Sr.</th><th>id</th><th>Drawing_no</th><th>Spool_number</th><th>Spool_size</th>
@@ -633,55 +718,48 @@
       document.getElementById('customTableBody').innerHTML = '<tr><td colspan="15" style="text-align:center; padding:18px; color:#64748b;">કૃપા કરીને ઉપરથી Stage અથવા DC NO પસંદ કરો.</td></tr>';
     }
 
+    function clearBottomTableColumnFilters() {
+      bottomTableColumnFilters = {};
+      closeExcelPopup();
+      applyBottomTableColumnFilters();
+    }
+
+    function getCurrentDisplayColumns(stage) {
+      const base = ['id', 'Drawing_no', 'Spool_number', 'Spool_size', 'Rev_no', 'Bend_qty', 'Weld_id'];
+      if (stage === 'BEND') return [...base, 'Bend_date'];
+      if (stage === 'FIT UP') return [...base, 'Fit_up_date'];
+      if (stage === 'WELD VISUAL') return [...base, 'Weld_visual_date'];
+      if (stage === 'NDT CLEARANCE') return [...base, 'Ndt_clearance'];
+      if (stage === 'FINAL DISPATCH') return [...base, 'Fd_date', 'Shift_dc_no'];
+      if (stage === 'DC NO') return [...base, 'Bend_date', 'Fit_up_date', 'Weld_visual_date', 'Ndt_clearance', 'Fd_date', 'Shift_dc_no'];
+      return base;
+    }
+
     function applyCustomFilter() {
       const stage = document.getElementById('customStageSelect').value;
       if (!stage) return;
 
-      const theadRow = document.getElementById('customTableHeadRow');
-      const tbody = document.getElementById('customTableBody');
       const statusRadio = document.querySelector('input[name="customStatusRadio"]:checked');
       const isCompleted = statusRadio ? (statusRadio.value === 'completed') : true;
 
       const dateFrom = document.getElementById('customDateFrom').value;
       const dateTo = document.getElementById('customDateTo').value;
 
-      // Base common columns
-      const baseColumns = ['id', 'Drawing_no', 'Spool_number', 'Spool_size', 'Rev_no', 'Bend_qty', 'Weld_id'];
-      let extraColumns = [];
       let dateFieldToCheck = null;
+      if (stage === 'BEND') dateFieldToCheck = 'Bend_date';
+      else if (stage === 'FIT UP') dateFieldToCheck = 'Fit_up_date';
+      else if (stage === 'WELD VISUAL') dateFieldToCheck = 'Weld_visual_date';
+      else if (stage === 'NDT CLEARANCE') dateFieldToCheck = 'Ndt_clearance';
+      else if (stage === 'FINAL DISPATCH') dateFieldToCheck = 'Fd_date';
 
-      if (stage === 'BEND') {
-        extraColumns = ['Bend_date'];
-        dateFieldToCheck = 'Bend_date';
-      } else if (stage === 'FIT UP') {
-        extraColumns = ['Fit_up_date'];
-        dateFieldToCheck = 'Fit_up_date';
-      } else if (stage === 'WELD VISUAL') {
-        extraColumns = ['Weld_visual_date'];
-        dateFieldToCheck = 'Weld_visual_date';
-      } else if (stage === 'NDT CLEARANCE') {
-        extraColumns = ['Ndt_clearance'];
-        dateFieldToCheck = 'Ndt_clearance';
-      } else if (stage === 'FINAL DISPATCH') {
-        extraColumns = ['Fd_date', 'Shift_dc_no'];
-        dateFieldToCheck = 'Fd_date';
-      } else if (stage === 'DC NO') {
-        extraColumns = ['Bend_date', 'Fit_up_date', 'Weld_visual_date', 'Ndt_clearance', 'Fd_date', 'Shift_dc_no'];
-      }
-
-      // Rebuild Header
-      const displayColumns = [...baseColumns, ...extraColumns];
-      theadRow.innerHTML = '<th>Sr.</th>' + displayColumns.map(col => `<th>${col}</th>`).join('');
-
-      // Filter rows
-      let filtered = allRecordsCache.filter(r => {
+      // Stage / DC Filter Execution
+      customBaseRows = allRecordsCache.filter(r => {
         if (stage === 'DC NO') {
-          const selectedDc = document.getElementById('customDcSelect').value;
+          const selectedDc = document.getElementById('dcSearchInput').value.trim();
           if (!selectedDc) return false;
           return String(r.Shift_dc_no || '').trim() === selectedDc;
         }
 
-        // Check completion status for stage
         let isDone = false;
         if (stage === 'BEND') isDone = Boolean(r.Bend_date);
         else if (stage === 'FIT UP') isDone = Boolean(r.Fit_up_date);
@@ -691,7 +769,6 @@
 
         if (isCompleted ? !isDone : isDone) return false;
 
-        // Apply date range filter if completed and dates selected
         if (isCompleted && dateFieldToCheck && (dateFrom || dateTo)) {
           const rawDate = r[dateFieldToCheck];
           if (!rawDate) return false;
@@ -703,14 +780,52 @@
         return true;
       });
 
-      document.getElementById('customFilteredCount').innerText = `Records: ${filtered.length}`;
+      applyBottomTableColumnFilters();
+    }
 
-      if (filtered.length === 0) {
+    /* -------------------------------------------------------------
+       IN-HEADER FILTER LOGIC FOR BOTTOM TABLE
+    -------------------------------------------------------------- */
+    function renderBottomTableHeader(cols) {
+      const theadRow = document.getElementById('customTableHeadRow');
+      theadRow.innerHTML = '<th>Sr.</th>' + cols.map(c => `
+        <th>
+          <div class="header-cell">
+            <span>${c}</span>
+            <button class="filter-btn-icon ${bottomTableColumnFilters[c] ? 'active' : ''}" onclick="openBottomExcelFilter(event, '${c}')">🔽</button>
+          </div>
+        </th>
+      `).join('');
+    }
+
+    function applyBottomTableColumnFilters() {
+      const stage = document.getElementById('customStageSelect').value;
+      const displayColumns = getCurrentDisplayColumns(stage);
+
+      activeCustomFilteredRows = customBaseRows.filter(r => {
+        for (const [colKey, allowedSet] of Object.entries(bottomTableColumnFilters)) {
+          let val = r[colKey] !== undefined ? r[colKey] : '';
+          val = String(val === null ? '' : val).trim();
+          const isDate = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('clearance');
+          const displayVal = val === '' ? '(Blank)' : (isDate ? formatDateDisplay(val) : val);
+          if (!allowedSet.has(displayVal)) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('customFilteredCount').innerText = `Records: ${activeCustomFilteredRows.length}`;
+      renderBottomTableHeader(displayColumns);
+      renderBottomTableBody(displayColumns);
+    }
+
+    function renderBottomTableBody(displayColumns) {
+      const tbody = document.getElementById('customTableBody');
+      if (activeCustomFilteredRows.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${displayColumns.length + 1}" style="text-align:center; padding:18px; color:#c2410c; font-weight:bold;">⚠️ પસંદ કરેલ ફિલ્ટર મુજબ કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filtered.map((r, idx) => {
+      tbody.innerHTML = activeCustomFilteredRows.map((r, idx) => {
         const rowCells = displayColumns.map(col => {
           let val = r[col];
           if (col.toLowerCase().includes('date') || col === 'Ndt_clearance') {
@@ -726,10 +841,121 @@
       }).join('');
     }
 
+    function openBottomExcelFilter(e, colKey) {
+      e.stopPropagation();
+      const popup = document.getElementById('excelFilterPopup');
+      const rect = e.target.getBoundingClientRect();
+      let top = rect.bottom + window.scrollY + 6;
+      let left = rect.left + window.scrollX - 100;
+      if (left + 270 > window.innerWidth) left = window.innerWidth - 280;
+      if (left < 10) left = 10;
+
+      popup.style.top = `${top}px`;
+      popup.style.left = `${left}px`;
+      popup.style.display = 'block';
+
+      currentPopupContext.colKey = colKey;
+
+      // Cascading dependency filter logic
+      const sourceRows = customBaseRows.filter(r => {
+        for (const [filterCol, allowedSet] of Object.entries(bottomTableColumnFilters)) {
+          if (filterCol === colKey) continue;
+          let val = r[filterCol] !== undefined ? r[filterCol] : '';
+          val = String(val === null ? '' : val).trim();
+          const isDate = filterCol.toLowerCase().includes('date') || filterCol.toLowerCase().includes('clearance');
+          const displayVal = val === '' ? '(Blank)' : (isDate ? formatDateDisplay(val) : val);
+          if (!allowedSet.has(displayVal)) return false;
+        }
+        return true;
+      });
+
+      const valueMap = new Map();
+      const isDateCol = colKey.toLowerCase().includes('date') || colKey.toLowerCase().includes('clearance');
+
+      sourceRows.forEach(r => {
+        let val = r[colKey] !== undefined ? r[colKey] : '';
+        if (val === null || val === undefined) val = '';
+        val = String(val).trim();
+        let displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
+        valueMap.set(displayVal, (valueMap.get(displayVal) || 0) + 1);
+      });
+
+      const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+      currentPopupContext.allValues = distinctSorted;
+
+      const currentSelectedSet = bottomTableColumnFilters[colKey] || null;
+      document.getElementById('popupSearchInput').value = '';
+      document.getElementById('popupSearchInput').placeholder = `Search in ${colKey}...`;
+      renderPopupCheckboxes(distinctSorted, currentSelectedSet);
+    }
+
+    function renderPopupCheckboxes(items, selectedSet) {
+      const container = document.getElementById('popupOptionsList');
+      container.innerHTML = items.map(([val, count], idx) => {
+        const isChecked = selectedSet === null || selectedSet.has(val);
+        return `
+          <div class="popup-item">
+            <input type="checkbox" id="chk_opt_${idx}" value="${escapeHtml(val)}" ${isChecked ? 'checked' : ''}>
+            <label for="chk_opt_${idx}" style="cursor:pointer; font-size:12px; margin:0;">${escapeHtml(val)} <span style="color:#64748b;">(${count})</span></label>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('popupSelectAll').checked = items.every(([val]) => selectedSet === null || selectedSet.has(val));
+    }
+
+    function onPopupSearch(term) {
+      const q = term.toLowerCase().trim();
+      const filtered = currentPopupContext.allValues.filter(([val]) => val.toLowerCase().includes(q));
+      const currentSelectedSet = bottomTableColumnFilters[currentPopupContext.colKey] || null;
+      renderPopupCheckboxes(filtered, currentSelectedSet);
+    }
+
+    function togglePopupSelectAll(checked) {
+      document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(chk => { chk.checked = checked; });
+    }
+
+    function applyPopupFilter() {
+      const selected = new Set();
+      document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(c => { if (c.checked) selected.add(c.value); });
+      const { colKey, allValues } = currentPopupContext;
+
+      if (selected.size === allValues.length) {
+        delete bottomTableColumnFilters[colKey];
+      } else {
+        bottomTableColumnFilters[colKey] = selected;
+      }
+      closeExcelPopup();
+      applyBottomTableColumnFilters();
+    }
+
+    function clearCurrentPopupFilter() {
+      delete bottomTableColumnFilters[currentPopupContext.colKey];
+      closeExcelPopup();
+      applyBottomTableColumnFilters();
+    }
+
+    function closeExcelPopup() {
+      document.getElementById('excelFilterPopup').style.display = 'none';
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('excelFilterPopup');
+      if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
+        closeExcelPopup();
+      }
+      if (!e.target.closest('.searchable-select-wrap')) {
+        const dcDrop = document.getElementById('dcDropdownList');
+        if (dcDrop) dcDrop.style.display = 'none';
+      }
+    });
+
     window.addEventListener('DOMContentLoaded', async () => {
       if (verifySession()) {
         await loadProgressDashboardData();
-        populateDcNoDropdown();
       }
     });
   </script>
