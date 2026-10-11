@@ -57,7 +57,7 @@
 
     .container {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 16px auto;
       padding: 0 16px;
       box-sizing: border-box;
@@ -69,6 +69,7 @@
       border-radius: 12px;
       border: 1px solid var(--border);
       box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+      margin-bottom: 16px;
     }
 
     /* Top 3 KPI Summary Cards */
@@ -108,9 +109,7 @@
       letter-spacing: 0.5px;
     }
 
-    .kpi-val span.disp-val {
-      color: #15803d;
-    }
+    .kpi-val span.disp-val { color: #15803d; }
 
     .kpi-icon {
       width: 44px;
@@ -130,9 +129,9 @@
       border-radius: 8px;
     }
 
-    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 10px 14px; white-space: nowrap; }
-    th { background: #1e40af; color: white; font-weight: 700; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
+    th, td { border: 1px solid #cbd5e1; padding: 9px 12px; white-space: nowrap; }
+    th { background: #1e40af; color: white; font-weight: 700; position: sticky; top: 0; z-index: 2; }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
     .btn-refresh {
@@ -149,6 +148,95 @@
       gap: 6px;
     }
     .btn-refresh:hover { background: #1d4ed8; }
+
+    /* Custom Filter Panel Styles */
+    .filter-panel {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    select, input[type="date"] {
+      padding: 7px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 12.5px;
+      background: #fff;
+      color: #0f172a;
+      outline: none;
+    }
+    select:focus, input[type="date"]:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    }
+
+    .radio-pill-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      background: #fff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 20px;
+      padding: 5px 14px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #1e293b;
+    }
+    .radio-label input[type="radio"] {
+      cursor: pointer;
+      accent-color: #0284c7;
+    }
+
+    .btn-filter-apply {
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 16px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-filter-apply:hover { background: #0369a1; }
+
+    .btn-filter-reset {
+      background: #64748b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -162,11 +250,10 @@
   </div>
 
   <div class="container">
+    
+    <!-- Top Progress Card -->
     <div class="card">
-      
-      <!-- Top 3 Dual-Metric KPI Cards -->
       <div class="kpi-grid">
-        <!-- 1. Total Spool / Dispatched Spool -->
         <div class="kpi-card" style="border-left: 5px solid #0284c7;">
           <div>
             <span class="kpi-title" style="background: #0284c7;">Total / Dispatched Spool</span>
@@ -177,7 +264,6 @@
           <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">📦</div>
         </div>
 
-        <!-- 2. Total Weld ID / Dispatched Weld ID -->
         <div class="kpi-card" style="border-left: 5px solid #0d9488;">
           <div>
             <span class="kpi-title" style="background: #0d9488;">Total / Dispatched Weld ID</span>
@@ -188,7 +274,6 @@
           <div class="kpi-icon" style="background: #ccfbf1; color: #0d9488;">⚡</div>
         </div>
 
-        <!-- 3. Total Bend / Dispatched Bend -->
         <div class="kpi-card" style="border-left: 5px solid #4f46e5;">
           <div>
             <span class="kpi-title" style="background: #4f46e5;">Total / Dispatched Bend</span>
@@ -225,6 +310,85 @@
         </table>
       </div>
     </div>
+
+    <!-- NEW SECTION: Custom Search & Drill-Down Query Filter -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+        <h3 style="margin:0; color:#0f766e; font-size:16px;">🔍 Custom Stage & DC No Filter Query</h3>
+        <span id="customFilteredCount" style="font-size:12.5px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:3px 10px; border-radius:12px;">Records: 0</span>
+      </div>
+
+      <div class="filter-panel">
+        <!-- Main Select Option -->
+        <div class="filter-group">
+          <label class="filter-label">Select Option:</label>
+          <select id="customStageSelect" onchange="onCustomStageChange()">
+            <option value="">-- Select Stage / Option --</option>
+            <option value="BEND">BEND</option>
+            <option value="FIT UP">FIT UP</option>
+            <option value="WELD VISUAL">WELD VISUAL</option>
+            <option value="NDT CLEARANCE">NDT CLEARANCE</option>
+            <option value="FINAL DISPATCH">FINAL DISPATCH</option>
+            <option value="DC NO">DC NO</option>
+          </select>
+        </div>
+
+        <!-- Status Radio: Completed / Not Completed -->
+        <div class="filter-group" id="customStatusRadioGroup" style="display: none;">
+          <label class="filter-label">Status:</label>
+          <div class="radio-pill-group">
+            <label class="radio-label">
+              <input type="radio" name="customStatusRadio" value="completed" checked onchange="applyCustomFilter()">
+              <span>🔘 Completed</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="customStatusRadio" value="not_completed" onchange="applyCustomFilter()">
+              <span>⚪ Not completed</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- DC No Dropdown (Shift_dc_no) -->
+        <div class="filter-group" id="customDcNoGroup" style="display: none;">
+          <label class="filter-label">Select DC No:</label>
+          <select id="customDcSelect" onchange="applyCustomFilter()">
+            <option value="">-- Select DC No --</option>
+          </select>
+        </div>
+
+        <!-- Date Range Filter: From & To -->
+        <div class="filter-group" id="customDateRangeGroup" style="display: none;">
+          <label class="filter-label">From Date:</label>
+          <input type="date" id="customDateFrom" onchange="applyCustomFilter()">
+          <label class="filter-label">To Date:</label>
+          <input type="date" id="customDateTo" onchange="applyCustomFilter()">
+        </div>
+
+        <button type="button" class="btn-filter-reset" onclick="resetCustomFilter()">🔄 Reset Filter</button>
+      </div>
+
+      <!-- Result Table Area -->
+      <div class="table-container" style="max-height: 60vh;">
+        <table>
+          <thead>
+            <tr id="customTableHeadRow" style="background:#0f766e; color:white;">
+              <th>Sr.</th>
+              <th>id</th>
+              <th>Drawing_no</th>
+              <th>Spool_number</th>
+              <th>Spool_size</th>
+              <th>Rev_no</th>
+              <th>Bend_qty</th>
+              <th>Weld_id</th>
+            </tr>
+          </thead>
+          <tbody id="customTableBody">
+            <tr><td colspan="15" style="text-align:center; padding:18px; color:#64748b;">કૃપા કરીને ઉપરથી Stage અથવા DC NO પસંદ કરો.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -272,6 +436,16 @@
       return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
     }
 
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (str === '' || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
+
     async function ensureAllRecordsCached() {
       if (allRecordsCache.length > 0) return allRecordsCache;
       let allRows = [];
@@ -297,6 +471,8 @@
     async function refreshProgressData() {
       allRecordsCache = [];
       await loadProgressDashboardData();
+      populateDcNoDropdown();
+      applyCustomFilter();
     }
 
     async function loadProgressDashboardData() {
@@ -397,9 +573,163 @@
       }).join('');
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    /* -------------------------------------------------------------
+       CUSTOM STAGE & DC NO QUERY FILTER LOGIC
+    -------------------------------------------------------------- */
+    function populateDcNoDropdown() {
+      const select = document.getElementById('customDcSelect');
+      const dcSet = new Set();
+      allRecordsCache.forEach(r => {
+        if (r.Shift_dc_no && String(r.Shift_dc_no).trim() !== '' && String(r.Shift_dc_no).toLowerCase() !== 'null') {
+          dcSet.add(String(r.Shift_dc_no).trim());
+        }
+      });
+      const sortedDcs = Array.from(dcSet).sort();
+      select.innerHTML = '<option value="">-- Select DC No --</option>' + sortedDcs.map(dc => `<option value="${dc}">${dc}</option>`).join('');
+    }
+
+    function onCustomStageChange() {
+      const stage = document.getElementById('customStageSelect').value;
+      const radioGroup = document.getElementById('customStatusRadioGroup');
+      const dcGroup = document.getElementById('customDcNoGroup');
+      const dateRangeGroup = document.getElementById('customDateRangeGroup');
+
+      if (!stage) {
+        radioGroup.style.display = 'none';
+        dcGroup.style.display = 'none';
+        dateRangeGroup.style.display = 'none';
+        resetCustomFilter();
+        return;
+      }
+
+      if (stage === 'DC NO') {
+        radioGroup.style.display = 'none';
+        dcGroup.style.display = 'inline-flex';
+        dateRangeGroup.style.display = 'none';
+      } else {
+        radioGroup.style.display = 'inline-flex';
+        dcGroup.style.display = 'none';
+        dateRangeGroup.style.display = 'inline-flex';
+      }
+
+      applyCustomFilter();
+    }
+
+    function resetCustomFilter() {
+      document.getElementById('customStageSelect').value = '';
+      document.getElementById('customDcSelect').value = '';
+      document.getElementById('customDateFrom').value = '';
+      document.getElementById('customDateTo').value = '';
+      document.getElementById('customStatusRadioGroup').style.display = 'none';
+      document.getElementById('customDcNoGroup').style.display = 'none';
+      document.getElementById('customDateRangeGroup').style.display = 'none';
+      document.getElementById('customFilteredCount').innerText = 'Records: 0';
+      
+      const head = document.getElementById('customTableHeadRow');
+      head.innerHTML = `
+        <th>Sr.</th><th>id</th><th>Drawing_no</th><th>Spool_number</th><th>Spool_size</th>
+        <th>Rev_no</th><th>Bend_qty</th><th>Weld_id</th>
+      `;
+      document.getElementById('customTableBody').innerHTML = '<tr><td colspan="15" style="text-align:center; padding:18px; color:#64748b;">કૃપા કરીને ઉપરથી Stage અથવા DC NO પસંદ કરો.</td></tr>';
+    }
+
+    function applyCustomFilter() {
+      const stage = document.getElementById('customStageSelect').value;
+      if (!stage) return;
+
+      const theadRow = document.getElementById('customTableHeadRow');
+      const tbody = document.getElementById('customTableBody');
+      const statusRadio = document.querySelector('input[name="customStatusRadio"]:checked');
+      const isCompleted = statusRadio ? (statusRadio.value === 'completed') : true;
+
+      const dateFrom = document.getElementById('customDateFrom').value;
+      const dateTo = document.getElementById('customDateTo').value;
+
+      // Base common columns
+      const baseColumns = ['id', 'Drawing_no', 'Spool_number', 'Spool_size', 'Rev_no', 'Bend_qty', 'Weld_id'];
+      let extraColumns = [];
+      let dateFieldToCheck = null;
+
+      if (stage === 'BEND') {
+        extraColumns = ['Bend_date'];
+        dateFieldToCheck = 'Bend_date';
+      } else if (stage === 'FIT UP') {
+        extraColumns = ['Fit_up_date'];
+        dateFieldToCheck = 'Fit_up_date';
+      } else if (stage === 'WELD VISUAL') {
+        extraColumns = ['Weld_visual_date'];
+        dateFieldToCheck = 'Weld_visual_date';
+      } else if (stage === 'NDT CLEARANCE') {
+        extraColumns = ['Ndt_clearance'];
+        dateFieldToCheck = 'Ndt_clearance';
+      } else if (stage === 'FINAL DISPATCH') {
+        extraColumns = ['Fd_date', 'Shift_dc_no'];
+        dateFieldToCheck = 'Fd_date';
+      } else if (stage === 'DC NO') {
+        extraColumns = ['Bend_date', 'Fit_up_date', 'Weld_visual_date', 'Ndt_clearance', 'Fd_date', 'Shift_dc_no'];
+      }
+
+      // Rebuild Header
+      const displayColumns = [...baseColumns, ...extraColumns];
+      theadRow.innerHTML = '<th>Sr.</th>' + displayColumns.map(col => `<th>${col}</th>`).join('');
+
+      // Filter rows
+      let filtered = allRecordsCache.filter(r => {
+        if (stage === 'DC NO') {
+          const selectedDc = document.getElementById('customDcSelect').value;
+          if (!selectedDc) return false;
+          return String(r.Shift_dc_no || '').trim() === selectedDc;
+        }
+
+        // Check completion status for stage
+        let isDone = false;
+        if (stage === 'BEND') isDone = Boolean(r.Bend_date);
+        else if (stage === 'FIT UP') isDone = Boolean(r.Fit_up_date);
+        else if (stage === 'WELD VISUAL') isDone = Boolean(r.Weld_visual_date);
+        else if (stage === 'NDT CLEARANCE') isDone = Boolean(r.Ndt_clearance);
+        else if (stage === 'FINAL DISPATCH') isDone = Boolean(r.Fd_date);
+
+        if (isCompleted ? !isDone : isDone) return false;
+
+        // Apply date range filter if completed and dates selected
+        if (isCompleted && dateFieldToCheck && (dateFrom || dateTo)) {
+          const rawDate = r[dateFieldToCheck];
+          if (!rawDate) return false;
+          const dStr = String(rawDate).includes('T') ? String(rawDate).split('T')[0] : String(rawDate).trim();
+          if (dateFrom && dStr < dateFrom) return false;
+          if (dateTo && dStr > dateTo) return false;
+        }
+
+        return true;
+      });
+
+      document.getElementById('customFilteredCount').innerText = `Records: ${filtered.length}`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${displayColumns.length + 1}" style="text-align:center; padding:18px; color:#c2410c; font-weight:bold;">⚠️ પસંદ કરેલ ફિલ્ટર મુજબ કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((r, idx) => {
+        const rowCells = displayColumns.map(col => {
+          let val = r[col];
+          if (col.toLowerCase().includes('date') || col === 'Ndt_clearance') {
+            val = formatDateDisplay(val);
+          }
+          if (val === null || val === undefined || String(val).trim() === '' || String(val).toLowerCase() === 'null') {
+            val = '-';
+          }
+          return `<td>${val}</td>`;
+        }).join('');
+
+        return `<tr><td style="text-align:center; font-weight:bold; background:#f8fafc;">${idx + 1}</td>${rowCells}</tr>`;
+      }).join('');
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
       if (verifySession()) {
-        loadProgressDashboardData();
+        await loadProgressDashboardData();
+        populateDcNoDropdown();
       }
     });
   </script>
