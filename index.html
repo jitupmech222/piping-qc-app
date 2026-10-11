@@ -3,404 +3,332 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Piping Work Progress Console</title>
+  <title>Piping Console | Operations Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --primary: #0d9488;
-      --primary-dark: #0f766e;
-      --teal-accent: #06b6d4;
-      --teal-light: #f0fdfa;
-      --navy: #0f172a;
-      --card-bg: #ffffff;
+      --sidebar-bg: #0b1329;
+      --sidebar-active: #0d9488;
       --bg: #f8fafc;
+      --card-bg: #ffffff;
       --border: #e2e8f0;
       --text-main: #0f172a;
       --text-muted: #64748b;
+      --primary: #0d9488;
     }
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: radial-gradient(circle at 10% 20%, rgba(204, 251, 241, 0.4) 0%, rgba(255, 255, 255, 1) 70%);
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background: var(--bg);
       color: var(--text-main);
-      -webkit-font-smoothing: antialiased;
-    }
-
-    #appContent {
+      display: flex;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      overflow-x: hidden;
     }
 
-    .container {
-      flex: 1;
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 16px 20px;
-      box-sizing: border-box;
+    /* Left Sidebar */
+    .sidebar {
+      width: 250px;
+      background: var(--sidebar-bg);
+      color: #94a3b8;
       display: flex;
       flex-direction: column;
-    }
-
-    .top-navbar {
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: white;
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
+      padding: 20px 14px;
       position: sticky;
       top: 0;
+      height: 100vh;
+      flex-shrink: 0;
       z-index: 100;
     }
-    
-    .top-nav-title {
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
+
+    .brand-area {
       display: flex;
       align-items: center;
       gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 20px;
     }
 
-    .btn-nav-dashboard {
-      background: #ffffff;
-      color: var(--navy);
-      border: 1px solid #cbd5e1;
-      border-radius: 999px;
-      padding: 7px 16px;
-      font-size: 12.5px;
-      font-weight: 700;
-      cursor: pointer;
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: #0d9488;
+      border-radius: 10px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-    .btn-nav-dashboard:hover { 
-      background: var(--teal-light); 
-      color: var(--primary-dark); 
-      transform: translateY(-1px);
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
     }
 
-    .btn-logout {
-      background: #ef4444;
-      color: white;
-      border: none;
-      border-radius: 999px;
-      padding: 7px 16px;
-      font-size: 12.5px;
-      font-weight: bold;
+    .brand-name {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+    }
+    .brand-sub { font-size: 11px; color: #64748b; }
+
+    .nav-section-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #475569;
+      font-weight: 800;
+      margin: 14px 8px 6px 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-decoration: none;
       cursor: pointer;
-      transition: 0.2s;
-    }
-    .btn-logout:hover { background: #dc2626; }
-
-    .hero-banner {
-      text-align: center;
-      padding: 24px 10px 18px 10px;
+      transition: all 0.2s;
+      margin-bottom: 3px;
     }
 
-    .hero-badge-tag {
+    .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
+    .nav-item.active { background: #0d9488; color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
+
+    .badge-soon {
+      background: rgba(255,255,255,0.1);
+      color: #cbd5e1;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: auto;
+    }
+
+    .user-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .user-profile { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1e293b; color: #2dd4bf; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #334155; }
+    .user-details { font-size: 12px; color: #ffffff; font-weight: 600; }
+    .user-details span { display: block; font-size: 10px; color: #64748b; font-weight: normal; }
+
+    .btn-logout-icon {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn-logout-icon:hover { color: #ef4444; }
+
+    /* Main Workspace Area */
+    .main-workspace {
+      flex: 1;
+      padding: 24px 32px;
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+
+    /* Top Action Bar */
+    .workspace-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .search-input-pill {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 9px 18px;
+      width: 380px;
+      font-size: 13px;
+      outline: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .search-input-pill:focus { border-color: #0d9488; }
+
+    .live-status-pill {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #16a34a;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 12px;
-      background: #ccfbf1;
-      color: #0f766e;
+    }
+    .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
+
+    /* Green Welcome Banner */
+    .welcome-hero {
+      background: linear-gradient(135deg, #0d9488 0%, #047857 100%);
+      border-radius: 18px;
+      padding: 24px 28px;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 20px rgba(13, 148, 136, 0.2);
+    }
+
+    .welcome-text h2 { font-size: 22px; font-weight: 800; }
+    .welcome-text p { font-size: 13px; color: #ccfbf1; margin-top: 4px; }
+
+    .btn-hero-action {
+      background: #ffffff;
+      color: #047857;
+      border: none;
       border-radius: 999px;
-      font-size: 11.5px;
+      padding: 10px 22px;
+      font-size: 13px;
       font-weight: 800;
-      margin-bottom: 12px;
-      letter-spacing: 0.3px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: all 0.2s;
     }
+    .btn-hero-action:hover { transform: translateY(-1px); background: #f0fdfa; }
 
-    .hero-title {
-      font-size: 30px;
-      font-weight: 900;
-      line-height: 1.25;
-      color: #0f172a;
-      margin-bottom: 8px;
-    }
-
-    .hero-title span {
-      background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero-subtitle {
-      font-size: 14.5px;
-      color: var(--text-muted);
-      font-weight: 500;
+    /* Top 4 KPI Widgets */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
       margin-bottom: 24px;
     }
 
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      max-width: 860px;
-      margin: 0 auto;
-    }
-
-    .menu-btn {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 20px;
-      border: 1px solid #e2e8f0;
-      border-radius: 999px;
-      background: #ffffff;
-      color: #1e293b;
-      font-weight: 700;
-      font-size: 13.5px;
-      cursor: pointer;
-      text-align: left;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .menu-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 18px rgba(13, 148, 136, 0.12);
-      border-color: #5eead4;
-      background: #ffffff;
-      color: var(--primary-dark);
-    }
-
-    .check-circle {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: #0d9488;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 900;
-      flex-shrink: 0;
-    }
-
-    .card {
-      background: var(--card-bg);
-      padding: 18px 22px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
-      margin-top: 10px;
-    }
-    
-    h3 { 
-      margin-top: 0; 
-      color: var(--navy); 
-      border-bottom: 2px solid var(--border); 
-      padding-bottom: 10px; 
-      font-size: 16px; 
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 8px; display: block; }
-    
-    input, select { 
-      width: 100%; 
-      padding: 10px 14px; 
-      margin-top: 4px; 
-      border: 1.5px solid #cbd5e1; 
-      border-radius: 10px; 
-      box-sizing: border-box; 
-      font-size: 13px; 
-      background: #fff; 
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    input:focus, select:focus { 
-      outline: none; 
-      border-color: var(--primary); 
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15); 
-      background: #f8fafc;
-    }
-
-    .kpi-grid { 
-      display: grid; 
-      grid-template-columns: repeat(3, 1fr); 
-      gap: 12px; 
-      margin-bottom: 14px; 
-    }
-    
     .kpi-card {
       background: #ffffff;
-      border: 1px solid #e2e8f0; 
-      border-radius: 12px; 
-      padding: 10px 14px; 
-      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-      display: flex; 
-      align-items: center; 
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      display: flex;
       justify-content: space-between;
-    }
-    
-    .kpi-title { 
-      font-size: 11px; 
-      font-weight: 700; 
-      color: #64748b; 
-      text-transform: uppercase;
-      letter-spacing: 0.5px; 
-    }
-    
-    .kpi-val { 
-      font-size: 20px; 
-      font-weight: 800; 
-      color: #0f172a; 
-      margin-top: 2px; 
-    }
-    
-    .kpi-icon { 
-      width: 34px; 
-      height: 34px; 
-      border-radius: 10px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-size: 16px; 
+      align-items: flex-start;
     }
 
-    #loginOverlay {
-      min-height: 100vh;
-      width: 100%;
-      background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 50%, #f8fafc 100%);
+    .kpi-title { font-size: 12px; font-weight: 600; color: #64748b; }
+    .kpi-val { font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 6px; letter-spacing: -0.5px; }
+    .kpi-sub { font-size: 11px; font-weight: 700; color: #16a34a; margin-top: 6px; }
+
+    .kpi-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px 16px;
-      box-sizing: border-box;
+      font-size: 18px;
     }
 
-    .login-box {
+    /* 4 Major Category Cards */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .category-card {
       background: #ffffff;
-      width: 100%;
-      max-width: 400px;
-      padding: 34px 28px;
-      border-radius: 20px;
       border: 1px solid #e2e8f0;
-      box-shadow: 0 20px 35px -5px rgba(13, 148, 136, 0.1);
-      box-sizing: border-box;
+      border-radius: 18px;
+      padding: 22px 24px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 140px;
     }
 
-    .btn-login {
-      background: linear-gradient(135deg, #0d9488 0%, #0369a1 100%);
-      color: white;
-      font-weight: 700;
-      font-size: 14.5px;
-      border: none;
-      border-radius: 999px;
-      padding: 12px;
-      width: 100%;
-      margin-top: 18px;
-      cursor: pointer;
-      box-shadow: 0 6px 14px rgba(13, 148, 136, 0.25);
+    .category-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+      border-color: #cbd5e1;
     }
 
-    .btn-save-action {
-      background: #15803d;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 18px;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      display: inline-flex;
+    .cat-header {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 6px;
     }
 
-    .btn-add-queue { 
-      background: var(--primary); 
-      color: white; 
-      border: none; 
-      border-radius: 8px; 
-      padding: 10px; 
-      font-size: 13.5px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      width: 100%; 
-      margin-top: 10px; 
+    .cat-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
     }
 
-    .search-box-wrapper { position: relative; }
-    .search-dropdown { 
-      position: absolute; 
-      top: 100%; 
-      left: 0; 
-      right: 0; 
-      background: white; 
-      border: 1.5px solid var(--primary); 
-      border-top: none; 
-      border-radius: 0 0 10px 10px; 
-      max-height: 200px; 
-      overflow-y: auto; 
-      z-index: 100; 
-      box-shadow: 0 12px 24px rgba(0,0,0,0.12); 
-      display: none; 
-    }
-    .dropdown-row { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; }
-    .dropdown-row:hover { background: #f0fdfa; }
-
-    .balance-table-container {
-      flex: 1;
-      overflow: auto;
-      margin-top: 8px;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
+    .cat-badge {
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
     }
 
+    .cat-body { margin-top: 14px; }
+    .cat-title { font-size: 16px; font-weight: 800; color: #0f172a; }
+    .cat-desc { font-size: 12.5px; color: #64748b; margin-top: 4px; line-height: 1.4; }
+
+    /* Sub-panels (Mechanical, Stage views) */
+    .sub-panel { display: none; margin-top: 10px; }
+    .sub-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+    .sub-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .sub-btn:hover { background: #f0fdfa; border-color: #5eead4; color: #0f766e; }
+
+    /* Card Panels & Forms inside stages */
+    .card { background: #ffffff; padding: 18px 22px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 14px rgba(0,0,0,0.03); margin-top: 10px; }
+    label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 8px; display: block; }
+    input, select { width: 100%; padding: 10px 14px; margin-top: 4px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; background: #fff; }
+    
+    .btn-save-action { background: #15803d; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; }
+    .btn-add-queue { background: #0d9488; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+    
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #e2e8f0; padding: 9px 12px; white-space: nowrap; background-color: #fff; }
-    th { background-color: #0f172a; color: white; font-weight: 700; font-size: 13px; position: sticky; top: 0; z-index: 5; }
+    th, td { border: 1px solid #e2e8f0; padding: 9px 12px; white-space: nowrap; }
+    th { background: #0f172a; color: white; font-weight: 700; }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
-    .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .filter-btn-icon { background: #0f766e; color: #fff; border: 1px solid #5eead4; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer; }
+    /* Login Modal */
+    #loginOverlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    .login-box { background: white; width: 380px; padding: 30px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .btn-login { background: #0d9488; color: white; width: 100%; border: none; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 8px; margin-top: 16px; cursor: pointer; }
 
-    #excelFilterPopup {
-      position: absolute;
-      display: none;
-      z-index: 1000;
-      background: #ffffff;
-      border: 1.5px solid var(--primary);
-      border-radius: 10px;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.2);
-      width: 260px;
-      padding: 12px;
-    }
-    .popup-search { width: 100%; padding: 7px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12.5px; box-sizing: border-box; margin-bottom: 8px; }
-    .popup-options-list { max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px; margin-bottom: 10px; background: #fafafa; }
-    .popup-item { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 4px 2px; }
-    .popup-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; }
-    .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
-    .popup-btn-ok { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
-    .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
-
-    @media (max-width: 680px) {
-      .menu-grid { grid-template-columns: 1fr; }
-      .hero-title { font-size: 23px; }
-      .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-      .kpi-card { padding: 6px 8px; }
-      .kpi-title { font-size: 9px; }
-      .kpi-val { font-size: 15px; }
-      .kpi-icon { display: none; }
+    @media (max-width: 1024px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .category-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -410,12 +338,12 @@
 <div id="loginOverlay">
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 20px;">
-      <div style="width: 48px; height: 48px; background: #ccfbf1; color: #0d9488; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 10px auto;">🔐</div>
-      <h3 style="margin: 0; border: none; font-size: 22px; font-weight: 800; color: #0f172a; justify-content: center;">Console Portal Login</h3>
-      <p style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Piping Operations & Quality Tracking</p>
+      <div style="width: 44px; height: 44px; background: #ccfbf1; color: #0d9488; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 10px auto;">🔐</div>
+      <h3 style="margin: 0; font-size: 20px; font-weight: 800;">Console Portal Login</h3>
+      <p style="font-size: 12px; color: #64748b; margin-top: 4px;">Piping Operations & Quality Tracking</p>
     </div>
     <div>
-      <label>Select User Role:</label>
+      <label>Select Role:</label>
       <select id="loginUser">
         <option value="admin">Admin</option>
         <option value="bending">Bending</option>
@@ -429,195 +357,262 @@
       <label>Password:</label>
       <input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter') verifyLogin()">
     </div>
-    <div id="loginError" style="color: #dc2626; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; text-align: center;">
-      ⚠️ Invalid Password!
-    </div>
+    <div id="loginError" style="color: #dc2626; font-size: 12px; font-weight: bold; margin-top: 8px; display: none; text-align: center;">⚠️ Invalid Password!</div>
     <button type="button" class="btn-login" onclick="verifyLogin()">Login to Portal ➔</button>
   </div>
 </div>
 
-<!-- Main App Content -->
-<div id="appContent" style="display: none;">
-  <div class="top-navbar">
-    <div class="top-nav-title">
-      <span style="color:#2dd4bf;">✦ PIPING CONSOLE</span>
-      <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;">| Progress Tracking</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <button type="button" id="btnTopDashboard" class="btn-nav-dashboard" style="display: none;" onclick="backToHubMenu()">🖥️ Dashboard</button>
-      <button type="button" class="btn-logout" onclick="userLogout()">🚪 Logout</button>
-    </div>
-  </div>
+<!-- Main App Layout -->
+<div id="appContent" style="display: none; width: 100%; display: flex;">
 
-  <div class="container">
-    
-    <!-- ૫ મુખ્ય બટન સ્ક્રીન (Main 5 Hubs) -->
+  <!-- Left Sidebar (Reference Style) -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand-area">
+        <div class="brand-logo">✦</div>
+        <div>
+          <div class="brand-name">PIPING CONSOLE</div>
+          <div class="brand-sub">Operations Admin v2.4</div>
+        </div>
+      </div>
+
+      <div class="nav-section-label">Main Menu</div>
+      <a class="nav-item active" onclick="backToHubMenu()">
+        <span>📊</span> <span>Dashboard Overview</span>
+      </a>
+      <a class="nav-item" onclick="openCategoryHub('mechHub')">
+        <span>⚙️</span> <span>Mechanical</span>
+      </a>
+      <a class="nav-item" onclick="openCategoryHub('matHub')">
+        <span>📦</span> <span>Material</span>
+      </a>
+
+      <div class="nav-section-label">Operations</div>
+      <a class="nav-item" onclick="openCategoryHub('reportHub')">
+        <span>📈</span> <span>Report & Analytics</span>
+      </a>
+      <a class="nav-item" onclick="openCategoryHub('dataHub')">
+        <span>💾</span> <span>Data Synchronization</span>
+      </a>
+      <a class="nav-item" onclick="alert('QA/QC Module Coming Soon!')">
+        <span>🛡️</span> <span>QA/QC Module</span>
+        <span class="badge-soon">Soon</span>
+      </a>
+    </div>
+
+    <div class="user-footer">
+      <div class="user-profile">
+        <div class="avatar" id="userAvatarChar">AD</div>
+        <div class="user-details">
+          <span id="sideUserName" style="color:#ffffff; font-weight:bold; font-size:12.5px;">System Admin</span>
+          <span id="sideUserRole" style="font-size:10.5px; color:#64748b;">admin@piping.org</span>
+        </div>
+      </div>
+      <button class="btn-logout-icon" title="Logout" onclick="userLogout()">🚪</button>
+    </div>
+  </aside>
+
+  <!-- Right Main Workspace -->
+  <main class="main-workspace">
+
+    <!-- Top Action Bar -->
+    <div class="workspace-top">
+      <input type="text" class="search-input-pill" placeholder="🔍 Search spools, lines, materials or reports..." oninput="handleUniversalQuickSearch(this.value)">
+      <div class="live-status-pill">
+        <span class="live-dot"></span>
+        <span>Live Database Sync</span>
+      </div>
+    </div>
+
+    <!-- MAIN DASHBOARD VIEW -->
     <div id="hubMainMenu">
-      <div class="hero-banner">
-        <div class="hero-badge-tag"></div>
-        <h1 class="hero-title">
-          All-in-one <span>Piping Operations</span> Console
-        </h1>
-        <p class="hero-subtitle"></p>
+      <!-- Welcome Hero Banner -->
+      <div class="welcome-hero">
+        <div class="welcome-text">
+          <h2 id="heroWelcomeTitle">Welcome back, Admin!</h2>
+          <p>Here is your daily piping operations summary across all active project modules.</p>
+        </div>
+        <button class="btn-hero-action" onclick="openCategoryHub('mechHub')">Open Mechanical Spools ➔</button>
       </div>
 
-      <div class="menu-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-        
-        <!-- 1. Mechanical Hub -->
-        <button class="menu-btn" onclick="openCategoryHub('mechHub')" style="border-left: 5px solid #0d9488;">
-          <span class="check-circle" style="background:#0d9488;">⚙️</span>
+      <!-- 4 Sleek KPI Cards -->
+      <div class="kpi-row">
+        <div class="kpi-card">
           <div>
-            <div style="font-size:15px; font-weight:800; color:#0f172a;">Mechanical</div>
-            <div style="font-size:11.5px; color:#64748b; font-weight:normal;">Bending, Fit-Up, Welding, NDT, FD & Spool Tracking</div>
+            <div class="kpi-title">Total Spools</div>
+            <div class="kpi-val" id="kpiTotalSpool">0</div>
+            <div class="kpi-sub">✓ Fully registered</div>
           </div>
-        </button>
+          <div class="kpi-icon-box" style="background:#ccfbf1; color:#0f766e;">⚙️</div>
+        </div>
 
-        <!-- 2. QA/QC Hub -->
-        <button class="menu-btn" onclick="alert('QA/QC Modules Coming Soon!')" style="border-left: 5px solid #94a3b8; opacity: 0.8;">
-          <span class="check-circle" style="background:#64748b;">🛡️</span>
+        <div class="kpi-card">
           <div>
-            <div style="font-size:15px; font-weight:800; color:#0f172a;">QA/QC</div>
-            <div style="font-size:11.5px; color:#e11d48; font-weight:bold;">Coming Soon</div>
+            <div class="kpi-title">Total Joints (Weld ID)</div>
+            <div class="kpi-val" id="kpiTotalWeld">0</div>
+            <div class="kpi-sub" style="color:#0284c7;">⚡ In scope</div>
           </div>
-        </button>
+          <div class="kpi-icon-box" style="background:#e0f2fe; color:#0284c7;">📦</div>
+        </div>
 
-        <!-- 3. Material Hub -->
-        <button class="menu-btn" onclick="openCategoryHub('matHub')" style="border-left: 5px solid #0284c7;">
-          <span class="check-circle" style="background:#0284c7;">📦</span>
+        <div class="kpi-card">
           <div>
-            <div style="font-size:15px; font-weight:800; color:#0f172a;">Material</div>
-            <div style="font-size:11.5px; color:#64748b; font-weight:normal;">Line List, IGP, MIN & MTO Register</div>
+            <div class="kpi-title">Welding Completion</div>
+            <div class="kpi-val" id="kpiWeldingRate">0%</div>
+            <div class="kpi-sub" style="color:#16a34a;">↗ Progress matrix</div>
           </div>
-        </button>
+          <div class="kpi-icon-box" style="background:#f0fdf4; color:#16a34a;">🔥</div>
+        </div>
 
-        <!-- 4. Report Hub -->
-        <button class="menu-btn" onclick="openCategoryHub('reportHub')" style="border-left: 5px solid #4f46e5;">
-          <span class="check-circle" style="background:#4f46e5;">📊</span>
+        <div class="kpi-card">
           <div>
-            <div style="font-size:15px; font-weight:800; color:#0f172a;">Report</div>
-            <div style="font-size:11.5px; color:#64748b; font-weight:normal;">Daily Report, Progress & Priority Dashboards</div>
+            <div class="kpi-title">Pending NDT</div>
+            <div class="kpi-val" id="kpiPendingNdt">0 items</div>
+            <div class="kpi-sub" style="color:#eab308;">⚠️ Action required</div>
           </div>
-        </button>
+          <div class="kpi-icon-box" style="background:#fefce8; color:#ca8a04;">⚠️</div>
+        </div>
+      </div>
 
-        <!-- 5. Data Hub -->
-        <button class="menu-btn" onclick="openCategoryHub('dataHub')" style="border-left: 5px solid #7c3aed;">
-          <span class="check-circle" style="background:#7c3aed;">💾</span>
-          <div>
-            <div style="font-size:15px; font-weight:800; color:#0f172a;">Data</div>
-            <div style="font-size:11.5px; color:#64748b; font-weight:normal;">Batch Excel Update & Master Register</div>
+      <!-- 4 Department Module Hub Cards -->
+      <div class="category-grid">
+        <!-- Mechanical Operations -->
+        <div class="category-card" onclick="openCategoryHub('mechHub')">
+          <div class="cat-header">
+            <div class="cat-icon-box" style="background:#ccfbf1; color:#0f766e;">⚙️</div>
+            <span class="cat-badge" style="background:#f0fdf4; color:#16a34a;">Active Module</span>
           </div>
-        </button>
+          <div class="cat-body">
+            <div class="cat-title">Mechanical Operations</div>
+            <div class="cat-desc">Bending, Fit-Up, Welding, NDT, FD & Spool Tracking register.</div>
+          </div>
+        </div>
 
+        <!-- Material Management -->
+        <div class="category-card" onclick="openCategoryHub('matHub')">
+          <div class="cat-header">
+            <div class="cat-icon-box" style="background:#e0f2fe; color:#0284c7;">📦</div>
+            <span class="cat-badge" style="background:#eff6ff; color:#2563eb;">Active Module</span>
+          </div>
+          <div class="cat-body">
+            <div class="cat-title">Material Management</div>
+            <div class="cat-desc">Line List, IGP, MIN & MTO Register records.</div>
+          </div>
+        </div>
+
+        <!-- Reports & Analytics -->
+        <div class="category-card" onclick="openCategoryHub('reportHub')">
+          <div class="cat-header">
+            <div class="cat-icon-box" style="background:#ede9fe; color:#7c3aed;">📊</div>
+            <span class="cat-badge" style="background:#f5f3ff; color:#7c3aed;">Active Module</span>
+          </div>
+          <div class="cat-body">
+            <div class="cat-title">Reports & Analytics</div>
+            <div class="cat-desc">Daily Report, Progress & Priority Dashboards.</div>
+          </div>
+        </div>
+
+        <!-- Data Synchronization -->
+        <div class="category-card" onclick="openCategoryHub('dataHub')">
+          <div class="cat-header">
+            <div class="cat-icon-box" style="background:#fce7f3; color:#db2777;">💾</div>
+            <span class="cat-badge" style="background:#fdf2f8; color:#db2777;">Active Module</span>
+          </div>
+          <div class="cat-body">
+            <div class="cat-title">Data Synchronization</div>
+            <div class="cat-desc">Batch Excel Update & Master Register synchronization.</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Sub-Category: Mechanical Panel -->
-    <div id="mechHub" class="sub-category-panel" style="display: none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <h3 style="margin:0; border:none; color:#0d9488;">⚙️ 1. Mechanical Workflows</h3>
-        <button type="button" class="btn-nav-dashboard" onclick="backToHubMenu()">⬅️ Main Menu</button>
+    <!-- SUB-PANEL: Mechanical -->
+    <div id="mechHub" class="sub-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#0f766e;">⚙️ Mechanical Workflows</h3>
+        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
-      <div class="menu-grid">
-        <button class="menu-btn" onclick="openStage('bending_issue')"><span class="check-circle">01</span><span>Issued for Bending</span></button>
-        <button class="menu-btn" onclick="openStage('bend_entry')"><span class="check-circle">02</span><span>Bend Completed</span></button>
-        <button class="menu-btn" onclick="openStage('fitup_entry')"><span class="check-circle">03</span><span>Fit Up Completed</span></button>
-        <button class="menu-btn" onclick="openStage('weld_visual')"><span class="check-circle">04</span><span>Weld Visual Completed</span></button>
-        <button class="menu-btn" onclick="openStage('ndt_clearance')"><span class="check-circle">05</span><span>NDT Clearance</span></button>
-        <button class="menu-btn" onclick="openStage('fd')"><span class="check-circle">06</span><span>FD & Dispatch DC No</span></button>
-        <button class="menu-btn" onclick="window.location.href='spool_tracking.html'"><span class="check-circle" style="background:#d97706;">🔍</span><span>Live Spool Tracker</span></button>
-      </div>
-    </div>
-
-    <!-- Sub-Category: Material Panel -->
-    <div id="matHub" class="sub-category-panel" style="display: none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <h3 style="margin:0; border:none; color:#0284c7;">📦 3. Material Management</h3>
-        <button type="button" class="btn-nav-dashboard" onclick="backToHubMenu()">⬅️ Main Menu</button>
-      </div>
-      <div class="menu-grid">
-        <button class="menu-btn" id="btnLineMatHub" style="display:none;" onclick="window.location.href='line_material.html'"><span class="check-circle">📑</span><span>Line List & Material</span></button>
-        <button class="menu-btn" id="btnIgpUpdateHub" style="display:none;" onclick="window.location.href='igp_update.html'"><span class="check-circle">📦</span><span>IGP Update</span></button>
-        <button class="menu-btn" id="btnMinUpdateHub" style="display:none;" onclick="window.location.href='min_update.html'"><span class="check-circle">📋</span><span>MIN Update</span></button>
-        <button class="menu-btn" onclick="window.location.href='mto_register.html'"><span class="check-circle" style="background:#0d9488;">📑</span><span>MTO Register</span></button>
+      <div class="sub-menu-grid">
+        <button class="sub-btn" onclick="openStage('bending_issue')"><span>01</span><span>Issued for Bending</span></button>
+        <button class="sub-btn" onclick="openStage('bend_entry')"><span>02</span><span>Bend Completed</span></button>
+        <button class="sub-btn" onclick="openStage('fitup_entry')"><span>03</span><span>Fit Up Completed</span></button>
+        <button class="sub-btn" onclick="openStage('weld_visual')"><span>04</span><span>Weld Visual Completed</span></button>
+        <button class="sub-btn" onclick="openStage('ndt_clearance')"><span>05</span><span>NDT Clearance</span></button>
+        <button class="sub-btn" onclick="openStage('fd')"><span>06</span><span>FD & Dispatch DC No</span></button>
+        <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#fffbeb; color:#b45309;" onclick="window.location.href='spool_tracking.html'"><span>🔍</span><span>Live Spool Tracker</span></button>
       </div>
     </div>
 
-    <!-- Sub-Category: Report Panel -->
-    <div id="reportHub" class="sub-category-panel" style="display: none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <h3 style="margin:0; border:none; color:#4f46e5;">📊 4. Reports & Dashboards</h3>
-        <button type="button" class="btn-nav-dashboard" onclick="backToHubMenu()">⬅️ Main Menu</button>
+    <!-- SUB-PANEL: Material -->
+    <div id="matHub" class="sub-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#0284c7;">📦 Material Management</h3>
+        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
-      <div class="menu-grid">
-        <button class="menu-btn" onclick="window.location.href='daily_report.html'"><span class="check-circle">📅</span><span>Daily Progress Report</span></button>
-        <button class="menu-btn" onclick="window.location.href='progress_dashboard.html'"><span class="check-circle" style="background:#4f46e5;">📈</span><span>Progress Dashboard</span></button>
-        <button class="menu-btn" onclick="window.location.href='priority_dashboard.html'"><span class="check-circle" style="background:#e11d48;">🔥</span><span>Priority Spools Dashboard</span></button>
-      </div>
-    </div>
-
-    <!-- Sub-Category: Data Panel -->
-    <div id="dataHub" class="sub-category-panel" style="display: none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <h3 style="margin:0; border:none; color:#7c3aed;">💾 5. Data Registers & Updates</h3>
-        <button type="button" class="btn-nav-dashboard" onclick="backToHubMenu()">⬅️ Main Menu</button>
-      </div>
-      <div class="menu-grid">
-        <button class="menu-btn" id="btnDataUpdateHub" style="display:none;" onclick="window.location.href='data_update.html'"><span class="check-circle" style="background:#7c3aed;">🔄</span><span>Batch Excel Update</span></button>
-        <button class="menu-btn" onclick="window.location.href='master_register.html'"><span class="check-circle" style="background:#0f766e;">📊</span><span>Open Master Register Full View</span></button>
+      <div class="sub-menu-grid">
+        <button class="sub-btn" id="btnLineMatHub" style="display:none;" onclick="window.location.href='line_material.html'"><span>📑</span><span>Line List & Material</span></button>
+        <button class="sub-btn" id="btnIgpUpdateHub" style="display:none;" onclick="window.location.href='igp_update.html'"><span>📦</span><span>IGP Update</span></button>
+        <button class="sub-btn" id="btnMinUpdateHub" style="display:none;" onclick="window.location.href='min_update.html'"><span>📋</span><span>MIN Update</span></button>
+        <button class="sub-btn" onclick="window.location.href='mto_register.html'"><span>📑</span><span>MTO Register</span></button>
       </div>
     </div>
 
-    <!-- Active Stage Screen (Bending, Fitup, Weld, NDT, FD Entry) -->
+    <!-- SUB-PANEL: Report -->
+    <div id="reportHub" class="sub-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#4f46e5;">📊 Reports & Analytics</h3>
+        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
+      </div>
+      <div class="sub-menu-grid">
+        <button class="sub-btn" onclick="window.location.href='daily_report.html'"><span>📅</span><span>Daily Progress Report</span></button>
+        <button class="sub-btn" onclick="window.location.href='progress_dashboard.html'"><span>📈</span><span>Progress Dashboard</span></button>
+        <button class="sub-btn" onclick="window.location.href='priority_dashboard.html'"><span>🔥</span><span>Priority Spools Dashboard</span></button>
+      </div>
+    </div>
+
+    <!-- SUB-PANEL: Data -->
+    <div id="dataHub" class="sub-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">💾 Data Registers & Updates</h3>
+        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
+      </div>
+      <div class="sub-menu-grid">
+        <button class="sub-btn" id="btnDataUpdateHub" style="display:none;" onclick="window.location.href='data_update.html'"><span>🔄</span><span>Batch Excel Update</span></button>
+        <button class="sub-btn" onclick="window.location.href='master_register.html'"><span>📊</span><span>Open Master Register Full View</span></button>
+      </div>
+    </div>
+
+    <!-- STAGE OPERATION SCREEN -->
     <div id="stageContainer" style="display: none;">
       <div class="card">
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div>
-              <div class="kpi-title">Balance Spools</div>
-              <div class="kpi-val" id="metricSpools">0</div>
-            </div>
-            <div class="kpi-icon" style="background:#eff6ff; color:#3b82f6;">📦</div>
-          </div>
-          <div class="kpi-card">
-            <div>
-              <div class="kpi-title">Balance Weld ID</div>
-              <div class="kpi-val" id="metricWelds">0</div>
-            </div>
-            <div class="kpi-icon" style="background:#fef2f2; color:#ef4444;">⚡</div>
-          </div>
-          <div class="kpi-card">
-            <div>
-              <div class="kpi-title">Current Queue</div>
-              <div class="kpi-val" id="metricQueueCount">0</div>
-            </div>
-            <div class="kpi-icon" style="background:#f0fdf4; color:#15803d;">📋</div>
-          </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 id="stageTitle" style="margin:0;">Stage Title</h3>
+          <button class="btn-hero-action" style="background:#0f172a; color:#fff; padding:6px 14px;" onclick="openCategoryHub('mechHub')">⬅️ Back to Mechanical</button>
         </div>
 
-        <h3 id="stageTitle">Stage Title</h3>
-        <label id="spoolSearchLabel">Spool Unique Number:</label>
-        <div class="search-box-wrapper">
+        <label id="spoolSearchLabel" style="margin-top:14px;">Spool Unique Number:</label>
+        <div style="position:relative;">
           <input type="text" id="spoolSearch" placeholder="Type spool no..." oninput="handleSearchInput()" autocomplete="off">
-          <div id="searchDropdown" class="search-dropdown"></div>
+          <div id="searchDropdown" style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #0d9488; max-height:200px; overflow-y:auto; z-index:100; display:none;"></div>
         </div>
-        <div id="itemEditForm" class="edit-form-box" style="display:none; background:#f8fafc; border:1.5px solid #99f6e4; border-radius:10px; padding:14px; margin-top:10px;">
-          <div style="font-weight: bold; color: #0f766e; margin-bottom: 6px;">📝 Edit Details:</div>
-          <div style="display:grid; grid-template-columns:1fr; gap:8px;">
-            <div><label style="margin-top:0;">Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
-            <div><label style="margin-top:0;">Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
-            <div id="dynamicFormFields"></div>
-          </div>
+
+        <div id="itemEditForm" style="display:none; background:#f8fafc; border:1px solid #99f6e4; border-radius:10px; padding:14px; margin-top:10px;">
+          <div style="font-weight: bold; color: #0f766e;">📝 Edit Details:</div>
+          <div><label>Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
+          <div><label>Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
+          <div id="dynamicFormFields"></div>
           <input type="hidden" id="form_item_id">
           <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Selected List</button>
         </div>
+
         <div id="selectedCardArea" style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">Selected Spools (<span id="queueCount">0</span>)</span>
             <button type="button" class="btn-save-action" id="btnSaveAction" onclick="submitCurrentStage()">💾 <span id="btnSaveLabel">SAVE ENTRY</span></button>
           </div>
           <div id="customInputsArea" style="margin-bottom: 12px;"></div>
-          <div class="selected-table-container" style="border: 1px solid #0f172a; border-radius: 8px; overflow-x: auto;">
-            <table class="selected-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+          <div style="border: 1px solid #0f172a; border-radius: 8px; overflow-x: auto;">
+            <table style="width:100%; font-size:12px;">
               <thead id="selectedTableHead"></thead>
               <tbody id="selectedTableBody"></tbody>
             </table>
@@ -626,19 +621,16 @@
       </div>
 
       <div class="card" style="margin-top: 12px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="margin: 0; border: none; color: #0f766e;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
-          <button type="button" style="padding: 5px 12px; border-radius:999px; background:#e2e8f0; border:none; font-weight:bold; cursor:pointer;" onclick="clearAllBalanceFilters()">🔄 Clear All Filters</button>
-        </div>
-        <div class="balance-table-container">
+        <h3 style="margin: 0; color: #0f766e;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
+        <div style="overflow-x:auto; margin-top:10px; max-height:45vh;">
           <table>
             <thead>
               <tr style="background:#0f172a; color:white;">
-                <th><div class="header-cell"><span>Drawing No</span><button class="filter-btn-icon" onclick="openExcelFilter(event, 'Drawing_no')">🔽</button></div></th>
-                <th><div class="header-cell"><span>Spool Unique No</span><button class="filter-btn-icon" onclick="openExcelFilter(event, 'Spool_number')">🔽</button></div></th>
-                <th><div class="header-cell"><span>Spool Size</span><button class="filter-btn-icon" onclick="openExcelFilter(event, 'Spool_size')">🔽</button></div></th>
-                <th><div class="header-cell"><span>WELD ID</span><button class="filter-btn-icon" onclick="openExcelFilter(event, 'Weld_id')">🔽</button></div></th>
-                <th><div class="header-cell"><span>BEND QTY</span><button class="filter-btn-icon" onclick="openExcelFilter(event, 'Bend_qty')">🔽</button></div></th>
+                <th>Drawing No</th>
+                <th>Spool Unique No</th>
+                <th>Spool Size</th>
+                <th>WELD ID</th>
+                <th>BEND QTY</th>
               </tr>
             </thead>
             <tbody id="stageBalanceTableBody"></tbody>
@@ -646,21 +638,8 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Floating Excel Filter Modal -->
-<div id="excelFilterPopup">
-  <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
-  <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
-    <input type="checkbox" id="popupSelectAll" onchange="togglePopupSelectAll(this.checked)">
-    <label for="popupSelectAll" style="font-size: 12px; font-weight: bold; margin: 0; cursor: pointer;">(Select All)</label>
-  </div>
-  <div id="popupOptionsList" class="popup-options-list"></div>
-  <div class="popup-actions">
-    <button type="button" class="popup-btn-ok" onclick="applyPopupFilter()">OK</button>
-    <button type="button" class="popup-btn-clear" onclick="clearCurrentPopupFilter()">Clear</button>
-  </div>
+  </main>
 </div>
 
 <script>
@@ -674,215 +653,156 @@
   };
 
   let currentUser = null;
+  const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  function updateDashboardUIForRole() {
-    if (!currentUser) return;
-    const isAdmin = currentUser.username === 'admin';
-
-    const btnUpdateHub = document.getElementById('btnDataUpdateHub');
-    if (btnUpdateHub) btnUpdateHub.style.display = isAdmin ? 'flex' : 'none';
-
-    const btnIgpHub = document.getElementById('btnIgpUpdateHub');
-    const btnMinHub = document.getElementById('btnMinUpdateHub');
-    if (btnIgpHub) btnIgpHub.style.display = isAdmin ? 'flex' : 'none';
-    if (btnMinHub) btnMinHub.style.display = isAdmin ? 'flex' : 'none';
-
-    const btnLineMat = document.getElementById('btnLineMatHub');
-    if (btnLineMat) btnLineMat.style.display = isAdmin ? 'flex' : 'none';
-  }
+  let allRecordsCache = [];
+  let currentStage = '';
+  let selectedQueue = [];
+  let cumulativeRows = [];
 
   function checkSessionAuth() {
     const sessionData = sessionStorage.getItem('piping_app_auth');
     if (sessionData) {
       currentUser = JSON.parse(sessionData);
       document.getElementById('loginOverlay').style.display = 'none';
-      document.getElementById('appContent').style.display = 'block';
-      document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
-      updateDashboardUIForRole();
+      document.getElementById('appContent').style.display = 'flex';
+      
+      document.getElementById('sideUserName').innerText = currentUser.name;
+      document.getElementById('sideUserRole').innerText = `${currentUser.username}@piping.org`;
+      document.getElementById('heroWelcomeTitle').innerText = `Welcome back, ${currentUser.name}!`;
+      document.getElementById('userAvatarChar').innerText = currentUser.name.substring(0,2).toUpperCase();
+
+      updateRoleVisibility();
+      loadTopDashboardMetrics();
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
-      document.getElementById('loginPass').focus();
     }
   }
 
   function verifyLogin() {
     const u = document.getElementById('loginUser').value.trim().toLowerCase();
     const p = document.getElementById('loginPass').value.trim();
-    const err = document.getElementById('loginError');
-
     if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
       currentUser = { username: u, ...USER_ROLES[u] };
       sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
-      err.style.display = 'none';
-      document.getElementById('loginOverlay').style.display = 'none';
-      document.getElementById('appContent').style.display = 'block';
-      document.getElementById('loginPass').value = '';
-      document.getElementById('navSubTitle').innerText = `| ${currentUser.name}`;
-      updateDashboardUIForRole();
+      document.getElementById('loginError').style.display = 'none';
+      checkSessionAuth();
     } else {
-      err.style.display = 'block';
+      document.getElementById('loginError').style.display = 'block';
     }
   }
 
   function userLogout() {
-    if (confirm("શું તમે ખરેખર Logout કરવા માંગો છો?")) {
+    if (confirm("Logout કરવા માંગો છો?")) {
       sessionStorage.removeItem('piping_app_auth');
       currentUser = null;
       checkSessionAuth();
     }
   }
 
-  window.addEventListener('DOMContentLoaded', checkSessionAuth);
+  function updateRoleVisibility() {
+    if (!currentUser) return;
+    const isAdmin = currentUser.username === 'admin';
+    const btnDataUpdate = document.getElementById('btnDataUpdateHub');
+    const btnIgp = document.getElementById('btnIgpUpdateHub');
+    const btnMin = document.getElementById('btnMinUpdateHub');
+    const btnLine = document.getElementById('btnLineMatHub');
 
-  const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
+    if (btnIgp) btnIgp.style.display = isAdmin ? 'flex' : 'none';
+    if (btnMin) btnMin.style.display = isAdmin ? 'flex' : 'none';
+    if (btnLine) btnLine.style.display = isAdmin ? 'flex' : 'none';
+  }
 
-  let currentStage = '';
-  let cumulativeRows = [];
-  let stageFilteredRows = [];
-  let activeBalanceDisplayRows = [];
-  let selectedQueue = [];
-  let balanceColumnFilters = {};
-  let currentPopupContext = { colKey: '', allValues: [] };
+  async function loadTopDashboardMetrics() {
+    if (allRecordsCache.length === 0) {
+      const { data } = await db.from('piping_joints').select('*').limit(5000);
+      allRecordsCache = data || [];
+    }
+
+    const totalSpools = new Set(allRecordsCache.map(r => r.Spool_number).filter(Boolean)).size;
+    let weldSum = 0;
+    allRecordsCache.forEach(r => {
+      const v = r.Weld_id || r.Joint_no;
+      if (v) { const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); if (!isNaN(n)) weldSum += n; }
+    });
+
+    const weldedRows = allRecordsCache.filter(r => r.Weld_visual_date);
+    const weldPct = totalSpools > 0 ? ((new Set(weldedRows.map(r => r.Spool_number)).size / totalSpools) * 100).toFixed(1) : 0;
+    const pendingNdtRows = allRecordsCache.filter(r => r.Weld_visual_date && !r.Ndt_clearance);
+
+    document.getElementById('kpiTotalSpool').innerText = totalSpools;
+    document.getElementById('kpiTotalWeld').innerText = Number.isInteger(weldSum) ? weldSum : weldSum.toFixed(2);
+    document.getElementById('kpiWeldingRate').innerText = `${weldPct}%`;
+    document.getElementById('kpiPendingNdt').innerText = `${pendingNdtRows.length} items`;
+  }
 
   function openCategoryHub(hubId) {
     document.getElementById('hubMainMenu').style.display = 'none';
-    document.querySelectorAll('.sub-category-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
     document.getElementById('stageContainer').style.display = 'none';
-    
-    const selectedPanel = document.getElementById(hubId);
-    if (selectedPanel) selectedPanel.style.display = 'block';
-    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
+
+    const panel = document.getElementById(hubId);
+    if (panel) panel.style.display = 'block';
   }
 
   function backToHubMenu() {
-    closeExcelPopup();
-    document.querySelectorAll('.sub-category-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('hubMainMenu').style.display = 'block';
-    document.getElementById('btnTopDashboard').style.display = 'none';
-    document.getElementById('navSubTitle').innerText = currentUser ? `| ${currentUser.name}` : '| Progress Tracking';
   }
 
-  function calculateWeldSum(rows) {
-    let sum = 0;
-    rows.forEach(r => {
-      const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
-      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
-        const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
-        const num = parseFloat(cleaned);
-        if (!isNaN(num)) sum += num;
-      }
-    });
-    return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
-  }
-
+  /* STAGE OPERATIONS */
   async function openStage(stage) {
-    closeExcelPopup();
     currentStage = stage;
     selectedQueue = [];
     document.getElementById('hubMainMenu').style.display = 'none';
-    document.querySelectorAll('.sub-category-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
     document.getElementById('itemEditForm').style.display = 'none';
-    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
-
     document.getElementById('stageContainer').style.display = 'block';
+
     setupStageUI(stage);
     renderSelectedTable();
     await loadStageData(stage);
-    enforceRolePermissions(stage);
-  }
-
-  function enforceRolePermissions(stage) {
-    if (!currentUser) return;
-    const isAllowed = currentUser.allowed.includes("all") || currentUser.allowed.includes(stage);
-    const searchInput = document.getElementById('spoolSearch');
-    const saveBtn = document.getElementById('btnSaveAction');
-    const selectedArea = document.getElementById('selectedCardArea');
-    const editForm = document.getElementById('itemEditForm');
-
-    if (!isAllowed) {
-      if (searchInput) { searchInput.disabled = true; searchInput.value = ''; searchInput.placeholder = `🔒 View Only Mode`; }
-      if (saveBtn) saveBtn.style.display = 'none';
-      if (selectedArea) selectedArea.style.display = 'none';
-      if (editForm) editForm.style.display = 'none';
-    } else {
-      if (searchInput) { searchInput.disabled = false; searchInput.placeholder = 'Type spool no...'; }
-      if (saveBtn) saveBtn.style.display = 'inline-flex';
-      if (selectedArea) selectedArea.style.display = 'block';
-    }
   }
 
   function setupStageUI(stage) {
     const title = document.getElementById('stageTitle');
     const customArea = document.getElementById('customInputsArea');
-    const queueHeading = document.getElementById('queueHeading');
     const btnSaveLabel = document.getElementById('btnSaveLabel');
-    const searchLabel = document.getElementById('spoolSearchLabel');
     customArea.innerHTML = '';
 
     if (stage === 'bending_issue') {
       title.innerText = '1. ISSUED FOR BENDING ENTRY';
-      document.getElementById('navSubTitle').innerText = '| Stage: ISSUED FOR BENDING';
-      searchLabel.innerText = 'Search & Select Spool for Bending:';
-      queueHeading.innerHTML = 'Selected Spools for Bending (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE BENDING ENTRY';
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Bending Issue Date:</label><input type="date" id="input_date" required></div>`;
-    } 
-    else if (stage === 'bend_entry') {
+      customArea.innerHTML = `<label>Bending Issue Date:</label><input type="date" id="input_date" required>`;
+    } else if (stage === 'bend_entry') {
       title.innerText = '2. BEND ENTRY MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: BEND COMPLETED';
-      searchLabel.innerText = 'Search & Select Spool for Bend Complete:';
-      queueHeading.innerHTML = 'Selected Spools for Bend (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE BEND ENTRY';
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Bend Date:</label><input type="date" id="input_date" required></div>`;
-    }
-    else if (stage === 'fitup_entry') {
+      customArea.innerHTML = `<label>Bend Date:</label><input type="date" id="input_date" required>`;
+    } else if (stage === 'fitup_entry') {
       title.innerText = '3. FIT UP COMPLETED MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: FIT-UP COMPLETED';
-      searchLabel.innerText = 'Search & Select Spool for Fit-Up:';
-      queueHeading.innerHTML = 'Selected Spools for Fit-Up (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE FIT-UP COMPLETED';
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Fit-Up Completed Date:</label><input type="date" id="input_date" required></div>`;
-    }
-    else if (stage === 'weld_visual') {
+      customArea.innerHTML = `<label>Fit-Up Date:</label><input type="date" id="input_date" required>`;
+    } else if (stage === 'weld_visual') {
       title.innerText = '4. WELD VISUAL COMPLETED MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: WELD VISUAL COMPLETED';
-      searchLabel.innerText = 'Search & Select Spool:';
-      queueHeading.innerHTML = 'Selected Spools (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE VISUAL COMPLETED';
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Weld Visual Date:</label><input type="date" id="input_date" required></div>`;
-    }
-    else if (stage === 'ndt_clearance') {
+      customArea.innerHTML = `<label>Visual Date:</label><input type="date" id="input_date" required>`;
+    } else if (stage === 'ndt_clearance') {
       title.innerText = '5. NDT CLEARANCE MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: NDT CLEARANCE';
-      searchLabel.innerText = 'Search & Select Spool for NDT:';
-      queueHeading.innerHTML = 'Selected Spools for NDT (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE NDT ENTRY';
-      customArea.innerHTML = `<div style="max-width: 250px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">NDT Clearance Date:</label><input type="date" id="input_date" required></div>`;
-    }
-    else if (stage === 'fd') {
+      customArea.innerHTML = `<label>NDT Clearance Date:</label><input type="date" id="input_date" required>`;
+    } else if (stage === 'fd') {
       title.innerText = '6. FINAL DISPATCH & DC NO MODULE';
-      document.getElementById('navSubTitle').innerText = '| Stage: FINAL DISPATCH & DC NO';
-      searchLabel.innerText = 'Search & Select Spool for DC:';
-      queueHeading.innerHTML = 'Selected Spools for DC (<span id="queueCount">0</span>)';
       btnSaveLabel.innerText = 'SAVE DC ENTRY';
-      customArea.innerHTML = `
-        <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
-          <div style="width: 240px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">DC No (e.g. AEPL-08):</label><input type="text" id="input_dc_no" placeholder="Enter DC No" required></div>
-          <div style="width: 200px;"><label style="margin-top:0; font-size:12px; color:#1e293b;">Dispatch Date:</label><input type="date" id="input_date" required></div>
-        </div>
-      `;
+      customArea.innerHTML = `<label>DC No:</label><input type="text" id="input_dc_no" required><label>Dispatch Date:</label><input type="date" id="input_date" required>`;
     }
   }
 
   async function loadStageData(stage) {
-    document.getElementById('metricSpools').innerText = '...';
-    document.getElementById('metricWelds').innerText = '...';
-    document.getElementById('stageBalanceTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#0d9488;">⏳ Loading...</td></tr>';
-
     let query = db.from('piping_joints').select('*');
     if (stage === 'bending_issue') query = query.is('Bend_date', null).is('Issued_for_bending', null);
     else if (stage === 'bend_entry') query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
@@ -891,273 +811,15 @@
     else if (stage === 'ndt_clearance') query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
     else if (stage === 'fd') query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
 
-    const { data, error } = await query.order('id', { ascending: true }).limit(5000);
-    if (error) return alert("Error loading data: " + error.message);
-
+    const { data } = await query.order('id', { ascending: true }).limit(2000);
     cumulativeRows = data || [];
-    balanceColumnFilters = {};
-    stageFilteredRows = cumulativeRows;
-    applyBalanceDataFilters();
-    updateMetrics();
+    renderBalanceTable();
   }
 
-  function updateMetrics() {
-    const cumSpools = new Set(cumulativeRows.map(r => r.Spool_number || r.spool_number).filter(Boolean));
-    const cumWeldSum = calculateWeldSum(cumulativeRows);
-
-    document.getElementById('metricSpools').innerText = cumSpools.size;
-    document.getElementById('metricWelds').innerText = cumWeldSum;
-    const qEl = document.getElementById('metricQueueCount');
-    if (qEl) qEl.innerText = selectedQueue.length;
-    
-    const tblTotal = document.getElementById('tableTotalCount');
-    if (tblTotal) tblTotal.innerText = activeBalanceDisplayRows.length;
-  }
-
-  function handleSearchInput() {
-    const term = document.getElementById('spoolSearch').value.trim().toLowerCase();
-    const dropdown = document.getElementById('searchDropdown');
-    if (!term) { dropdown.style.display = 'none'; return; }
-
-    const matched = stageFilteredRows.filter(r => {
-      const spl = String(r.Spool_number || '').toLowerCase();
-      const dwg = String(r.Drawing_no || '').toLowerCase();
-      const wld = String(r.Weld_id || '').toLowerCase();
-      return spl.includes(term) || dwg.includes(term) || wld.includes(term);
-    }).slice(0, 35);
-
-    if (matched.length === 0) {
-      dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:13px; text-align:center;">No Spools Found</div>';
-      dropdown.style.display = 'block';
-      return;
-    }
-
-    dropdown.innerHTML = matched.map(r => `
-      <div class="dropdown-row" onclick="onSpoolSelect(${r.id})">
-        <div>
-          <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
-          <span style="font-size: 11px; color: #0d9488; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
-        </div>
-        <span style="color: #475569; font-size: 11.5px;">${r.Drawing_no || '-'}</span>
-      </div>
-    `).join('');
-    dropdown.style.display = 'block';
-  }
-
-  function onSpoolSelect(id) {
-    if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
-      return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સિલેક્ટ અથવા સેવ કરવાની પરમિશન નથી!");
-    }
-    if (selectedQueue.some(x => x.id === id)) return alert("⚠️ આ સ્પૂલ પહેલેથી નીચેના લિસ્ટમાં ઉમેરેલું છે!");
-
-    const item = stageFilteredRows.find(x => x.id === id);
-    if (!item) return;
-
-    document.getElementById('spoolSearch').value = '';
-    document.getElementById('searchDropdown').style.display = 'none';
-
-    const isDirectStage = ['bending_issue', 'fitup_entry', 'weld_visual', 'ndt_clearance', 'fd'].includes(currentStage);
-    if (isDirectStage) {
-      selectedQueue.push(item);
-      document.getElementById('itemEditForm').style.display = 'none';
-      renderSelectedTable();
-      document.getElementById('spoolSearch').focus();
-      return;
-    }
-
-    document.getElementById('itemEditForm').style.display = 'block';
-    document.getElementById('form_item_id').value = item.id;
-    document.getElementById('form_spool_no').value = item.Spool_number || '';
-    document.getElementById('form_drawing_no').value = item.Drawing_no || '';
-
-    const dynArea = document.getElementById('dynamicFormFields');
-    dynArea.innerHTML = '';
-
-    if (currentStage === 'bend_entry') {
-      dynArea.innerHTML = `
-        <div><label style="margin-top:0; color:#0f766e;">BEND QTY (Editable):</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || ''}" style="border-color:#14b8a6; font-weight:bold;"></div>
-        <div><label style="margin-top:0; color:#0f766e;">WELD ID (Editable):</label><input type="text" id="form_weld_id" value="${item.Weld_id || ''}" style="border-color:#14b8a6; font-weight:bold;"></div>
-      `;
-    }
-  }
-
-  function confirmAddFormToQueue() {
-    const id = parseInt(document.getElementById('form_item_id').value);
-    const item = stageFilteredRows.find(x => x.id === id);
-    if (!item) return;
-
-    let extraData = {};
-    if (currentStage === 'bend_entry') {
-      extraData.final_bend_qty = document.getElementById('form_bend_qty').value.trim();
-      extraData.final_weld_id = document.getElementById('form_weld_id').value.trim();
-    }
-
-    selectedQueue.push({ ...item, ...extraData });
-    document.getElementById('itemEditForm').style.display = 'none';
-    renderSelectedTable();
-    document.getElementById('spoolSearch').focus();
-  }
-
-  function removeSpoolFromQueue(id) {
-    selectedQueue = selectedQueue.filter(x => x.id !== id);
-    renderSelectedTable();
-  }
-
-  function renderSelectedTable() {
-    const thead = document.getElementById('selectedTableHead');
-    const tbody = document.getElementById('selectedTableBody');
-    const cnt = document.getElementById('queueCount');
-    if (cnt) cnt.innerText = selectedQueue.length;
-
-    if (currentStage === 'bend_entry') {
-      thead.innerHTML = `<tr><th style="width:40px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th>Bend Qty</th><th>Weld ID</th><th style="text-align:center; width:90px;">Action</th></tr>`;
-    } else {
-      thead.innerHTML = `<tr><th style="width:50px; text-align:center;">Sr.</th><th>Spool Unique No</th><th>ISO No / Drawing No</th><th style="text-align:center; width:100px;">Action</th></tr>`;
-    }
-
-    if (selectedQueue.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 14px;">No spools selected.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = selectedQueue.map((r, idx) => {
-      let customCol = '';
-      if (currentStage === 'bend_entry') {
-        customCol = `<td style="font-weight:bold; color:#166534;">${r.final_bend_qty !== undefined ? r.final_bend_qty : (r.Bend_qty || '-')}</td><td style="font-weight:bold; color:#0d9488;">${r.final_weld_id !== undefined ? r.final_weld_id : (r.Weld_id || '-')}</td>`;
-      }
-
-      return `
-        <tr>
-          <td style="text-align: center; font-weight: 600;">${idx + 1}</td>
-          <td style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</td>
-          <td style="color: #334155;">${r.Drawing_no || '-'}</td>
-          ${customCol}
-          <td style="text-align: center;"><button type="button" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 10px; font-weight:bold; cursor:pointer;" onclick="removeSpoolFromQueue(${r.id})">✕ Remove</button></td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  function openExcelFilter(e, colKey) {
-    e.stopPropagation();
-    const popup = document.getElementById('excelFilterPopup');
-    const rect = e.target.getBoundingClientRect();
-    let top = rect.bottom + window.scrollY + 6;
-    let left = rect.left + window.scrollX - 100;
-    if (left + 270 > window.innerWidth) left = window.innerWidth - 280;
-    if (left < 10) left = 10;
-
-    popup.style.top = `${top}px`;
-    popup.style.left = `${left}px`;
-    popup.style.display = 'block';
-
-    currentPopupContext.colKey = colKey;
-
-    const sourceRows = stageFilteredRows.filter(r => {
-      for (const [filterCol, allowedSet] of Object.entries(balanceColumnFilters)) {
-        if (filterCol === colKey) continue;
-        let val = r[filterCol] !== undefined ? r[filterCol] : '';
-        val = String(val || '').trim();
-        const displayVal = val === '' ? '(Blank)' : val;
-        if (!allowedSet.has(displayVal)) return false;
-      }
-      return true;
-    });
-
-    const valueMap = new Map();
-    sourceRows.forEach(r => {
-      let val = r[colKey] !== undefined ? r[colKey] : '';
-      if (val === null || val === undefined) val = '';
-      val = String(val).trim();
-      let displayVal = val === '' ? '(Blank)' : val;
-      valueMap.set(displayVal, (valueMap.get(displayVal) || 0) + 1);
-    });
-
-    const distinctSorted = Array.from(valueMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-    currentPopupContext.allValues = distinctSorted;
-
-    const currentSelectedSet = balanceColumnFilters[colKey] || null;
-    document.getElementById('popupSearchInput').value = '';
-    renderPopupCheckboxes(distinctSorted, currentSelectedSet);
-  }
-
-  function renderPopupCheckboxes(items, selectedSet) {
-    const container = document.getElementById('popupOptionsList');
-    container.innerHTML = items.map(([val, count], idx) => {
-      const isChecked = selectedSet === null || selectedSet.has(val);
-      return `
-        <div class="popup-item">
-          <input type="checkbox" id="chk_opt_${idx}" value="${escapeHtml(val)}" ${isChecked ? 'checked' : ''}>
-          <label for="chk_opt_${idx}" style="cursor:pointer; font-size:12px; margin:0;">${escapeHtml(val)} <span style="color:#64748b;">(${count})</span></label>
-        </div>
-      `;
-    }).join('');
-    document.getElementById('popupSelectAll').checked = items.every(([val]) => selectedSet === null || selectedSet.has(val));
-  }
-
-  function onPopupSearch(term) {
-    const q = term.toLowerCase().trim();
-    const filtered = currentPopupContext.allValues.filter(([val]) => val.toLowerCase().includes(q));
-    const currentSelectedSet = balanceColumnFilters[currentPopupContext.colKey] || null;
-    renderPopupCheckboxes(filtered, currentSelectedSet);
-  }
-
-  function togglePopupSelectAll(checked) {
-    document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(chk => { chk.checked = checked; });
-  }
-
-  function applyPopupFilter() {
-    const selected = new Set();
-    document.querySelectorAll('#popupOptionsList input[type="checkbox"]').forEach(c => { if (c.checked) selected.add(c.value); });
-    const { colKey, allValues } = currentPopupContext;
-
-    if (selected.size === allValues.length) delete balanceColumnFilters[colKey];
-    else balanceColumnFilters[colKey] = selected;
-
-    closeExcelPopup();
-    applyBalanceDataFilters();
-  }
-
-  function clearCurrentPopupFilter() {
-    delete balanceColumnFilters[currentPopupContext.colKey];
-    closeExcelPopup();
-    applyBalanceDataFilters();
-  }
-
-  function closeExcelPopup() {
-    document.getElementById('excelFilterPopup').style.display = 'none';
-  }
-
-  function escapeHtml(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
-
-  function applyBalanceDataFilters() {
-    activeBalanceDisplayRows = stageFilteredRows.filter(r => {
-      for (const [colKey, allowedSet] of Object.entries(balanceColumnFilters)) {
-        let val = r[colKey] !== undefined ? r[colKey] : '';
-        val = String(val || '').trim();
-        const displayVal = val === '' ? '(Blank)' : val;
-        if (!allowedSet.has(displayVal)) return false;
-      }
-      return true;
-    });
-    document.getElementById('tableTotalCount').innerText = activeBalanceDisplayRows.length;
-    renderStageBalanceTable();
-  }
-
-  function clearAllBalanceFilters() {
-    balanceColumnFilters = {};
-    applyBalanceDataFilters();
-  }
-
-  function renderStageBalanceTable() {
+  function renderBalanceTable() {
+    document.getElementById('tableTotalCount').innerText = cumulativeRows.length;
     const tbody = document.getElementById('stageBalanceTableBody');
-    if (activeBalanceDisplayRows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:#16a34a; font-weight:bold;">🎉 All cleared!</td></tr>';
-      return;
-    }
-    tbody.innerHTML = activeBalanceDisplayRows.slice(0, 500).map(r => `
+    tbody.innerHTML = cumulativeRows.slice(0, 300).map(r => `
       <tr>
         <td><b>${r.Drawing_no || '-'}</b></td>
         <td><b>${r.Spool_number || '-'}</b></td>
@@ -1168,70 +830,107 @@
     `).join('');
   }
 
-  async function submitCurrentStage() {
-    if (!currentUser || (!currentUser.allowed.includes("all") && !currentUser.allowed.includes(currentStage))) {
-      return alert("⚠️ તમને આ મોડ્યુલમાં ડેટા સેવ કરવાની પરમિશન નથી!");
-    }
-    if (selectedQueue.length === 0) return alert('કૃપા કરીને સર્ચ કરીને ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
+  function handleSearchInput() {
+    const term = document.getElementById('spoolSearch').value.trim().toLowerCase();
+    const drop = document.getElementById('searchDropdown');
+    if (!term) { drop.style.display = 'none'; return; }
 
-    const dateInput = document.getElementById('input_date');
-    const enteredDate = dateInput ? dateInput.value : null;
+    const matched = cumulativeRows.filter(r => String(r.Spool_number||'').toLowerCase().includes(term)).slice(0, 20);
+    if (matched.length === 0) { drop.innerHTML = '<div style="padding:10px;">No Spool Found</div>'; drop.style.display='block'; return; }
+
+    drop.innerHTML = matched.map(r => `
+      <div style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #f1f5f9;" onclick="onSpoolSelect(${r.id})">
+        <b>${r.Spool_number}</b> (${r.Drawing_no})
+      </div>
+    `).join('');
+    drop.style.display = 'block';
+  }
+
+  function onSpoolSelect(id) {
+    const item = cumulativeRows.find(x => x.id === id);
+    if (!item) return;
+    document.getElementById('spoolSearch').value = '';
+    document.getElementById('searchDropdown').style.display = 'none';
+
+    if (currentStage === 'bend_entry') {
+      document.getElementById('itemEditForm').style.display = 'block';
+      document.getElementById('form_item_id').value = item.id;
+      document.getElementById('form_spool_no').value = item.Spool_number;
+      document.getElementById('form_drawing_no').value = item.Drawing_no;
+      document.getElementById('dynamicFormFields').innerHTML = `
+        <label>Bend Qty:</label><input type="text" id="form_bend_qty" value="${item.Bend_qty||''}">
+        <label>Weld ID:</label><input type="text" id="form_weld_id" value="${item.Weld_id||''}">
+      `;
+      return;
+    }
+
+    selectedQueue.push(item);
+    renderSelectedTable();
+  }
+
+  function confirmAddFormToQueue() {
+    const id = parseInt(document.getElementById('form_item_id').value);
+    const item = cumulativeRows.find(x => x.id === id);
+    if (!item) return;
+
+    selectedQueue.push({
+      ...item,
+      final_bend_qty: document.getElementById('form_bend_qty').value.trim(),
+      final_weld_id: document.getElementById('form_weld_id').value.trim()
+    });
+
+    document.getElementById('itemEditForm').style.display = 'none';
+    renderSelectedTable();
+  }
+
+  function renderSelectedTable() {
+    document.getElementById('queueCount').innerText = selectedQueue.length;
+    const thead = document.getElementById('selectedTableHead');
+    const tbody = document.getElementById('selectedTableBody');
+
+    thead.innerHTML = `<tr><th>Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Action</th></tr>`;
+    tbody.innerHTML = selectedQueue.map((r, i) => `
+      <tr>
+        <td>${i+1}</td><td><b>${r.Spool_number}</b></td><td>${r.Drawing_no}</td>
+        <td><button style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:4px;" onclick="selectedQueue.splice(${i},1); renderSelectedTable();">✕</button></td>
+      </tr>
+    `).join('');
+  }
+
+  async function submitCurrentStage() {
+    if (selectedQueue.length === 0) return alert('ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
+    const date = document.getElementById('input_date') ? document.getElementById('input_date').value : null;
 
     if (currentStage === 'bending_issue') {
-      if (!enteredDate) return alert('કૃપા કરીને Bending Issue Date પસંદ કરો.');
-      const { error } = await db.from('piping_joints').update({ Issued_for_bending: enteredDate }).in('id', selectedQueue.map(x => x.id));
-      if (error) return alert("Error: " + error.message);
-    }
-    else if (currentStage === 'bend_entry') {
-      if (!enteredDate) return alert('કૃપા કરીને Bend Date પસંદ કરો.');
+      if (!date) return alert('તારીખ દાખલ કરો');
+      await db.from('piping_joints').update({ Issued_for_bending: date }).in('id', selectedQueue.map(x => x.id));
+    } else if (currentStage === 'bend_entry') {
+      if (!date) return alert('તારીખ દાખલ કરો');
       for (const item of selectedQueue) {
-        const updateData = { Bend_date: enteredDate, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id };
-        const { error } = await db.from('piping_joints').update(updateData).eq('id', item.id);
-        if (error) return alert(`Error updating spool ${item.Spool_number}: ` + error.message);
+        await db.from('piping_joints').update({ Bend_date: date, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id }).eq('id', item.id);
       }
-    }
-    else if (currentStage === 'fitup_entry') {
-      if (!enteredDate) return alert('કૃપા કરીને Fit-Up Completed Date પસંદ કરો.');
-      const { error } = await db.from('piping_joints').update({ Fit_up_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
-      if (error) return alert("Error: " + error.message);
-    }
-    else if (currentStage === 'weld_visual') {
-      if (!enteredDate) return alert('કૃપા કરીને Visual Completed Date દાખલ કરો.');
-      const { error } = await db.from('piping_joints').update({ Weld_visual_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
-      if (error) return alert("Error: " + error.message);
-    }
-    else if (currentStage === 'ndt_clearance') {
-      if (!enteredDate) return alert('કૃપા કરીને NDT Clearance Date દાખલ કરો.');
-      const { error } = await db.from('piping_joints').update({ Ndt_clearance: enteredDate }).in('id', selectedQueue.map(x => x.id));
-      if (error) return alert("Error: " + error.message);
-    }
-    else if (currentStage === 'fd') {
+    } else if (currentStage === 'fitup_entry') {
+      if (!date) return alert('તારીખ દાખલ કરો');
+      await db.from('piping_joints').update({ Fit_up_date: date }).in('id', selectedQueue.map(x => x.id));
+    } else if (currentStage === 'weld_visual') {
+      if (!date) return alert('તારીખ દાખલ કરો');
+      await db.from('piping_joints').update({ Weld_visual_date: date }).in('id', selectedQueue.map(x => x.id));
+    } else if (currentStage === 'ndt_clearance') {
+      if (!date) return alert('તારીખ દાખલ કરો');
+      await db.from('piping_joints').update({ Ndt_clearance: date }).in('id', selectedQueue.map(x => x.id));
+    } else if (currentStage === 'fd') {
       const dcNo = document.getElementById('input_dc_no').value.trim();
-      if (!dcNo || !enteredDate) return alert('કૃપા કરીને DC No અને Dispatch Date બંને દાખલ કરો.');
-      const { error } = await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: enteredDate }).in('id', selectedQueue.map(x => x.id));
-      if (error) return alert("Error: " + error.message);
+      if (!dcNo || !date) return alert('DC No અને તારીખ બંને દાખલ કરો');
+      await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: date }).in('id', selectedQueue.map(x => x.id));
     }
 
-    alert(`✅ ${selectedQueue.length} Spools સફળતાપૂર્વક અપડેટ થઈ ગયા!`);
+    alert('સફળતાપૂર્વક સાચવવામાં આવ્યું!');
     selectedQueue = [];
-    if (document.getElementById('input_date')) document.getElementById('input_date').value = '';
-    if (document.getElementById('input_dc_no')) document.getElementById('input_dc_no').value = '';
-    if (document.getElementById('spoolSearch')) document.getElementById('spoolSearch').value = '';
     renderSelectedTable();
     loadStageData(currentStage);
   }
 
-  document.addEventListener('click', (e) => {
-    const popup = document.getElementById('excelFilterPopup');
-    if (popup && popup.style.display === 'block' && !popup.contains(e.target) && !e.target.classList.contains('filter-btn-icon')) {
-      closeExcelPopup();
-    }
-    if (!e.target.closest('.search-box-wrapper')) {
-      const drop = document.getElementById('searchDropdown');
-      if (drop) drop.style.display = 'none';
-    }
-  });
+  window.addEventListener('DOMContentLoaded', checkSessionAuth);
 </script>
-
 </body>
 </html>
