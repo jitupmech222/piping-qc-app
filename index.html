@@ -155,14 +155,14 @@
       position: relative;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 13px 18px;
+      gap: 14px;
+      padding: 14px 20px;
       border: 1px solid #e2e8f0;
       border-radius: 999px;
       background: #ffffff;
       color: #1e293b;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 13.5px;
       cursor: pointer;
       text-align: left;
       box-shadow: 0 2px 6px rgba(0,0,0,0.03);
@@ -178,43 +178,17 @@
     }
 
     .check-circle {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: #0d9488;
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 900;
       flex-shrink: 0;
-    }
-
-    .hub-bottom-banner {
-      margin-top: 28px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .btn-view-master {
-      background: linear-gradient(135deg, #0d9488 0%, #0369a1 100%);
-      color: #ffffff;
-      border: none;
-      border-radius: 999px;
-      padding: 14px 36px;
-      font-size: 14.5px;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(13, 148, 136, 0.35);
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .btn-view-master:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(13, 148, 136, 0.45);
     }
 
     .card {
@@ -365,19 +339,6 @@
       margin-top: 10px; 
     }
 
-    .metric-banner { 
-      background: #f0fdfa; 
-      border: 1.5px solid #5eead4; 
-      border-radius: 10px; 
-      padding: 10px; 
-      margin-bottom: 12px; 
-      display: flex; 
-      justify-content: space-around; 
-      font-weight: bold; 
-      color: #0f766e; 
-      font-size: 13.5px; 
-    }
-
     .search-box-wrapper { position: relative; }
     .search-dropdown { 
       position: absolute; 
@@ -445,6 +406,7 @@
 </head>
 <body>
 
+<!-- Login Modal -->
 <div id="loginOverlay">
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 20px;">
@@ -474,6 +436,7 @@
   </div>
 </div>
 
+<!-- Main App Content -->
 <div id="appContent" style="display: none;">
   <div class="top-navbar">
     <div class="top-nav-title">
@@ -481,53 +444,130 @@
       <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;">| Progress Tracking</span>
     </div>
     <div style="display: flex; align-items: center; gap: 10px;">
-      <button type="button" id="btnTopDashboard" class="btn-nav-dashboard" style="display: none;" onclick="backToMenu()">🖥️ Dashboard</button>
+      <button type="button" id="btnTopDashboard" class="btn-nav-dashboard" style="display: none;" onclick="backToHubMenu()">🖥️ Dashboard</button>
       <button type="button" class="btn-logout" onclick="userLogout()">🚪 Logout</button>
     </div>
   </div>
 
   <div class="container">
-    <div id="mainMenu">
+    
+    <!-- ૫ મુખ્ય બટન સ્ક્રીન (Main 5 Hubs) -->
+    <div id="hubMainMenu">
       <div class="hero-banner">
         <div class="hero-badge-tag">⚡ HOSTINGER CLOUD REAL-TIME ENGINE</div>
         <h1 class="hero-title">
-          All-in-one <span>Piping, QC</span> & Tracking Console
+          All-in-one <span>Piping Operations</span> Console
         </h1>
-        <p class="hero-subtitle">Built for Indian Engineering & Fabrication Teams — Real-time Stage Synchronization</p>
+        <p class="hero-subtitle">Select Department to Access Modules</p>
       </div>
 
-      <div class="menu-grid">
-        <button class="menu-btn" onclick="openStage('bending_issue')"><span class="check-circle">✓</span><span>Issued for Bending</span></button>
-        <button class="menu-btn" onclick="openStage('bend_entry')"><span class="check-circle">✓</span><span>Bend Completed</span></button>
-        <button class="menu-btn" onclick="openStage('fitup_entry')"><span class="check-circle">✓</span><span>Fit Up Completed</span></button>
-        <button class="menu-btn" onclick="openStage('weld_visual')"><span class="check-circle">✓</span><span>Weld Visual Completed</span></button>
-        <button class="menu-btn" onclick="openStage('ndt_clearance')"><span class="check-circle">✓</span><span>NDT Clearance</span></button>
-        <button class="menu-btn" onclick="openStage('fd')"><span class="check-circle">✓</span><span>FD & Dispatch DC No</span></button>
-
-        <!-- Standalone Navigation Buttons -->
-        <button class="menu-btn" onclick="window.location.href='progress_dashboard.html'"><span class="check-circle" style="background:#4f46e5;">📈</span><span>Progress Dashboard</span></button>
-        <button class="menu-btn" onclick="window.location.href='priority_dashboard.html'"><span class="check-circle" style="background:#e11d48;">🔥</span><span>Priority Spools Dashboard</span></button>
+      <div class="menu-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
         
-        <!-- 👉 Now Standalone Modules -->
-        <button class="menu-btn" onclick="window.location.href='spool_tracking.html'"><span class="check-circle" style="background:#d97706;">🔍</span><span>Live Spool Tracker</span></button>
-        <button class="menu-btn" onclick="window.location.href='daily_report.html'"><span class="check-circle" style="background:#0284c7;">📅</span><span>Daily Progress Report</span></button>
-        <button class="menu-btn" onclick="window.location.href='mto_register.html'"><span class="check-circle" style="background:#0d9488;">📋</span><span>MTO Register</span></button>
-        <button class="menu-btn" id="btnDataUpdateHub" style="display: none;" onclick="window.location.href='data_update.html'"><span class="check-circle" style="background:#7c3aed;">🔄</span><span>Batch Excel Update</span></button>
-
-        <button class="menu-btn" id="btnIgpUpdateHub" style="display: none;" onclick="window.location.href='igp_update.html'"><span class="check-circle" style="background:#0284c7;">📦</span><span>IGP Update</span></button>
-        <button class="menu-btn" id="btnMinUpdateHub" style="display: none;" onclick="window.location.href='min_update.html'"><span class="check-circle" style="background:#0d9488;">📋</span><span>MIN Update</span></button>
-        <button class="menu-btn" id="btnLineMatHub" style="display: none;" onclick="window.location.href='line_material.html'"><span class="check-circle" style="background:#0284c7;">📑</span><span>Line List & Material</span></button>
-      </div>
-
-      <div class="hub-bottom-banner">
-        <button class="btn-view-master" onclick="window.location.href='master_register.html'">
-          <span>📊 Open Master Register Full View</span>
-          <span>➔</span>
+        <!-- 1. Mechanical Hub -->
+        <button class="menu-btn" onclick="openCategoryHub('mechHub')" style="border-left: 5px solid #0d9488;">
+          <span class="check-circle" style="background:#0d9488;">⚙️</span>
+          <div>
+            <div style="font-size:15px; font-weight:800; color:#0f172a;">1. Mechanical</div>
+            <div style="font-size:11.5px; color:#64748b; font-weight:normal;">Bending, Fit-Up, Welding, NDT, FD & Spool Tracking</div>
+          </div>
         </button>
+
+        <!-- 2. QA/QC Hub -->
+        <button class="menu-btn" onclick="alert('QA/QC Modules Coming Soon!')" style="border-left: 5px solid #94a3b8; opacity: 0.8;">
+          <span class="check-circle" style="background:#64748b;">🛡️</span>
+          <div>
+            <div style="font-size:15px; font-weight:800; color:#0f172a;">2. QA/QC</div>
+            <div style="font-size:11.5px; color:#e11d48; font-weight:bold;">Coming Soon</div>
+          </div>
+        </button>
+
+        <!-- 3. Material Hub -->
+        <button class="menu-btn" onclick="openCategoryHub('matHub')" style="border-left: 5px solid #0284c7;">
+          <span class="check-circle" style="background:#0284c7;">📦</span>
+          <div>
+            <div style="font-size:15px; font-weight:800; color:#0f172a;">3. Material</div>
+            <div style="font-size:11.5px; color:#64748b; font-weight:normal;">Line List, IGP, MIN & MTO Register</div>
+          </div>
+        </button>
+
+        <!-- 4. Report Hub -->
+        <button class="menu-btn" onclick="openCategoryHub('reportHub')" style="border-left: 5px solid #4f46e5;">
+          <span class="check-circle" style="background:#4f46e5;">📊</span>
+          <div>
+            <div style="font-size:15px; font-weight:800; color:#0f172a;">4. Report</div>
+            <div style="font-size:11.5px; color:#64748b; font-weight:normal;">Daily Report, Progress & Priority Dashboards</div>
+          </div>
+        </button>
+
+        <!-- 5. Data Hub -->
+        <button class="menu-btn" onclick="openCategoryHub('dataHub')" style="border-left: 5px solid #7c3aed;">
+          <span class="check-circle" style="background:#7c3aed;">💾</span>
+          <div>
+            <div style="font-size:15px; font-weight:800; color:#0f172a;">5. Data</div>
+            <div style="font-size:11.5px; color:#64748b; font-weight:normal;">Batch Excel Update & Master Register</div>
+          </div>
+        </button>
+
       </div>
     </div>
 
-    <!-- Active Stage Screen -->
+    <!-- Sub-Category: Mechanical Panel -->
+    <div id="mechHub" class="sub-category-panel" style="display: none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; border:none; color:#0d9488;">⚙️ 1. Mechanical Workflows</h3>
+        <button type="button" class="btn-nav-dashboard" onclick="backToHubMenu()">⬅️ Main Menu</button>
+      </div>
+      <div class="menu-grid">
+        <button class="menu-btn" onclick="openStage('bending_issue')"><span class="check-circle">01</span><span>Issued for Bending</span></button>
+        <button class="menu-btn" onclick="openStage('bend_entry')"><span class="check-circle">02</span><span>Bend Completed</span></button>
+        <button class="menu-btn" onclick="openStage('fitup_entry')"><span class="check-circle">03</span><span>Fit Up Completed</span></button>
+        <button class="menu-btn" onclick="openStage('weld_visual')"><span class="check-circle">04</span><span>Weld Visual Completed</span></button>
+        <button class="menu-btn" onclick="openStage('ndt_clearance')"><span class="check-circle">05</span><span>NDT Clearance</span></button>
+        <button class="menu-btn" onclick="openStage('fd')"><span class="check-circle">06</span><span>FD & Dispatch DC No</span></button>
+        <button class="menu-btn" onclick="window.location.href='spool_tracking.html'"><span class="check-circle" style="background:#d97706;">🔍</span><span>Live Spool Tracker</span></button>
+      </div>
+    </div>
+
+    <!-- Sub-Category: Material Panel -->
+    <div id="matHub" class="sub-category-panel" style="display: none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; border:none; color:#0284c7;">📦 3. Material Management</h3>
+        <button type="button" class="btn-nav-dashboard" onclick="backToHubMenu()">⬅️ Main Menu</button>
+      </div>
+      <div class="menu-grid">
+        <button class="menu-btn" id="btnLineMatHub" style="display:none;" onclick="window.location.href='line_material.html'"><span class="check-circle">📑</span><span>Line List & Material</span></button>
+        <button class="menu-btn" id="btnIgpUpdateHub" style="display:none;" onclick="window.location.href='igp_update.html'"><span class="check-circle">📦</span><span>IGP Update</span></button>
+        <button class="menu-btn" id="btnMinUpdateHub" style="display:none;" onclick="window.location.href='min_update.html'"><span class="check-circle">📋</span><span>MIN Update</span></button>
+        <button class="menu-btn" onclick="window.location.href='mto_register.html'"><span class="check-circle" style="background:#0d9488;">📑</span><span>MTO Register</span></button>
+      </div>
+    </div>
+
+    <!-- Sub-Category: Report Panel -->
+    <div id="reportHub" class="sub-category-panel" style="display: none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; border:none; color:#4f46e5;">📊 4. Reports & Dashboards</h3>
+        <button type="button" class="btn-nav-dashboard" onclick="backToHubMenu()">⬅️ Main Menu</button>
+      </div>
+      <div class="menu-grid">
+        <button class="menu-btn" onclick="window.location.href='daily_report.html'"><span class="check-circle">📅</span><span>Daily Progress Report</span></button>
+        <button class="menu-btn" onclick="window.location.href='progress_dashboard.html'"><span class="check-circle" style="background:#4f46e5;">📈</span><span>Progress Dashboard</span></button>
+        <button class="menu-btn" onclick="window.location.href='priority_dashboard.html'"><span class="check-circle" style="background:#e11d48;">🔥</span><span>Priority Spools Dashboard</span></button>
+      </div>
+    </div>
+
+    <!-- Sub-Category: Data Panel -->
+    <div id="dataHub" class="sub-category-panel" style="display: none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0; border:none; color:#7c3aed;">💾 5. Data Registers & Updates</h3>
+        <button type="button" class="btn-nav-dashboard" onclick="backToHubMenu()">⬅️ Main Menu</button>
+      </div>
+      <div class="menu-grid">
+        <button class="menu-btn" id="btnDataUpdateHub" style="display:none;" onclick="window.location.href='data_update.html'"><span class="check-circle" style="background:#7c3aed;">🔄</span><span>Batch Excel Update</span></button>
+        <button class="menu-btn" onclick="window.location.href='master_register.html'"><span class="check-circle" style="background:#0f766e;">📊</span><span>Open Master Register Full View</span></button>
+      </div>
+    </div>
+
+    <!-- Active Stage Screen (Bending, Fitup, Weld, NDT, FD Entry) -->
     <div id="stageContainer" style="display: none;">
       <div class="card">
         <div class="kpi-grid">
@@ -609,6 +649,7 @@
   </div>
 </div>
 
+<!-- Floating Excel Filter Modal -->
 <div id="excelFilterPopup">
   <input type="text" id="popupSearchInput" class="popup-search" placeholder="Search in column..." oninput="onPopupSearch(this.value)">
   <div class="popup-item" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
@@ -706,6 +747,25 @@
   let balanceColumnFilters = {};
   let currentPopupContext = { colKey: '', allValues: [] };
 
+  function openCategoryHub(hubId) {
+    document.getElementById('hubMainMenu').style.display = 'none';
+    document.querySelectorAll('.sub-category-panel').forEach(p => p.style.display = 'none');
+    document.getElementById('stageContainer').style.display = 'none';
+    
+    const selectedPanel = document.getElementById(hubId);
+    if (selectedPanel) selectedPanel.style.display = 'block';
+    document.getElementById('btnTopDashboard').style.display = 'inline-flex';
+  }
+
+  function backToHubMenu() {
+    closeExcelPopup();
+    document.querySelectorAll('.sub-category-panel').forEach(p => p.style.display = 'none');
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('hubMainMenu').style.display = 'block';
+    document.getElementById('btnTopDashboard').style.display = 'none';
+    document.getElementById('navSubTitle').innerText = currentUser ? `| ${currentUser.name}` : '| Progress Tracking';
+  }
+
   function calculateWeldSum(rows) {
     let sum = 0;
     rows.forEach(r => {
@@ -719,20 +779,12 @@
     return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
   }
 
-  function backToMenu() {
-    closeExcelPopup();
-    document.getElementById('stageContainer').style.display = 'none';
-    document.getElementById('itemEditForm').style.display = 'none';
-    document.getElementById('mainMenu').style.display = 'block';
-    document.getElementById('btnTopDashboard').style.display = 'none';
-    document.getElementById('navSubTitle').innerText = currentUser ? `| ${currentUser.name}` : '| Progress Tracking';
-  }
-
   async function openStage(stage) {
     closeExcelPopup();
     currentStage = stage;
     selectedQueue = [];
-    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('hubMainMenu').style.display = 'none';
+    document.querySelectorAll('.sub-category-panel').forEach(p => p.style.display = 'none');
     document.getElementById('itemEditForm').style.display = 'none';
     document.getElementById('btnTopDashboard').style.display = 'inline-flex';
 
