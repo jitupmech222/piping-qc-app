@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spool Live Stage Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #0d9488;
+      --navy: #0f172a;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(204, 251, 241, 0.35) 0%, rgba(255, 255, 255, 1) 70%);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-navbar {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 7px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f0fdfa; color: var(--primary); }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #b45309;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label { font-size: 13px; font-weight: 700; color: #334155; margin-top: 10px; display: block; }
+
+    .search-box-wrapper { position: relative; margin-top: 6px; }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      box-sizing: border-box;
+      font-size: 14px;
+      background: #fff;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #d97706;
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+    }
+
+    .search-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1.5px solid #d97706;
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      max-height: 240px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+      display: none;
+    }
+
+    .dropdown-row {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .dropdown-row:hover { background: #fffbeb; }
+
+    .timeline-container { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .timeline-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+    }
+    .timeline-card.status-completed { background: #f0fdf4; border-color: #86efac; }
+    .timeline-card.status-hold { background: #fff7ed; border-color: #fdba74; }
+    .stage-badge-tag { font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 999px; }
+    .tag-completed { background: #15803d; color: #ffffff; }
+    .tag-hold { background: #c2410c; color: #ffffff; }
+  </style>
+</head>
+<body>
+
+  <div class="top-navbar">
+    <div style="font-size: 16px; font-weight: 800; display:flex; align-items:center; gap:8px;">
+      <span>🔍 SPOOL LIVE TRACKER</span>
+      <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;"></span>
+    </div>
+    <a href="index.html" class="btn-back">⬅️ Back to Console</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h3>🔍 Spool Live Stage Tracker</h3>
+      <label>Enter Spool Unique Number or Drawing Number to Track:</label>
+      <div class="search-box-wrapper">
+        <input type="text" id="trackSearchInput" placeholder="Type Spool Unique Number..." oninput="handleTrackSearchInput()" autocomplete="off">
+        <div id="trackDropdown" class="search-dropdown"></div>
+      </div>
+
+      <div id="spoolDetailsHeader" style="display: none; margin-top: 20px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <span style="font-size: 18px; font-weight: 800; color: #0f172a;" id="trackSpoolNo">Spool No</span>
+            <span style="margin-left: 10px; font-size: 13px; color: #0d9488; font-weight: 700;" id="trackDwgNo">Dwg No</span>
+          </div>
+          <div style="font-size: 13px; font-weight: bold; color: #475569;" id="trackMeta"></div>
+        </div>
+        <div class="timeline-container" id="timelineList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allRecordsCache = [];
+
+    function verifySession() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      document.getElementById('navSubTitle').innerText = `| ${user.name}`;
+      return true;
+    }
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (str === '' || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
+
+    async function ensureAllRecordsCached() {
+      if (allRecordsCache.length > 0) return allRecordsCache;
+      let allRows = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+        if (error) break;
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += step;
+          if (data.length < step) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+      allRecordsCache = allRows;
+      return allRecordsCache;
+    }
+
+    function handleTrackSearchInput() {
+      const term = document.getElementById('trackSearchInput').value.trim().toLowerCase();
+      const dropdown = document.getElementById('trackDropdown');
+      if (!term) { dropdown.style.display = 'none'; return; }
+
+      const matched = allRecordsCache.filter(r => {
+        const spl = String(r.Spool_number || '').toLowerCase();
+        const dwg = String(r.Drawing_no || '').toLowerCase();
+        return spl.includes(term) || dwg.includes(term);
+      }).slice(0, 35);
+
+      if (matched.length === 0) {
+        dropdown.innerHTML = '<div style="padding:12px; color:#94a3b8; font-size:13px; text-align:center;">No Spools Found</div>';
+        dropdown.style.display = 'block';
+        return;
+      }
+
+      dropdown.innerHTML = matched.map(r => `
+        <div class="dropdown-row" onclick="selectSpoolForTracking(${r.id})">
+          <div>
+            <span style="font-weight: bold; color: #0f172a;">${r.Spool_number || 'N/A'}</span>
+            <span style="font-size: 11.5px; color: #0d9488; margin-left: 6px;">(Size: ${r.Spool_size || '-'}, Weld ID: ${r.Weld_id || '-'})</span>
+          </div>
+          <span style="color: #475569; font-size: 12px;">${r.Drawing_no || '-'}</span>
+        </div>
+      `).join('');
+      dropdown.style.display = 'block';
+    }
+
+    function selectSpoolForTracking(id) {
+      const item = allRecordsCache.find(r => r.id === id);
+      if (!item) return;
+
+      document.getElementById('trackDropdown').style.display = 'none';
+      document.getElementById('trackSearchInput').value = item.Spool_number || '';
+      document.getElementById('spoolDetailsHeader').style.display = 'block';
+      document.getElementById('trackSpoolNo').innerText = `Spool: ${item.Spool_number || 'N/A'}`;
+      document.getElementById('trackDwgNo').innerText = `Drawing: ${item.Drawing_no || '-'}`;
+      document.getElementById('trackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend Qty: ${item.Bend_qty || '0'}`;
+
+      const stages = [
+        { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
+        { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
+        { no: '03', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
+        { no: '04', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
+        { no: '05', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
+        { no: '06', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
+      ];
+
+      document.getElementById('timelineList').innerHTML = stages.map(s => `
+        <div class="timeline-card ${s.done ? 'status-completed' : 'status-hold'}">
+          <div>
+            <span style="font-size: 14px;"><b>${s.no}. ${s.title}</b></span>
+            <div style="font-size: 12.5px; margin-top: 3px; color: ${s.done ? '#15803d' : '#9a3412'}; font-weight: 500;">
+              ${s.done ? s.detail : 'Stage Pending / Not Reached'}
+            </div>
+          </div>
+          <span class="stage-badge-tag ${s.done ? 'tag-completed' : 'tag-hold'}">${s.done ? 'COMPLETED' : 'HOLD / PENDING'}</span>
+        </div>
+      `).join('');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-box-wrapper')) {
+        const drop = document.getElementById('trackDropdown');
+        if (drop) drop.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (verifySession()) {
+        document.getElementById('trackSearchInput').focus();
+        await ensureAllRecordsCached();
+      }
+    });
+  </script>
+</body>
+</html>
