@@ -71,47 +71,51 @@
       box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
     }
 
-    /* Top Summary KPI Cards for Bend */
+    /* Top 3 KPI Summary Widgets */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 14px;
+      margin-bottom: 20px;
     }
 
     .kpi-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 12px 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      border-radius: 12px;
+      padding: 14px 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
     .kpi-title {
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #64748b;
+      font-size: 11px;
+      font-weight: 800;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .kpi-val {
-      font-size: 22px;
-      font-weight: 800;
-      color: #0f172a;
-      margin-top: 2px;
+      font-size: 26px;
+      font-weight: 900;
+      color: #0284c7;
+      margin-top: 6px;
     }
 
     .kpi-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 20px;
     }
 
     .table-container {
@@ -154,30 +158,34 @@
 
   <div class="container">
     <div class="card">
-      <!-- 3 Bend KPI Cards -->
+      
+      <!-- Top 3 Requested Summary Widgets -->
       <div class="kpi-grid">
-        <div class="kpi-card" style="border-left: 4px solid #0284c7;">
+        <!-- 1. Total Spool -->
+        <div class="kpi-card" style="border-left: 5px solid #0284c7;">
           <div>
-            <div class="kpi-title" style="color: #0284c7;">Total Scope Bend Qty</div>
-            <div class="kpi-val" id="kpiTotalBendQty">0</div>
+            <span class="kpi-title" style="background: #0284c7;">Total Spool</span>
+            <div class="kpi-val" id="kpiTotalSpool" style="color: #0284c7;">0</div>
           </div>
-          <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">📐</div>
+          <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">📦</div>
         </div>
 
-        <div class="kpi-card" style="border-left: 4px solid #16a34a;">
+        <!-- 2. Total Weld ID -->
+        <div class="kpi-card" style="border-left: 5px solid #0d9488;">
           <div>
-            <div class="kpi-title" style="color: #15803d;">Bend Completed Qty</div>
-            <div class="kpi-val" id="kpiCompBendQty" style="color: #15803d;">0</div>
+            <span class="kpi-title" style="background: #0d9488;">Total Weld ID</span>
+            <div class="kpi-val" id="kpiTotalWeld" style="color: #0d9488;">0</div>
           </div>
-          <div class="kpi-icon" style="background: #dcfce7; color: #16a34a;">✅</div>
+          <div class="kpi-icon" style="background: #ccfbf1; color: #0d9488;">⚡</div>
         </div>
 
-        <div class="kpi-card" style="border-left: 4px solid #ea580c;">
+        <!-- 3. Total Bend (Scope) -->
+        <div class="kpi-card" style="border-left: 5px solid #4f46e5;">
           <div>
-            <div class="kpi-title" style="color: #c2410c;">Bend Balance Qty</div>
-            <div class="kpi-val" id="kpiBalBendQty" style="color: #c2410c;">0</div>
+            <span class="kpi-title" style="background: #4f46e5;">Total Bend</span>
+            <div class="kpi-val" id="kpiTotalBend" style="color: #4f46e5;">0</div>
           </div>
-          <div class="kpi-icon" style="background: #ffedd5; color: #ea580c;">⏳</div>
+          <div class="kpi-icon" style="background: #ede9fe; color: #4f46e5;">📐</div>
         </div>
       </div>
 
@@ -240,7 +248,6 @@
       return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
     }
 
-    // Bend Qty Sum ફંક્શન
     function calculateBendSum(rows) {
       let sum = 0;
       rows.forEach(r => {
@@ -292,15 +299,17 @@
         return;
       }
 
-      // Overall Bend Metrics Calculation
-      const totalScopeBendQty = calculateBendSum(allRows);
-      const bendCompletedRows = allRows.filter(r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '');
-      const completedBendQty = calculateBendSum(bendCompletedRows);
-      const balanceBendQty = Math.max(0, totalScopeBendQty - completedBendQty);
+      // 1. Total Spool
+      const totalSpoolsCount = new Set(allRows.map(r => r.Spool_number).filter(Boolean)).size;
+      document.getElementById('kpiTotalSpool').innerText = totalSpoolsCount;
 
-      document.getElementById('kpiTotalBendQty').innerText = totalScopeBendQty;
-      document.getElementById('kpiCompBendQty').innerText = completedBendQty;
-      document.getElementById('kpiBalBendQty').innerText = balanceBendQty;
+      // 2. Total Weld ID
+      const totalWeldSum = calculateWeldSum(allRows);
+      document.getElementById('kpiTotalWeld').innerText = totalWeldSum;
+
+      // 3. Total Bend (Scope)
+      const totalBendSum = calculateBendSum(allRows);
+      document.getElementById('kpiTotalBend').innerText = totalBendSum;
 
       const stagesConfig = [
         { 
