@@ -943,12 +943,12 @@
     document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend Qty: ${item.Bend_qty || '0'}`;
 
     const stages = [
-      { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
-      { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
-      { no: '03', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
-      { no: '04', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
-      { no: '05', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
-      { no: '06', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
+      { no: '', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
+      { no: '', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
+      { no: '', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
+      { no: '', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
+      { no: '', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
+      { no: '', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
     ];
 
     document.getElementById('modalTimelineList').innerHTML = stages.map(s => `
