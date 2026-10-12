@@ -593,15 +593,15 @@
       </div>
     </div>
 
-    <!-- SUB-PANEL: Material (Updated with MTO Update Button) -->
+    <!-- SUB-PANEL: Material -->
     <div id="matHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <h3 style="margin:0; font-size:18px; font-weight:800; color:#0284c7;">Material Management</h3>
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
-        <!-- 1. MTO Update Entry -->
-        <button class="sub-btn" onclick="window.location.href='mto_update_entry.html'" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff;">
+        <!-- 1. MTO Update (Direct Entry Page) -->
+        <button class="sub-btn" id="btnMtoUpdateHub" style="display:none;" onclick="window.location.href='mto_update_entry.html'">
           <span>📦</span><span>MTO Update</span>
         </button>
 
@@ -806,15 +806,20 @@
   function updateRoleVisibility() {
     if (!currentUser) return;
     const isAdmin = currentUser.username === 'admin';
-    const btnDataUpdate = document.getElementById('btnDataUpdateHub');
+    
+    // Material Buttons
+    const btnMtoUpdate = document.getElementById('btnMtoUpdateHub');
     const btnIgp = document.getElementById('btnIgpUpdateHub');
     const btnMin = document.getElementById('btnMinUpdateHub');
-    const btnLineList = document.getElementById('btnLineListHub');
-    const btnSapCode = document.getElementById('btnSapCodeHub');
-
-    if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
+    if (btnMtoUpdate) btnMtoUpdate.style.display = isAdmin ? 'flex' : 'none';
     if (btnIgp) btnIgp.style.display = isAdmin ? 'flex' : 'none';
     if (btnMin) btnMin.style.display = isAdmin ? 'flex' : 'none';
+
+    // Data Buttons
+    const btnDataUpdate = document.getElementById('btnDataUpdateHub');
+    const btnLineList = document.getElementById('btnLineListHub');
+    const btnSapCode = document.getElementById('btnSapCodeHub');
+    if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
     if (btnLineList) btnLineList.style.display = isAdmin ? 'flex' : 'none';
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
   }
