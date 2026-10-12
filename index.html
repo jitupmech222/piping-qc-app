@@ -298,42 +298,54 @@
     .kpi-title { font-size: 12px; font-weight: 600; color: #64748b; }
     .kpi-val { font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 6px; letter-spacing: -0.5px; }
     .kpi-sub { font-size: 11px; font-weight: 700; color: #16a34a; margin-top: 6px; }
-    .kpi-icon-box {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
 
-    /* 4 Department Module Hub Cards */
+    /* 4 Department Module Hub Cards (Updated: Vertically Centered & Left Aligned) */
     .category-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 18px;
     }
+    
     .category-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 18px;
-      padding: 22px 24px;
+      padding: 22px 28px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.02);
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center; /* Vertical Center */
+      align-items: flex-start; /* Left Aligned */
+      text-align: left;
       min-height: 140px;
     }
-    .category-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06); border-color: #cbd5e1; }
-    .cat-header { display: flex; justify-content: space-between; align-items: center; }
-    .cat-icon-box { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-    .cat-badge { font-size: 10.5px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
-    .cat-body { margin-top: 14px; }
-    .cat-title { font-size: 16px; font-weight: 800; color: #0f172a; }
-    .cat-desc { font-size: 12.5px; color: #64748b; margin-top: 4px; line-height: 1.4; }
+    
+    .category-card:hover { 
+      transform: translateY(-2px); 
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06); 
+      border-color: #cbd5e1; 
+    }
+    
+    .cat-body { 
+      margin-top: 0; 
+      width: 100%;
+      text-align: left;
+    }
+    
+    .cat-title { 
+      font-size: 18px; 
+      font-weight: 800; 
+      color: #0f172a; 
+      margin-bottom: 4px;
+    }
+    
+    .cat-desc { 
+      font-size: 13px; 
+      color: #64748b; 
+      line-height: 1.4; 
+    }
 
     /* Sub panels & Stage operations */
     .sub-panel { display: none; margin-top: 10px; }
@@ -429,9 +441,7 @@
 <div id="loginOverlay">
   <div class="login-box">
     <div style="text-align: center; margin-bottom: 20px;">
-      
       <h3 style="margin: 0; font-size: 20px; font-weight: 800;">Login</h3>
-      
     </div>
     <div>
       <label>Select Role:</label>
@@ -491,7 +501,6 @@
         <button class="btn-toggle-in" title="Close Sidebar" onclick="toggleSidebar(false)">«</button>
       </div>
 
-      
       <a class="nav-item active" onclick="backToHubMenu()">
         <span>📊</span> <span>Dashboard Overview</span>
       </a>
@@ -563,7 +572,6 @@
             <div class="kpi-val" id="kpiTotalSpool">0</div>
             <div class="kpi-sub">✓ Fully registered</div>
           </div>
-          
         </div>
 
         <div class="kpi-card">
@@ -572,7 +580,6 @@
             <div class="kpi-val" id="kpiTotalWeld">0</div>
             <div class="kpi-sub" style="color:#0284c7;">⚡ In scope</div>
           </div>
-          
         </div>
 
         <div class="kpi-card">
@@ -581,7 +588,6 @@
             <div class="kpi-val" id="kpiWeldingRate">0%</div>
             <div class="kpi-sub" style="color:#16a34a;">↗ Progress matrix</div>
           </div>
-          
         </div>
 
         <div class="kpi-card">
@@ -590,17 +596,12 @@
             <div class="kpi-val" id="kpiPendingNdt">0 items</div>
             <div class="kpi-sub" style="color:#eab308;">⚠️ Action required</div>
           </div>
-          
         </div>
       </div>
 
-      <!-- 4 Department Module Hub Cards -->
+      <!-- 4 Department Module Hub Cards (Vertically Centered & Left Aligned) -->
       <div class="category-grid">
         <div class="category-card" onclick="openCategoryHub('mechHub')">
-          <div class="cat-header">
-            
-           
-          </div>
           <div class="cat-body">
             <div class="cat-title">Mechanical</div>
             <div class="cat-desc">Bending, Fit-Up, Welding, NDT, FD & Spool Tracking register.</div>
@@ -608,9 +609,6 @@
         </div>
 
         <div class="category-card" onclick="openCategoryHub('matHub')">
-          <div class="cat-header">
-            
-          </div>
           <div class="cat-body">
             <div class="cat-title">Material</div>
             <div class="cat-desc">Line List, IGP, MIN & MTO Register records.</div>
@@ -618,9 +616,6 @@
         </div>
 
         <div class="category-card" onclick="openCategoryHub('reportHub')">
-          <div class="cat-header">
-            
-          </div>
           <div class="cat-body">
             <div class="cat-title">Reports</div>
             <div class="cat-desc">Daily Report, Progress & Priority Dashboards.</div>
@@ -628,9 +623,6 @@
         </div>
 
         <div class="category-card" onclick="openCategoryHub('dataHub')">
-          <div class="cat-header">
-           
-          </div>
           <div class="cat-body">
             <div class="cat-title">Data</div>
             <div class="cat-desc">Batch Excel Update & Master Register synchronization.</div>
@@ -642,7 +634,7 @@
     <!-- SUB-PANEL: Mechanical -->
     <div id="mechHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#0f766e;"> Mechanical Workflows</h3>
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#0f766e;">Mechanical Workflows</h3>
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
@@ -673,7 +665,7 @@
     <!-- SUB-PANEL: Report -->
     <div id="reportHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#4f46e5;"> Reports</h3>
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#4f46e5;">Reports</h3>
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
@@ -686,7 +678,7 @@
     <!-- SUB-PANEL: Data -->
     <div id="dataHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;"> Data Registers</h3>
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">Data Registers</h3>
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
@@ -943,12 +935,12 @@
     document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend Qty: ${item.Bend_qty || '0'}`;
 
     const stages = [
-      { no: '', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
-      { no: '', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
-      { no: '', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
-      { no: '', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
-      { no: '', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
-      { no: '', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
+      { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
+      { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
+      { no: '03', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
+      { no: '04', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
+      { no: '05', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
+      { no: '06', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
     ];
 
     document.getElementById('modalTimelineList').innerHTML = stages.map(s => `
