@@ -112,15 +112,6 @@
     .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
     .nav-item.active { background: #0d9488; color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
 
-    .badge-soon {
-      background: rgba(255,255,255,0.1);
-      color: #cbd5e1;
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      margin-left: auto;
-    }
-
     .user-footer {
       display: flex;
       align-items: center;
@@ -271,7 +262,7 @@
     .kpi-val { font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 6px; letter-spacing: -0.5px; }
     .kpi-sub { font-size: 11px; font-weight: 700; color: #16a34a; margin-top: 6px; }
 
-    /* Department Module Hub Cards */
+    /* Centered Left-Aligned Category Cards */
     .category-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -297,7 +288,7 @@
     .cat-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
     .cat-desc { font-size: 13px; color: #64748b; line-height: 1.4; }
 
-    /* Sub-panels & Menus */
+    /* Sub panels & Menus */
     .sub-panel { display: none; margin-top: 10px; }
     .sub-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
     .sub-btn {
@@ -327,7 +318,6 @@
     th { background: #0f172a; color: white; font-weight: 700; }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
-    /* Modal Styling */
     #spoolTrackerModal {
       position: fixed;
       inset: 0;
@@ -374,7 +364,6 @@
     .tag-completed { background: #15803d; color: #ffffff; }
     .tag-hold { background: #c2410c; color: #ffffff; }
 
-    /* Login Modal */
     #loginOverlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
     .login-box { background: white; width: 380px; padding: 30px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .btn-login { background: #0d9488; color: white; width: 100%; border: none; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 8px; margin-top: 16px; cursor: pointer; }
@@ -437,7 +426,7 @@
 <!-- Main App Layout -->
 <div id="appContent" style="display: none; width: 100%;">
 
-  <!-- Left Sidebar with "<<" collapse button -->
+  <!-- Left Sidebar -->
   <aside class="sidebar" id="appSidebar">
     <div>
       <div class="brand-area">
@@ -454,20 +443,19 @@
         <span>📊</span> <span>Dashboard Overview</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('mechHub')">
-        <span>Mechanical</span>
+        <span>⚙️</span> <span>Mechanical</span>
+      </a>
+      <a class="nav-item" onclick="openCategoryHub('qaqcHub')">
+        <span>🛡️</span> <span>QA/QC Module</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('matHub')">
-        <span>Material</span>
+        <span>📦</span> <span>Material</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('reportHub')">
-        <span>Report</span>
+        <span>📈</span> <span>Report</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('dataHub')">
-        <span>Data</span>
-      </a>
-      <a class="nav-item" onclick="alert('QA/QC Module Coming Soon!')">
-        <span>QA/QC Module</span>
-        <span class="badge-soon">Soon</span>
+        <span>💾</span> <span>Data</span>
       </a>
     </div>
 
@@ -544,12 +532,20 @@
         </div>
       </div>
 
-      <!-- 4 Category Cards -->
+      <!-- 5 Category Cards -->
       <div class="category-grid">
         <div class="category-card" onclick="openCategoryHub('mechHub')">
           <div class="cat-body">
             <div class="cat-title">Mechanical</div>
             <div class="cat-desc">Bending, Fit-Up, Welding, NDT, FD & Spool Tracking register.</div>
+          </div>
+        </div>
+
+        <!-- QA/QC Module Card -->
+        <div class="category-card" onclick="openCategoryHub('qaqcHub')">
+          <div class="cat-body">
+            <div class="cat-title">QA/QC Module</div>
+            <div class="cat-desc">LHS Entry, Lot Entry, Lot Offer, DPT & RT Status, NDT DC, PWHT.</div>
           </div>
         </div>
 
@@ -567,10 +563,10 @@
           </div>
         </div>
 
-        <div class="category-card" onclick="openCategoryHub('dataHub')">
+        <div class="category-card" onclick="openCategoryHub('dataHub')" style="grid-column: 1 / -1;">
           <div class="cat-body">
             <div class="cat-title">Data</div>
-            <div class="cat-desc">Line List,SAP Codes,Data Update,Master Register etc.</div>
+            <div class="cat-desc">Line List, SAP Codes, Batch Excel Update & Master Register.</div>
           </div>
         </div>
       </div>
@@ -593,26 +589,43 @@
       </div>
     </div>
 
-    <!-- SUB-PANEL: Material (All Buttons Blue Style) -->
+    <!-- 🛡️ SUB-PANEL: QA/QC Module (10 Placeholder Buttons for Future Program) -->
+    <div id="qaqcHub" class="sub-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">🛡️ QA/QC Inspection & Tracking</h3>
+        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
+      </div>
+      <div class="sub-menu-grid">
+        <button class="sub-btn" onclick="futureModuleNotice('LHS ENTRY')"><span>📋</span><span>LHS ENTRY</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('LOT ENTRY')"><span>🧾</span><span>LOT ENTRY</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('LOT OFFER / CLEARED')"><span>🔍</span><span>LOT OFFER / CLEARED</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('LOT GENERATE')"><span>⚙️</span><span>LOT GENERATE</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('DPT LOT STATUS')"><span>🔬</span><span>DPT LOT STATUS</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('RT LOT STATUS')"><span>☢️</span><span>RT LOT STATUS</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('NDT / DC')"><span>📦</span><span>NDT / DC</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('MTO ENTRY')"><span>📑</span><span>MTO ENTRY</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('PWHT')"><span>🔥</span><span>PWHT</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('VIEW RECORD')"><span>📊</span><span>VIEW RECORD</span></button>
+      </div>
+    </div>
+
+    <!-- SUB-PANEL: Material -->
     <div id="matHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <h3 style="margin:0; font-size:18px; font-weight:800; color:#0284c7;">Material Management</h3>
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
-        <button class="sub-btn" id="btnMtoUpdateHub" style="display:none; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff;" onclick="window.location.href='mto_update_entry.html'">
+        <button class="sub-btn" id="btnMtoUpdateHub" style="display:none;" onclick="window.location.href='mto_update_entry.html'">
           <span>📦</span><span>MTO Update</span>
         </button>
-
-        <button class="sub-btn" id="btnIgpUpdateHub" style="display:none; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff;" onclick="window.location.href='igp_update.html'">
+        <button class="sub-btn" id="btnIgpUpdateHub" style="display:none;" onclick="window.location.href='igp_update.html'">
           <span>🚚</span><span>IGP Update</span>
         </button>
-
-        <button class="sub-btn" id="btnMinUpdateHub" style="display:none; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff;" onclick="window.location.href='min_update.html'">
+        <button class="sub-btn" id="btnMinUpdateHub" style="display:none;" onclick="window.location.href='min_update.html'">
           <span>📋</span><span>MIN Update</span>
         </button>
-
-        <button class="sub-btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff;" onclick="window.location.href='mto_register.html'">
+        <button class="sub-btn" onclick="window.location.href='mto_register.html'">
           <span>📑</span><span>MTO Register</span>
         </button>
       </div>
@@ -631,7 +644,7 @@
       </div>
     </div>
 
-    <!-- SUB-PANEL: Data (Line List & SAP Code Shifting) -->
+    <!-- SUB-PANEL: Data -->
     <div id="dataHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">Data Registers & Updates</h3>
@@ -641,15 +654,12 @@
         <button class="sub-btn" id="btnLineListHub" style="display:none;" onclick="window.location.href='line_list.html'">
           <span>📋</span><span>Line List Master</span>
         </button>
-
         <button class="sub-btn" id="btnSapCodeHub" style="display:none;" onclick="window.location.href='sap_code.html'">
           <span>📦</span><span>Material SAP Codes</span>
         </button>
-
         <button class="sub-btn" id="btnDataUpdateHub" style="display:none;" onclick="window.location.href='data_update.html'">
           <span>🔄</span><span>Batch Excel Update</span>
         </button>
-
         <button class="sub-btn" onclick="window.location.href='master_register.html'">
           <span>📊</span><span>Open Master Register Full View</span>
         </button>
@@ -802,20 +812,17 @@
   function updateRoleVisibility() {
     if (!currentUser) return;
     const isAdmin = currentUser.username === 'admin';
-    
-    // Material Buttons
     const btnMtoUpdate = document.getElementById('btnMtoUpdateHub');
+    const btnDataUpdate = document.getElementById('btnDataUpdateHub');
     const btnIgp = document.getElementById('btnIgpUpdateHub');
     const btnMin = document.getElementById('btnMinUpdateHub');
-    if (btnMtoUpdate) btnMtoUpdate.style.display = isAdmin ? 'flex' : 'none';
-    if (btnIgp) btnIgp.style.display = isAdmin ? 'flex' : 'none';
-    if (btnMin) btnMin.style.display = isAdmin ? 'flex' : 'none';
-
-    // Data Buttons
-    const btnDataUpdate = document.getElementById('btnDataUpdateHub');
     const btnLineList = document.getElementById('btnLineListHub');
     const btnSapCode = document.getElementById('btnSapCodeHub');
+
+    if (btnMtoUpdate) btnMtoUpdate.style.display = isAdmin ? 'flex' : 'none';
     if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
+    if (btnIgp) btnIgp.style.display = isAdmin ? 'flex' : 'none';
+    if (btnMin) btnMin.style.display = isAdmin ? 'flex' : 'none';
     if (btnLineList) btnLineList.style.display = isAdmin ? 'flex' : 'none';
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
   }
@@ -947,6 +954,11 @@
     document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
     document.getElementById('stageContainer').style.display = 'none';
     document.getElementById('hubMainMenu').style.display = 'block';
+  }
+
+  /* 👉 Future Program Notice for QA/QC */
+  function futureModuleNotice(name) {
+    alert(`ℹ️ "${name}" module will be added in future.`);
   }
 
   /* STAGE OPERATIONS */
