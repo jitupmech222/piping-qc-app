@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lot Entry & Management | QA/QC Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 16px 20px; }
+
+    .top-header {
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-back {
+      padding: 7px 16px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; color: #0284c7; }
+
+    .btn-create-lot {
+      padding: 8px 18px;
+      background: #0d6efd;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-create-lot:hover { background: #0b5ed7; }
+
+    .card {
+      background: #ffffff;
+      padding: 18px 20px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+    }
+
+    input, select {
+      padding: 8px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      background: #ffffff;
+    }
+    input:focus, select:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+    }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; text-align: center; }
+    th { background: #17365d; color: #ffffff; font-weight: 700; position: sticky; top: 0; z-index: 2; }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    .btn-save {
+      padding: 9px 22px;
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 700;
+    }
+    .btn-save:hover { background: #15803d; }
+    .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 12px;
+      width: 440px;
+      padding: 24px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn-back">⬅️ Back to Console</a>
+      <h2 style="color:#17365d; font-size:18px;">🧾 LOT ENTRY & MANAGEMENT</h2>
+    </div>
+    <button class="btn-create-lot" onclick="openCreateLotModal()">➕ Create Lot No</button>
+  </div>
+
+  <!-- Search Spool -->
+  <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <label style="font-weight:bold; font-size:13px;">Spool Unique No:</label>
+    <input type="text" id="spoolNoInput" placeholder="Enter Spool No (e.g. 7-07044)" style="width:240px;" onkeydown="if(event.key==='Enter') handleVerifySpool()" autocomplete="off">
+    <button type="button" class="btn-create-lot" style="background:#17365d;" onclick="handleVerifySpool()">🔍 Verify Spool</button>
+    <span id="lookupStatus" style="font-size:12.5px; font-weight:600; color:#64748b;"></span>
+  </div>
+
+  <!-- Joints Table Section -->
+  <div id="jointsCardSection" class="card" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div>
+        <span style="font-size:14px; font-weight:bold; color:#17365d; margin-right:20px;">Drawing: <span id="dispDrawingNo">-</span></span>
+        <span style="font-size:14px; font-weight:bold; color:#17365d;">Pipe Class: <span id="dispPipeClass">-</span></span>
+      </div>
+      <button type="button" id="btnSaveLotData" class="btn-save" onclick="handleSaveLotData()">💾 SAVE LOT DATA</button>
+    </div>
+
+    <div style="overflow-x:auto; max-height:60vh;">
+      <table>
+        <thead>
+          <tr>
+            <th>Sr. No</th>
+            <th>ISO / Drawing No</th>
+            <th>Pipe Class</th>
+            <th>Joint No</th>
+            <th>Size & Thk</th>
+            <th>WPS No</th>
+            <th>Welder No</th>
+            <th>Joint Type</th>
+            <th>Visual Report No</th>
+            <th>NDT %</th>
+            <th style="background:#0284c7;">NDT Lot No</th>
+          </tr>
+        </thead>
+        <tbody id="jointsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 🟢 CREATE LOT POPUP MODAL (Clean Cloud-Integrated) -->
+  <div class="modal-overlay" id="createLotModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px;">
+        <h3 style="margin:0; color:#17365d; font-size:17px;">➕ CREATE LOT</h3>
+        <button onclick="closeCreateLotModal()" style="background:none; border:none; font-size:18px; cursor:pointer; font-weight:bold;">✖</button>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-weight:bold; margin-bottom:4px;">Lot Type:</label>
+        <div style="display:flex; gap:20px;">
+          <label style="cursor:pointer; font-weight:bold;"><input type="radio" name="lotType" value="RT" checked onchange="onModalLotTypeChange('RT')"> ☢️ RT</label>
+          <label style="cursor:pointer; font-weight:bold;"><input type="radio" name="lotType" value="DPT" onchange="onModalLotTypeChange('DPT')"> 🔬 DPT</label>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-weight:bold; margin-bottom:4px;">NDT %:</label>
+        <select id="modalNdtPct" style="width:100%;" onchange="updatePreviewLotName()">
+          <option value="5%">5%</option>
+          <option value="10%">10%</option>
+          <option value="20%">20%</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-weight:bold; margin-bottom:4px;">Type of Joint:</label>
+        <select id="modalJointType" style="width:100%;" onchange="onModalJointTypeChange(this.value)">
+          <option value="BW">BW</option>
+        </select>
+      </div>
+
+      <div id="modalWpsGroup" style="margin-bottom:12px;">
+        <label style="display:block; font-weight:bold; margin-bottom:4px;">WPS No: <span style="color:#dc2626;">*</span></label>
+        <select id="modalWpsNo" style="width:100%;" onchange="updatePreviewLotName()">
+          <option value="">-- Select WPS --</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="8">8</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:15px;">
+        <label style="display:block; font-weight:bold; margin-bottom:4px;">Lot Number (e.g. 1 or 2):</label>
+        <input type="text" id="modalLotNumber" placeholder="Enter Lot Number (e.g. 1)" style="width:100%;" oninput="updatePreviewLotName()" autocomplete="off">
+      </div>
+
+      <div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-bottom:18px; text-align:center;">
+        <span style="font-size:12px; color:#64748b;">Preview: </span>
+        <b id="modalPreviewLotName" style="color:#17365d; font-size:14px;">AIPL/RT/LOT-01</b>
+        <span id="modalPreviewWps" style="font-size:12px; color:#0284c7; margin-left:8px; font-weight:bold;"></span>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button onclick="closeCreateLotModal()" style="padding:8px 16px; border:1px solid #aaa; background:#f8fafc; border-radius:6px; cursor:pointer;">Cancel</button>
+        <button id="btnSaveLotModal" onclick="submitCreateLotModal()" style="padding:8px 18px; border:none; background:#16a34a; color:#fff; font-weight:bold; border-radius:6px; cursor:pointer;">💾 Save Lot</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const DPT_TYPES = ["LET", "SOF", "SOB", "SW"];
+    const MAX_JOINTS_BY_PERCENT = { "5": 20, "10": 10, "20": 5 };
+
+    let currentVerifiedSpool = "";
+    let jointsList = [];
+
+    function normalizeNdt(val) {
+      if (!val || String(val).trim() === "" || String(val).toUpperCase() === "NA") return "";
+      let str = String(val).trim().replace("%", "");
+      let num = parseFloat(str);
+      if (!isNaN(num)) {
+        if (num <= 1 && num > 0) return `${Math.round(num * 100)}%`;
+        return `${Math.round(num)}%`;
+      }
+      return str.endsWith("%") ? str : `${str}%`;
+    }
+
+    function parsePurePct(val) {
+      if (!val || String(val).toUpperCase() === "NA") return 0;
+      let str = String(val).trim().replace("%", "");
+      let num = parseFloat(str);
+      if (isNaN(num)) return 0;
+      if (num <= 1 && num > 0) return Math.round(num * 100);
+      return Math.round(num);
+    }
+
+    /* -------------------------------------------------------------
+       1. VERIFY SPOOL (Load from lhs_entries)
+    -------------------------------------------------------------- */
+    async function handleVerifySpool() {
+      const spool = document.getElementById('spoolNoInput').value.trim().toUpperCase();
+      if (!spool) return alert('⚠️ કૃપા કરીને Spool Unique No. દાખલ કરો.');
+
+      const statusText = document.getElementById('lookupStatus');
+      statusText.innerText = "⏳ Verifying...";
+
+      try {
+        const { data: rows, error } = await db
+          .from('lhs_entries')
+          .select('*')
+          .eq('spool_no', spool)
+          .order('id', { ascending: true });
+
+        if (error) throw error;
+        if (!rows || rows.length === 0) {
+          statusText.innerText = "";
+          return alert(`❌ Spool "${spool}" માટે lhs_entries માં કોઈ રેકોર્ડ મળ્યો નથી! કૃપા કરીને પહેલા LHS ENTRY કરો.`);
+        }
+
+        currentVerifiedSpool = spool;
+        document.getElementById('dispDrawingNo').innerText = rows[0].drawing_no || '-';
+        document.getElementById('dispPipeClass').innerText = rows[0].pipe_class || '-';
+
+        jointsList = rows.map(r => {
+          const type = String(r.joint_type || '').trim().toUpperCase();
+          let ndt = type === 'BW' ? normalizeNdt(r.rt_percentage) : (type === 'EB' ? '10%' : normalizeNdt(r.dpt_percentage));
+          if (!ndt && DPT_TYPES.includes(type)) ndt = '5%';
+
+          // Determine Existing Lot Number
+          let lot = '';
+          if (type === 'BW') lot = r.rt_lot_no || '';
+          else if (type === 'EB') lot = r.induction_bend_dpt_lot_no || '';
+          else if (DPT_TYPES.includes(type)) lot = r.dpt_lot_no || '';
+
+          if (ndt === '100%') lot = 'NA';
+
+          return {
+            id: r.id,
+            jointNo: r.joint_no,
+            drawingNo: r.drawing_no,
+            pipeClass: r.pipe_class,
+            weldSize: r.weld_npd,
+            weldThk: r.thk,
+            wpsNo: r.wps_no,
+            welderNo: r.welder_no,
+            jointType: type,
+            visualReportNo: r.weld_visual_report_no,
+            ndtPercentage: ndt,
+            lotNumber: lot,
+            originalLotNumber: lot
+          };
+        });
+
+        renderJointsTable();
+        document.getElementById('jointsCardSection').style.display = 'block';
+        statusText.innerText = "Verified successfully.";
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error: ' + err.message);
+        statusText.innerText = "";
+      }
+    }
+
+    function renderJointsTable() {
+      const tbody = document.getElementById('jointsTableBody');
+      tbody.innerHTML = jointsList.map((j, index) => {
+        const isLocked = j.originalLotNumber && String(j.originalLotNumber).trim() !== "" && String(j.originalLotNumber).trim() !== "0";
+        const is100 = j.ndtPercentage === "100%";
+
+        return `
+          <tr style="background:${isLocked ? '#f8fafc' : '#fff'};">
+            <td>${index + 1}</td>
+            <td>${j.drawingNo || '-'}</td>
+            <td>${j.pipeClass || '-'}</td>
+            <td style="font-weight:bold; color:#0f172a;">${j.jointNo}</td>
+            <td>${j.weldSize || '-'} / ${j.weldThk || '-'}</td>
+            <td>${j.wpsNo || 'NA'}</td>
+            <td>${j.welderNo || 'NA'}</td>
+            <td>${j.jointType}</td>
+            <td>${j.visualReportNo || '-'}</td>
+            <td style="font-weight:bold; color:#0284c7;">${j.ndtPercentage}</td>
+            <td>
+              <input type="text" value="${escapeHtml(j.lotNumber || '')}"
+                ${isLocked || is100 ? 'disabled' : ''}
+                oninput="onLotInputChange(${index}, this.value)"
+                placeholder="${is100 ? 'NA' : 'Enter Lot'}"
+                style="width:90px; padding:4px; text-align:center; font-weight:${isLocked || is100 ? 'bold' : 'normal'};
+                background:${isLocked ? '#d1fae5' : (is100 ? '#fee2e2' : '#fff')};
+                color:${isLocked ? '#065f46' : (is100 ? '#991b1b' : '#000')};">
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function onLotInputChange(index, val) {
+      jointsList[index].lotNumber = val.trim();
+    }
+
+    /* -------------------------------------------------------------
+       2. SAVE LOT DATA (Validation with ndt_lots & Capacity check)
+    -------------------------------------------------------------- */
+    async function handleSaveLotData() {
+      const pendingJoints = jointsList.filter(j => {
+        const isLocked = j.originalLotNumber && String(j.originalLotNumber).trim() !== "" && String(j.originalLotNumber).trim() !== "0";
+        return !isLocked;
+      });
+
+      if (pendingJoints.length === 0) return alert('ℹ️ કોઈ નવો Lot Number ઉમેરેલો નથી.');
+
+      // Check Empty Inputs
+      for (const j of pendingJoints) {
+        if (!j.lotNumber && j.ndtPercentage !== '100%') {
+          return alert(`⚠️ જોઈન્ટ ${j.jointNo} માટે Lot Number દાખલ કરવો જરૂરી છે!`);
+        }
+      }
+
+      const btnSave = document.getElementById('btnSaveLotData');
+      btnSave.innerText = "⏳ Saving...";
+      btnSave.disabled = true;
+
+      try {
+        // Fetch all lots from Supabase ndt_lots for validation
+        const { data: allLots, error: lotErr } = await db.from('ndt_lots').select('*');
+        if (lotErr) throw lotErr;
+
+        for (const j of pendingJoints) {
+          const numericNdt = parsePurePct(j.ndtPercentage);
+          if (numericNdt === 100 || j.lotNumber.toUpperCase() === 'NA') continue;
+
+          const inputLot = j.lotNumber.toUpperCase();
+          const cleanNum = inputLot.replace(/[^0-9]/g, "");
+
+          // Validate lot existence
+          const matchedLot = allLots.find(l => {
+            return l.lot_name.toUpperCase() === inputLot || l.clean_num === cleanNum || l.lot_name.toUpperCase().endsWith(`LOT-${cleanNum}`);
+          });
+
+          if (!matchedLot) {
+            btnSave.disabled = false;
+            btnSave.innerText = "💾 SAVE LOT DATA";
+            return alert(`❌ જોઈન્ટ ${j.jointNo} માટે દાખલ કરેલ Lot "${inputLot}" ndt_lots માસ્ટરમાં મળ્યો નથી! કૃપા કરીને "+ Create Lot No" થી નવો લોટ બનાવો.`);
+          }
+
+          // Joint Type Matching
+          if (matchedLot.joint_type && matchedLot.joint_type !== j.jointType) {
+            btnSave.disabled = false;
+            btnSave.innerText = "💾 SAVE LOT DATA";
+            return alert(`❌ જોઈન્ટ ${j.jointNo} (${j.jointType}) માટે પસંદ કરેલો Lot "${inputLot}" Joint Type '${matchedLot.joint_type}' માટે બનેલો છે!`);
+          }
+
+          // NDT% Matching
+          const lotNdt = parsePurePct(matchedLot.ndt_percentage);
+          if (lotNdt && numericNdt && lotNdt !== numericNdt) {
+            btnSave.disabled = false;
+            btnSave.innerText = "💾 SAVE LOT DATA";
+            return alert(`❌ જોઈન્ટ ${j.jointNo} નો NDT% ${numericNdt}% છે, જ્યારે Lot "${inputLot}" ${lotNdt}% માટે બનેલો છે!`);
+          }
+
+          // WPS Matching (Except EB)
+          if (j.jointType !== 'EB') {
+            const lotWps = String(matchedLot.wps_no || '').trim().toUpperCase();
+            const jointWps = String(j.wpsNo || '').trim().toUpperCase();
+            if (lotWps && jointWps && lotWps !== jointWps && lotWps !== 'NA') {
+              btnSave.disabled = false;
+              btnSave.innerText = "💾 SAVE LOT DATA";
+              return alert(`❌ જોઈન્ટ ${j.jointNo} નો WPS (${jointWps}) અને Lot નો WPS (${lotWps}) મેળ ખાતા નથી!`);
+            }
+          }
+        }
+
+        // Apply Updates to lhs_entries
+        for (const j of pendingJoints) {
+          const numericNdt = parsePurePct(j.ndtPercentage);
+          const lotVal = numericNdt === 100 ? 'NA' : j.lotNumber;
+          const updateObj = {};
+
+          if (j.jointType === 'EB') updateObj.induction_bend_dpt_lot_no = lotVal;
+          else if (j.jointType === 'BW') updateObj.rt_lot_no = lotVal;
+          else if (DPT_TYPES.includes(j.jointType)) updateObj.dpt_lot_no = lotVal;
+
+          const { error: updErr } = await db.from('lhs_entries').update(updateObj).eq('id', j.id);
+          if (updErr) throw updErr;
+        }
+
+        alert('🎉 સફળતાપૂર્વક તમામ જોઈન્ટ્સ માટે Lot Data સેવ થઈ ગયો!');
+        handleVerifySpool();
+      } catch (err) {
+        console.error(err);
+        alert('❌ સેવ કરવામાં ભૂલ આવી: ' + err.message);
+      } finally {
+        btnSave.disabled = false;
+        btnSave.innerText = "💾 SAVE LOT DATA";
+      }
+    }
+
+    /* -------------------------------------------------------------
+       3. CREATE LOT MODAL CONTROLLER & LIVE CLOUD SAVE
+    -------------------------------------------------------------- */
+    function openCreateLotModal() {
+      document.getElementById('modalLotNumber').value = "";
+      document.getElementById('modalWpsNo').value = "";
+      onModalLotTypeChange('RT');
+      document.getElementById('createLotModal').style.display = 'flex';
+    }
+
+    function closeCreateLotModal() {
+      document.getElementById('createLotModal').style.display = 'none';
+    }
+
+    function onModalLotTypeChange(type) {
+      const jointSelect = document.getElementById('modalJointType');
+      if (type === 'RT') {
+        jointSelect.innerHTML = '<option value="BW">BW</option>';
+      } else {
+        jointSelect.innerHTML = `
+          <option value="LET">LET</option>
+          <option value="EB">EB</option>
+          <option value="SOF">SOF</option>
+          <option value="SOB">SOB</option>
+          <option value="SW">SW</option>
+        `;
+      }
+      onModalJointTypeChange(jointSelect.value);
+    }
+
+    function onModalJointTypeChange(type) {
+      const wpsGroup = document.getElementById('modalWpsGroup');
+      if (type === 'EB') {
+        wpsGroup.style.display = 'none';
+        document.getElementById('modalWpsNo').value = "";
+      } else {
+        wpsGroup.style.display = 'block';
+      }
+      updatePreviewLotName();
+    }
+
+    function updatePreviewLotName() {
+      const lotType = document.querySelector('input[name="lotType"]:checked').value;
+      const rawNum = document.getElementById('modalLotNumber').value.trim();
+      const padded = rawNum ? (!isNaN(rawNum) ? rawNum.padStart(2, '0') : rawNum) : "01";
+      const preview = `AIPL/${lotType}/LOT-${padded}`;
+      document.getElementById('modalPreviewLotName').innerText = preview;
+
+      const jointType = document.getElementById('modalJointType').value;
+      const wps = document.getElementById('modalWpsNo').value;
+      document.getElementById('modalPreviewWps').innerText = (jointType !== 'EB' && wps) ? `(WPS: ${wps})` : "";
+    }
+
+    async function submitCreateLotModal() {
+      const lotType = document.querySelector('input[name="lotType"]:checked').value;
+      const ndtPercentage = document.getElementById('modalNdtPct').value;
+      const jointType = document.getElementById('modalJointType').value;
+      const wpsNo = document.getElementById('modalWpsNo').value;
+      const rawLotNumber = document.getElementById('modalLotNumber').value.trim();
+
+      if (!rawLotNumber) return alert('⚠️ મહેરબાની કરીને Lot Number દાખલ કરો!');
+      if (jointType !== 'EB' && !wpsNo) return alert(`❌ Joint Type '${jointType}' માટે WPS No પસંદ કરવો ફરજિયાત છે!`);
+
+      const cleanNum = !isNaN(rawLotNumber) ? rawLotNumber.padStart(2, '0') : rawLotNumber;
+      const fullLotName = `AIPL/${lotType}/LOT-${cleanNum}`;
+
+      const btn = document.getElementById('btnSaveLotModal');
+      btn.innerText = "⏳ Saving...";
+      btn.disabled = true;
+
+      try {
+        // Check Duplicate in ndt_lots table
+        const { data: dupCheck, error: dupErr } = await db
+          .from('ndt_lots')
+          .select('id')
+          .eq('lot_name', fullLotName)
+          .limit(1);
+
+        if (dupErr) throw dupErr;
+        if (dupCheck && dupCheck.length > 0) {
+          btn.disabled = false;
+          btn.innerText = "💾 Save Lot";
+          return alert(`❌ Lot "${fullLotName}" પહેલેથી જ ndt_lots માં સેવ થયેલો છે!`);
+        }
+
+        // Insert into Supabase ndt_lots
+        const { error: insErr } = await db.from('ndt_lots').insert([{
+          lot_type: lotType,
+          lot_name: fullLotName,
+          clean_num: cleanNum,
+          ndt_percentage: ndtPercentage,
+          joint_type: jointType,
+          wps_no: jointType === 'EB' ? 'NA' : wpsNo
+        }]);
+
+        if (insErr) throw insErr;
+
+        alert(`✅ Lot "${fullLotName}" સફળતાપૂર્વક રજીસ્ટર થઈ ગયો!`);
+        closeCreateLotModal();
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "💾 Save Lot";
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  </script>
+</body>
+</html>
