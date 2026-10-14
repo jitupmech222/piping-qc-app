@@ -589,14 +589,19 @@
       </div>
     </div>
 
-    <!-- 🛡️ SUB-PANEL: QA/QC Module (10 Placeholder Buttons for Future Program) -->
+    <!-- 🛡️ SUB-PANEL: QA/QC Module -->
     <div id="qaqcHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">🛡️ QA/QC Inspection & Tracking</h3>
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
-        <button class="sub-btn" onclick="futureModuleNotice('LHS ENTRY')"><span>📋</span><span>LHS ENTRY</span></button>
+        <!-- 🟢 1. LHS ENTRY (LIVE WORKING MODULE) -->
+        <button class="sub-btn" onclick="window.location.href='lhs_entry.html'" style="border-left: 4px solid #16a34a; font-weight: bold;">
+          <span>📋</span><span>LHS ENTRY</span>
+        </button>
+
+        <!-- 2 to 10 (Future Modules) -->
         <button class="sub-btn" onclick="futureModuleNotice('LOT ENTRY')"><span>🧾</span><span>LOT ENTRY</span></button>
         <button class="sub-btn" onclick="futureModuleNotice('LOT OFFER / CLEARED')"><span>🔍</span><span>LOT OFFER / CLEARED</span></button>
         <button class="sub-btn" onclick="futureModuleNotice('LOT GENERATE')"><span>⚙️</span><span>LOT GENERATE</span></button>
