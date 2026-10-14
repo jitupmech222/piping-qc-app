@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LHS Entry Console | QA/QC Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 16px 20px; -webkit-font-smoothing: antialiased; }
+
+    .top-header {
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .top-header h2 { margin: 0; color: #17365d; font-size: 19px; font-weight: 800; }
+
+    .btn-back {
+      padding: 7px 16px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; color: #0284c7; }
+
+    .btn-reset {
+      padding: 7px 16px;
+      background: #ef4444;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-reset:hover { background: #dc2626; }
+
+    .card {
+      background: #ffffff;
+      padding: 18px 20px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+    }
+
+    label { font-size: 12px; font-weight: 700; color: #334155; }
+    
+    input, select {
+      padding: 8px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      background: #ffffff;
+    }
+    input:focus, select:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+    }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; white-space: nowrap; text-align: center; }
+    th { background: #17365d; color: #ffffff; font-weight: 700; position: sticky; top: 0; z-index: 2; }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    .btn-primary {
+      padding: 8px 18px;
+      background: #17365d;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-primary:hover { background: #0f243e; }
+
+    .btn-add {
+      padding: 8px 18px;
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-add:hover { background: #0b5ed7; }
+
+    .btn-remove {
+      padding: 4px 10px;
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .btn-remove:hover { background: #dc2626; color: #ffffff; }
+
+    .btn-save {
+      padding: 10px 24px;
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+    }
+    .btn-save:hover { background: #15803d; }
+    .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <!-- 1. TOP HEADER -->
+  <div class="top-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn-back">⬅️ Back to Console</a>
+      <h2>📋 LHS ENTRY (46 Columns QA/QC Engine)</h2>
+    </div>
+    <button id="btnChangeSpool" class="btn-reset" style="display:none;" onclick="handleChangeSpool()">🔄 Change Spool</button>
+  </div>
+
+  <!-- 2. SEARCH & VERIFY SPOOL BOX -->
+  <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <label style="font-size:13px;">Spool Unique No:</label>
+    <input type="text" id="spoolNoInput" placeholder="Enter Spool No (e.g. 7-07044)" style="width:260px;" onkeydown="if(event.key==='Enter') handleVerifySpool()" autocomplete="off">
+    <button type="button" id="btnVerifySpool" class="btn-primary" onclick="handleVerifySpool()">🔍 Verify Spool</button>
+    <span id="lookupStatus" style="font-size:12.5px; font-weight:600; color:#64748b;"></span>
+  </div>
+
+  <!-- 3. VERIFIED SPOOL WORKSPACE -->
+  <div id="verifiedSection" style="display:none; flex-direction:column; gap:16px;">
+
+    <!-- AUTO-FETCHED LINE LIST INFO BAR -->
+    <div class="card" style="display:flex; gap:20px; align-items:center; font-size:13px; flex-wrap:wrap; background:#f0fdf4; border-color:#bbf7d0;">
+      <div><b style="color:#64748b;">Spool:</b> <span id="dispSpoolNo" style="color:#17365d; font-weight:800; font-size:14px;"></span></div>
+      <div><b style="color:#64748b;">Drawing No:</b> <span id="dispDrawingNo" style="color:#0f172a; font-weight:700;"></span></div>
+      <div><b style="color:#64748b;">Unit / Area:</b> <span id="dispUnit" style="font-weight:700;"></span></div>
+      <div><b style="color:#64748b;">Allocation:</b> <span id="dispAllocation" style="font-weight:700;"></span></div>
+      <div><b style="color:#64748b;">Size:</b> <span id="dispSize" style="font-weight:700;"></span></div>
+      <div><b style="color:#64748b;">MOC:</b> <span id="dispMoc" style="font-weight:700;"></span></div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <b style="color:#64748b;">Pipe Class:</b>
+        <input type="text" id="pipeClassInput" style="width:110px; font-weight:bold; padding:5px 8px;">
+      </div>
+    </div>
+
+    <!-- EXISTING FILLED JOINTS IN LHS TABLE -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0; color:#334155; font-size:15px; font-weight:800;">
+          📌 Existing Filled Joints in Database (<span id="existingCount">0</span>)
+        </h3>
+        <span id="existingRepBadge" style="font-size:12px; font-weight:bold; color:#0284c7;"></span>
+      </div>
+      <div style="overflow-x:auto; max-height:220px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Joint No</th>
+              <th>Type</th>
+              <th>Weld Size</th>
+              <th>Welder No</th>
+              <th>WPS No</th>
+              <th>Inch Dia</th>
+              <th style="background:#0284c7;">WELD VISUAL REPORT NO</th>
+              <th>Visual Date</th>
+            </tr>
+          </thead>
+          <tbody id="existingJointsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADD NEW JOINTS INPUT ROW -->
+    <div class="card">
+      <h3 style="margin-bottom:12px; color:#17365d; font-size:15px; font-weight:800;">➕ Add New Joints</h3>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <div>
+          <label style="display:block; margin-bottom:4px;">Joint No</label>
+          <input type="text" id="newJointNo" placeholder="e.g. J01" style="width:100px; text-align:center; font-weight:bold;" autocomplete="off">
+        </div>
+
+        <div>
+          <label style="display:block; margin-bottom:4px;">Joint Type</label>
+          <select id="newJointType" onchange="handleJointTypeChange(this.value)">
+            <option value="">-- Select Type --</option>
+            <option value="BW">BW</option>
+            <option value="EB">EB</option>
+            <option value="SOF">SOF</option>
+            <option value="SOB">SOB</option>
+            <option value="LET">LET</option>
+            <option value="SW">SW</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display:block; margin-bottom:4px;">Weld Size (NPD)</label>
+          <select id="newWeldSize">
+            <option value="">-- Size --</option>
+            <option value="0.5">0.5"</option><option value="0.75">0.75"</option><option value="1">1"</option>
+            <option value="1.5">1.5"</option><option value="2">2"</option><option value="3">3"</option>
+            <option value="4">4"</option><option value="6">6"</option><option value="8">8"</option>
+            <option value="10">10"</option><option value="12">12"</option><option value="14">14"</option>
+          </select>
+        </div>
+
+        <div id="welderWrapper" style="display:none;">
+          <label style="display:block; margin-bottom:4px;">Welder No</label>
+          <select id="newWelderNo" onchange="handleWelderChange(this.value)">
+            <option value="">-- Select Welder --</option>
+            <option value="620">620</option><option value="622">622</option><option value="625">625</option>
+            <option value="738">738</option><option value="904">904</option><option value="815">815</option>
+            <option value="853">853</option><option value="770">770</option><option value="710">710</option>
+            <option value="711">711</option><option value="969">969</option><option value="625/1200">625/1200</option>
+            <option value="770/1200">770/1200</option><option value="815/1200">815/1200</option><option value="625/1305">625/1305</option>
+            <option value="770/1305">770/1305</option><option value="815/1305">815/1305</option><option value="815/1004">815/1004</option>
+          </select>
+        </div>
+
+        <div id="wpsWrapper" style="display:none;">
+          <label style="display:block; margin-bottom:4px;">WPS No</label>
+          <select id="newWpsNo">
+            <option value="">-- WPS --</option>
+          </select>
+        </div>
+
+        <button type="button" class="btn-add" onclick="handleAddJoint()">➕ Add Joint</button>
+      </div>
+
+      <!-- QUEUED JOINTS TABLE -->
+      <div id="queuedJointsTableWrap" style="margin-top:16px; overflow-x:auto; display:none;">
+        <table>
+          <thead>
+            <tr style="background:#0284c7; color:#fff;">
+              <th>Sr.</th>
+              <th>Joint No</th>
+              <th>Type</th>
+              <th>Size</th>
+              <th>Welder No</th>
+              <th>WPS No</th>
+              <th>Calculated Thk</th>
+              <th>Calculated Inch Dia</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="queuedJointsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. FINALIZE & SAVE SECTION -->
+    <div id="finalizeSection" class="card" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1.5px solid #e2e8f0; padding-bottom:10px;">
+        <div>
+          <h3 style="margin:0; color:#16a34a; font-size:16px; font-weight:800;">📝 Finalize & Save LHS Report</h3>
+          <p style="margin:2px 0 0 0; font-size:12px; color:#64748b;">Inspections dates and NDT clearance metadata</p>
+        </div>
+        <button type="button" id="btnSubmitAll" class="btn-save" onclick="handleSubmitAll()">💾 SAVE ALL TO LHS_ENTRIES</button>
+      </div>
+
+      <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+        <div>
+          <label style="display:block; margin-bottom:4px;">FIT UP Date: <span style="color:#ef4444;">*</span></label>
+          <input type="date" id="fitupDate" required>
+        </div>
+
+        <div>
+          <label style="display:block; margin-bottom:4px;">VISUAL Date: <span style="color:#ef4444;">*</span></label>
+          <input type="date" id="visualDate" required>
+        </div>
+
+        <div>
+          <label style="display:block; margin-bottom:4px;">WELD VISUAL REPORT NO: <span style="color:#ef4444;">*</span></label>
+          <input type="text" id="reportNoInput" placeholder="e.g. 1001 or 1001A" style="font-weight:bold;">
+          <span id="autoFetchedTag" style="font-size:11px; color:#16a34a; display:none; margin-top:2px; font-weight:bold;">✔ Auto-fetched from prior joint</span>
+        </div>
+
+        <div id="rtFieldWrap" style="display:none;">
+          <label style="display:block; margin-bottom:4px;">RT %: <span style="color:#ef4444;">*</span></label>
+          <select id="rtPercentage" style="font-weight:bold;">
+            <option value="">-- Select RT% --</option>
+            <option value="5%">5%</option>
+            <option value="10%">10%</option>
+            <option value="20%">20%</option>
+            <option value="100%">100%</option>
+          </select>
+        </div>
+
+        <div id="dptFieldWrap" style="display:none;">
+          <label style="display:block; margin-bottom:4px;">DPT %: <span style="color:#ef4444;">*</span></label>
+          <select id="dptPercentage" style="font-weight:bold;">
+            <option value="">-- Select DPT% --</option>
+            <option value="5%">5%</option>
+            <option value="10%">10%</option>
+            <option value="20%">20%</option>
+            <option value="100%">100%</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Business Logic Arrays & Mappings
+    const validWelders = ["620", "622", "625", "738", "904", "815", "853", "770", "710", "711", "969", "625/1200", "770/1200", "815/1200", "625/1305", "770/1305", "815/1305", "815/1004"];
+    const wpsForSpecial = ["620", "622", "625", "815", "770"];
+    const weldJointTypes = ["BW", "SOF", "SOB", "LET", "SW"];
+
+    const weldMultiplierMap = {
+      "BW": 1.0, "SOF": 1.5, "SOB": 1.5, "LET": 1.25, "SW": 1.25, "EB": 1.0
+    };
+
+    const weldThkMap = {
+      "0.5": 2.77, "0.75": 2.87, "1": 3.38, "1.5": 3.68,
+      "2": 3.91, "3": 5.49, "4": 6.02, "6": 7.11,
+      "8": 8.18, "10": 9.27, "12": 10.31, "14": 11.13
+    };
+
+    let verifiedSpoolData = null;
+    let existingJoints = [];
+    let queuedJoints = [];
+    let isReportNoAutoFetched = false;
+
+    /* -------------------------------------------------------------
+       1. VERIFY SPOOL (From Line_list & checks existing lhs_entries)
+    -------------------------------------------------------------- */
+    async function handleVerifySpool() {
+      const spool = document.getElementById('spoolNoInput').value.trim().toUpperCase();
+      if (!spool) return alert('⚠️ Spool Unique No. ટાઇપ કરો');
+
+      const btn = document.getElementById('btnVerifySpool');
+      const statusText = document.getElementById('lookupStatus');
+      btn.innerText = "⏳ Verifying...";
+      btn.disabled = true;
+      statusText.innerText = "Checking Line_list database...";
+
+      try {
+        // A. Line_list Table Lookup
+        const { data: lineRows, error: lineErr } = await db
+          .from('Line_list')
+          .select('*')
+          .ilike('Spool_number', spool)
+          .limit(1);
+
+        if (lineErr) throw lineErr;
+        if (!lineRows || lineRows.length === 0) {
+          statusText.innerText = "";
+          return alert(`❌ Spool "${spool}" Line_list ટેબલમાં મળ્યો નથી!`);
+        }
+
+        verifiedSpoolData = lineRows[0];
+        document.getElementById('dispSpoolNo').innerText = verifiedSpoolData.Spool_number;
+        document.getElementById('dispDrawingNo').innerText = verifiedSpoolData.Drawing_no || '-';
+        document.getElementById('dispUnit').innerText = verifiedSpoolData.UNIT || '-';
+        document.getElementById('dispAllocation').innerText = verifiedSpoolData.Allocation || '-';
+        document.getElementById('dispSize').innerText = verifiedSpoolData.Spool_size ? `${verifiedSpoolData.Spool_size}"` : '-';
+        document.getElementById('dispMoc').innerText = verifiedSpoolData.MOC || '-';
+        document.getElementById('pipeClassInput').value = verifiedSpoolData.Pipe_Class || '';
+
+        // B. Fetch Existing Filled Joints from lhs_entries
+        const { data: existRows, error: existErr } = await db
+          .from('lhs_entries')
+          .select('*')
+          .eq('spool_no', verifiedSpoolData.Spool_number)
+          .order('id', { ascending: true });
+
+        if (existErr) throw existErr;
+        existingJoints = existRows || [];
+        renderExistingJointsTable();
+
+        // C. Check Auto-Report Number
+        const repInput = document.getElementById('reportNoInput');
+        const autoTag = document.getElementById('autoFetchedTag');
+        const foundRep = existingJoints.find(j => j.weld_visual_report_no && String(j.weld_visual_report_no).trim() !== '' && String(j.weld_visual_report_no).toUpperCase() !== 'NULL');
+
+        if (foundRep) {
+          repInput.value = foundRep.weld_visual_report_no;
+          repInput.disabled = true;
+          repInput.style.background = "#f1f5f9";
+          autoTag.style.display = "block";
+          isReportNoAutoFetched = true;
+        } else {
+          repInput.value = '';
+          repInput.disabled = false;
+          repInput.style.background = "#fff";
+          autoTag.style.display = "none";
+          isReportNoAutoFetched = false;
+        }
+
+        document.getElementById('spoolNoInput').disabled = true;
+        document.getElementById('spoolNoInput').style.background = "#f1f5f9";
+        btn.style.display = 'none';
+        document.getElementById('btnChangeSpool').style.display = 'inline-block';
+        document.getElementById('verifiedSection').style.display = 'flex';
+        statusText.innerText = "Verified successfully.";
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error: ' + err.message);
+        statusText.innerText = "";
+      } finally {
+        btn.innerText = "🔍 Verify Spool";
+        btn.disabled = false;
+      }
+    }
+
+    function renderExistingJointsTable() {
+      const countEl = document.getElementById('existingCount');
+      const badgeEl = document.getElementById('existingRepBadge');
+      const tbody = document.getElementById('existingJointsTbody');
+      countEl.innerText = existingJoints.length;
+
+      if (existingJoints.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="padding:15px; color:#64748b; font-style:italic;">આ Spool માટે અગાઉ કોઈ જોઈન્ટની એન્ટ્રી થયેલી નથી.</td></tr>`;
+        badgeEl.innerText = "";
+        return;
+      }
+
+      badgeEl.innerText = `Report No: ${existingJoints[0].weld_visual_report_no || 'NA'}`;
+
+      tbody.innerHTML = existingJoints.map(ej => `
+        <tr style="background:#f8fafc;">
+          <td style="font-weight:bold; color:#0f172a;">${ej.joint_no}</td>
+          <td>${ej.joint_type || '-'}</td>
+          <td>${ej.weld_npd ? ej.weld_npd + '"' : '-'}</td>
+          <td>${ej.welder_no || 'NA'}</td>
+          <td>${ej.wps_no || 'NA'}</td>
+          <td>${ej.weld_inch_dia || '-'}</td>
+          <td style="font-weight:bold; color:#16a34a;">${ej.weld_visual_report_no || 'NA'}</td>
+          <td>${ej.visual_date || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    /* -------------------------------------------------------------
+       2. WELDER & WPS DYNAMIC RULES
+    -------------------------------------------------------------- */
+    function handleJointTypeChange(type) {
+      const welderWrap = document.getElementById('welderWrapper');
+      const wpsWrap = document.getElementById('wpsWrapper');
+
+      document.getElementById('newWelderNo').value = '';
+      document.getElementById('newWpsNo').innerHTML = '<option value="">-- WPS --</option>';
+
+      if (weldJointTypes.includes(type)) {
+        welderWrap.style.display = 'block';
+        wpsWrap.style.display = 'block';
+      } else {
+        welderWrap.style.display = 'none';
+        wpsWrap.style.display = 'none';
+      }
+    }
+
+    function handleWelderChange(welder) {
+      const wpsSelect = document.getElementById('newWpsNo');
+      if (!welder) {
+        wpsSelect.innerHTML = '<option value="">-- WPS --</option>';
+        return;
+      }
+      const allowed = wpsForSpecial.includes(welder) ? ["1", "8"] : ["1", "2", "8"];
+      wpsSelect.innerHTML = '<option value="">-- WPS --</option>' + allowed.map(w => `<option value="${w}">${w}</option>`).join('');
+    }
+
+    /* -------------------------------------------------------------
+       3. ADD JOINT TO QUEUE & VALIDATION
+    -------------------------------------------------------------- */
+    function handleAddJoint() {
+      const jointNo = document.getElementById('newJointNo').value.trim().toUpperCase();
+      const jointType = document.getElementById('newJointType').value;
+      const weldId = document.getElementById('newWeldSize').value;
+      const welderNo = document.getElementById('newWelderNo').value;
+      const wpsNo = document.getElementById('newWpsNo').value;
+
+      // Joint Regex Validation
+      if (!jointNo.match(/^J0\d{1,2}[A-Z]?$/i)) {
+        return alert('⚠️ Joint No નો ફોર્મેટ યોગ્ય નથી! (દા.ત. J01, J02A)');
+      }
+      if (!jointType) return alert('⚠️ મહેરબાની કરીને Joint Type પસંદ કરો!');
+      if (!weldId) return alert('⚠️ મહેરબાની કરીને Weld Size પસંદ કરો!');
+
+      // Check Duplicates in Database
+      if (existingJoints.some(j => String(j.joint_no).toUpperCase().trim() === jointNo)) {
+        return alert(`❌ જોઈન્ટ "${jointNo}" પહેલેથી જ lhs_entries માં સેવ થયેલો છે!`);
+      }
+
+      // Check Duplicates in Current Queue
+      if (queuedJoints.some(j => String(j.jointNo).toUpperCase().trim() === jointNo)) {
+        return alert(`❌ જોઈન્ટ "${jointNo}" તમે નીચેના લિસ્ટમાં પહેલેથી જ ઉમેરી દીધો છે!`);
+      }
+
+      // Welder & WPS Rules for Welded Types
+      if (weldJointTypes.includes(jointType)) {
+        if (!welderNo) return alert('⚠️ મહેરબાની કરીને Welder No પસંદ કરો!');
+        if (!wpsNo) return alert('⚠️ મહેરબાની કરીને WPS No પસંદ કરો!');
+      }
+
+      const numericSize = parseFloat(weldId) || 0;
+      const multiplier = weldMultiplierMap[jointType] || 1.0;
+      const inchDia = parseFloat((numericSize * multiplier).toFixed(2));
+      const weldThk = weldThkMap[weldId] || 0;
+
+      queuedJoints.push({
+        jointNo,
+        jointType,
+        weldId: numericSize,
+        welderNo: weldJointTypes.includes(jointType) ? welderNo : 'NA',
+        wpsNo: weldJointTypes.includes(jointType) ? wpsNo : 'NA',
+        weldThk,
+        inchDia
+      });
+
+      // Reset Inputs
+      document.getElementById('newJointNo').value = '';
+      document.getElementById('newJointType').value = '';
+      document.getElementById('newWeldSize').value = '';
+      document.getElementById('newWelderNo').value = '';
+      document.getElementById('newWpsNo').innerHTML = '<option value="">-- WPS --</option>';
+      document.getElementById('welderWrapper').style.display = 'none';
+      document.getElementById('wpsWrapper').style.display = 'none';
+
+      renderQueuedJoints();
+      document.getElementById('newJointNo').focus();
+    }
+
+    function handleRemoveJoint(index) {
+      queuedJoints.splice(index, 1);
+      renderQueuedJoints();
+    }
+
+    function renderQueuedJoints() {
+      const tableWrap = document.getElementById('queuedJointsTableWrap');
+      const finalizeSec = document.getElementById('finalizeSection');
+      const tbody = document.getElementById('queuedJointsTbody');
+
+      if (queuedJoints.length === 0) {
+        tableWrap.style.display = 'none';
+        finalizeSec.style.display = 'none';
+        return;
+      }
+
+      tableWrap.style.display = 'block';
+      finalizeSec.style.display = 'block';
+
+      tbody.innerHTML = queuedJoints.map((j, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td style="font-weight:bold; color:#0f172a;">${j.jointNo}</td>
+          <td>${j.jointType}</td>
+          <td>${j.weldId}"</td>
+          <td>${j.welderNo}</td>
+          <td>${j.wpsNo}</td>
+          <td>${j.weldThk} mm</td>
+          <td style="font-weight:bold; color:#0f766e;">${j.inchDia}</td>
+          <td><button type="button" class="btn-remove" onclick="handleRemoveJoint(${i})">Remove</button></td>
+        </tr>
+      `).join('');
+
+      // Dynamic NDT Toggle
+      const hasBW = queuedJoints.some(j => j.jointType === 'BW');
+      const hasDPT = queuedJoints.some(j => ['LET', 'SOB', 'SOF', 'SW'].includes(j.jointType));
+      document.getElementById('rtFieldWrap').style.display = hasBW ? 'block' : 'none';
+      document.getElementById('dptFieldWrap').style.display = hasDPT ? 'block' : 'none';
+    }
+
+    /* -------------------------------------------------------------
+       4. SUBMIT ALL QUEUED JOINTS (46 Columns Mapping to lhs_entries)
+    -------------------------------------------------------------- */
+    async function handleSubmitAll() {
+      if (queuedJoints.length === 0) return alert('⚠️ ઓછામાં ઓછો એક નવો જોઈન્ટ ઉમેરો!');
+
+      const fitupDate = document.getElementById('fitupDate').value;
+      const visualDate = document.getElementById('visualDate').value;
+      const reportNo = document.getElementById('reportNoInput').value.toUpperCase().trim();
+      const pipeClass = document.getElementById('pipeClassInput').value.trim();
+      const rtPercentage = document.getElementById('rtPercentage').value;
+      const dptPercentage = document.getElementById('dptPercentage').value;
+
+      if (!fitupDate || !visualDate || !reportNo) {
+        return alert('⚠️ Fit-Up Date, Visual Date અને Report No. દાખલ કરવા ફરજિયાત છે!');
+      }
+
+      const hasBW = queuedJoints.some(j => j.jointType === 'BW');
+      if (hasBW && !rtPercentage) return alert('⚠️ મહેરબાની કરીને RT% પસંદ કરો!');
+
+      const hasDPT = queuedJoints.some(j => ['LET', 'SOB', 'SOF', 'SW'].includes(j.jointType));
+      if (hasDPT && !dptPercentage) return alert('⚠️ મહેરબાની કરીને DPT% પસંદ કરો!');
+
+      // Report No Regex Validation
+      if (!/^\d{4}[AB]?$/.test(reportNo)) {
+        return alert('❌ Invalid Report No! ફોર્મેટ માત્ર 4 આંકડા અથવા પાછળ A/B હોઈ શકે (દા.ત. 1001, 1001A, 1001B)');
+      }
+
+      // Check Report No Conflict across other spools in Supabase
+      const { data: repCheck, error: repErr } = await db
+        .from('lhs_entries')
+        .select('spool_no')
+        .eq('weld_visual_report_no', reportNo)
+        .neq('spool_no', verifiedSpoolData.Spool_number)
+        .limit(1);
+
+      if (repErr) {
+        console.error(repErr);
+      } else if (repCheck && repCheck.length > 0) {
+        return alert(`❌ Report No "${reportNo}" પહેલેથી બીજા Spool "${repCheck[0].spool_no}" માટે વપરાયેલો છે!`);
+      }
+
+      const btnSave = document.getElementById('btnSubmitAll');
+      btnSave.innerText = "⏳ Saving to Database...";
+      btnSave.disabled = true;
+
+      try {
+        // Complete 46 Columns Sequential Mapping
+        const rowsToInsert = queuedJoints.map(j => {
+          return {
+            // 1 to 7: Basic Details
+            cwp: verifiedSpoolData.CWP || null,
+            system_ug_ag: verifiedSpoolData.System_UG_AG || null,
+            unit_wbs: verifiedSpoolData.Unit_WBS || null,
+            unit: verifiedSpoolData.UNIT || null,
+            service: verifiedSpoolData.Service || null,
+            drawing_no: verifiedSpoolData.Drawing_no || null,
+            spool_no: verifiedSpoolData.Spool_number,
+
+            // 8 to 18: Joint & Pipe Specifications
+            joint_no: j.jointNo,
+            spool_size: verifiedSpoolData.Spool_size || null,
+            joint_type: j.jointType,
+            weld_npd: j.weldId,
+            rev_no: verifiedSpoolData.Rev_no || null,
+            allocation: verifiedSpoolData.Allocation || null,
+            moc: verifiedSpoolData.MOC || null,
+            ibr_non_ibr: verifiedSpoolData.IBR_NON_IBR || null,
+            thk: j.weldThk || null,
+            paint_system: verifiedSpoolData.Paint_code || null,
+            pipe_class: pipeClass || verifiedSpoolData.Pipe_Class || null,
+
+            // 19 to 22: Induction Bend Details (Default NULL for New Joint)
+            induction_bend_report_no: null,
+            induction_bend_dpt_lot_no: null,
+            induction_bend_dpt_report_no: null,
+            induction_bend_dpt_date: null,
+
+            // 23 to 28: Fit-up, Welder & Visual Inspection
+            fitup_date: fitupDate,
+            welder_no: j.welderNo,
+            wps_no: j.wpsNo,
+            weld_inch_dia: j.inchDia,
+            weld_visual_report_no: reportNo,
+            visual_date: visualDate,
+
+            // 29 to 32: DPT Testing Details
+            dpt_percentage: dptPercentage || null,
+            dpt_report_no: null,
+            dpt_date: null,
+            dpt_lot_no: null,
+
+            // 33 to 38: RT Testing Details
+            rt_percentage: rtPercentage || null,
+            rt_report_no: null,
+            rt_date: null,
+            xr_no: null,
+            accepted_rejected: null,
+            rt_lot_no: null,
+
+            // 39 to 40: RF Pad Testing
+            rf_pad_test_report_no: null,
+            rf_pad_test_date: null,
+
+            // 41 to 42: PWHT Details
+            pwht_report_no: null,
+            pwht_date: null,
+
+            // 43 to 45: Clearance & Dispatch
+            ndt_clearance: null,
+            fd_date: null,
+            shift_dc_no: null,
+
+            // 46: Remarks
+            remarks: verifiedSpoolData.Remarks || null
+          };
+        });
+
+        // Supabase Insert Operation
+        const { error: insertErr } = await db.from('lhs_entries').insert(rowsToInsert);
+        if (insertErr) throw insertErr;
+
+        alert(`✅ સફળતાપૂર્વક ${rowsToInsert.length} જોઈન્ટ્સ lhs_entries ટેબલમાં સેવ થઈ ગયા!`);
+        handleChangeSpool();
+      } catch (err) {
+        console.error(err);
+        alert('❌ સેવ કરવામાં ભૂલ આવી: ' + err.message);
+      } finally {
+        btnSave.innerText = "💾 SAVE ALL TO LHS_ENTRIES";
+        btnSave.disabled = false;
+      }
+    }
+
+    function handleChangeSpool() {
+      verifiedSpoolData = null;
+      existingJoints = [];
+      queuedJoints = [];
+      isReportNoAutoFetched = false;
+
+      document.getElementById('spoolNoInput').disabled = false;
+      document.getElementById('spoolNoInput').style.background = "#fff";
+      document.getElementById('spoolNoInput').value = "";
+      document.getElementById('lookupStatus').innerText = "";
+      document.getElementById('btnVerifySpool').style.display = 'inline-block';
+      document.getElementById('btnChangeSpool').style.display = 'none';
+      document.getElementById('verifiedSection').style.display = 'none';
+
+      document.getElementById('fitupDate').value = "";
+      document.getElementById('visualDate').value = "";
+      document.getElementById('reportNoInput').value = "";
+      document.getElementById('rtPercentage').value = "";
+      document.getElementById('dptPercentage').value = "";
+      renderQueuedJoints();
+      document.getElementById('spoolNoInput').focus();
+    }
+  </script>
+</body>
+</html>
