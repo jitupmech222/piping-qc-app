@@ -328,6 +328,22 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ Access Denied: માત્ર Admin પાસે જ QA/QC મોડ્યુલની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
     // Business Logic Arrays & Mappings
     const validWelders = ["620", "622", "625", "738", "904", "815", "853", "770", "710", "711", "969", "625/1200", "770/1200", "815/1200", "625/1305", "770/1305", "815/1305", "815/1004"];
     const wpsForSpecial = ["620", "622", "625", "815", "770"];
