@@ -819,17 +819,26 @@
   function updateRoleVisibility() {
     if (!currentUser) return;
     const isAdmin = currentUser.username === 'admin';
+
+    // 🛡️ QA/QC Module: Only for Admin
+    const navQaqc = document.getElementById('navQaqcLink');
+    const cardQaqc = document.getElementById('cardQaqcHub');
+    if (navQaqc) navQaqc.style.display = isAdmin ? 'flex' : 'none';
+    if (cardQaqc) cardQaqc.style.display = isAdmin ? 'flex' : 'none';
+
+    // Material Buttons
     const btnMtoUpdate = document.getElementById('btnMtoUpdateHub');
-    const btnDataUpdate = document.getElementById('btnDataUpdateHub');
     const btnIgp = document.getElementById('btnIgpUpdateHub');
     const btnMin = document.getElementById('btnMinUpdateHub');
-    const btnLineList = document.getElementById('btnLineListHub');
-    const btnSapCode = document.getElementById('btnSapCodeHub');
-
     if (btnMtoUpdate) btnMtoUpdate.style.display = isAdmin ? 'flex' : 'none';
-    if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
     if (btnIgp) btnIgp.style.display = isAdmin ? 'flex' : 'none';
     if (btnMin) btnMin.style.display = isAdmin ? 'flex' : 'none';
+
+    // Data Buttons
+    const btnDataUpdate = document.getElementById('btnDataUpdateHub');
+    const btnLineList = document.getElementById('btnLineListHub');
+    const btnSapCode = document.getElementById('btnSapCodeHub');
+    if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
     if (btnLineList) btnLineList.style.display = isAdmin ? 'flex' : 'none';
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
   }
@@ -949,6 +958,14 @@
   }
 
   function openCategoryHub(hubId) {
+    // 🛡️ Extra Security Check: Strict Admin block for QA/QC
+    if (hubId === 'qaqcHub') {
+      if (!currentUser || currentUser.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ QA/QC Module જોવાની અથવા વાપરવાની પરમિશન છે!");
+        return;
+      }
+    }
+
     document.getElementById('hubMainMenu').style.display = 'none';
     document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
     document.getElementById('stageContainer').style.display = 'none';
