@@ -445,7 +445,7 @@
       <a class="nav-item" onclick="openCategoryHub('mechHub')">
         <span>⚙️</span> <span>Mechanical</span>
       </a>
-      <a class="nav-item" onclick="openCategoryHub('qaqcHub')">
+      <a class="nav-item" id="navQaqcLink" style="display:none;" onclick="openCategoryHub('qaqcHub')">
         <span>🛡️</span> <span>QA/QC Module</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('matHub')">
@@ -541,13 +541,12 @@
           </div>
         </div>
 
-        <!-- QA/QC Module Card -->
-        <div class="category-card" onclick="openCategoryHub('qaqcHub')">
+        <div class="category-card" id="cardQaqcHub" style="display:none;" onclick="openCategoryHub('qaqcHub')">
           <div class="cat-body">
             <div class="cat-title">QA/QC Module</div>
             <div class="cat-desc">LHS Entry, Lot Entry, Lot Offer, DPT & RT Status, NDT DC, PWHT.</div>
-          </div>
-        </div>
+         </div>
+      </div>
 
         <div class="category-card" onclick="openCategoryHub('matHub')">
           <div class="cat-body">
