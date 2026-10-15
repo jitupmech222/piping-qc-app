@@ -621,11 +621,17 @@
         return alert('⚠️ Fit-Up Date, Visual Date અને Report No. દાખલ કરવા ફરજિયાત છે!');
       }
 
+      // RT% requirement check only if BW exists
       const hasBW = queuedJoints.some(j => j.jointType === 'BW');
-      if (hasBW && !rtPercentage) return alert('⚠️ મહેરબાની કરીને RT% પસંદ કરો!');
+      if (hasBW && !rtPercentage) {
+        return alert('⚠️ BW જોઈન્ટ હોવાથી RT% પસંદ કરવો ફરજિયાત છે!');
+      }
 
+      // DPT% requirement check only if SOF, SOB, LET, SW exists (EB excluded)
       const hasDPT = queuedJoints.some(j => ['LET', 'SOB', 'SOF', 'SW'].includes(j.jointType));
-      if (hasDPT && !dptPercentage) return alert('⚠️ મહેરબાની કરીને DPT% પસંદ કરો!');
+      if (hasDPT && !dptPercentage) {
+        return alert('⚠️ DPT પ્રકારના જોઈન્ટ હોવાથી DPT% પસંદ કરવો ફરજિયાત છે!');
+      }
 
       // Report No Regex Validation
       if (!/^\d{4}[AB]?$/.test(reportNo)) {
@@ -652,7 +658,25 @@
 
       try {
         // Complete 46 Columns Sequential Mapping
+        // Complete 46 Columns Sequential Mapping with Joint Type Validation
         const rowsToInsert = queuedJoints.map(j => {
+          const jType = String(j.jointType || '').trim().toUpperCase();
+
+          // 🟢 Joint-Specific NDT Percentage Logic
+          let finalRt = null;
+          let finalDpt = null;
+
+          if (jType === 'BW') {
+            finalRt = rtPercentage || null;      // BW: Only RT%
+            finalDpt = null;                     // DPT% is strictly NULL
+          } else if (jType === 'EB') {
+            finalRt = null;                      // EB: RT% is NULL
+            finalDpt = null;                     // EB: DPT% is NULL (10% DPT is Fix & separate)
+          } else if (['SOF', 'SOB', 'LET', 'SW'].includes(jType)) {
+            finalRt = null;                      // Branch/Fillet: RT% is strictly NULL
+            finalDpt = dptPercentage || null;    // Only DPT%
+          }
+
           return {
             // 1 to 7: Basic Details
             cwp: verifiedSpoolData.CWP || null,
@@ -691,13 +715,13 @@
             visual_date: visualDate,
 
             // 29 to 32: DPT Testing Details
-            dpt_percentage: dptPercentage || null,
+            dpt_percentage: finalDpt,
             dpt_report_no: null,
             dpt_date: null,
             dpt_lot_no: null,
 
             // 33 to 38: RT Testing Details
-            rt_percentage: rtPercentage || null,
+            rt_percentage: finalRt,
             rt_report_no: null,
             rt_date: null,
             xr_no: null,
