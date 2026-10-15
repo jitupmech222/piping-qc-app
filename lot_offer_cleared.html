@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lot Offer & Cleared | QA/QC Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, -apple-system, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 18px; }
+    
+    .top-header {
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .top-header h2 { margin: 0; color: #0f172a; font-size: 19px; font-weight: 700; }
+    
+    .btn-back {
+      padding: 7px 15px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; }
+
+    .mode-btn {
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .type-btn {
+      padding: 9px 24px;
+      border-radius: 6px;
+      border: none;
+      font-weight: bold;
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .card {
+      background: #ffffff;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+
+    .lot-pill {
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 12.5px;
+      transition: all 0.15s;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th {
+      padding: 8px 4px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #fff;
+      text-align: center;
+      vertical-align: middle;
+      white-space: normal;
+      line-height: 1.2;
+    }
+    td {
+      padding: 6px 4px;
+      border: 1px solid #cbd5e1;
+      text-align: center;
+      vertical-align: middle;
+      white-space: nowrap;
+      background: #fff;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+
+    input, select {
+      padding: 5px 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 12px;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: #0284c7; }
+
+    .btn-save {
+      padding: 9px 22px;
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13.5px;
+    }
+    .btn-save:hover { background: #15803d; }
+    .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn-back">⬅️ Back to Console</a>
+      <h2>🔍 LOT OFFER / CLEARED</h2>
+    </div>
+
+    <!-- MAIN MODE SWITCHER -->
+    <div style="display:flex; gap:10px;">
+      <button id="btnModeNormal" class="mode-btn" onclick="switchMainMode('NORMAL')">LOT NUMBER (OFFER)</button>
+      <button id="btnMode100" class="mode-btn" onclick="switchMainMode('100_PERCENT')">100% LOT</button>
+    </div>
+  </div>
+
+  <!-- NDT TYPE SELECTOR (DPT / RT) -->
+  <div style="display:flex; gap:12px; margin-bottom:16px;">
+    <button id="btnTypeDpt" class="type-btn" onclick="switchNdtType('DPT')">DPT</button>
+    <button id="btnTypeRt" class="type-btn" onclick="switchNdtType('RT')">RT</button>
+  </div>
+
+  <!-- MODE A: 100% LOT CONTAINER -->
+  <div id="container100" class="card" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h3 id="heading100" style="margin:0; color:#dc2626; font-size:15px;">PENDING JOINTS</h3>
+      <button id="btnSave100" class="btn-save" onclick="handleSave100()">SAVE 100% CLEARANCE</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">Sr no.</th>
+            <th>ISO No/Drawing No/Line No</th>
+            <th>Spool Unique No.</th>
+            <th>Joint No.</th>
+            <th>Type of Joint</th>
+            <th>Size & Thickness</th>
+            <th style="max-width:110px;">WELD VISUAL<br>REPORT NO</th>
+            <th id="thPct100">NDT %</th>
+            <th id="thRep100" style="background:#0284c7;">REPORT NO *</th>
+            <th id="thDate100" style="background:#0284c7;">DATE *</th>
+            <th id="thXr100" style="background:#0284c7; display:none;">XR NO *</th>
+            <th id="thStatus100" style="background:#0284c7; display:none;">Accepted/Rejected</th>
+          </tr>
+        </thead>
+        <tbody id="tbody100"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODE B: NORMAL OFFER LOT CONTAINER -->
+  <div id="containerNormal" style="display:none;">
+    <!-- LOTS SELECTION BAR -->
+    <div class="card">
+      <h4 style="margin:0 0 10px 0; color:#334155;">
+        Select <span id="lblOfferType">DPT</span> Lot (Status: <span style="color:#d97706;">OFFER</span>):
+      </h4>
+      <div id="lotPillsList" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+    </div>
+
+    <!-- SELECTED LOT JOINTS TABLE -->
+    <div id="selectedLotCard" class="card" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 id="selectedLotHeading" style="margin:0; color:#0f172a; font-size:15px;"></h3>
+        <button id="btnSaveNormal" class="btn-save" onclick="handleSaveNormal()">💾 SAVE LOT CLEARANCE</button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;">Sr no.</th>
+              <th>ISO No/Drawing No/Line No</th>
+              <th>Pipe Class</th>
+              <th>Joint No.</th>
+              <th>Size & Thickness</th>
+              <th>NDT Lot No.</th>
+              <th>Welder No</th>
+              <th>Type of Joint</th>
+              <th style="max-width:110px;">WELD VISUAL<br>REPORT NO</th>
+              <th>VISUAL Date</th>
+              <th>Type of NDT</th>
+              <th style="background:#0284c7;">NDT Report No *</th>
+              <th style="background:#0284c7;">NDT Date *</th>
+              <th id="thNormalXr" style="background:#0284c7; display:none;">XR NO</th>
+              <th id="thNormalStatus" style="background:#0284c7; display:none;">Accepted/Rejected</th>
+              <th>Remarks</th>
+              <th style="max-width:115px;">NDT CLEARANCE<br>DATE</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyNormal"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let mainMode = "NORMAL";
+    let selectedType = "DPT";
+    let offerLots = [];
+    let selectedLot = "";
+    let normalJoints = [];
+    let joints100 = [];
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ Access Denied: માત્ર Admin પાસે જ QA/QC મોડ્યુલની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    function switchMainMode(mode) {
+      mainMode = mode;
+      updateUIButtons();
+      loadData();
+    }
+
+    function switchNdtType(type) {
+      selectedType = type;
+      updateUIButtons();
+      loadData();
+    }
+
+    function updateUIButtons() {
+      const btnNormal = document.getElementById('btnModeNormal');
+      const btn100 = document.getElementById('btnMode100');
+      const btnDpt = document.getElementById('btnTypeDpt');
+      const btnRt = document.getElementById('btnTypeRt');
+
+      btnNormal.style.background = mainMode === "NORMAL" ? "#0f172a" : "#fff";
+      btnNormal.style.color = mainMode === "NORMAL" ? "#fff" : "#334155";
+      btnNormal.style.border = mainMode === "NORMAL" ? "2px solid #0f172a" : "1px solid #cbd5e1";
+
+      btn100.style.background = mainMode === "100_PERCENT" ? "#dc2626" : "#fff";
+      btn100.style.color = mainMode === "100_PERCENT" ? "#fff" : "#334155";
+      btn100.style.border = mainMode === "100_PERCENT" ? "2px solid #dc2626" : "1px solid #cbd5e1";
+
+      btnDpt.style.background = selectedType === "DPT" ? "#0284c7" : "#e2e8f0";
+      btnDpt.style.color = selectedType === "DPT" ? "#fff" : "#334155";
+      btnDpt.innerText = mainMode === "100_PERCENT" ? "DPT (100%)" : "DPT";
+
+      btnRt.style.background = selectedType === "RT" ? "#0284c7" : "#e2e8f0";
+      btnRt.style.color = selectedType === "RT" ? "#fff" : "#334155";
+      btnRt.innerText = mainMode === "100_PERCENT" ? "RT (100%)" : "RT";
+
+      document.getElementById('container100').style.display = mainMode === "100_PERCENT" ? "block" : "none";
+      document.getElementById('containerNormal').style.display = mainMode === "NORMAL" ? "block" : "none";
+      document.getElementById('lblOfferType').innerText = selectedType;
+    }
+
+    async function loadData() {
+      if (mainMode === "100_PERCENT") {
+        await load100PercentJoints();
+      } else {
+        await loadOfferLotsList();
+      }
+    }
+
+    /* -------------------------------------------------------------
+       1. 100% LOT LOGIC
+    -------------------------------------------------------------- */
+    async function load100PercentJoints() {
+      const tbody = document.getElementById('tbody100');
+      tbody.innerHTML = `<tr><td colspan="12" style="padding:20px; color:#64748b;">⏳ Loading 100% Joints...</td></tr>`;
+
+      try {
+        let query = db.from('lhs_entries').select('*');
+        if (selectedType === "DPT") {
+          query = query.in('joint_type', ['LET', 'SOB', 'SOF', 'SW']).eq('dpt_percentage', '100%');
+        } else {
+          query = query.eq('joint_type', 'BW').eq('rt_percentage', '100%');
+        }
+
+        const { data, error } = await query.order('id', { ascending: true });
+        if (error) throw error;
+
+        joints100 = (data || []).filter(r => {
+          if (selectedType === "DPT") {
+            return !r.dpt_report_no || !r.dpt_date;
+          } else {
+            return !r.rt_report_no || !r.rt_date || !r.xr_no;
+          }
+        });
+
+        document.getElementById('heading100').innerText = `${selectedType} PENDING JOINTS (${joints100.length} Joints Found)`;
+        document.getElementById('thXr100').style.display = selectedType === "RT" ? "table-cell" : "none";
+        document.getElementById('thStatus100').style.display = selectedType === "RT" ? "table-cell" : "none";
+        document.getElementById('thPct100').innerText = `${selectedType} %`;
+        document.getElementById('thRep100').innerText = `${selectedType} REPORT NO *`;
+        document.getElementById('thDate100').innerText = `${selectedType} DATE *`;
+
+        if (joints100.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="12" style="padding:20px; color:#16a34a; font-weight:bold;">🎉 ALL CLEAR! કોઈ 100% જોઈન્ટ પેન્ડિંગ નથી.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = joints100.map((j, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>${j.drawing_no || '-'}</td>
+            <td>${j.spool_no || '-'}</td>
+            <td style="font-weight:bold;">${j.joint_no}</td>
+            <td>${j.joint_type}</td>
+            <td>${j.weld_npd ? j.weld_npd + '"' : ''}${j.thk ? '/' + j.thk : '-'}</td>
+            <td>${j.weld_visual_report_no || '-'}</td>
+            <td style="font-weight:bold; color:#dc2626;">100%</td>
+            <td><input type="text" value="${j.reportNo || (selectedType === 'DPT' ? j.dpt_report_no : j.rt_report_no) || ''}" onchange="joints100[${idx}].reportNo = this.value" placeholder="Report No" style="width:95px; text-align:center;"></td>
+            <td><input type="date" value="${j.ndtDate || (selectedType === 'DPT' ? j.dpt_date : j.rt_date) || ''}" onchange="joints100[${idx}].ndtDate = this.value" style="width:125px; text-align:center;"></td>
+            ${selectedType === "RT" ? `<td><input type="text" value="${j.xrNo \vert{}\vert{} j.xr_no \vert{}\vert{} ''}" onchange="joints100[${idx}].xrNo = this.value" placeholder="XR No" style="width:85px; text-align:center;"></td>` : ''}
+            ${selectedType === "RT" ? `<td>
+              <select onchange="joints100[${idx}].status = this.value" style="font-weight:bold;">
+                <option value="Accepted" ${(j.accepted_rejected || 'Accepted') === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                <option value="Rejected" ${j.accepted_rejected === 'Rejected' ? 'selected' : ''}>Rejected</option>
+              </select>
+            </td>` : ''}
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="12" style="color:#ef4444; padding:15px;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function handleSave100() {
+      const filled = joints100.filter(j => {
+        const rep = j.reportNo || (selectedType === 'DPT' ? j.dpt_report_no : j.rt_report_no);
+        const dt = j.ndtDate || (selectedType === 'DPT' ? j.dpt_date : j.rt_date);
+        if (selectedType === "DPT") return rep && dt;
+        return rep && dt && (j.xrNo || j.xr_no);
+      });
+
+      if (filled.length === 0) return alert('⚠️ કૃપા કરીને જરૂરી વિગતો ભરો (Report No, Date અને RT માટે XR No)!');
+
+      const btn = document.getElementById('btnSave100');
+      btn.innerText = "Saving...";
+      btn.disabled = true;
+
+      try {
+        for (const j of filled) {
+          const rep = j.reportNo || (selectedType === 'DPT' ? j.dpt_report_no : j.rt_report_no);
+          const dt = j.ndtDate || (selectedType === 'DPT' ? j.dpt_date : j.rt_date);
+          const updateObj = {};
+
+          if (selectedType === "DPT") {
+            updateObj.dpt_report_no = rep;
+            updateObj.dpt_date = dt;
+          } else {
+            updateObj.rt_report_no = rep;
+            updateObj.rt_date = dt;
+            updateObj.xr_no = j.xrNo || j.xr_no;
+            updateObj.accepted_rejected = j.status || 'Accepted';
+          }
+
+          const { error } = await db.from('lhs_entries').update(updateObj).eq('id', j.id);
+          if (error) throw error;
+        }
+
+        alert(`✅ ${filled.length} જોઈન્ટ્સ સફળતાપૂર્વક 100% ક્લિયર થઈ ગયા!`);
+        await load100PercentJoints();
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      } finally {
+        btn.innerText = "SAVE 100% CLEARANCE";
+        btn.disabled = false;
+      }
+    }
+
+    /* -------------------------------------------------------------
+       2. NORMAL LOT (OFFER) LOGIC
+    -------------------------------------------------------------- */
+    async function loadOfferLotsList() {
+      const container = document.getElementById('lotPillsList');
+      container.innerHTML = "Loading lots...";
+      selectedLot = "";
+      document.getElementById('selectedLotCard').style.display = "none";
+
+      try {
+        let query = db.from('lhs_entries').select('*');
+        if (selectedType === "RT") {
+          query = query.eq('joint_type', 'BW').not('rt_lot_no', 'is', null);
+        } else {
+          query = query.neq('joint_type', 'BW');
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        const lotMap = new Map();
+        (data || []).forEach(r => {
+          let lotNo = "", repNo = "", ndtDate = "";
+          if (selectedType === "RT") {
+            lotNo = r.rt_lot_no;
+            repNo = r.rt_report_no;
+            ndtDate = r.rt_date;
+          } else {
+            lotNo = r.joint_type === "EB" ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
+            repNo = r.joint_type === "EB" ? r.induction_bend_dpt_report_no : r.dpt_report_no;
+            ndtDate = r.joint_type === "EB" ? r.induction_bend_dpt_date : r.dpt_date;
+          }
+
+          const cleanLot = String(lotNo || '').trim();
+          if (!cleanLot || ["NA", "0", "PJ-1", "PJ-2"].includes(cleanLot.toUpperCase())) return;
+
+          if (!lotMap.has(cleanLot)) {
+            lotMap.set(cleanLot, { lotNo: cleanLot, total: 0, hasClearedAll: true });
+          }
+          const item = lotMap.get(cleanLot);
+          item.total++;
+          if (!repNo || !ndtDate) item.hasClearedAll = false;
+        });
+
+        // Filter Offer Lots (Not fully cleared)
+        offerLots = Array.from(lotMap.values()).filter(l => !l.hasClearedAll);
+        offerLots.sort((a, b) => String(a.lotNo).localeCompare(String(b.lotNo), undefined, { numeric: true }));
+
+        if (offerLots.length === 0) {
+          container.innerHTML = `<span style="color:#16a34a; font-weight:bold;">🎉 કોઈ ${selectedType} Lot OFFER માટે પેન્ડિંગ નથી.</span>`;
+          return;
+        }
+
+        container.innerHTML = offerLots.map(l => `
+          <button class="lot-pill" onclick="handleSelectLot('${l.lotNo}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#0f172a;">
+            LOT-${l.lotNo} (${l.total})
+          </button>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = "Error loading lots: " + err.message;
+      }
+    }
+
+    async function handleSelectLot(lotNo) {
+      selectedLot = lotNo;
+      document.querySelectorAll('.lot-pill').forEach(btn => {
+        if (btn.innerText.includes(`LOT-${lotNo}`)) {
+          btn.style.background = "#e2e8f0";
+          btn.style.borderColor = "#0f172a";
+        } else {
+          btn.style.background = "#fff";
+          btn.style.borderColor = "#cbd5e1";
+        }
+      });
+
+      const tbody = document.getElementById('tbodyNormal');
+      tbody.innerHTML = `<tr><td colspan="17" style="padding:15px;">Loading joints for LOT-${lotNo}...</td></tr>`;
+      document.getElementById('selectedLotCard').style.display = "block";
+      document.getElementById('selectedLotHeading').innerText = `📋 ${selectedType} LOT-${lotNo} Details`;
+
+      try {
+        let query = db.from('lhs_entries').select('*');
+        if (selectedType === "RT") {
+          query = query.eq('joint_type', 'BW').eq('rt_lot_no', lotNo);
+        } else {
+          query = query.neq('joint_type', 'BW').or(`dpt_lot_no.eq.${lotNo},induction_bend_dpt_lot_no.eq.${lotNo}`);
+        }
+
+        const { data, error } = await query.order('id', { ascending: true });
+        if (error) throw error;
+
+        normalJoints = data || [];
+        document.getElementById('thNormalXr').style.display = selectedType === "RT" ? "table-cell" : "none";
+        document.getElementById('thNormalStatus').style.display = selectedType === "RT" ? "table-cell" : "none";
+
+        tbody.innerHTML = normalJoints.map((j, idx) => {
+          const repNo = selectedType === "RT" ? j.rt_report_no : (j.joint_type === "EB" ? j.induction_bend_dpt_report_no : j.dpt_report_no);
+          const dt = selectedType === "RT" ? j.rt_date : (j.joint_type === "EB" ? j.induction_bend_dpt_date : j.dpt_date);
+          const isLocked = repNo && dt;
+
+          return `
+            <tr style="background:${isLocked ? '#f8fafc' : '#fff'};">
+              <td>${idx + 1}</td>
+              <td>${j.drawing_no || '-'}</td>
+              <td>${j.pipe_class || '-'}</td>
+              <td style="font-weight:bold;">${j.joint_no}</td>
+              <td>${j.weld_npd ? j.weld_npd + '"' : ''}${j.thk ? '/' + j.thk : '-'}</td>
+              <td>${selectedLot}</td>
+              <td>${j.welder_no || 'NA'}</td>
+              <td>${j.joint_type}</td>
+              <td>${j.weld_visual_report_no || '-'}</td>
+              <td>${j.visual_date || '-'}</td>
+              <td>${selectedType}</td>
+              <td><input type="text" value="${repNo || ''}" ${isLocked ? 'disabled' : ''} onchange="normalJoints[${idx}].inputRep = this.value" style="width:95px; text-align:center;"></td>
+              <td><input type="date" value="${dt || ''}" ${isLocked ? 'disabled' : ''} onchange="normalJoints[${idx}].inputDate = this.value" style="width:125px; text-align:center;"></td>
+              ${selectedType === "RT" ? `<td><input type="text" value="${j.xr_no || ''}" ${isLocked ? 'disabled' : ''} onchange="normalJoints[${idx}].inputXr = this.value" style="width:85px; text-align:center;"></td>` : ''}
+              ${selectedType === "RT" ? `<td>
+                <select ${isLocked ? 'disabled' : ''} onchange="normalJoints[${idx}].inputStatus = this.value" style="font-weight:bold;">
+                  <option value="Accepted" ${(j.accepted_rejected || 'Accepted') === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                  <option value="Rejected" ${j.accepted_rejected === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                </select>
+              </td>` : ''}
+              <td>${j.remarks || '-'}</td>
+              <td style="font-weight:bold; color:#16a34a;">${dt || '-'}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="17" style="color:red; padding:15px;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function handleSaveNormal() {
+      const filled = normalJoints.filter(j => {
+        const hasExisting = selectedType === "RT" ? (j.rt_report_no && j.rt_date) : (j.dpt_report_no && j.dpt_date);
+        if (hasExisting) return false;
+        return j.inputRep && j.inputDate;
+      });
+
+      if (filled.length === 0) return alert('ℹ️ સેવ કરવા માટે કોઈ નવા જોઈન્ટમાં Report No અને Date ભરેલા નથી!');
+
+      const btn = document.getElementById('btnSaveNormal');
+      btn.innerText = "Saving...";
+      btn.disabled = true;
+
+      try {
+        for (const j of filled) {
+          const updateObj = {};
+          if (selectedType === "RT") {
+            updateObj.rt_report_no = j.inputRep;
+            updateObj.rt_date = j.inputDate;
+            if (j.inputXr) updateObj.xr_no = j.inputXr;
+            updateObj.accepted_rejected = j.inputStatus || 'Accepted';
+          } else {
+            if (j.joint_type === "EB") {
+              updateObj.induction_bend_dpt_report_no = j.inputRep;
+              updateObj.induction_bend_dpt_date = j.inputDate;
+            } else {
+              updateObj.dpt_report_no = j.inputRep;
+              updateObj.dpt_date = j.inputDate;
+            }
+          }
+
+          const { error } = await db.from('lhs_entries').update(updateObj).eq('id', j.id);
+          if (error) throw error;
+        }
+
+        alert('✅ સફળતાપૂર્વક ડેટા સેવ થઈ ગયો!');
+        await handleSelectLot(selectedLot);
+        await loadOfferLotsList();
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      } finally {
+        btn.innerText = "💾 SAVE LOT CLEARANCE";
+        btn.disabled = false;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifyAdminAccess()) {
+        updateUIButtons();
+        loadData();
+      }
+    });
+  </script>
+</body>
+</html>
