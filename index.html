@@ -795,16 +795,106 @@
     }
   }
 
-  function verifyLogin() {
+  const LOCKOUT_MINUTES = 2;
+  const MAX_ATTEMPTS = 2;
+
+  async function verifyLogin() {
     const u = document.getElementById('loginUser').value.trim().toLowerCase();
     const p = document.getElementById('loginPass').value.trim();
-    if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
-      currentUser = { username: u, ...USER_ROLES[u] };
-      sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
-      document.getElementById('loginError').style.display = 'none';
-      checkSessionAuth();
-    } else {
-      document.getElementById('loginError').style.display = 'block';
+    const err = document.getElementById('loginError');
+    const btnLogin = document.querySelector('.btn-login');
+
+    err.style.display = 'none';
+
+    // ૧. Supabase માંથી આ યુઝરનું સેન્ટ્રલ લૉક સ્ટેટસ તપાસો
+    btnLogin.disabled = true;
+    btnLogin.innerText = "⏳ Checking security...";
+
+    try {
+      const { data: userStatus, error: fetchErr } = await db
+        .from('user_auth_status')
+        .select('*')
+        .eq('username', u)
+        .single();
+
+      if (fetchErr && fetchErr.code !== 'PGRST116') {
+        throw fetchErr;
+      }
+
+      // જો એકાઉન્ટ લૉક હોય તો સમય તપાસો
+      if (userStatus && userStatus.locked_until) {
+        const lockTime = new Date(userStatus.locked_until).getTime();
+        const now = Date.now();
+        const remainingMs = lockTime - now;
+
+        if (remainingMs > 0) {
+          const remainingSec = Math.ceil(remainingMs / 1000);
+          const mins = Math.floor(remainingSec / 60);
+          const secs = remainingSec % 60;
+
+          err.style.display = 'block';
+          err.innerHTML = `🔒 2 વખત ખોટો પાસવર્ડ દાખલ કર્યો છે.<br>આ એકાઉન્ટ <b>${mins}m ${secs}s</b> માટે તમામ ડિવાઇસ પર લૉક છે!`;
+          btnLogin.disabled = false;
+          btnLogin.innerText = "Login to Portal ➔";
+          return;
+        } else {
+          // ૫ મિનિટ પૂરી થઈ ગઈ - લૉક રીસેટ કરો
+          await db.from('user_auth_status').update({
+            failed_attempts: 0,
+            locked_until: null
+          }).eq('username', u);
+        }
+      }
+
+      // ૨. પાસવર્ડ ચેક કરો
+      if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
+        // ✅ સાચો પાસવર્ડ: ડેટાબેઝમાં પ્રયાસો 0 કરી દો
+        await db.from('user_auth_status').update({
+          failed_attempts: 0,
+          locked_until: null,
+          last_attempt_at: new Date().toISOString()
+        }).eq('username', u);
+
+        currentUser = { username: u, ...USER_ROLES[u] };
+        sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
+        err.style.display = 'none';
+        checkSessionAuth();
+      } else {
+        // ❌ ખોટો પાસવર્ડ: અસફળ પ્રયાસ ૧ વધારો
+        const currentAttempts = (userStatus ? userStatus.failed_attempts : 0) + 1;
+
+        if (currentAttempts >= MAX_ATTEMPTS) {
+          // ૨ ખોટા પ્રયાસ -> ૫ મિનિટ માટે લૉક સેટ કરો
+          const lockUntil = new Date(Date.now() + (LOCKOUT_MINUTES * 60 * 1000)).toISOString();
+          
+          await db.from('user_auth_status').upsert({
+            username: u,
+            failed_attempts: currentAttempts,
+            locked_until: lockUntil,
+            last_attempt_at: new Date().toISOString()
+          });
+
+          err.style.display = 'block';
+          err.innerHTML = `🔒 સતત 2 વખત ખોટો પાસવર્ડ દાખલ કર્યો છે!<br>આ એકાઉન્ટ 5 મિનિટ માટે તમામ ડિવાઇસ પર લૉક થઈ ગયું છે.`;
+        } else {
+          // ૧ અસફળ પ્રયાસ
+          await db.from('user_auth_status').upsert({
+            username: u,
+            failed_attempts: currentAttempts,
+            last_attempt_at: new Date().toISOString()
+          });
+
+          err.style.display = 'block';
+          err.innerHTML = `⚠️ Invalid Password! (બાકી રહેલ પ્રયાસ: ${MAX_ATTEMPTS - currentAttempts})`;
+        }
+      }
+    } catch (errCatch) {
+      console.error(errCatch);
+      err.style.display = 'block';
+      err.innerText = "સિક્યોરિટી સર્વર સાથે સંપર્ક થઈ શક્યો નથી: " + errCatch.message;
+    } finally {
+      btnLogin.disabled = false;
+      btnLogin.innerText = "Login to Portal ➔";
     }
   }
 
