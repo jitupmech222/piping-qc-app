@@ -480,7 +480,7 @@
   tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Synchronizing MTO Data with Master Register... Please wait...</td></tr>';
 
   try {
-    // ૧. Sap_code ટેબલમાંથી MAT_SAP_CODE અને type નું મેપિંગ મેળવવું
+    // ૧. Sap_code ટેબલમાંથી MAT_SAP_CODE અને type મેળવવું
     const sapMap = new Map();
     let fromSap = 0;
     let hasMoreSap = true;
@@ -491,12 +491,10 @@
         .range(fromSap, fromSap + 999);
 
       if (sapErr) throw sapErr;
-      if (sapData && dataLength(sapData) > 0) {
+      if (sapData && sapData.length > 0) {
         sapData.forEach(s => {
           if (s.MAT_SAP_CODE !== undefined && s.MAT_SAP_CODE !== null) {
-            const cleanCode = String(s.MAT_SAP_CODE).trim().toUpperCase();
-            const cleanType = s.type ? String(s.type).trim().toUpperCase() : null;
-            sapMap.set(cleanCode, cleanType);
+            sapMap.set(String(s.MAT_SAP_CODE).trim().toUpperCase(), s.type ? String(s.type).trim().toUpperCase() : null);
           }
         });
         fromSap += 1000;
@@ -526,9 +524,7 @@
       }
     }
 
-    function dataLength(arr) { return arr ? arr.length : 0; }
-
-    // ૩. Spool વાઇઝ વર્ગીકરણ (Safe Classification)
+    // ૩. Spool વાઇઝ વર્ગીકરણ
     const spoolMap = new Map();
 
     mtoAll.forEach(r => {
@@ -539,7 +535,7 @@
       const sapCode = (r.MAT_SAP_CODE !== undefined && r.MAT_SAP_CODE !== null) ? String(r.MAT_SAP_CODE).trim().toUpperCase() : '';
       const sapType = sapMap.get(sapCode);
 
-      // પ્રાથમિકતા Sap_code.type ને, નહિતર Description થી
+      // Sap_code.type અથવા Description થી પાઇપ નક્કી કરવું
       let isPipe = false;
       if (sapType === 'PIPE') {
         isPipe = true;
@@ -578,7 +574,7 @@
       }
     });
 
-    // ૪. સ્થિતિનું મૂલ્યાંકન (5% Tolerance for PIPE)
+    // ૪. સ્થિતિનું સચોટ મૂલ્યાંકન
     function evaluateStatus(items, itemType) {
       if (!items || items.length === 0) return null;
 
@@ -588,8 +584,10 @@
       const allFullyIssued = items.every(x => {
         if (x.isBlank || x.minQty <= 0) return false;
         if (itemType === 'PIPE') {
+          // પાઇપ માટે 5% છૂટછાટ (>= 95% ઇશ્યૂ હોય)
           return x.issuedQty >= Math.round((x.minQty * 0.95) * 1000) / 1000;
         } else {
+          // ફિટિંગ્સ માટે ૧૦૦% પૂરેપૂરું હોવું જોઈએ
           return x.issuedQty >= x.minQty;
         }
       });
@@ -598,7 +596,7 @@
       return 'Partially';
     }
 
-    // ૫. સરખામણી
+    // ૫. માસ્ટર રેકોર્ડ્સ સાથે સરખામણી
     const masterRows = await ensureAllRecordsCached();
     const updateBatch = [];
 
@@ -619,32 +617,27 @@
       const currentPipe = (mRow.pipe === undefined || mRow.pipe === null || String(mRow.pipe).trim() === '' || String(mRow.pipe).toLowerCase() === 'nan') ? null : String(mRow.pipe).trim();
       const currentFittings = (mRow.fittings === undefined || mRow.fittings === null || String(mRow.fittings).trim() === '' || String(mRow.fittings).toLowerCase() === 'nan') ? null : String(mRow.fittings).trim();
 
-      let needsUpdate = false;
-      const patch = { id: mRow.id };
+      // 🟢 બંને કૉલમ્સ એકસાથે પેક કરો જેથી એક બીજાને Blank ન કરે
+      if (targetPipe !== currentPipe || targetFittings !== currentFittings) {
+        updateBatch.push({
+          id: mRow.id,
+          pipe: targetPipe,
+          fittings: targetFittings
+        });
 
-      if (targetPipe !== currentPipe) {
-        patch.pipe = targetPipe;
+        // લોકલ મેમરી કેશને પણ તરત જ અપડેટ કરો
         mRow.pipe = targetPipe;
-        needsUpdate = true;
-      }
-      if (targetFittings !== currentFittings) {
-        patch.fittings = targetFittings;
         mRow.fittings = targetFittings;
-        needsUpdate = true;
-      }
-
-      if (needsUpdate) {
-        updateBatch.push(patch);
       }
     });
 
     if (updateBatch.length === 0) {
-      alert("ℹ️ Master રજિસ્ટર પહેલેથી જ MTO મુજબ ૧૦૦% સિંક છે. કોઈ નવા ફેરફાર બાકી નથી.");
+      alert("ℹ️ Master રજિસ્ટર પહેલેથી જ સંપૂર્ણ અપ-ટુ-ડેટ છે. કોઈ ફેરફાર બાકી નથી.");
       applyMasterDataFilters();
       return;
     }
 
-    // ૬. બેચ અપડેટ (૫૦-૫૦ ના સ્લોટમાં)
+    // ૬. ૫૦-૫૦ ના બેચમાં Supabase માં સેવ કરવું
     const batchSize = 50;
     for (let i = 0; i < updateBatch.length; i += batchSize) {
       const batch = updateBatch.slice(i, i + batchSize);
@@ -652,9 +645,8 @@
       if (error) throw error;
     }
 
-    alert(`🎉 સિંક પૂર્ણ! કુલ ${updateBatch.length} રેકોર્ડ્સમાં PIPE અને FITTINGS ની સ્થિતિ સફળતાપૂર્વક અપડેટ થઈ ગઈ!`);
+    alert(`🎉 સફળ સિંક! કુલ ${updateBatch.length} રેકોર્ડ્સમાં PIPE અને FITTINGS બંને એકસાથે અપડેટ થઈ ગયા!`);
     
-    // કેશ ક્લિયર કરી ટેબલ રીલોડ કરવું
     allRecordsCache = [];
     await loadFullRegister();
 
