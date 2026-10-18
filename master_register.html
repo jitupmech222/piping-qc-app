@@ -512,14 +512,13 @@
       const rawUnitVal = r.Unit || r.unit || '';
       const cleanUnit = String(rawUnitVal).trim().toUpperCase();
 
-      // Determine Pipe vs Fitting
+      // PIPE ગણવું જો શબ્દમાં PIPE હોય અને NIPPLE ન હોય
       const isPipe = desc.includes('PIPE') && !desc.includes('NIPPLE');
 
       if (!spoolMap.has(spNo)) {
         spoolMap.set(spNo, { pipeItems: [], fittingItems: [] });
       }
 
-      // Safe numeric parsing for quantities
       const rawMin = r.MIN_qty ?? r.Min_qty ?? r.min_qty ?? '0';
       const minQty = parseFloat(String(rawMin).replace(/[^0-9.]/g, '')) || 0;
 
@@ -549,17 +548,15 @@
       }
     });
 
-    // 🟢 Status Evaluator with 5% tolerance for PIPE
+    // 🟢 Status Evaluator: Pipe માટે 5% છૂટછાટ (>= 95% ઇશ્યૂ હોય તો Issued)
     function evaluateStatus(items, itemType) {
-      if (!items || items.length === 0) return null; // No item in MTO = Blank
+      if (!items || items.length === 0) return null;
 
-      // ૧. જો તમામ આઇટમ્સમાં Issued_qty ખાલી હોય અથવા 0 હોય તો 'Balance'
+      // ૧. તમામ ખાલી અથવા 0 હોય તો Balance
       const allBlankOrZero = items.every(x => x.isBlank || x.issuedQty === 0);
       if (allBlankOrZero) return 'Balance';
 
-      // ૨. પૂર્ણ થયેલ ગણવાની શરત:
-      // PIPE માટે 5% છૂટછાટ (>= 95% જથ્થો ઇશ્યૂ થયો હોય)
-      // FITTINGS માટે પૂરેપૂરો જથ્થો (100%) હોવો ફરજિયાત છે
+      // ૨. પૂરેપૂરો અથવા ૯૫% થી વધુ જથ્થો ઇશ્યુ થયો હોય તો Issued
       const allFullyIssued = items.every(x => {
         if (x.isBlank || x.minQty <= 0) return false;
         if (itemType === 'PIPE') {
@@ -572,7 +569,7 @@
 
       if (allFullyIssued) return 'Issued';
 
-      // ૩. બાકી બધું 'Partially'
+      // ૩. બાકી બધું Partially
       return 'Partially';
     }
 
@@ -628,7 +625,7 @@
       if (error) throw error;
     }
 
-    alert(`🎉 સફળતાપૂર્વક ${updateBatch.length} રેકોર્ડ્સમાં PIPE (5% ટોલરન્સ સાથે) અને FITTINGS ની સ્થિતિ સિંક થઈ ગઈ!`);
+    alert(`🎉 સફળતાપૂર્વક ${updateBatch.length} રેકોર્ડ્સમાં PIPE અને FITTINGS ની સ્થિતિ સિંક થઈ ગઈ!`);
     allRecordsCache = [];
     await loadFullRegister();
 
