@@ -474,14 +474,14 @@
   if (!currentUser || currentUser.username !== 'admin') {
     return alert("⚠️ માત્ર Admin પાસે જ Master Data Update કરવાની પરમિશન છે!");
   }
-  if (!confirm("શું તમે SAP Code ના Type (PIPE / FITTINGS) મુજબ Master Data (piping_joints) સિંક કરવા માંગો છો?")) return;
+  if (!confirm("શું તમે SAP Code Type મુજબ Master Data (piping_joints) સિંક કરવા માંગો છો?")) return;
 
   const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Loading SAP Master, MTO & Syncing Master Register... Please wait...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Synchronizing MTO Data with Master Register... Please wait...</td></tr>';
 
   try {
-    // ૧. Sap_code ટેબલમાંથી MAT_SAP_CODE અને type નો સંગ્રહ
-    let sapMap = new Map();
+    // ૧. Sap_code ટેબલમાંથી MAT_SAP_CODE અને type નું મેપિંગ મેળવવું
+    const sapMap = new Map();
     let fromSap = 0;
     let hasMoreSap = true;
 
@@ -494,9 +494,7 @@
       if (sapData && sapData.length > 0) {
         sapData.forEach(s => {
           if (s.MAT_SAP_CODE) {
-            const cleanCode = String(s.MAT_SAP_CODE).trim().toUpperCase();
-            const cleanType = s.type ? String(s.type).trim().toUpperCase() : null;
-            sapMap.set(cleanCode, cleanType);
+            sapMap.set(String(s.MAT_SAP_CODE).trim().toUpperCase(), s.type ? String(s.type).trim().toUpperCase() : null);
           }
         });
         fromSap += 1000;
@@ -506,7 +504,7 @@
       }
     }
 
-    // ૨. mto ટેબલમાંથી તમામ રેકોર્ડ્સ ખેંચવા (Read-Only)
+    // ૨. mto ટેબલમાંથી તમામ રેકોર્ડ્સ મેળવવા
     let mtoAll = [];
     let fromMto = 0;
     let hasMoreMto = true;
@@ -526,7 +524,7 @@
       }
     }
 
-    // ૩. Spool વાઇઝ PIPE અને FITTINGS નું વર્ગીકરણ
+    // ૩. Spool મુજબ આઇટમ્સનું વર્ગીકરણ
     const spoolMap = new Map();
 
     mtoAll.forEach(r => {
@@ -535,9 +533,9 @@
       const spNo = String(rawSpool).trim().toUpperCase();
 
       const sapCode = r.MAT_SAP_CODE ? String(r.MAT_SAP_CODE).trim().toUpperCase() : '';
-      const sapType = sapMap.get(sapCode); // 'PIPE' or 'FITTINGS'
+      const sapType = sapMap.get(sapCode);
 
-      // જો Sap_code માં type ન હોય તો fallback માટે Description ચેક થશે
+      // પ્રાથમિકતા Sap_code.type ને, નહિતર Description થી ઓળખ
       let isPipe = false;
       if (sapType === 'PIPE') {
         isPipe = true;
@@ -563,12 +561,9 @@
 
       const issuedQty = isIssuedBlank ? 0 : (parseFloat(String(rawIssued).replace(/[^0-9.]/g, '')) || 0);
 
-      const cleanMin = Math.round(minQty * 1000) / 1000;
-      const cleanIssued = Math.round(issuedQty * 1000) / 1000;
-
       const itemData = {
-        minQty: cleanMin,
-        issuedQty: cleanIssued,
+        minQty: Math.round(minQty * 1000) / 1000,
+        issuedQty: Math.round(issuedQty * 1000) / 1000,
         isBlank: isIssuedBlank
       };
 
@@ -579,19 +574,17 @@
       }
     });
 
-    // ૪. સ્થિતિ (Status) નક્કી કરવાનું લોજિક
+    // ૪. સ્થિતિ મૂલ્યાંકન (Pipe માટે 5% છૂટછાટ, Fittings માટે 100%)
     function evaluateStatus(items, itemType) {
-      if (!items || items.length === 0) return null; // No item = Blank
+      if (!items || items.length === 0) return null;
 
       const allBlankOrZero = items.every(x => x.isBlank || x.issuedQty === 0);
       if (allBlankOrZero) return 'Balance';
 
-      // Pipe માટે 5% છૂટછાટ (>= 95% ઇશ્યૂ થયેલ હોય) અને Fittings માટે 100%
       const allFullyIssued = items.every(x => {
         if (x.isBlank || x.minQty <= 0) return false;
         if (itemType === 'PIPE') {
-          const minRequired = Math.round((x.minQty * 0.95) * 1000) / 1000;
-          return x.issuedQty >= minRequired;
+          return x.issuedQty >= Math.round((x.minQty * 0.95) * 1000) / 1000;
         } else {
           return x.issuedQty >= x.minQty;
         }
@@ -601,7 +594,7 @@
       return 'Partially';
     }
 
-    // ૫. piping_joints ટેબલના રેકોર્ડ્સ સાથે સરખામણી
+    // ૫. સરખામણી અને ફેરફારોની યાદી તૈયાર કરવી
     const masterRows = await ensureAllRecordsCached();
     const updateBatch = [];
 
@@ -627,10 +620,12 @@
 
       if (targetPipe !== currentPipe) {
         patch.pipe = targetPipe;
+        mRow.pipe = targetPipe; // 🟢 લોકલ કેશ તરત જ અપડેટ કરો
         needsUpdate = true;
       }
       if (targetFittings !== currentFittings) {
         patch.fittings = targetFittings;
+        mRow.fittings = targetFittings; // 🟢 લોકલ કેશ તરત જ અપડેટ કરો
         needsUpdate = true;
       }
 
@@ -640,13 +635,12 @@
     });
 
     if (updateBatch.length === 0) {
-      alert("ℹ️ Master ટેબલ પહેલેથી જ સંપૂર્ણ અપ-ટુ-ડેટ છે.");
-      allRecordsCache = [];
-      await loadFullRegister();
+      alert("ℹ️ Master રજિસ્ટર પહેલેથી જ MTO મુજબ ૧૦૦% સિંક છે. કોઈ નવા ફેરફાર બાકી નથી.");
+      applyMasterDataFilters();
       return;
     }
 
-    // ૬. ૫૦-૫૦ ના બેચમાં Supabase માં સેવ (માત્ર id, pipe અને fittings જ અપડેટ થશે)
+    // ૬. બેચ અપડેટ (૫૦-૫૦ ના સ્લોટમાં)
     const batchSize = 50;
     for (let i = 0; i < updateBatch.length; i += batchSize) {
       const batch = updateBatch.slice(i, i + batchSize);
@@ -654,7 +648,9 @@
       if (error) throw error;
     }
 
-    alert(`🎉 SAP Code Type આધારિત સફળ સિંક!\nકુલ ${updateBatch.length} રેકોર્ડ્સમાં PIPE અને FITTINGS ની સ્થિતિ સફળતાપૂર્વક અપડેટ થઈ ગઈ!`);
+    alert(`🎉 સિંક પૂર્ણ! કુલ ${updateBatch.length} રેકોર્ડ્સમાં PIPE અને FITTINGS ની સ્થિતિ સફળતાપૂર્વક અપડેટ થઈ ગઈ!`);
+    
+    // કેશ ખાલી કરી ફ્રેશ ડેટા સાથે ટેબલ રીલોડ કરવું
     allRecordsCache = [];
     await loadFullRegister();
 
