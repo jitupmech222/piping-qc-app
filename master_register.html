@@ -474,21 +474,21 @@
   if (!currentUser || currentUser.username !== 'admin') {
     return alert("⚠️ માત્ર Admin પાસે જ Master Data Update કરવાની પરમિશન છે!");
   }
-  if (!confirm("શું તમે MTO મુજબ Master Data (piping_joints) માં Pipe અને Fittings ની સ્થિતિ (Issued / Partially / Balance) સિંક કરવા માંગો છો?")) return;
+  if (!confirm("શું તમે MTO મુજબ Master Data (piping_joints) માં Pipe અને Fittings ની સ્થિતિ સિંક કરવા માંગો છો?")) return;
 
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Fetching MTO Data & Performing Sync... Please wait...</td></tr>';
 
   try {
-    // ૧. MTO ટેબલમાંથી તમામ રેકોર્ડ્સ ફેચ કરવા
     let mtoAll = [];
     let from = 0;
     let hasMore = true;
+
     while (hasMore) {
       const { data, error } = await db.from('mto')
         .select('*')
         .range(from, from + 999);
-      
+
       if (error) throw error;
       if (data && data.length > 0) {
         mtoAll = mtoAll.concat(data);
@@ -500,14 +500,8 @@
     }
 
     const spoolMap = new Map();
-    const unitErrors = [];
-
-    // માન્ય યુનિટ્સ સેટ
-    const validPipeUnits = new Set(['MTR', 'M', 'MTRS', 'METER', 'METERS']);
-    const validFittingUnits = new Set(['EA', 'NOS', 'NO']);
 
     mtoAll.forEach(r => {
-      // Spool Number ગમે તે કેસમાં હોય તેને સાફ કરો
       const rawSpool = r.Spool_number || r.Spool_No || r.spool_number || r.spool_no;
       if (!rawSpool) return;
       const spNo = String(rawSpool).trim().toUpperCase();
@@ -518,40 +512,35 @@
       const rawUnitVal = r.Unit || r.unit || '';
       const cleanUnit = String(rawUnitVal).trim().toUpperCase();
 
-      // પાઇપ કે ફિટિંગ નક્કી કરવું
+      // Determine Pipe vs Fitting
       const isPipe = desc.includes('PIPE') && !desc.includes('NIPPLE');
-
-      // યુનિટ વેલિડેશન ચેક
-      if (isPipe) {
-        if (!validPipeUnits.has(cleanUnit)) {
-          unitErrors.push(`• Spool: ${spNo} | Pipe Item: "${rawDesc}" | Unit Found: "${rawUnitVal}" (Expected: Mtr/M)`);
-        }
-      } else {
-        if (!validFittingUnits.has(cleanUnit)) {
-          unitErrors.push(`• Spool: ${spNo} | Fitting Item: "${rawDesc}" | Unit Found: "${rawUnitVal}" (Expected: EA)`);
-        }
-      }
 
       if (!spoolMap.has(spNo)) {
         spoolMap.set(spNo, { pipeItems: [], fittingItems: [] });
       }
 
-      const rawMin = r.MIN_qty || r.Min_qty || r.min_qty || '0';
+      // Safe numeric parsing for quantities
+      const rawMin = r.MIN_qty ?? r.Min_qty ?? r.min_qty ?? '0';
       const minQty = parseFloat(String(rawMin).replace(/[^0-9.]/g, '')) || 0;
 
       const rawIssued = r.Issued_qty !== undefined ? r.Issued_qty : (r.issued_qty !== undefined ? r.issued_qty : null);
-      const isIssuedBlank = rawIssued === null || rawIssued === undefined || 
-                            String(rawIssued).trim() === '' || 
-                            String(rawIssued).trim() === '-' || 
-                            String(rawIssued).toLowerCase() === 'null';
+      const isIssuedBlank = rawIssued === null || rawIssued === undefined ||
+                            String(rawIssued).trim() === '' ||
+                            String(rawIssued).trim() === '-' ||
+                            String(rawIssued).trim().toUpperCase() === 'NULL';
 
       const issuedQty = isIssuedBlank ? 0 : (parseFloat(String(rawIssued).replace(/[^0-9.]/g, '')) || 0);
 
-      // ફ્લોટિંગ પોઈન્ટ પ્રિસિઝન (0.9, 0.4 વગેરે માટે 3 ડેસિમલ સુધી રાઉન્ડિંગ)
       const cleanMin = Math.round(minQty * 1000) / 1000;
       const cleanIssued = Math.round(issuedQty * 1000) / 1000;
 
-      const itemData = { minQty: cleanMin, issuedQty: cleanIssued, isBlank: isIssuedBlank };
+      const itemData = {
+        desc: rawDesc,
+        unit: cleanUnit,
+        minQty: cleanMin,
+        issuedQty: cleanIssued,
+        isBlank: isIssuedBlank
+      };
 
       if (isPipe) {
         spoolMap.get(spNo).pipeItems.push(itemData);
@@ -560,33 +549,20 @@
       }
     });
 
-    // જો કોઈ યુનિટમાં મોટી ભૂલ હોય તો ચેતવણી
-    if (unitErrors.length > 0) {
-      allRecordsCache = [];
-      await loadFullRegister();
-      const sampleErrors = unitErrors.slice(0, 8).join('\n');
-      const moreMsg = unitErrors.length > 8 ? `\n...અને બીજા ${unitErrors.length - 8} રેકોર્ડ્સમાં ભૂલ છે.` : '';
-      alert(`❌ UNIT VALIDATION ERROR!\n\nMTO ટેબલમાં નીચેના આઇટમ્સમાં Unit મેળ ખાતો નથી:\n\n${sampleErrors}${moreMsg}\n\nકૃપા કરીને MTO માં યુનિટ સુધારો.`);
-      return;
-    }
-
-    // ૩. સ્થિતિ (Status) નક્કી કરવાનું લોજિક
+    // Helper status evaluator
     function evaluateStatus(items) {
-      if (!items || items.length === 0) return null; // જો આઇટમ જ ન હોય તો Blank
+      if (!items || items.length === 0) return null; // No item in MTO = Blank
 
-      // જો તમામ આઇટમ્સ ખાલી હોય અથવા 0 હોય તો 'Balance'
       const allBlankOrZero = items.every(x => x.isBlank || x.issuedQty === 0);
       if (allBlankOrZero) return 'Balance';
 
-      // જો બધી જ આઇટમ્સમાં Issued >= Min હોય તો 'Issued'
+      // Check if every item has issuedQty >= minQty
       const allFullyIssued = items.every(x => !x.isBlank && x.issuedQty >= x.minQty && x.minQty > 0);
       if (allFullyIssued) return 'Issued';
 
-      // બાકી રહેતી તમામ સ્થિતિ 'Partially'
       return 'Partially';
     }
 
-    // ૪. Master Register (piping_joints) ની દરેક રો સાથે સિંક કરવું
     const masterRows = await ensureAllRecordsCached();
     const updateBatch = [];
 
@@ -604,7 +580,6 @@
         targetFittings = evaluateStatus(fittingItems);
       }
 
-      // નોર્મલાઈઝેશન
       const currentPipe = (mRow.pipe === undefined || mRow.pipe === null || String(mRow.pipe).trim() === '') ? null : String(mRow.pipe).trim();
       const currentFittings = (mRow.fittings === undefined || mRow.fittings === null || String(mRow.fittings).trim() === '') ? null : String(mRow.fittings).trim();
 
@@ -632,7 +607,7 @@
       return;
     }
 
-    // ૫. ૫૦-૫૦ ના બેચમાં Supabase માં સેવ કરવું
+    // Save in batches of 50
     const batchSize = 50;
     for (let i = 0; i < updateBatch.length; i += batchSize) {
       const batch = updateBatch.slice(i, i + batchSize);
@@ -640,7 +615,7 @@
       if (error) throw error;
     }
 
-    alert(`🎉 સફળતાપૂર્વક ${updateBatch.length} રો માં PIPE અને FITTINGS ની નવી સ્થિતિ સિંક થઈ ગઈ!`);
+    alert(`🎉 સફળતાપૂર્વક ${updateBatch.length} રેકોર્ડ્સમાં PIPE અને FITTINGS ની નવી સ્થિતિ સિંક થઈ ગઈ!`);
     allRecordsCache = [];
     await loadFullRegister();
 
