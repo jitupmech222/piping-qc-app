@@ -8,11 +8,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <style>
     :root {
-      --primary: #be123c;
+      --primary: #0284c7;
+      --primary-light: #e0f2fe;
+      --green-light: #dcfce7;
       --navy: #0f172a;
       --card-bg: #ffffff;
       --bg: #f8fafc;
-      --border: #e2e8f0;
+      --border: #cbd5e1;
       --text-main: #0f172a;
       --text-muted: #64748b;
     }
@@ -27,7 +29,7 @@
     }
 
     .top-navbar {
-      background: rgba(15, 23, 42, 0.94);
+      background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(10px);
       color: white;
       padding: 10px 20px;
@@ -56,19 +58,20 @@
     }
     .btn-back:hover { background: #f1f5f9; color: var(--primary); }
 
+    /* 100% Full Display Container */
     .container {
       width: 100%;
-      max-width: 1300px;
-      margin: 16px auto;
-      padding: 0 16px;
+      max-width: 100%;
+      margin: 12px auto;
+      padding: 0 14px;
       box-sizing: border-box;
     }
 
     .card {
       background: var(--card-bg);
-      padding: 18px 20px;
+      padding: 16px 18px;
       border-radius: 12px;
-      border: 1px solid var(--border);
+      border: 1px solid #e2e8f0;
       box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
       margin-bottom: 16px;
     }
@@ -116,23 +119,42 @@
       font-size: 18px;
     }
 
-    .table-container {
+    /* Stage Summary Table Container */
+    .summary-table-container {
       overflow-x: auto;
-      margin-top: 12px;
+      margin-top: 10px;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
-      max-height: 60vh;
+    }
+
+    /* Full Display Detailed Table Container */
+    .detail-table-container {
+      overflow: auto;
+      margin-top: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      max-height: calc(100vh - 140px);
     }
 
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #cbd5e1; padding: 9px 12px; white-space: nowrap; background: #fff; }
-    th { background: #be123c; color: white; font-weight: 700; position: sticky; top: 0; z-index: 5; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 11px; white-space: nowrap; background: #fff; }
+    
+    /* Light Blue Header Styling (No Red) */
+    th {
+      background: #dbeafe;
+      color: #0f172a;
+      font-weight: 800;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 2px solid #93c5fd;
+    }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
     .btn-refresh {
-      background: #ffe4e6;
-      color: #be123c;
-      border: 1px solid #fecdd3;
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
       border-radius: 6px;
       padding: 6px 14px;
       font-size: 12px;
@@ -142,10 +164,10 @@
       align-items: center;
       gap: 6px;
     }
-    .btn-refresh:hover { background: #fecdd3; }
+    .btn-refresh:hover { background: #bae6fd; }
 
     .btn-mode-view { background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
-    .btn-mode-edit { background: #d97706; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-mode-edit { background: #0d9488; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-mode-save { background: #15803d; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; }
     
     .btn-save-action {
@@ -164,9 +186,9 @@
     .btn-save-action:hover { background: #0369a1; }
 
     .btn-clear-problems {
-      background: #fee2e2;
-      color: #dc2626;
-      border: 1px solid #fca5a5;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
       border-radius: 6px;
       padding: 6px 14px;
       font-size: 12px;
@@ -176,17 +198,26 @@
       align-items: center;
       gap: 6px;
     }
-    .btn-clear-problems:hover { background: #dc2626; color: white; }
+    .btn-clear-problems:hover { background: #e2e8f0; color: #0f172a; }
 
     .sub-filter-btn { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: bold; cursor: pointer; color: #1e293b; }
     .sub-filter-btn:hover { background: #cbd5e1; }
 
-    .cell-input { width: 100%; border: 1px solid #93c5fd; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
-    .cell-input:focus { border-color: #1d4ed8; outline: none; background: #eff6ff; }
+    .cell-input { width: 100%; min-width: 140px; border: 1px solid #7dd3fc; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; background: #fff; }
+    .cell-input:focus { border-color: #0284c7; outline: none; background: #f0f9ff; }
 
-    .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .filter-btn-icon { background: #9f1239; color: #fff; border: 1px solid #f43f5e; border-radius: 3px; padding: 2px 6px; font-size: 10px; cursor: pointer; }
-    .filter-btn-icon:hover { background: #881337; }
+    .header-cell { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .filter-btn-icon {
+      background: #0284c7;
+      color: #fff;
+      border: 1px solid #38bdf8;
+      border-radius: 4px;
+      padding: 2px 5px;
+      font-size: 10px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .filter-btn-icon:hover { background: #0369a1; }
     .filter-btn-icon.active { background: #f59e0b; color: #000; border-color: #d97706; font-weight: bold; }
 
     /* Excel Filter Floating Modal */
@@ -195,7 +226,7 @@
       display: none;
       z-index: 1000;
       background: #ffffff;
-      border: 1.5px solid #be123c;
+      border: 1.5px solid #0284c7;
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.25);
       width: 260px;
@@ -205,7 +236,7 @@
     .popup-options-list { max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px; margin-bottom: 10px; background: #fafafa; }
     .popup-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #1e293b; padding: 4px 2px; }
     .popup-actions { display: flex; gap: 8px; justify-content: flex-end; }
-    .popup-btn-ok { background: #be123c; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
+    .popup-btn-ok { background: #0284c7; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
     .popup-btn-clear { background: #64748b; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; }
   </style>
 </head>
@@ -213,7 +244,7 @@
 
   <div class="top-navbar">
     <div style="font-size: 15px; font-weight: 700; display:flex; align-items:center; gap:8px;">
-      <span>🔥 PRIORITY SPOOLS DASHBOARD</span>
+      <span>📊 PRIORITY SPOOLS DASHBOARD</span>
       <span id="navSubTitle" style="font-size: 12px; font-weight: 500; color: #94a3b8;"></span>
     </div>
     <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
@@ -221,45 +252,68 @@
 
   <div class="container">
     
-    <!-- Top Summary Cards -->
+    <!-- SECTION 1: Top Summary KPIs + Existing Stage-Wise Dashboard Table -->
     <div class="card">
       <div class="kpi-grid">
-        <div class="kpi-card" style="border-left: 4px solid #e11d48;">
-          <div>
-            <div class="kpi-title" style="color: #be123c;">Total Priority Spools</div>
-            <div class="kpi-val" id="priorityTotalSpools">0</div>
-          </div>
-          <div class="kpi-icon" style="background: #ffe4e6; color: #e11d48;">🔥</div>
-        </div>
         <div class="kpi-card" style="border-left: 4px solid #0284c7;">
           <div>
-            <div class="kpi-title">Total Priority Joints (Weld ID)</div>
+            <div class="kpi-title" style="color: #0369a1;">Total Priority Spools</div>
+            <div class="kpi-val" id="priorityTotalSpools">0</div>
+          </div>
+          <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">📦</div>
+        </div>
+        <div class="kpi-card" style="border-left: 4px solid #0d9488;">
+          <div>
+            <div class="kpi-title" style="color: #0f766e;">Total Priority Joints (Weld ID)</div>
             <div class="kpi-val" id="priorityTotalWelds">0</div>
           </div>
-          <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">⚡</div>
+          <div class="kpi-icon" style="background: #ccfbf1; color: #0d9488;">⚡</div>
         </div>
         <div class="kpi-card" style="border-left: 4px solid #16a34a;">
           <div>
-            <div class="kpi-title">Dispatched (FD) Spools</div>
+            <div class="kpi-title" style="color: #15803d;">Dispatched (FD) Spools</div>
             <div class="kpi-val" id="priorityDispatchedSpools" style="color: #15803d;">0</div>
           </div>
           <div class="kpi-icon" style="background: #dcfce7; color: #16a34a;">🚚</div>
         </div>
-        <div class="kpi-card" style="border-left: 4px solid #ea580c;">
+        <div class="kpi-card" style="border-left: 4px solid #d97706;">
           <div>
-            <div class="kpi-title">Balance Pending Spools</div>
-            <div class="kpi-val" id="priorityBalanceSpools" style="color: #c2410c;">0</div>
+            <div class="kpi-title" style="color: #b45309;">Balance Pending Spools</div>
+            <div class="kpi-val" id="priorityBalanceSpools" style="color: #b45309;">0</div>
           </div>
-          <div class="kpi-icon" style="background: #ffedd5; color: #ea580c;">⏳</div>
+          <div class="kpi-icon" style="background: #fef3c7; color: #d97706;">⏳</div>
         </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #e0f2fe; padding-bottom: 8px;">
+        <h3 style="margin:0; color:#0369a1; font-size:16px;">Priority Spools Stage-Wise Summary</h3>
+        <button type="button" class="btn-refresh" onclick="refreshDashboardData()">🔄 Refresh Data</button>
+      </div>
+
+      <div class="summary-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 55px; text-align: center; background:#dbeafe; color:#0369a1;">Stage</th>
+              <th style="background:#dbeafe; color:#0369a1;">Stage Description</th>
+              <th style="text-align: center; background:#dcfce7; color:#166534;">Completed Spools</th>
+              <th style="text-align: center; background:#bbf7d0; color:#14532d;">Completed Weld ID</th>
+              <th style="text-align: center; background:#e0f2fe; color:#075985;">Balance Spools</th>
+              <th style="text-align: center; background:#bae6fd; color:#0c4a6e;">Balance Weld ID</th>
+            </tr>
+          </thead>
+          <tbody id="priorityStageSummaryBody">
+            <tr><td colspan="6" style="text-align:center; padding:18px; color:#0284c7;">⏳ Calculating Stage-Wise Priority Progress...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- Priority Spools Detailed Table Card with Edit, Clear & Download -->
+    <!-- SECTION 2: Full Display Priority Spools Detailed Register Table -->
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom: 2px solid #fecdd3; padding-bottom: 10px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <h3 style="margin:0; color:#be123c; font-size:17px;">Priority Spools Detailed Register</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom: 2px solid #e0f2fe; padding-bottom: 10px;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <h3 style="margin:0; color:#0f766e; font-size:16px;">📋 Priority Spools Detailed Register (<span id="priorityRegisterCount">0</span>)</h3>
           <button type="button" id="btnPriorityView" class="btn-mode-view" onclick="setPriorityMode('view')">👁️ View</button>
           <button type="button" id="btnPriorityEdit" class="btn-mode-edit" onclick="requestPriorityEditMode()">✏️ Edit Problem</button>
           <button type="button" id="btnPrioritySave" class="btn-mode-save" onclick="savePriorityEditsToDb()">💾 SAVE CHANGES</button>
@@ -269,17 +323,16 @@
           <button type="button" id="btnClearProblems" class="btn-clear-problems" onclick="clearAllProblemsData()">🗑️ Clear All Problems</button>
           <button type="button" class="btn-save-action" onclick="downloadPriorityExcel()">📥 Download View Excel</button>
           <button type="button" class="sub-filter-btn" onclick="clearAllPriorityFilters()">🔄 Clear Filters</button>
-          <button type="button" class="btn-refresh" onclick="refreshDashboardData()">🔄 Refresh Data</button>
         </div>
       </div>
 
-      <div class="table-container">
+      <div class="detail-table-container">
         <table>
           <thead>
             <tr id="priorityHeaderRow"></tr>
           </thead>
           <tbody id="priorityTableBody">
-            <tr><td colspan="15" style="text-align:center; padding:20px; color:#be123c;">⏳ Loading Priority Spools...</td></tr>
+            <tr><td colspan="15" style="text-align:center; padding:20px; color:#0284c7;">⏳ Loading Priority Spools Register...</td></tr>
           </tbody>
         </table>
       </div>
@@ -395,15 +448,19 @@
     function buildPriorityHeader() {
       const tr = document.getElementById('priorityHeaderRow');
       tr.innerHTML = `
-        <th style="width: 50px; text-align: center;">Sr</th>
-        ${PRIORITY_COLS.map(c => `
-          <th>
-            <div class="header-cell">
-              <span>${c.label}</span>
-              <button class="filter-btn-icon" onclick="openExcelFilter(event, '${c.key}', '${c.label}')">🔽</button>
-            </div>
-          </th>
-        `).join('')}
+        <th style="width: 45px; text-align: center; background:#ccfbf1; color:#0f766e;">Sr</th>
+        ${PRIORITY_COLS.map(c => {
+          const isProb = c.key === 'problem';
+          const bgStyle = isProb ? 'background:#dcfce7; color:#166534;' : 'background:#dbeafe; color:#0f172a;';
+          return `
+            <th style="${bgStyle}">
+              <div class="header-cell">
+                <span>${c.label}</span>
+                <button class="filter-btn-icon ${priorityColumnFilters[c.key] ? 'active' : ''}" onclick="openExcelFilter(event, '${c.key}', '${c.label}')">🔽</button>
+              </div>
+            </th>
+          `;
+        }).join('')}
       `;
     }
 
@@ -413,8 +470,10 @@
     }
 
     async function loadPriorityDashboardData() {
-      const tbody = document.getElementById('priorityTableBody');
-      tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:20px; color:#be123c;">⏳ Filtering Priority Spools & Calculating Progress...</td></tr>';
+      const stageTbody = document.getElementById('priorityStageSummaryBody');
+      const regTbody = document.getElementById('priorityTableBody');
+      stageTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px; color:#0284c7;">⏳ Filtering Priority Spools & Calculating Progress...</td></tr>';
+      regTbody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:20px; color:#0284c7;">⏳ Loading Priority Spools Register...</td></tr>';
 
       const allRows = await ensureAllRecordsCached();
 
@@ -424,14 +483,17 @@
       });
 
       if (priorityRows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:15px; color:#64748b;">⚠️ No Priority records found in database (Remarks should contain "Priority").</td></tr>';
+        stageTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:15px; color:#64748b;">⚠️ No Priority records found in database (Remarks should contain "Priority").</td></tr>';
+        regTbody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:15px; color:#64748b;">⚠️ No Priority records found.</td></tr>';
         document.getElementById('priorityTotalSpools').innerText = '0';
         document.getElementById('priorityTotalWelds').innerText = '0';
         document.getElementById('priorityDispatchedSpools').innerText = '0';
         document.getElementById('priorityBalanceSpools').innerText = '0';
+        document.getElementById('priorityRegisterCount').innerText = '0';
         return;
       }
 
+      // 1. Update Top KPI Cards
       const totalPrioritySpoolsSet = new Set(priorityRows.map(r => r.Spool_number).filter(Boolean));
       const totalPrioritySpoolsCount = totalPrioritySpoolsSet.size;
       const totalPriorityWelds = calculateWeldSum(priorityRows);
@@ -445,14 +507,43 @@
       document.getElementById('priorityDispatchedSpools').innerText = dispatchedSpoolsCount;
       document.getElementById('priorityBalanceSpools').innerText = balanceSpoolsCount;
 
-      buildPriorityHeader();
+      // 2. Render Top Stage-Wise Summary Table
+      const stagesConfig = [
+        { no: '01', name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && (!r.Issued_for_bending || String(r.Issued_for_bending).trim() === '') },
+        { no: '02', name: 'BEND COMPLETED', isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '', isBal: r => (!r.Bend_date || String(r.Bend_date).trim() === '') && r.Issued_for_bending !== null && String(r.Issued_for_bending).trim() !== '' },
+        { no: '03', name: 'FIT UP COMPLETED', isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '', isBal: r => r.Bend_date !== null && String(r.Bend_date).trim() !== '' && (!r.Fit_up_date || String(r.Fit_up_date).trim() === '') },
+        { no: '04', name: 'WELD VISUAL COMPLETED', isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '', isBal: r => r.Fit_up_date !== null && String(r.Fit_up_date).trim() !== '' && (!r.Weld_visual_date || String(r.Weld_visual_date).trim() === '') },
+        { no: '05', name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '', isBal: r => r.Weld_visual_date !== null && String(r.Weld_visual_date).trim() !== '' && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === '') },
+        { no: '06', name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '', isBal: r => r.Ndt_clearance !== null && String(r.Ndt_clearance).trim() !== '' && (!r.Fd_date || String(r.Fd_date).trim() === '') }
+      ];
+
+      stageTbody.innerHTML = stagesConfig.map(st => {
+        const compRows = priorityRows.filter(st.isComp);
+        const balRows = priorityRows.filter(st.isBal);
+        const compSpools = new Set(compRows.map(r => r.Spool_number).filter(Boolean)).size;
+        const compWelds = calculateWeldSum(compRows);
+        const balSpools = new Set(balRows.map(r => r.Spool_number).filter(Boolean)).size;
+        const balWelds = calculateWeldSum(balRows);
+
+        return `
+          <tr>
+            <td style="text-align: center; font-weight: 800; background: #f0f9ff; color: #0369a1;">${st.no}</td>
+            <td style="font-weight: 700; color: #0f172a;">${st.name}</td>
+            <td style="text-align: center; font-weight: bold; color: #15803d; background: #f0fdf4;">${compSpools}</td>
+            <td style="text-align: center; font-weight: bold; color: #166534; background: #f0fdf4;">${compWelds}</td>
+            <td style="text-align: center; font-weight: bold; color: #0369a1; background: #f0f9ff;">${balSpools}</td>
+            <td style="text-align: center; font-weight: bold; color: #075985; background: #f0f9ff;">${balWelds}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // 3. Render Bottom Detailed Register Table
       priorityColumnFilters = {};
       applyPriorityDataFilters();
     }
 
     function applyPriorityDataFilters() {
-      const allRows = allRecordsCache;
-      const priorityRows = allRows.filter(r => {
+      const priorityRows = allRecordsCache.filter(r => {
         const rem = String(r.Remarks || '').trim().toLowerCase();
         return rem.includes('priority');
       });
@@ -462,7 +553,7 @@
           if (priorityColumnFilters.hasOwnProperty(colKey)) {
             let val = r[colKey] !== undefined ? r[colKey] : '';
             val = String(val || '').trim();
-            const isDateCol = colKey.toLowerCase().includes('date');
+            const isDateCol = colKey.toLowerCase().includes('date') || colKey === 'Ndt_clearance';
             const displayVal = val === '' ? '(Blank)' : (isDateCol ? formatDateDisplay(val) : val);
             if (!allowedSet.has(displayVal)) return false;
           }
@@ -470,6 +561,8 @@
         return true;
       });
 
+      document.getElementById('priorityRegisterCount').innerText = priorityDisplayRows.length;
+      buildPriorityHeader();
       renderPriorityTable();
     }
 
@@ -485,20 +578,21 @@
         return;
       }
 
-      tbody.innerHTML = priorityDisplayRows.slice(0, 1000).map((r, idx) => `
+      tbody.innerHTML = priorityDisplayRows.slice(0, 1500).map((r, idx) => `
         <tr>
-          <td style="text-align: center; font-weight: bold; background: #fff1f2; color: #be123c;">${idx + 1}</td>
+          <td style="text-align: center; font-weight: bold; background: #f0fdfa; color: #0f766e;">${idx + 1}</td>
           ${PRIORITY_COLS.map(c => {
             let val = r[c.key] !== undefined ? r[c.key] : '';
             if (val === null || val === undefined) val = '';
-            const isDateCol = c.key.toLowerCase().includes('date');
+            const isDateCol = c.key.toLowerCase().includes('date') || c.key === 'Ndt_clearance';
             let displayVal = isDateCol ? formatDateDisplay(val) : String(val);
 
-            if (isPriorityEditMode) {
-              let editVal = String(val).includes('T') ? String(val).split('T')[0] : String(val);
-              return `<td><input type="text" class="cell-input" value="${escapeHtml(editVal)}" onchange="handlePriorityCellChange(${r.id}, '${c.key}', this.value)"></td>`;
+            // Allow editing only on 'problem' column (or all columns when in edit mode)
+            if (isPriorityEditMode && c.key === 'problem') {
+              return `<td style="background:#f0fdf4;"><input type="text" class="cell-input" placeholder="Enter problem..." value="${escapeHtml(String(val))}" onchange="handlePriorityCellChange(${r.id}, '${c.key}', this.value)"></td>`;
             } else {
-              return `<td>${displayVal || '-'}</td>`;
+              const probStyle = (c.key === 'problem' && displayVal && displayVal !== '-') ? 'font-weight:bold; color:#0f766e; background:#f0fdf4;' : '';
+              return `<td style="${probStyle}">${displayVal || '-'}</td>`;
             }
           }).join('')}
         </tr>
@@ -514,7 +608,7 @@
         renderPriorityTable();
       } else if (mode === 'edit') {
         isPriorityEditMode = true;
-        document.getElementById('btnPriorityEdit').style.outline = '2px solid #b45309';
+        document.getElementById('btnPriorityEdit').style.outline = '2px solid #0f766e';
         document.getElementById('btnPriorityView').style.outline = 'none';
         document.getElementById('btnPrioritySave').style.display = 'inline-block';
         renderPriorityTable();
@@ -528,7 +622,7 @@
       const inputPass = prompt("🔐 Enter Edit Password:");
       if (inputPass === null) return;
       if (inputPass === EDIT_MODE_PASSWORD) {
-        alert("✅ Edit Mode Unlocked! You can now add/edit problems.");
+        alert("✅ Edit Mode Unlocked! You can now add/edit problems in the Problem column.");
         setPriorityMode('edit');
       } else {
         alert("❌ Incorrect Password! Access Denied.");
@@ -568,7 +662,6 @@
       }
     }
 
-    // 🟢 Clear All Problems Function
     async function clearAllProblemsData() {
       if (!currentUser || currentUser.username !== 'admin') {
         return alert("⚠️ માત્ર Admin પાસે જ આ ડેટા ક્લિયર કરવાની પરમિશન છે!");
@@ -626,14 +719,14 @@
 
     async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Sheet1', { views: [{ showGridLines: true }] });
+      const worksheet = workbook.addWorksheet('Priority_Spools', { views: [{ showGridLines: true }] });
 
       const headerRow = worksheet.addRow(columnHeaders);
       headerRow.height = 26;
 
       headerRow.eachCell((cell) => {
         cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4CCCC' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9EAD3' } };
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
       });
@@ -683,7 +776,7 @@
         const rowObj = { "Sr No": index + 1 };
         PRIORITY_COLS.forEach(c => {
           let val = r[c.key] !== undefined && r[c.key] !== null ? r[c.key] : '';
-          const isDate = c.key.toLowerCase().includes('date');
+          const isDate = c.key.toLowerCase().includes('date') || c.key === 'Ndt_clearance';
           rowObj[c.label] = isDate ? formatDateDisplay(val) : val;
         });
         return rowObj;
@@ -715,7 +808,7 @@
           if (filterCol === colKey) continue;
           let val = r[filterCol] !== undefined ? r[filterCol] : '';
           val = String(val || '').trim();
-          const isDate = filterCol.toLowerCase().includes('date');
+          const isDate = filterCol.toLowerCase().includes('date') || filterCol === 'Ndt_clearance';
           const displayVal = val === '' ? '(Blank)' : (isDate ? formatDateDisplay(val) : val);
           if (!allowedSet.has(displayVal)) return false;
         }
@@ -723,7 +816,7 @@
       });
 
       const valueMap = new Map();
-      const isDateCol = colKey.toLowerCase().includes('date');
+      const isDateCol = colKey.toLowerCase().includes('date') || colKey === 'Ndt_clearance';
 
       sourceRows.forEach(r => {
         let val = r[colKey] !== undefined ? r[colKey] : '';
@@ -779,7 +872,7 @@
       applyPriorityDataFilters();
     }
 
-    function clearCurrentPriorityFilter() {
+    function clearCurrentPopupFilter() {
       delete priorityColumnFilters[currentPopupContext.colKey];
       closeExcelPopup();
       applyPriorityDataFilters();
