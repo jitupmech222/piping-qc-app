@@ -193,8 +193,10 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // 🟢 નવી 'type' કૉલમ ઉમેરાયેલી છે
     const SAP_CODE_COLS = [
       { key: 'MAT_SAP_CODE', label: 'MAT_SAP_CODE' },
+      { key: 'type', label: 'type' },
       { key: 'Size_1', label: 'Size_1' },
       { key: 'Size_2', label: 'Size_2' },
       { key: 'Unit', label: 'Unit' },
@@ -299,12 +301,25 @@
         return;
       }
 
-      tbody.innerHTML = activeDisplayRows.slice(0, 1000).map(r => `
-        <tr>
-          <td style="text-align:center; font-weight:bold; color:#0f766e;">${r.id}</td>
-          ${SAP_CODE_COLS.map(c => `<td>${r[c.key] !== null && r[c.key] !== undefined ? r[c.key] : '-'}</td>`).join('')}
-        </tr>
-      `).join('');
+      tbody.innerHTML = activeDisplayRows.slice(0, 1000).map(r => {
+        const typeBadge = r.type === 'PIPE' 
+          ? `<span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px; font-weight:bold;">PIPE</span>`
+          : (r.type === 'FITTINGS' 
+              ? `<span style="background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:10px; font-weight:bold;">FITTINGS</span>` 
+              : (r.type || '-'));
+
+        return `
+          <tr>
+            <td style="text-align:center; font-weight:bold; color:#0f766e;">${r.id}</td>
+            <td><b>${r.MAT_SAP_CODE || '-'}</b></td>
+            <td>${typeBadge}</td>
+            <td>${r.Size_1 !== null && r.Size_1 !== undefined ? r.Size_1 : '-'}</td>
+            <td>${r.Size_2 !== null && r.Size_2 !== undefined ? r.Size_2 : '-'}</td>
+            <td>${r.Unit !== null && r.Unit !== undefined ? r.Unit : '-'}</td>
+            <td>${r.MAT_Description !== null && r.MAT_Description !== undefined ? r.MAT_Description : '-'}</td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function clearAllFilters() {
@@ -482,7 +497,11 @@
 
               SAP_CODE_COLS.forEach(c => {
                 let rawVal = r[c.key] !== undefined ? r[c.key] : r[c.label];
-                cleanObj[c.key] = (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) ? null : String(rawVal).trim();
+                if (c.key === 'type' && rawVal) {
+                  cleanObj[c.key] = String(rawVal).trim().toUpperCase(); // 'PIPE' or 'FITTINGS'
+                } else {
+                  cleanObj[c.key] = (rawVal === '' || rawVal === undefined || rawVal === 'null' || rawVal === null) ? null : String(rawVal).trim();
+                }
               });
               return cleanObj;
             });
