@@ -474,7 +474,7 @@
   if (!currentUser || currentUser.username !== 'admin') {
     return alert("⚠️ માત્ર Admin પાસે જ Master Data Update કરવાની પરમિશન છે!");
   }
-  if (!confirm("શું તમે SAP Code Type મુજબ Master Data (piping_joints) સિંક કરવા માંગો છો?")) return;
+  if (!confirm("શું તમે MTO મુજબ Master Data (piping_joints) માં Pipe અને Fittings ની સ્થિતિ સિંક કરવા માંગો છો?")) return;
 
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Synchronizing MTO Data with Master Register... Please wait...</td></tr>';
@@ -491,10 +491,12 @@
         .range(fromSap, fromSap + 999);
 
       if (sapErr) throw sapErr;
-      if (sapData && sapData.length > 0) {
+      if (sapData && dataLength(sapData) > 0) {
         sapData.forEach(s => {
-          if (s.MAT_SAP_CODE) {
-            sapMap.set(String(s.MAT_SAP_CODE).trim().toUpperCase(), s.type ? String(s.type).trim().toUpperCase() : null);
+          if (s.MAT_SAP_CODE !== undefined && s.MAT_SAP_CODE !== null) {
+            const cleanCode = String(s.MAT_SAP_CODE).trim().toUpperCase();
+            const cleanType = s.type ? String(s.type).trim().toUpperCase() : null;
+            sapMap.set(cleanCode, cleanType);
           }
         });
         fromSap += 1000;
@@ -524,7 +526,9 @@
       }
     }
 
-    // ૩. Spool મુજબ આઇટમ્સનું વર્ગીકરણ
+    function dataLength(arr) { return arr ? arr.length : 0; }
+
+    // ૩. Spool વાઇઝ વર્ગીકરણ (Safe Classification)
     const spoolMap = new Map();
 
     mtoAll.forEach(r => {
@@ -532,10 +536,10 @@
       if (!rawSpool) return;
       const spNo = String(rawSpool).trim().toUpperCase();
 
-      const sapCode = r.MAT_SAP_CODE ? String(r.MAT_SAP_CODE).trim().toUpperCase() : '';
+      const sapCode = (r.MAT_SAP_CODE !== undefined && r.MAT_SAP_CODE !== null) ? String(r.MAT_SAP_CODE).trim().toUpperCase() : '';
       const sapType = sapMap.get(sapCode);
 
-      // પ્રાથમિકતા Sap_code.type ને, નહિતર Description થી ઓળખ
+      // પ્રાથમિકતા Sap_code.type ને, નહિતર Description થી
       let isPipe = false;
       if (sapType === 'PIPE') {
         isPipe = true;
@@ -574,7 +578,7 @@
       }
     });
 
-    // ૪. સ્થિતિ મૂલ્યાંકન (Pipe માટે 5% છૂટછાટ, Fittings માટે 100%)
+    // ૪. સ્થિતિનું મૂલ્યાંકન (5% Tolerance for PIPE)
     function evaluateStatus(items, itemType) {
       if (!items || items.length === 0) return null;
 
@@ -594,7 +598,7 @@
       return 'Partially';
     }
 
-    // ૫. સરખામણી અને ફેરફારોની યાદી તૈયાર કરવી
+    // ૫. સરખામણી
     const masterRows = await ensureAllRecordsCached();
     const updateBatch = [];
 
@@ -620,12 +624,12 @@
 
       if (targetPipe !== currentPipe) {
         patch.pipe = targetPipe;
-        mRow.pipe = targetPipe; // 🟢 લોકલ કેશ તરત જ અપડેટ કરો
+        mRow.pipe = targetPipe;
         needsUpdate = true;
       }
       if (targetFittings !== currentFittings) {
         patch.fittings = targetFittings;
-        mRow.fittings = targetFittings; // 🟢 લોકલ કેશ તરત જ અપડેટ કરો
+        mRow.fittings = targetFittings;
         needsUpdate = true;
       }
 
@@ -650,7 +654,7 @@
 
     alert(`🎉 સિંક પૂર્ણ! કુલ ${updateBatch.length} રેકોર્ડ્સમાં PIPE અને FITTINGS ની સ્થિતિ સફળતાપૂર્વક અપડેટ થઈ ગઈ!`);
     
-    // કેશ ખાલી કરી ફ્રેશ ડેટા સાથે ટેબલ રીલોડ કરવું
+    // કેશ ક્લિયર કરી ટેબલ રીલોડ કરવું
     allRecordsCache = [];
     await loadFullRegister();
 
