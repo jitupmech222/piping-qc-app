@@ -474,7 +474,7 @@
   if (!currentUser || currentUser.username !== 'admin') {
     return alert("⚠️ માત્ર Admin પાસે જ Master Data Update કરવાની પરમિશન છે!");
   }
-  if (!confirm("શું તમે MTO મુજબ Master Data (piping_joints) માં Pipe અને Fittings ની સ્થિતિ સિંક કરવા માંગો છો?")) return;
+  if (!confirm("શું તમે MTO મુજબ Master Data (piping_joints) માં Pipe (5% છૂટછાટ સાથે) અને Fittings ની સ્થિતિ સિંક કરવા માંગો છો?")) return;
 
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Fetching MTO Data & Performing Sync... Please wait...</td></tr>';
@@ -549,17 +549,30 @@
       }
     });
 
-    // Helper status evaluator
-    function evaluateStatus(items) {
+    // 🟢 Status Evaluator with 5% tolerance for PIPE
+    function evaluateStatus(items, itemType) {
       if (!items || items.length === 0) return null; // No item in MTO = Blank
 
+      // ૧. જો તમામ આઇટમ્સમાં Issued_qty ખાલી હોય અથવા 0 હોય તો 'Balance'
       const allBlankOrZero = items.every(x => x.isBlank || x.issuedQty === 0);
       if (allBlankOrZero) return 'Balance';
 
-      // Check if every item has issuedQty >= minQty
-      const allFullyIssued = items.every(x => !x.isBlank && x.issuedQty >= x.minQty && x.minQty > 0);
+      // ૨. પૂર્ણ થયેલ ગણવાની શરત:
+      // PIPE માટે 5% છૂટછાટ (>= 95% જથ્થો ઇશ્યૂ થયો હોય)
+      // FITTINGS માટે પૂરેપૂરો જથ્થો (100%) હોવો ફરજિયાત છે
+      const allFullyIssued = items.every(x => {
+        if (x.isBlank || x.minQty <= 0) return false;
+        if (itemType === 'PIPE') {
+          const minRequired = Math.round((x.minQty * 0.95) * 1000) / 1000; // 5% Less
+          return x.issuedQty >= minRequired;
+        } else {
+          return x.issuedQty >= x.minQty; // 100% for Fittings
+        }
+      });
+
       if (allFullyIssued) return 'Issued';
 
+      // ૩. બાકી બધું 'Partially'
       return 'Partially';
     }
 
@@ -576,8 +589,8 @@
 
       if (spoolMap.has(spNo)) {
         const { pipeItems, fittingItems } = spoolMap.get(spNo);
-        targetPipe = evaluateStatus(pipeItems);
-        targetFittings = evaluateStatus(fittingItems);
+        targetPipe = evaluateStatus(pipeItems, 'PIPE');
+        targetFittings = evaluateStatus(fittingItems, 'FITTINGS');
       }
 
       const currentPipe = (mRow.pipe === undefined || mRow.pipe === null || String(mRow.pipe).trim() === '') ? null : String(mRow.pipe).trim();
@@ -615,7 +628,7 @@
       if (error) throw error;
     }
 
-    alert(`🎉 સફળતાપૂર્વક ${updateBatch.length} રેકોર્ડ્સમાં PIPE અને FITTINGS ની નવી સ્થિતિ સિંક થઈ ગઈ!`);
+    alert(`🎉 સફળતાપૂર્વક ${updateBatch.length} રેકોર્ડ્સમાં PIPE (5% ટોલરન્સ સાથે) અને FITTINGS ની સ્થિતિ સિંક થઈ ગઈ!`);
     allRecordsCache = [];
     await loadFullRegister();
 
