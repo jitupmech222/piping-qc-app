@@ -471,117 +471,171 @@
     }
 
     async function syncMasterFromMto() {
-      if (!currentUser || currentUser.username !== 'admin') {
-        return alert("⚠️ માત્ર Admin પાસે જ Master Data Update કરવાની પરમિશન છે!");
-      }
-      if (!confirm("શું તમે MTO ટેબલમાંથી Pipe અને Fittings ની સ્થિતિ (Issued / Partially / Balance) Master Data (piping_joints) માં અપડેટ કરવા માંગો છો?")) return;
+  if (!currentUser || currentUser.username !== 'admin') {
+    return alert("⚠️ માત્ર Admin પાસે જ Master Data Update કરવાની પરમિશન છે!");
+  }
+  if (!confirm("શું તમે MTO મુજબ Master Data (piping_joints) માં Pipe અને Fittings નું FULL SYNC (આઇટમ ન હોય તો Blank/Null સેટ સહિત) કરવા માંગો છો?")) return;
 
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Fetching MTO & Master Data to Calculate Pipe/Fittings Status... Please wait...</td></tr>';
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:25px; color:#0f766e; font-weight:bold;">⏳ Fetching MTO Data & Performing Full Master Mirror Sync... Please wait...</td></tr>';
 
-      try {
-        let mtoAll = [];
-        let from = 0;
-        let hasMore = true;
-        while (hasMore) {
-          const { data, error } = await db.from('mto').select('Spool_number, MAT_Description, MIN_qty, Issued_qty').range(from, from + 999);
-          if (error) throw error;
-          if (data && data.length > 0) {
-            mtoAll = mtoAll.concat(data);
-            from += 1000;
-            if (data.length < 1000) hasMore = false;
-          } else {
-            hasMore = false;
-          }
-        }
-
-        const spoolMap = new Map();
-
-        mtoAll.forEach(r => {
-          if (!r.Spool_number) return;
-          const spNo = String(r.Spool_number).trim();
-          if (!spoolMap.has(spNo)) {
-            spoolMap.set(spNo, { pipeItems: [], fittingItems: [] });
-          }
-
-          const desc = String(r.MAT_Description || '').trim().toUpperCase();
-          const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
-          
-          const rawIssued = r.Issued_qty;
-          const isIssuedBlank = rawIssued === null || rawIssued === undefined || String(rawIssued).trim() === '' || String(rawIssued).trim() === '-';
-          const issuedQty = isIssuedBlank ? null : (parseFloat(String(rawIssued).replace(/[^0-9.]/g, '')) || 0);
-
-          const itemData = { minQty, issuedQty, isBlank: isIssuedBlank };
-
-          if (desc.startsWith('PIPE')) {
-            spoolMap.get(spNo).pipeItems.push(itemData);
-          } else {
-            spoolMap.get(spNo).fittingItems.push(itemData);
-          }
-        });
-
-        function evaluateStatus(items) {
-          if (!items || items.length === 0) return null;
-          const allBlank = items.every(x => x.isBlank);
-          if (allBlank) return 'Balance';
-          const allFullyIssued = items.every(x => !x.isBlank && x.issuedQty >= x.minQty);
-          if (allFullyIssued) return 'Issued';
-          return 'Partially';
-        }
-
-        const masterRows = await ensureAllRecordsCached();
-        const updateBatch = [];
-
-        masterRows.forEach(mRow => {
-          if (!mRow.Spool_number) return;
-          const spNo = String(mRow.Spool_number).trim();
-
-          if (spoolMap.has(spNo)) {
-            const { pipeItems, fittingItems } = spoolMap.get(spNo);
-            const calculatedPipe = evaluateStatus(pipeItems);
-            const calculatedFittings = evaluateStatus(fittingItems);
-
-            let needsUpdate = false;
-            const patch = { id: mRow.id };
-
-            if (calculatedPipe !== undefined && calculatedPipe !== mRow.pipe) {
-              patch.pipe = calculatedPipe;
-              needsUpdate = true;
-            }
-            if (calculatedFittings !== undefined && calculatedFittings !== mRow.fittings) {
-              patch.fittings = calculatedFittings;
-              needsUpdate = true;
-            }
-
-            if (needsUpdate) updateBatch.push(patch);
-          }
-        });
-
-        if (updateBatch.length === 0) {
-          alert("ℹ️ Master ટેબલ પહેલેથી જ MTO મુજબ અપ-ટુ-ડેટ છે. કોઈ નવા ફેરફાર મળ્યા નથી.");
-          allRecordsCache = [];
-          await loadFullRegister();
-          return;
-        }
-
-        const batchSize = 50;
-        for (let i = 0; i < updateBatch.length; i += batchSize) {
-          const batch = updateBatch.slice(i, i + batchSize);
-          const { error } = await db.from('piping_joints').upsert(batch, { onConflict: 'id' });
-          if (error) throw error;
-        }
-
-        alert(`🎉 સફળતાપૂર્વક Master Data ની ${updateBatch.length} રો માં MTO મુજબ Pipe અને Fittings ની સ્થિતિ અપડેટ થઈ ગઈ!`);
-        allRecordsCache = [];
-        await loadFullRegister();
-
-      } catch (err) {
-        console.error(err);
-        alert("Master Data Sync કરવામાં ભૂલ આવી: " + err.message);
-        allRecordsCache = [];
-        await loadFullRegister();
+  try {
+    // ૧. MTO ટેબલમાંથી તમામ રેકોર્ડ્સ ખેંચવા (Read-Only)
+    let mtoAll = [];
+    let from = 0;
+    let hasMore = true;
+    while (hasMore) {
+      const { data, error } = await db.from('mto')
+        .select('Spool_number, MAT_Description, Unit, MIN_qty, Issued_qty')
+        .range(from, from + 999);
+      
+      if (error) throw error;
+      if (data && data.length > 0) {
+        mtoAll = mtoAll.concat(data);
+        from += 1000;
+        if (data.length < 1000) hasMore = false;
+      } else {
+        hasMore = false;
       }
     }
+
+    // ૨. યુનિટ વેલિડેશન અને પાઇપ / ફિટિંગ્સનું Spool વાઇઝ વર્ગીકરણ
+    const spoolMap = new Map();
+    const unitErrors = [];
+
+    const validPipeUnits = new Set(['MTR', 'M']);
+    const validFittingUnits = new Set(['EA']);
+
+    mtoAll.forEach(r => {
+      if (!r.Spool_number) return;
+      const spNo = String(r.Spool_number).trim().toUpperCase();
+      const desc = String(r.MAT_Description || '').trim().toUpperCase();
+      const rawUnit = String(r.Unit || '').trim().toUpperCase();
+
+      const isPipe = desc.includes('PIPE') && !desc.includes('NIPPLE');
+
+      // યુનિટ વેલિડેશન
+      if (isPipe) {
+        if (!validPipeUnits.has(rawUnit)) {
+          unitErrors.push(`• Spool: ${spNo} | Item: "${r.MAT_Description}" | Found: "${r.Unit || 'BLANK'}" (Expected: Mtr/M)`);
+        }
+      } else {
+        if (!validFittingUnits.has(rawUnit)) {
+          unitErrors.push(`• Spool: ${spNo} | Item: "${r.MAT_Description}" | Found: "${r.Unit || 'BLANK'}" (Expected: EA/ea)`);
+        }
+      }
+
+      if (!spoolMap.has(spNo)) {
+        spoolMap.set(spNo, { pipeItems: [], fittingItems: [] });
+      }
+
+      const minQty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
+      const rawIssued = r.Issued_qty;
+      const isIssuedBlank = rawIssued === null || rawIssued === undefined || 
+                            String(rawIssued).trim() === '' || 
+                            String(rawIssued).trim() === '-' || 
+                            String(rawIssued).toLowerCase() === 'null';
+
+      const issuedQty = isIssuedBlank ? 0 : (parseFloat(String(rawIssued).replace(/[^0-9.]/g, '')) || 0);
+      const itemData = { minQty, issuedQty, isBlank: isIssuedBlank };
+
+      if (isPipe) {
+        spoolMap.get(spNo).pipeItems.push(itemData);
+      } else {
+        spoolMap.get(spNo).fittingItems.push(itemData);
+      }
+    });
+
+    // યુનિટમાં ભૂલ હોય તો અટકાવો
+    if (unitErrors.length > 0) {
+      allRecordsCache = [];
+      await loadFullRegister();
+      const sampleErrors = unitErrors.slice(0, 10).join('\n');
+      const moreMsg = unitErrors.length > 10 ? `\n...અને બીજા ${unitErrors.length - 10} રેકોર્ડ્સમાં ભૂલ છે.` : '';
+      alert(`❌ UNIT VALIDATION ERROR!\n\nMTO ટેબલમાં નીચેના Spool માં Unit મેળ ખાતો નથી:\n\n${sampleErrors}${moreMsg}\n\nકૃપા કરીને પહેલા MTO ટેબલમાં યુનિટ સુધારો.`);
+      return;
+    }
+
+    // ૩. સ્થિતિ (Status) નક્કી કરવાનું લોજિક
+    // જો આઇટમ્સ ન હોય તો ચોખ્ખું `null` રીટર્ન કરશે જેથી માસ્ટરમાં બ્લેન્ક થઈ જાય
+    function evaluateStatus(items) {
+      if (!items || items.length === 0) return null; // 🟢 જો mto માં નથી, તો Blank (null)
+
+      const allBlankOrZero = items.every(x => x.isBlank || x.issuedQty === 0);
+      if (allBlankOrZero) return 'Balance';
+
+      const allFullyIssued = items.every(x => !x.isBlank && x.issuedQty >= x.minQty && x.minQty > 0);
+      if (allFullyIssued) return 'Issued';
+
+      return 'Partially';
+    }
+
+    // ૪. Master Register (piping_joints) ની દરેક રો સાથે ૧૦૦% સરખામણી
+    const masterRows = await ensureAllRecordsCached();
+    const updateBatch = [];
+
+    masterRows.forEach(mRow => {
+      if (!mRow.Spool_number) return;
+      const spNo = String(mRow.Spool_number).trim().toUpperCase();
+
+      let targetPipe = null;
+      let targetFittings = null;
+
+      // જો આ Spool MTO માં હાજર હોય તો ગણતરી કરો, નહિતર બંને `null` (Blank) જ રહેશે
+      if (spoolMap.has(spNo)) {
+        const { pipeItems, fittingItems } = spoolMap.get(spNo);
+        targetPipe = evaluateStatus(pipeItems);
+        targetFittings = evaluateStatus(fittingItems);
+      }
+
+      // વર્તમાન માસ્ટર વેલ્યુ સાથે સરખામણી (Normalize empty strings to null for strict comparison)
+      const currentPipe = (mRow.pipe === undefined || mRow.pipe === null || String(mRow.pipe).trim() === '') ? null : String(mRow.pipe).trim();
+      const currentFittings = (mRow.fittings === undefined || mRow.fittings === null || String(mRow.fittings).trim() === '') ? null : String(mRow.fittings).trim();
+
+      let needsUpdate = false;
+      const patch = { id: mRow.id };
+
+      // 🟢 જો માસ્ટરમાં અગાઉ વેલ્યુ હતી અને હવે mto માં નથી, તો પણ તે null અપડેટ થશે
+      if (targetPipe !== currentPipe) {
+        patch.pipe = targetPipe;
+        needsUpdate = true;
+      }
+      if (targetFittings !== currentFittings) {
+        patch.fittings = targetFittings;
+        needsUpdate = true;
+      }
+
+      if (needsUpdate) {
+        updateBatch.push(patch);
+      }
+    });
+
+    if (updateBatch.length === 0) {
+      alert("ℹ️ Master ટેબલ પહેલેથી જ MTO મુજબ સંપૂર્ણપણે સિંક થયેલું છે. કોઈ ફેરફાર કરવાની જરૂર નથી.");
+      allRecordsCache = [];
+      await loadFullRegister();
+      return;
+    }
+
+    // ૫. ૫૦-૫૦ ના બેચમાં Supabase માં સુરક્ષિત અપડેટ કરવું (માત્ર id, pipe અને fittings જ સ્પર્શશે)
+    const batchSize = 50;
+    for (let i = 0; i < updateBatch.length; i += batchSize) {
+      const batch = updateBatch.slice(i, i + batchSize);
+      const { error } = await db.from('piping_joints').upsert(batch, { onConflict: 'id' });
+      if (error) throw error;
+    }
+
+    alert(`🎉 Full Sync સફળ રહ્યું!\nMaster Data ની ${updateBatch.length} રો માં MTO મુજબ નવી સ્થિતિ સિંક થઈ ગઈ (જેમાં દૂર કરેલ મટીરીયલની વેલ્યુ Blank/Null થઈ ગઈ છે).`);
+    allRecordsCache = [];
+    await loadFullRegister();
+
+  } catch (err) {
+    console.error(err);
+    alert("Master Data Sync કરવામાં ભૂલ આવી: " + err.message);
+    allRecordsCache = [];
+    await loadFullRegister();
+  }
+}
 
     async function exportStyledExcelWorkbook(rowsData, columnHeaders, fileName) {
       const workbook = new ExcelJS.Workbook();
