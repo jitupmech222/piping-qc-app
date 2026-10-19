@@ -620,17 +620,10 @@
         <button class="sub-btn" onclick="window.location.href='rt_lot_status.html'" style="border-left: 4px solid #0284c7; font-weight: bold;">
           <span>☢️</span><span>RT LOT STATUS</span>
         </button>
-       
-
-        <!-- 🟢 નવો સક્રિય કોડ -->
-        <button class="sub-btn" onclick="window.location.href='ndt_dc.html'" style="border-left: 4px solid #16a34a; font-weight: bold;">
-          <span>📦</span><span>NDT / DC</span>
-        </button>
-        
+        <button class="sub-btn" onclick="futureModuleNotice('NDT / DC')"><span>📦</span><span>NDT / DC</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('MTO ENTRY')"><span>📑</span><span>MTO ENTRY</span></button>
         <button class="sub-btn" onclick="futureModuleNotice('PWHT')"><span>🔥</span><span>PWHT</span></button>
-        <button class="sub-btn" onclick="window.location.href='view_record.html'" style="border-left: 4px solid #0284c7; font-weight: bold;">
-          <span>📊</span><span>VIEW RECORD</span>
-        </button>
+        <button class="sub-btn" onclick="futureModuleNotice('VIEW RECORD')"><span>📊</span><span>VIEW RECORD</span></button>
       </div>
     </div>
 
@@ -813,16 +806,6 @@
 
       updateRoleVisibility();
       loadTopDashboardMetrics();
-
-      // 🟢 આ ૬ લાઇન ઉમેરો: URL પરથી ?tab=qaqc ચેક કરીને સીધું QA/QC Module ખોલવા માટે
-      const urlParams = new URLSearchParams(window.location.search);
-      const openTab = urlParams.get('tab');
-      if (openTab === 'qaqc') {
-        openCategoryHub('qaqcHub');
-      } else if (openTab) {
-        openCategoryHub(openTab);
-      }
-
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
@@ -1238,20 +1221,16 @@
   }
 
   function backToHubMenu() {
-  document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
-  document.getElementById('stageContainer').style.display = 'none';
-  document.getElementById('hubMainMenu').style.display = 'block';
-
-  // 🟢 URL પેરામીટર (?tab=...) ક્લીન કરવા માટે
-  if (window.location.search) {
-    window.history.replaceState({}, document.title, window.location.pathname);
+    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('hubMainMenu').style.display = 'block';
   }
-}
 
-/* 👉 Future Program Notice for QA/QC */
-function futureModuleNotice(name) {
-  alert(`ℹ️ "${name}" module will be added in future.`);
-}
+  /* 👉 Future Program Notice for QA/QC */
+  function futureModuleNotice(name) {
+    alert(`ℹ️ "${name}" module will be added in future.`);
+  }
+
   /* STAGE OPERATIONS */
   async function openStage(stage) {
     currentStage = stage;
