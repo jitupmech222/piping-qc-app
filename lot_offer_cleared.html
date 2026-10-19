@@ -70,20 +70,20 @@
 
     /* LOT Pills */
     .lot-pill {
-      padding: 7px 14px;
+      padding: 8px 16px;
       border-radius: 6px;
-      border: 1px solid #cbd5e1;
+      border: 1.5px solid #cbd5e1;
       background: #ffffff;
       color: #0f172a;
       font-weight: 700;
-      font-size: 12.5px;
+      font-size: 13px;
       cursor: pointer;
       transition: all 0.15s;
     }
-    .lot-pill:hover { background: #f8fafc; border-color: #94a3b8; }
+    .lot-pill:hover { background: #f1f5f9; border-color: #0284c7; }
     .lot-pill.active {
-      border: 2px solid #0f172a;
-      background: #0f172a;
+      border: 2px solid #0284c7;
+      background: #0284c7;
       color: #ffffff;
       font-weight: 800;
     }
@@ -307,17 +307,17 @@
       document.getElementById('lblOfferType').innerText = selectedType;
     }
 
-    // શુદ્ધ Lot નંબર અલગ કરવો
+    // શુદ્ધ Lot નંબર મેળવવો (e.g., '01', '02', '950', 'PJ-01')
     function extractCleanLotNum(val) {
-      if (!val) return "";
+      if (val === null || val === undefined) return "";
       const str = String(val).trim();
+      if (!str || ["NA", "0", "NULL", "UNDEFINED"].includes(str.toUpperCase())) return "";
+
       const upper = str.toUpperCase().replace(/\s+/g, '');
-      // જો PJ-01 કે PJ-02 હોય તો તેને તે રીતે જ ઓળખવો
       if (upper.includes("PJ-01") || upper.includes("PJ1") || upper.includes("PJ-1")) return "PJ-01";
       if (upper.includes("PJ-02") || upper.includes("PJ2") || upper.includes("PJ-2")) return "PJ-02";
-      
-      const numOnly = str.replace(/[^0-9]/g, '');
-      return numOnly || str;
+
+      return str;
     }
 
     function formatDateDisplay(val) {
@@ -330,7 +330,6 @@
       return str;
     }
 
-    // 100% વેલ્યુ ચેક
     function isValue100Percent(strVal) {
       const str = String(strVal || "").trim();
       if (!str || str === "0" || str.toUpperCase() === "NA") return false;
@@ -339,7 +338,6 @@
       return !isNaN(num) && (num === 100 || num === 1);
     }
 
-    // PJ Lot ચેક
     function isPJLot(strVal) {
       if (!strVal) return false;
       const u = String(strVal).trim().toUpperCase().replace(/\s+/g, '');
@@ -355,6 +353,35 @@
       }
     }
 
+    // સમગ્ર lhs_entries ડેટા ખેંચવો
+    async function fetchAllLhsRows() {
+      let allRows = [];
+      let from = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db
+          .from('lhs_entries')
+          .select('*')
+          .order('id', { ascending: true })
+          .range(from, from + 999);
+
+        if (error) {
+          console.error("Fetch error:", error);
+          throw error;
+        }
+
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += 1000;
+          if (data.length < 1000) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+      return allRows;
+    }
+
     /* -------------------------------------------------------------
        1. 100% LOT LOGIC (100% or PJ-01/PJ-02)
     -------------------------------------------------------------- */
@@ -363,51 +390,30 @@
       tbody.innerHTML = `<tr><td colspan="13" style="padding:25px; color:#64748b;">⏳ Loading 100% & PJ Lots...</td></tr>`;
 
       try {
-        let allRows = [];
-        let from = 0;
-        let hasMore = true;
+        const allRows = await fetchAllLhsRows();
 
-        while (hasMore) {
-          let query = db.from('lhs_entries').select('*');
-          if (selectedType === "DPT") {
-            // EB, LET, SOB, SOF, SW
-            query = query.in('joint_type', ['EB', 'LET', 'SOB', 'SOF', 'SW']);
-          } else {
-            // BW
-            query = query.eq('joint_type', 'BW');
-          }
-
-          const { data, error } = await query.order('id', { ascending: true }).range(from, from + 999);
-          if (error) throw error;
-
-          if (data && data.length > 0) {
-            allRows = allRows.concat(data);
-            from += 1000;
-            if (data.length < 1000) hasMore = false;
-          } else {
-            hasMore = false;
-          }
-        }
-
-        // 🟢 શરત: 100% અથવા PJ-01 / PJ-02
         joints100 = allRows.filter(r => {
           const jType = String(r.joint_type || '').toUpperCase().trim();
 
           if (selectedType === "DPT") {
+            // Non-BW joints
+            if (jType === "BW") return false;
+
             const is100 = isValue100Percent(r.dpt_percentage);
             const lotVal = jType === 'EB' ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
             const isPJ = isPJLot(lotVal);
 
             if (!is100 && !isPJ) return false;
 
-            // જો રિપોર્ટ અને તારીખ પેન્ડિંગ હોય તો જ બતાવો
             const rep = jType === 'EB' ? String(r.induction_bend_dpt_report_no || '').trim() : String(r.dpt_report_no || '').trim();
             const dt = jType === 'EB' ? String(r.induction_bend_dpt_date || '').trim() : String(r.dpt_date || '').trim();
 
             return (!rep || rep === 'NA' || rep === '0') || (!dt || dt === 'NA' || dt === '0');
 
           } else {
-            // RT
+            // RT (BW)
+            if (jType !== "BW" && !r.rt_lot_no) return false;
+
             const is100 = isValue100Percent(r.rt_percentage);
             const isPJ = isPJLot(r.rt_lot_no);
 
@@ -445,6 +451,11 @@
           const currentDate = selectedType === "RT" ? j.rt_date : (jType === 'EB' ? j.induction_bend_dpt_date : j.dpt_date);
           const currentPct = selectedType === "RT" ? (j.rt_percentage || '100%') : (j.dpt_percentage || '100%');
 
+          const repVal = j.inputRep !== undefined ? j.inputRep : (currentRep || '');
+          const dtVal = j.inputDate !== undefined ? j.inputDate : (currentDate || '');
+          const xrVal = j.inputXr !== undefined ? j.inputXr : (j.xr_no || '');
+          const statusVal = j.inputStatus !== undefined ? j.inputStatus : (j.accepted_rejected || 'Accepted');
+
           return `
             <tr>
               <td>${idx + 1}</td>
@@ -456,13 +467,13 @@
               <td>${j.weld_visual_report_no || '-'}</td>
               <td style="font-weight:bold; color:#0284c7;">${lotNo || '-'}</td>
               <td style="font-weight:bold; color:#dc2626;">${currentPct}</td>
-              <td><input type="text" value="${j.inputRep || currentRep || ''}" onchange="joints100[${idx}].inputRep = this.value" placeholder="Report No" style="width:115px; text-align:center;"></td>
-              <td><input type="date" value="${j.inputDate || currentDate || ''}" onchange="joints100[${idx}].inputDate = this.value" style="width:130px; text-align:center;"></td>
-              ${selectedType === "RT" ? `<td><input type="text" value="${j.inputXr \vert{}\vert{} j.xr_no \vert{}\vert{} ''}" onchange="joints100[${idx}].inputXr = this.value" placeholder="XR No" style="width:85px; text-align:center;"></td>` : ''}
+              <td><input type="text" value="${repVal}" onchange="joints100[${idx}].inputRep = this.value" placeholder="Report No" style="width:115px; text-align:center;"></td>
+              <td><input type="date" value="${dtVal}" onchange="joints100[${idx}].inputDate = this.value" style="width:130px; text-align:center;"></td>
+              ${selectedType === "RT" ? `<td><input type="text" value="${xrVal}" onchange="joints100[${idx}].inputXr = this.value" placeholder="XR No" style="width:85px; text-align:center;"></td>` : ''}
               ${selectedType === "RT" ? `<td>
                 <select onchange="joints100[${idx}].inputStatus = this.value" style="font-weight:bold;">
-                  <option value="Accepted" ${(j.accepted_rejected || 'Accepted') === 'Accepted' ? 'selected' : ''}>Accepted</option>
-                  <option value="Rejected" ${j.accepted_rejected === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                  <option value="Accepted" ${statusVal === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                  <option value="Rejected" ${statusVal === 'Rejected' ? 'selected' : ''}>Rejected</option>
                 </select>
               </td>` : ''}
             </tr>
@@ -513,10 +524,9 @@
               updateObj.dpt_date = dt;
             }
           } else {
-            // RT
             updateObj.rt_report_no = rep;
             updateObj.rt_date = dt;
-            updateObj.xr_no = String(j.inputXr !== undefined ? j.inputXr : j.xr_no).trim();
+            updateObj.xr_no = String(j.inputXr !== undefined ? j.inputXr : (j.xr_no || '')).trim();
             updateObj.accepted_rejected = j.inputStatus || j.accepted_rejected || 'Accepted';
           }
 
@@ -544,30 +554,7 @@
       document.getElementById('selectedLotCard').style.display = "none";
 
       try {
-        let allRows = [];
-        let from = 0;
-        let hasMore = true;
-
-        while (hasMore) {
-          let query = db.from('lhs_entries').select('*');
-          if (selectedType === "RT") {
-            query = query.eq('joint_type', 'BW');
-          } else {
-            query = query.in('joint_type', ['EB', 'LET', 'SOB', 'SOF', 'SW']);
-          }
-
-          const { data, error } = await query.order('id', { ascending: true }).range(from, from + 999);
-          if (error) throw error;
-
-          if (data && data.length > 0) {
-            allRows = allRows.concat(data);
-            from += 1000;
-            if (data.length < 1000) hasMore = false;
-          } else {
-            hasMore = false;
-          }
-        }
-
+        const allRows = await fetchAllLhsRows();
         const lotMap = new Map();
 
         allRows.forEach(r => {
@@ -575,28 +562,31 @@
           let rawLot = "", repNo = "", ndtDate = "", pct = "";
 
           if (selectedType === "RT") {
+            if (jType !== "BW" && !r.rt_lot_no) return;
             rawLot = r.rt_lot_no;
             repNo = r.rt_report_no;
             ndtDate = r.rt_date;
             pct = r.rt_percentage;
           } else {
+            if (jType === "BW") return;
             rawLot = jType === "EB" ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
             repNo = jType === "EB" ? r.induction_bend_dpt_report_no : r.dpt_report_no;
             ndtDate = jType === "EB" ? r.induction_bend_dpt_date : r.dpt_date;
             pct = r.dpt_percentage;
           }
 
-          // 🟢 100% અથવા PJ-01/02 વાળા જોઈન્ટ્સ સામાન્ય OFFER લિસ્ટમાં નહીં આવે
+          // ૧૦૦% અથવા PJ વાળા જોઈન્ટ્સ 100% મોડમાં જશે
           if (isValue100Percent(pct) || isPJLot(rawLot)) return;
 
-          const cleanNum = extractCleanLotNum(rawLot);
-          if (!cleanNum || ["NA", "0", "PJ1", "PJ2"].includes(cleanNum.toUpperCase())) return;
+          const cleanLot = extractCleanLotNum(rawLot);
+          if (!cleanLot) return;
 
-          if (!lotMap.has(cleanNum)) {
-            lotMap.set(cleanNum, { lotNum: cleanNum, totalJoints: 0, clearedCount: 0 });
+          const lotKey = cleanLot.toUpperCase();
+          if (!lotMap.has(lotKey)) {
+            lotMap.set(lotKey, { lotNum: cleanLot, totalJoints: 0, clearedCount: 0 });
           }
 
-          const item = lotMap.get(cleanNum);
+          const item = lotMap.get(lotKey);
           item.totalJoints++;
 
           const hasRep = repNo && String(repNo).trim() !== '' && String(repNo).toUpperCase() !== 'NA' && String(repNo) !== '0';
@@ -606,13 +596,12 @@
           }
         });
 
-        // માત્ર અપૂર્ણ (OFFER) લોટ જ બતાવવા
         offerLots = Array.from(lotMap.values()).filter(l => l.clearedCount < l.totalJoints);
         offerLots.sort((a, b) => {
           const numA = parseInt(a.lotNum, 10);
           const numB = parseInt(b.lotNum, 10);
           if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-          return a.lotNum.localeCompare(b.lotNum);
+          return String(a.lotNum).localeCompare(String(b.lotNum), undefined, { numeric: true });
         });
 
         if (offerLots.length === 0) {
@@ -644,39 +633,22 @@
       document.getElementById('selectedLotCard').style.display = "block";
 
       try {
-        let allRows = [];
-        let from = 0;
-        let hasMore = true;
-
-        while (hasMore) {
-          let query = db.from('lhs_entries').select('*');
-          if (selectedType === "RT") {
-            query = query.eq('joint_type', 'BW');
-          } else {
-            query = query.in('joint_type', ['EB', 'LET', 'SOB', 'SOF', 'SW']);
-          }
-
-          const { data, error } = await query.order('id', { ascending: true }).range(from, from + 999);
-          if (error) throw error;
-
-          if (data && data.length > 0) {
-            allRows = allRows.concat(data);
-            from += 1000;
-            if (data.length < 1000) hasMore = false;
-          } else {
-            hasMore = false;
-          }
-        }
+        const allRows = await fetchAllLhsRows();
 
         normalJoints = allRows.filter(r => {
           const jType = String(r.joint_type || '').toUpperCase().trim();
           let rawLot = "";
           if (selectedType === "RT") {
+            if (jType !== "BW" && !r.rt_lot_no) return false;
             rawLot = r.rt_lot_no;
           } else {
+            if (jType === "BW") return false;
             rawLot = jType === "EB" ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
           }
-          return extractCleanLotNum(rawLot) === lotNum;
+
+          const cLot = extractCleanLotNum(rawLot);
+          return cLot.toUpperCase() === String(lotNum).toUpperCase() ||
+                 (parseInt(cLot, 10) === parseInt(lotNum, 10) && !isNaN(parseInt(lotNum, 10)));
         });
 
         document.getElementById('selectedLotHeading').innerText = `📋 ${selectedType} LOT-${lotNum} Details (${normalJoints.length} Joints)`;
@@ -698,6 +670,9 @@
           if (j.weld_npd && j.thk) sizeThkDisp = `${j.weld_npd}"/${j.thk}`;
           else if (j.weld_npd) sizeThkDisp = `${j.weld_npd}"`;
           else if (j.thk) sizeThkDisp = j.thk;
+
+          const xrVal = j.inputXr !== undefined ? j.inputXr : (j.xr_no || '');
+          const statusVal = j.inputStatus !== undefined ? j.inputStatus : (j.accepted_rejected || 'Accepted');
 
           return `
             <tr>
@@ -731,7 +706,7 @@
               <!-- RT XR No -->
               ${selectedType === "RT" ? `
                 <td>
-                  <input type="text" value="${j.xr_no \vert{}\vert{} ''}" ${isLocked ? 'disabled' : ''}
+                  <input type="text" value="${xrVal}" ${isLocked ? 'disabled' : ''}
                     onchange="normalJoints[${idx}].inputXr = this.value"
                     placeholder="XR-No"
                     style="width:90px; text-align:center; ${isLocked ? 'background:#f1f5f9;' : ''}">
@@ -742,9 +717,9 @@
               ${selectedType === "RT" ? `
                 <td>
                   <select ${isLocked ? 'disabled' : ''} onchange="normalJoints[${idx}].inputStatus = this.value"
-                    style="font-weight:bold; color:${(j.accepted_rejected || 'Accepted') === 'Rejected' ? '#dc2626' : '#16a34a'};">
-                    <option value="Accepted" ${(j.accepted_rejected || 'Accepted') === 'Accepted' ? 'selected' : ''}>Accepted</option>
-                    <option value="Rejected" ${j.accepted_rejected === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                    style="font-weight:bold; color:${statusVal === 'Rejected' ? '#dc2626' : '#16a34a'};">
+                    <option value="Accepted" ${statusVal === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                    <option value="Rejected" ${statusVal === 'Rejected' ? 'selected' : ''}>Rejected</option>
                   </select>
                 </td>
               ` : ''}
@@ -771,7 +746,9 @@
         const isLocked = repNo && dt && String(repNo).trim() !== '' && String(repNo).toUpperCase() !== 'NA' && String(dt).trim() !== '' && String(dt).toUpperCase() !== 'NA';
         if (isLocked) return false;
 
-        return j.inputRep && j.inputDate;
+        const effectiveRep = j.inputRep !== undefined ? j.inputRep : repNo;
+        const effectiveDt = j.inputDate !== undefined ? j.inputDate : dt;
+        return effectiveRep && effectiveDt && String(effectiveRep).trim() !== '' && String(effectiveDt).trim() !== '';
       });
 
       if (filled.length === 0) {
@@ -785,15 +762,18 @@
       try {
         for (const j of filled) {
           const jType = String(j.joint_type || '').toUpperCase().trim();
+          const repNo = selectedType === "RT" ? j.rt_report_no : (jType === "EB" ? j.induction_bend_dpt_report_no : j.dpt_report_no);
+          const dt = selectedType === "RT" ? j.rt_date : (jType === "EB" ? j.induction_bend_dpt_date : j.dpt_date);
+
+          const repVal = String(j.inputRep !== undefined ? j.inputRep : repNo).trim();
+          const dtVal = j.inputDate !== undefined ? j.inputDate : dt;
           const updateObj = {};
-          const repVal = String(j.inputRep).trim();
-          const dtVal = j.inputDate;
 
           if (selectedType === "RT") {
             updateObj.rt_report_no = repVal;
             updateObj.rt_date = dtVal;
-            if (j.inputXr) updateObj.xr_no = String(j.inputXr).trim();
-            updateObj.accepted_rejected = j.inputStatus || 'Accepted';
+            if (j.inputXr !== undefined) updateObj.xr_no = String(j.inputXr).trim();
+            updateObj.accepted_rejected = j.inputStatus || j.accepted_rejected || 'Accepted';
           } else {
             if (jType === "EB") {
               updateObj.induction_bend_dpt_report_no = repVal;
