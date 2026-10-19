@@ -806,6 +806,16 @@
 
       updateRoleVisibility();
       loadTopDashboardMetrics();
+
+      // 🟢 આ ૬ લાઇન ઉમેરો: URL પરથી ?tab=qaqc ચેક કરીને સીધું QA/QC Module ખોલવા માટે
+      const urlParams = new URLSearchParams(window.location.search);
+      const openTab = urlParams.get('tab');
+      if (openTab === 'qaqc') {
+        openCategoryHub('qaqcHub');
+      } else if (openTab) {
+        openCategoryHub(openTab);
+      }
+
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
