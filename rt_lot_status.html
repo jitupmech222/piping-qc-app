@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RT Lot Status | QA/QC Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, -apple-system, sans-serif; }
+    body { background: #f4f6f8; color: #0f172a; padding: 18px 24px; -webkit-font-smoothing: antialiased; }
+
+    .top-header {
+      background: #ffffff;
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .top-header h2 { margin: 0; color: #17365d; font-size: 20px; font-weight: 800; }
+
+    .btn-back {
+      padding: 6px 14px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; }
+
+    /* Filter Buttons */
+    .filter-btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tab-btn {
+      padding: 11px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 13px;
+      background: #e5e7eb;
+      color: #333;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #17365d;
+      color: #ffffff;
+    }
+
+    /* Actions Bar */
+    .action-bar {
+      background: #ffffff;
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .action-bar input {
+      padding: 8px 12px;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .btn-purple { padding: 9px 15px; background: #7b1fa2; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; }
+    .btn-outline { padding: 9px 15px; border: 1px solid #17365d; background: #fff; color: #17365d; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; }
+    .btn-gray { padding: 9px 15px; border: 1px solid #777; background: #777; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; }
+
+    /* Main Table */
+    .table-card {
+      background: #ffffff;
+      border-radius: 10px;
+      overflow: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      max-height: calc(100vh - 250px);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 1650px; }
+    th {
+      background: #17365d;
+      color: #ffffff;
+      padding: 9px 6px;
+      border: 1px solid #fff;
+      text-align: center;
+      font-size: 13px;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    td {
+      padding: 8px;
+      border: 1px solid #d0d0d0;
+      text-align: center;
+      white-space: nowrap;
+      background: #ffffff;
+    }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    .lot-link {
+      font-weight: bold;
+      color: #0284c7;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .lot-link:hover { color: #0369a1; }
+
+    /* In-Header Filter Popup */
+    .filter-icon-btn {
+      border: none;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      font-size: 11px;
+      padding: 2px 4px;
+      margin-left: 4px;
+      border-radius: 3px;
+    }
+    .filter-icon-btn.active { background: #ffd54f; color: #000; }
+    .filter-popover {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      background: #ffffff;
+      padding: 8px;
+      border: 1px solid #999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      min-width: 170px;
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(3px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      padding: 10px;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 10px;
+      width: 98vw;
+      max-width: 99vw;
+      height: 92vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      border: 1px solid #cbd5e1;
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 12px 20px;
+      background: #0f172a;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body {
+      padding: 12px;
+      overflow: auto;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <a href="index.html" class="btn-back">⬅️ Back to Console</a>
+      <h2>☢️ RT LOT STATUS</h2>
+    </div>
+    <span id="navSubTitle" style="font-size: 13px; font-weight: bold; color: #64748b;"></span>
+  </div>
+
+  <!-- TAB BUTTONS -->
+  <div class="filter-btn-group">
+    <button class="tab-btn active" id="tabALL" onclick="setMainFilter('ALL')">ALL LOTS (<span id="cntAll">0</span>)</button>
+    <button class="tab-btn" id="tabUNDER" onclick="setMainFilter('UNDER')">UNDER PROGRESS LOT (<span id="cntUnder">0</span>)</button>
+    <button class="tab-btn" id="tabCOMPLETED" onclick="setMainFilter('COMPLETED')">COMPLETED LOTS (<span id="cntCompleted">0</span>)</button>
+    <button class="tab-btn" id="tabMANUAL" onclick="setMainFilter('MANUAL')">MANUAL CLOSED (<span id="cntManual">0</span>)</button>
+  </div>
+
+  <!-- MANUAL CLOSE & ACTIONS BAR -->
+  <div class="action-bar">
+    <b style="color:#1e293b; font-size:13px;">Manual Close RT LOT:</b>
+    <input type="text" id="manualLotInput" placeholder="Enter RT Lot No." autocomplete="off">
+    <button class="btn-purple" onclick="handleManualClose()">MANUAL CLOSED</button>
+    <button class="btn-outline" onclick="loadLotsData()">🔄 Refresh</button>
+    <button class="btn-gray" onclick="clearAllFilters()">✖ Clear Filters</button>
+  </div>
+
+  <!-- MAIN RT LOTS TABLE -->
+  <div class="table-card">
+    <table id="rtLotsTable">
+      <thead>
+        <tr id="headerRow"></tr>
+      </thead>
+      <tbody id="lotsTableBody">
+        <tr><td colSpan="14" style="padding:30px; text-align:center; color:#64748b;">⏳ Loading RT Lots...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FULL-SCREEN LOT POPUP MODAL -->
+  <div class="modal-overlay" id="lotPopupModal" onclick="closePopupModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="popupTitle" style="margin:0; font-size:16px;">📋 RT LOT Details</h3>
+        <button onclick="closePopupModal()" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:6px 14px; cursor:pointer; font-weight:bold; font-size:13px;">
+          ✕ CLOSE
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr style="background:#17365d; color:#fff;">
+                <th style="width:50px;">Sr no.</th>
+                <th>ISO No/Drawing No/Line No</th>
+                <th>Pipe Class</th>
+                <th>Joint No.</th>
+                <th>Size & Thickness</th>
+                <th>Welder No</th>
+                <th>Type of Joint</th>
+                <th>WELD VISUAL REPORT NO</th>
+                <th>VISUAL Date</th>
+                <th>Type of NDT</th>
+                <th>NDT %</th>
+                <th style="background:#0284c7;">NDT Report No *</th>
+                <th style="background:#0284c7;">NDT Date *</th>
+                <th style="background:#0284c7;">XR No *</th>
+                <th>Remarks</th>
+                <th>NDT Clearance Date</th>
+              </tr>
+            </thead>
+            <tbody id="popupJointsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allLotsList = [];
+    let currentMainFilter = "ALL";
+    let columnFilters = {};
+
+    const COLUMNS = [
+      { key: "srNo", title: "SR NO" },
+      { key: "lotNo", title: "RT LOT NO" },
+      { key: "type", title: "TYPE" },
+      { key: "rtPercentage", title: "RT %" },
+      { key: "joints", title: "JOINTS" },
+      { key: "wps", title: "WPS" },
+      { key: "status", title: "STATUS" },
+      { key: "ndtStatus", title: "NDT STATUS" },
+      { key: "xrNo", title: "XR NO" },
+      { key: "rtReportNo", title: "RT REPORT NO" },
+      { key: "rtDate", title: "RT DATE" },
+      { key: "remarks", title: "REMARKS" },
+      { key: "ndt", title: "NDT" },
+      { key: "ndtBalanceJoint", title: "NDT BALANCE JOINT" }
+    ];
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ Access Denied: માત્ર Admin પાસે જ આ પેજ જોવાની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      document.getElementById('navSubTitle').innerText = `| Admin: ${user.name}`;
+      return true;
+    }
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (!str || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
+
+    function formatPercentage(val) {
+      if (!val || val === "NA") return "";
+      let str = String(val).trim();
+      if (str.endsWith("%")) return str;
+      const num = parseFloat(str);
+      if (!isNaN(num)) {
+        return num <= 1 && num > 0 ? `${Math.round(num * 100)}%` : `${num}%`;
+      }
+      return str;
+    }
+
+    function extractCleanLotNum(val) {
+      if (!val) return "";
+      const str = String(val).trim();
+      const numOnly = str.replace(/[^0-9]/g, '');
+      return numOnly || str;
+    }
+
+    /* -------------------------------------------------------------
+       1. LOAD & AGGREGATE RT LOTS FROM lhs_entries
+    -------------------------------------------------------------- */
+    async function loadLotsData() {
+      const tbody = document.getElementById('lotsTableBody');
+      tbody.innerHTML = `<tr><td colSpan="14" style="padding:30px; text-align:center; color:#64748b;">⏳ Loading RT Lots...</td></tr>`;
+
+      try {
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('*')
+            .eq('joint_type', 'BW')
+            .order('id', { ascending: true })
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        const lotMap = new Map();
+
+        allRows.forEach(r => {
+          const rawLot = r.rt_lot_no;
+          const cleanLot = extractCleanLotNum(rawLot);
+
+          if (!cleanLot || ["NA", "0", "PJ1", "PJ2"].includes(cleanLot.toUpperCase())) return;
+
+          if (!lotMap.has(cleanLot)) {
+            lotMap.set(cleanLot, {
+              lotNo: cleanLot,
+              fullLotName: rawLot,
+              jointCount: 0,
+              spoolNos: new Set(),
+              types: new Set(),
+              rtPercentages: new Set(),
+              wpsValues: new Set(),
+              reportNumbers: new Set(),
+              rtDates: new Set(),
+              xrNumbers: new Set(),
+              ndtDone: 0,
+              ndtBalance: 0,
+              remarksSet: new Set()
+            });
+          }
+
+          const lot = lotMap.get(cleanLot);
+          lot.jointCount++;
+          if (r.spool_no) lot.spoolNos.add(r.spool_no);
+          lot.types.add("BW");
+
+          const rawPct = formatPercentage(r.rt_percentage);
+          if (rawPct) lot.rtPercentages.add(rawPct);
+
+          const wps = r.wps_no || "NA";
+          if (wps) lot.wpsValues.add(wps);
+
+          const repNo = r.rt_report_no;
+          if (repNo && String(repNo).trim() !== '' && String(repNo).toUpperCase() !== 'NA') {
+            lot.reportNumbers.add(String(repNo).trim());
+          }
+
+          const rtDate = r.rt_date;
+          if (rtDate && String(rtDate).trim() !== '' && String(rtDate).toUpperCase() !== 'NA') {
+            lot.rtDates.add(String(rtDate).trim());
+          }
+
+          const xrNo = r.xr_no;
+          if (xrNo && String(xrNo).trim() !== '' && String(xrNo).toUpperCase() !== 'NA') {
+            lot.xrNumbers.add(String(xrNo).trim());
+          }
+
+          const isCleared = r.ndt_clearance && String(r.ndt_clearance).trim() !== '' && String(r.ndt_clearance).toUpperCase() !== 'NA';
+          if (isCleared) {
+            lot.ndtDone++;
+          } else {
+            lot.ndtBalance++;
+          }
+
+          if (r.remarks) lot.remarksSet.add(String(r.remarks).trim());
+        });
+
+        allLotsList = [];
+
+        Array.from(lotMap.values()).forEach(lot => {
+          const jointCount = lot.jointCount;
+          const pcts = Array.from(lot.rtPercentages);
+          const rtPercentage = pcts.join(', ');
+
+          let remarks = "";
+          const pNums = pcts.map(p => parseInt(String(p).replace('%', ''))).filter(n => !isNaN(n));
+          if (pNums.includes(5) && jointCount >= 20) remarks = "FULL";
+          else if (pNums.includes(10) && jointCount >= 10) remarks = "FULL";
+          else if (pNums.includes(20) && jointCount >= 5) remarks = "FULL";
+
+          let manualClosed = Array.from(lot.remarksSet).some(rem => rem.toUpperCase().includes('MANUAL CLOSED'));
+
+          const reps = Array.from(lot.reportNumbers);
+          const dates = Array.from(lot.rtDates);
+          const xrs = Array.from(lot.xrNumbers);
+
+          let status = "UNDER PROGRESS";
+          if (remarks === "FULL" && reps.length > 0 && dates.length > 0 && lot.ndtBalance === 0) {
+            status = "COMPLETED";
+          }
+          if (manualClosed) {
+            status = "MANUAL CLOSED";
+          }
+
+          const ndtStatus = (reps.length > 0 && dates.length > 0) ? "FULLY CLEAR" : "OFFER";
+
+          allLotsList.push({
+            lotNo: lot.lotNo,
+            fullLotName: lot.fullLotName,
+            type: "BW",
+            rtPercentage: rtPercentage || "-",
+            joints: jointCount,
+            wps: Array.from(lot.wpsValues).join(', '),
+            status,
+            ndtStatus,
+            xrNo: xrs.join(', ') || "-",
+            rtReportNo: reps.join(', ') || "-",
+            rtDate: dates.map(d => formatDateDisplay(d)).join(', ') || "-",
+            remarks: remarks || "-",
+            ndt: lot.ndtBalance === 0 ? "OK" : "BALANCE",
+            ndtBalanceJoint: lot.ndtBalance,
+            manualClosed
+          });
+        });
+
+        allLotsList.sort((a, b) => {
+          const nA = parseInt(a.lotNo, 10);
+          const nB = parseInt(b.lotNo, 10);
+          if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+          return a.lotNo.localeCompare(b.lotNo);
+        });
+
+        updateCounts();
+        renderHeader();
+        applyFiltersAndRender();
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colSpan="14" style="color:red; padding:20px;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function updateCounts() {
+      document.getElementById('cntAll').innerText = allLotsList.length;
+      document.getElementById('cntUnder').innerText = allLotsList.filter(l => l.status === "UNDER PROGRESS").length;
+      document.getElementById('cntCompleted').innerText = allLotsList.filter(l => l.status === "COMPLETED").length;
+      document.getElementById('cntManual').innerText = allLotsList.filter(l => l.manualClosed === true).length;
+    }
+
+    function setMainFilter(type) {
+      currentMainFilter = type;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`tab${type}`).classList.add('active');
+      applyFiltersAndRender();
+    }
+
+    function renderHeader() {
+      const tr = document.getElementById('headerRow');
+      tr.innerHTML = COLUMNS.map(col => {
+        const isActive = Boolean(columnFilters[col.key]);
+        return `
+          <th style="position:relative;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
+              <span>${col.title}</span>
+              <button class="filter-icon-btn ${isActive ? 'active' : ''}" onclick="toggleColumnFilterPopup(event, '${col.key}')">🔽</button>
+            </div>
+            <div id="popover_${col.key}" class="filter-popover" style="display:none;" onclick="event.stopPropagation()">
+              <input type="text" id="input_filter_${col.key}" placeholder="Filter ${col.title}..." style="width:100%; padding:6px; margin-bottom:6px; font-size:12px;">
+              <div style="display:flex; gap:4px;">
+                <button onclick="applyColFilter('${col.key}')" style="flex:1; padding:4px; background:#17365d; color:#fff; border:none; border-radius:3px; cursor:pointer;">OK</button>
+                <button onclick="clearColFilter('${col.key}')" style="flex:1; padding:4px; background:#777; color:#fff; border:none; border-radius:3px; cursor:pointer;">CLEAR</button>
+              </div>
+            </div>
+          </th>
+        `;
+      }).join('');
+    }
+
+    function toggleColumnFilterPopup(e, key) {
+      e.stopPropagation();
+      const currentPop = document.getElementById(`popover_${key}`);
+      const isVisible = currentPop.style.display === 'block';
+
+      document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
+      if (!isVisible) {
+        currentPop.style.display = 'block';
+        document.getElementById(`input_filter_${key}`).value = columnFilters[key] || '';
+        document.getElementById(`input_filter_${key}`).focus();
+      }
+    }
+
+    function applyColFilter(key) {
+      const val = document.getElementById(`input_filter_${key}`).value.trim().toLowerCase();
+      if (val) columnFilters[key] = val;
+      else delete columnFilters[key];
+      document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
+      renderHeader();
+      applyFiltersAndRender();
+    }
+
+    function clearColFilter(key) {
+      delete columnFilters[key];
+      document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
+      renderHeader();
+      applyFiltersAndRender();
+    }
+
+    function clearAllFilters() {
+      columnFilters = {};
+      renderHeader();
+      applyFiltersAndRender();
+    }
+
+    function applyFiltersAndRender() {
+      let filtered = allLotsList;
+
+      if (currentMainFilter === "UNDER") filtered = filtered.filter(l => l.status === "UNDER PROGRESS");
+      else if (currentMainFilter === "COMPLETED") filtered = filtered.filter(l => l.status === "COMPLETED");
+      else if (currentMainFilter === "MANUAL") filtered = filtered.filter(l => l.manualClosed === true);
+
+      filtered = filtered.filter((lot, idx) => {
+        lot.srNo = idx + 1;
+        for (const [key, term] of Object.entries(columnFilters)) {
+          const val = String(lot[key] ?? '').toLowerCase();
+          if (!val.includes(term)) return false;
+        }
+        return true;
+      });
+
+      const tbody = document.getElementById('lotsTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colSpan="14" style="padding:30px; text-align:center; color:#777;">No RT LOT found</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((l, index) => {
+        const statusColor = l.status === "COMPLETED" ? "#008000" : (l.status === "MANUAL CLOSED" ? "#7b1fa2" : "#d97706");
+        const ndtStatusColor = l.ndtStatus === "FULLY CLEAR" ? "#008000" : "#d97706";
+
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td class="lot-link" onclick="openLotPopup('${l.lotNo}')" title="Click to view Details">LOT-${l.lotNo}</td>
+            <td>${l.type}</td>
+            <td>${l.rtPercentage}</td>
+            <td>${l.joints}</td>
+            <td>${l.wps}</td>
+            <td style="font-weight:bold; color:${statusColor};">${l.status}</td>
+            <td class="lot-link" onclick="openLotPopup('${l.lotNo}')" style="color:${ndtStatusColor};">${l.ndtStatus}</td>
+            <td>${l.xrNo}</td>
+            <td>${l.rtReportNo}</td>
+            <td>${l.rtDate}</td>
+            <td style="font-weight:${l.remarks === 'FULL' ? 'bold' : 'normal'}; color:${l.remarks === 'FULL' ? '#008000' : '#333'};">${l.remarks}</td>
+            <td style="font-weight:bold; color:${l.ndt === 'OK' ? '#008000' : '#d97706'};">${l.ndt}</td>
+            <td style="font-weight:bold; color:${l.ndtBalanceJoint === 0 ? '#008000' : '#d97706'};">${l.ndtBalanceJoint}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /* -------------------------------------------------------------
+       2. MANUAL CLOSE RT LOT FUNCTION
+    -------------------------------------------------------------- */
+    async function handleManualClose() {
+      const lotInput = document.getElementById('manualLotInput').value.trim();
+      if (!lotInput) return alert("⚠️ કૃપા કરીને RT Lot Number દાખલ કરો.");
+
+      const cleanLot = extractCleanLotNum(lotInput);
+      if (!confirm(`શું તમે ખરેખર RT Lot "${cleanLot}" ને MANUAL CLOSED કરવો છે?`)) return;
+
+      try {
+        const { data: rows, error: fErr } = await db
+          .from('lhs_entries')
+          .select('id, rt_lot_no')
+          .eq('joint_type', 'BW');
+
+        if (fErr) throw fErr;
+
+        const matchedIds = (rows || []).filter(r => extractCleanLotNum(r.rt_lot_no) === cleanLot).map(r => r.id);
+
+        if (matchedIds.length === 0) {
+          return alert(`❌ RT Lot "${lotInput}" ડેટાબેઝમાં મળ્યો નથી!`);
+        }
+
+        const { error: updErr } = await db
+          .from('lhs_entries')
+          .update({ remarks: 'MANUAL CLOSED' })
+          .in('id', matchedIds);
+
+        if (updErr) throw updErr;
+
+        alert(`✅ RT Lot "${cleanLot}" સફળતાપૂર્વક MANUAL CLOSED કરવામાં આવ્યો.`);
+        document.getElementById('manualLotInput').value = '';
+        await loadLotsData();
+        setMainFilter('MANUAL');
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error: ' + err.message);
+      }
+    }
+
+    /* -------------------------------------------------------------
+       3. POP-UP MODAL (૧ થી ૧૬ કૉલમ્સ Details)
+    -------------------------------------------------------------- */
+    async function openLotPopup(lotNo) {
+      document.getElementById('popupTitle').innerText = `📋 RT LOT-${lotNo} Details`;
+      const tbody = document.getElementById('popupJointsTbody');
+      tbody.innerHTML = `<tr><td colSpan="16" style="padding:40px; text-align:center; color:#64748b; font-weight:bold;">Joint Details લોડ થઈ રહી છે...</td></tr>`;
+      document.getElementById('lotPopupModal').style.display = 'flex';
+
+      try {
+        const { data, error } = await db
+          .from('lhs_entries')
+          .select('*')
+          .eq('joint_type', 'BW')
+          .order('id', { ascending: true });
+
+        if (error) throw error;
+
+        const joints = (data || []).filter(r => extractCleanLotNum(r.rt_lot_no) === lotNo);
+
+        if (joints.length === 0) {
+          tbody.innerHTML = `<tr><td colSpan="16" style="padding:40px; text-align:center; color:#dc2626; font-style:italic;">આ લોટ માટે કોઈ જોઈન્ટ મળ્યા નથી.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = joints.map((j, idx) => {
+          const sizeThk = j.weld_npd ? `${j.weld_npd}"/${j.thk || '-'}` : (j.thk || '-');
+
+          return `
+            <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+              <td>${idx + 1}</td>
+              <td style="text-align:left; padding-left:10px;">${j.drawing_no || '-'}</td>
+              <td>${j.pipe_class || '-'}</td>
+              <td style="font-weight:bold;">${j.joint_no}</td>
+              <td>${sizeThk}</td>
+              <td>${j.welder_no || 'NA'}</td>
+              <td>BW</td>
+              <td>${j.weld_visual_report_no || '-'}</td>
+              <td>${formatDateDisplay(j.visual_date)}</td>
+              <td>RT</td>
+              <td style="font-weight:bold;">${formatPercentage(j.rt_percentage) || '-'}</td>
+              <td style="font-weight:bold; color:#0284c7;">${j.rt_report_no || '-'}</td>
+              <td>${formatDateDisplay(j.rt_date)}</td>
+              <td>${j.xr_no || '-'}</td>
+              <td style="color:#334155;">${j.remarks || '-'}</td>
+              <td style="font-weight:bold; color:#16a34a;">${formatDateDisplay(j.ndt_clearance)}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colSpan="16" style="color:red; padding:20px;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function closePopupModal() {
+      document.getElementById('lotPopupModal').style.display = 'none';
+    }
+
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifyAdminAccess()) {
+        renderHeader();
+        loadLotsData();
+      }
+    });
+  </script>
+</body>
+</html>
