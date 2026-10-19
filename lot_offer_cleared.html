@@ -307,7 +307,7 @@
       document.getElementById('lblOfferType').innerText = selectedType;
     }
 
-    // શુદ્ધ Lot નંબર મેળવવો (e.g., '01', '02', '950', 'PJ-01')
+    // શુદ્ધ Lot નંબર મેળવવો
     function extractCleanLotNum(val) {
       if (val === null || val === undefined) return "";
       const str = String(val).trim();
@@ -353,7 +353,6 @@
       }
     }
 
-    // સમગ્ર lhs_entries ડેટા ખેંચવો
     async function fetchAllLhsRows() {
       let allRows = [];
       let from = 0;
@@ -396,7 +395,6 @@
           const jType = String(r.joint_type || '').toUpperCase().trim();
 
           if (selectedType === "DPT") {
-            // Non-BW joints
             if (jType === "BW") return false;
 
             const is100 = isValue100Percent(r.dpt_percentage);
@@ -411,7 +409,6 @@
             return (!rep || rep === 'NA' || rep === '0') || (!dt || dt === 'NA' || dt === '0');
 
           } else {
-            // RT (BW)
             if (jType !== "BW" && !r.rt_lot_no) return false;
 
             const is100 = isValue100Percent(r.rt_percentage);
@@ -575,7 +572,6 @@
             pct = r.dpt_percentage;
           }
 
-          // ૧૦૦% અથવા PJ વાળા જોઈન્ટ્સ 100% મોડમાં જશે
           if (isValue100Percent(pct) || isPJLot(rawLot)) return;
 
           const cleanLot = extractCleanLotNum(rawLot);
