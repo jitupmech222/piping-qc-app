@@ -19,8 +19,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .top-header h2 { margin: 0; color: #0f172a; font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+    .top-header h2 { margin: 0; color: #0f172a; font-size: 20px; font-weight: 800; }
     
     .btn-back {
       padding: 6px 14px;
@@ -66,7 +68,7 @@
       margin-bottom: 16px;
     }
 
-    /* LOT Buttons matching screenshot */
+    /* LOT Pills */
     .lot-pill {
       padding: 7px 14px;
       border-radius: 6px;
@@ -81,7 +83,8 @@
     .lot-pill:hover { background: #f8fafc; border-color: #94a3b8; }
     .lot-pill.active {
       border: 2px solid #0f172a;
-      background: #ffffff;
+      background: #0f172a;
+      color: #ffffff;
       font-weight: 800;
     }
 
@@ -139,11 +142,12 @@
   <!-- TOP HEADER -->
   <div class="top-header">
     <div style="display:flex; align-items:center; gap:14px;">
-      <a href="index.html" class="btn-back">⬅️ Dashboard</a>
+      <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
       <h2>LOT OFFER / CLEARED</h2>
+      <span id="navSubTitle" style="font-size: 12px; color: #64748b; font-weight: bold;"></span>
     </div>
 
-    <!-- MAIN MODE SWITCHER (MATCHING SCREENSHOT) -->
+    <!-- MAIN MODE SWITCHER -->
     <div style="display:flex; gap:10px;">
       <button id="btnModeNormal" class="mode-btn" onclick="switchMainMode('NORMAL')">LOT NUMBER (OFFER)</button>
       <button id="btnMode100" class="mode-btn" onclick="switchMainMode('100_PERCENT')">100% LOT</button>
@@ -157,11 +161,11 @@
   </div>
 
   <!-- ==========================================
-       MODE A: 100% LOT CONTAINER
+       MODE A: 100% LOT CONTAINER (100% or PJ-01/02)
   =========================================== -->
   <div id="container100" class="card" style="display:none;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <h3 id="heading100" style="margin:0; color:#dc2626; font-size:15px; font-weight:800;">PENDING JOINTS</h3>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+      <h3 id="heading100" style="margin:0; color:#dc2626; font-size:15px; font-weight:800;">100% PENDING JOINTS</h3>
       <button id="btnSave100" class="btn-save" onclick="handleSave100()">💾 SAVE LOT CLEARANCE</button>
     </div>
 
@@ -176,6 +180,7 @@
             <th>Type of Joint</th>
             <th>Size & Thickness</th>
             <th style="max-width:110px;">WELD VISUAL<br>REPORT NO</th>
+            <th>NDT Lot No</th>
             <th id="thPct100">NDT %</th>
             <th id="thRep100" style="background:#0284c7;">REPORT NO *</th>
             <th id="thDate100" style="background:#0284c7;">DATE *</th>
@@ -189,7 +194,7 @@
   </div>
 
   <!-- ==========================================
-       MODE B: NORMAL OFFER LOT CONTAINER (MATCHING SCREENSHOT)
+       MODE B: NORMAL OFFER LOT CONTAINER
   =========================================== -->
   <div id="containerNormal">
     <!-- LOTS SELECTION BAR -->
@@ -200,9 +205,9 @@
       <div id="lotPillsList" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
     </div>
 
-    <!-- SELECTED LOT JOINTS TABLE (IDENTICAL TO SCREENSHOT 2) -->
+    <!-- SELECTED LOT JOINTS TABLE -->
     <div id="selectedLotCard" class="card" style="display:none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
         <h3 id="selectedLotHeading" style="margin:0; color:#0f172a; font-size:16px; font-weight:800;"></h3>
         <button id="btnSaveNormal" class="btn-save" onclick="handleSaveNormal()">💾 SAVE LOT CLEARANCE</button>
       </div>
@@ -258,9 +263,10 @@
       const user = JSON.parse(sessionData);
       if (user.username !== 'admin') {
         alert("⚠️ Access Denied: માત્ર Admin પાસે જ QA/QC મોડ્યુલની પરમિશન છે!");
-        window.location.href = 'index.html';
+        window.location.href = 'index.html?tab=qaqc';
         return false;
       }
+      document.getElementById('navSubTitle').innerText = `| Admin: ${user.name}`;
       return true;
     }
 
@@ -292,21 +298,24 @@
 
       btnDpt.style.background = selectedType === "DPT" ? "#0284c7" : "#e2e8f0";
       btnDpt.style.color = selectedType === "DPT" ? "#fff" : "#334155";
-      btnDpt.innerText = "DPT";
 
       btnRt.style.background = selectedType === "RT" ? "#0284c7" : "#e2e8f0";
       btnRt.style.color = selectedType === "RT" ? "#fff" : "#334155";
-      btnRt.innerText = "RT";
 
       document.getElementById('container100').style.display = mainMode === "100_PERCENT" ? "block" : "none";
       document.getElementById('containerNormal').style.display = mainMode === "NORMAL" ? "block" : "none";
       document.getElementById('lblOfferType').innerText = selectedType;
     }
 
-    // Helper: Normalize Lot string to clean digits (e.g., "AIPL/DPT/LOT-721" -> "721", "LOT-203" -> "203")
+    // શુદ્ધ Lot નંબર અલગ કરવો
     function extractCleanLotNum(val) {
       if (!val) return "";
       const str = String(val).trim();
+      const upper = str.toUpperCase().replace(/\s+/g, '');
+      // જો PJ-01 કે PJ-02 હોય તો તેને તે રીતે જ ઓળખવો
+      if (upper.includes("PJ-01") || upper.includes("PJ1") || upper.includes("PJ-1")) return "PJ-01";
+      if (upper.includes("PJ-02") || upper.includes("PJ2") || upper.includes("PJ-2")) return "PJ-02";
+      
       const numOnly = str.replace(/[^0-9]/g, '');
       return numOnly || str;
     }
@@ -321,6 +330,23 @@
       return str;
     }
 
+    // 100% વેલ્યુ ચેક
+    function isValue100Percent(strVal) {
+      const str = String(strVal || "").trim();
+      if (!str || str === "0" || str.toUpperCase() === "NA") return false;
+      if (str === "100%" || str === "100" || str === "1" || str === "1.0") return true;
+      const num = parseFloat(str.replace("%", ""));
+      return !isNaN(num) && (num === 100 || num === 1);
+    }
+
+    // PJ Lot ચેક
+    function isPJLot(strVal) {
+      if (!strVal) return false;
+      const u = String(strVal).trim().toUpperCase().replace(/\s+/g, '');
+      return u.includes("PJ-01") || u.includes("PJ1") || u.includes("PJ-1") ||
+             u.includes("PJ-02") || u.includes("PJ2") || u.includes("PJ-2");
+    }
+
     async function loadData() {
       if (mainMode === "100_PERCENT") {
         await load100PercentJoints();
@@ -330,32 +356,72 @@
     }
 
     /* -------------------------------------------------------------
-       1. 100% LOT LOGIC
+       1. 100% LOT LOGIC (100% or PJ-01/PJ-02)
     -------------------------------------------------------------- */
     async function load100PercentJoints() {
       const tbody = document.getElementById('tbody100');
-      tbody.innerHTML = `<tr><td colspan="12" style="padding:25px; color:#64748b;">⏳ Loading 100% Joints...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="13" style="padding:25px; color:#64748b;">⏳ Loading 100% & PJ Lots...</td></tr>`;
 
       try {
-        let query = db.from('lhs_entries').select('*');
-        if (selectedType === "DPT") {
-          query = query.in('joint_type', ['LET', 'SOB', 'SOF', 'SW']).eq('dpt_percentage', '100%');
-        } else {
-          query = query.eq('joint_type', 'BW').eq('rt_percentage', '100%');
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          let query = db.from('lhs_entries').select('*');
+          if (selectedType === "DPT") {
+            // EB, LET, SOB, SOF, SW
+            query = query.in('joint_type', ['EB', 'LET', 'SOB', 'SOF', 'SW']);
+          } else {
+            // BW
+            query = query.eq('joint_type', 'BW');
+          }
+
+          const { data, error } = await query.order('id', { ascending: true }).range(from, from + 999);
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
         }
 
-        const { data, error } = await query.order('id', { ascending: true });
-        if (error) throw error;
+        // 🟢 શરત: 100% અથવા PJ-01 / PJ-02
+        joints100 = allRows.filter(r => {
+          const jType = String(r.joint_type || '').toUpperCase().trim();
 
-        joints100 = (data || []).filter(r => {
           if (selectedType === "DPT") {
-            return !r.dpt_report_no || !r.dpt_date;
+            const is100 = isValue100Percent(r.dpt_percentage);
+            const lotVal = jType === 'EB' ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
+            const isPJ = isPJLot(lotVal);
+
+            if (!is100 && !isPJ) return false;
+
+            // જો રિપોર્ટ અને તારીખ પેન્ડિંગ હોય તો જ બતાવો
+            const rep = jType === 'EB' ? String(r.induction_bend_dpt_report_no || '').trim() : String(r.dpt_report_no || '').trim();
+            const dt = jType === 'EB' ? String(r.induction_bend_dpt_date || '').trim() : String(r.dpt_date || '').trim();
+
+            return (!rep || rep === 'NA' || rep === '0') || (!dt || dt === 'NA' || dt === '0');
+
           } else {
-            return !r.rt_report_no || !r.rt_date || !r.xr_no;
+            // RT
+            const is100 = isValue100Percent(r.rt_percentage);
+            const isPJ = isPJLot(r.rt_lot_no);
+
+            if (!is100 && !isPJ) return false;
+
+            const rep = String(r.rt_report_no || '').trim();
+            const dt = String(r.rt_date || '').trim();
+            const xr = String(r.xr_no || '').trim();
+
+            return (!rep || rep === 'NA' || rep === '0') || (!dt || dt === 'NA' || dt === '0') || (!xr || xr === 'NA' || xr === '0');
           }
         });
 
-        document.getElementById('heading100').innerText = `${selectedType} PENDING JOINTS (${joints100.length} Joints Found)`;
+        document.getElementById('heading100').innerText = `${selectedType} PENDING 100% / PJ JOINTS (${joints100.length} Joints Found)`;
         document.getElementById('thXr100').style.display = selectedType === "RT" ? "table-cell" : "none";
         document.getElementById('thStatus100').style.display = selectedType === "RT" ? "table-cell" : "none";
         document.getElementById('thPct100').innerText = `${selectedType} %`;
@@ -363,65 +429,95 @@
         document.getElementById('thDate100').innerText = `${selectedType} DATE *`;
 
         if (joints100.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="12" style="padding:25px; color:#16a34a; font-weight:bold;">🎉 ALL CLEAR! કોઈ 100% જોઈન્ટ પેન્ડિંગ નથી.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="13" style="padding:25px; color:#16a34a; font-weight:bold;">🎉 ALL CLEAR! કોઈ 100% કે PJ જોઈન્ટ પેન્ડિંગ નથી.</td></tr>`;
           return;
         }
 
-        tbody.innerHTML = joints100.map((j, idx) => `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${j.drawing_no || '-'}</td>
-            <td>${j.spool_no || '-'}</td>
-            <td style="font-weight:bold;">${j.joint_no}</td>
-            <td>${j.joint_type}</td>
-            <td>${j.weld_npd ? j.weld_npd + '"' : ''}${j.thk ? '/' + j.thk : '-'}</td>
-            <td>${j.weld_visual_report_no || '-'}</td>
-            <td style="font-weight:bold; color:#dc2626;">100%</td>
-            <td><input type="text" value="${j.reportNo || (selectedType === 'DPT' ? j.dpt_report_no : j.rt_report_no) || ''}" onchange="joints100[${idx}].reportNo = this.value" placeholder="Report No" style="width:105px; text-align:center;"></td>
-            <td><input type="date" value="${j.ndtDate || (selectedType === 'DPT' ? j.dpt_date : j.rt_date) || ''}" onchange="joints100[${idx}].ndtDate = this.value" style="width:130px; text-align:center;"></td>
-            ${selectedType === "RT" ? `<td><input type="text" value="${j.xrNo \vert{}\vert{} j.xr_no \vert{}\vert{} ''}" onchange="joints100[${idx}].xrNo = this.value" placeholder="XR No" style="width:85px; text-align:center;"></td>` : ''}
-            ${selectedType === "RT" ? `<td>
-              <select onchange="joints100[${idx}].status = this.value" style="font-weight:bold;">
-                <option value="Accepted" ${(j.accepted_rejected || 'Accepted') === 'Accepted' ? 'selected' : ''}>Accepted</option>
-                <option value="Rejected" ${j.accepted_rejected === 'Rejected' ? 'selected' : ''}>Rejected</option>
-              </select>
-            </td>` : ''}
-          </tr>
-        `).join('');
+        tbody.innerHTML = joints100.map((j, idx) => {
+          const jType = String(j.joint_type || '').toUpperCase().trim();
+          let sizeThk = "-";
+          if (j.weld_npd && j.thk) sizeThk = `${j.weld_npd}"/${j.thk}`;
+          else if (j.weld_npd) sizeThk = `${j.weld_npd}"`;
+          else if (j.thk) sizeThk = j.thk;
+
+          const lotNo = selectedType === "RT" ? (j.rt_lot_no || '-') : (jType === 'EB' ? j.induction_bend_dpt_lot_no : j.dpt_lot_no);
+          const currentRep = selectedType === "RT" ? j.rt_report_no : (jType === 'EB' ? j.induction_bend_dpt_report_no : j.dpt_report_no);
+          const currentDate = selectedType === "RT" ? j.rt_date : (jType === 'EB' ? j.induction_bend_dpt_date : j.dpt_date);
+          const currentPct = selectedType === "RT" ? (j.rt_percentage || '100%') : (j.dpt_percentage || '100%');
+
+          return `
+            <tr>
+              <td>${idx + 1}</td>
+              <td style="text-align:left; padding-left:10px;">${j.drawing_no || '-'}</td>
+              <td><b>${j.spool_no || '-'}</b></td>
+              <td style="font-weight:bold;">${j.joint_no}</td>
+              <td>${jType}</td>
+              <td>${sizeThk}</td>
+              <td>${j.weld_visual_report_no || '-'}</td>
+              <td style="font-weight:bold; color:#0284c7;">${lotNo || '-'}</td>
+              <td style="font-weight:bold; color:#dc2626;">${currentPct}</td>
+              <td><input type="text" value="${j.inputRep || currentRep || ''}" onchange="joints100[${idx}].inputRep = this.value" placeholder="Report No" style="width:115px; text-align:center;"></td>
+              <td><input type="date" value="${j.inputDate || currentDate || ''}" onchange="joints100[${idx}].inputDate = this.value" style="width:130px; text-align:center;"></td>
+              ${selectedType === "RT" ? `<td><input type="text" value="${j.inputXr \vert{}\vert{} j.xr_no \vert{}\vert{} ''}" onchange="joints100[${idx}].inputXr = this.value" placeholder="XR No" style="width:85px; text-align:center;"></td>` : ''}
+              ${selectedType === "RT" ? `<td>
+                <select onchange="joints100[${idx}].inputStatus = this.value" style="font-weight:bold;">
+                  <option value="Accepted" ${(j.accepted_rejected || 'Accepted') === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                  <option value="Rejected" ${j.accepted_rejected === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                </select>
+              </td>` : ''}
+            </tr>
+          `;
+        }).join('');
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="12" style="color:#ef4444; padding:20px;">Error: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" style="color:#ef4444; padding:20px;">Error: ${err.message}</td></tr>`;
       }
     }
 
     async function handleSave100() {
       const filled = joints100.filter(j => {
-        const rep = j.reportNo || (selectedType === 'DPT' ? j.dpt_report_no : j.rt_report_no);
-        const dt = j.ndtDate || (selectedType === 'DPT' ? j.dpt_date : j.rt_date);
-        if (selectedType === "DPT") return rep && dt;
-        return rep && dt && (j.xrNo || j.xr_no);
+        const jType = String(j.joint_type || '').toUpperCase().trim();
+        const currentRep = selectedType === "RT" ? j.rt_report_no : (jType === 'EB' ? j.induction_bend_dpt_report_no : j.dpt_report_no);
+        const currentDate = selectedType === "RT" ? j.rt_date : (jType === 'EB' ? j.induction_bend_dpt_date : j.dpt_date);
+
+        const rep = (j.inputRep !== undefined ? j.inputRep : currentRep) || '';
+        const dt = (j.inputDate !== undefined ? j.inputDate : currentDate) || '';
+
+        if (selectedType === "DPT") return String(rep).trim() !== '' && String(dt).trim() !== '';
+        const xr = (j.inputXr !== undefined ? j.inputXr : j.xr_no) || '';
+        return String(rep).trim() !== '' && String(dt).trim() !== '' && String(xr).trim() !== '';
       });
 
       if (filled.length === 0) return alert('⚠️ કૃપા કરીને જરૂરી વિગતો ભરો (Report No, Date અને RT માટે XR No)!');
 
       const btn = document.getElementById('btnSave100');
-      btn.innerText = "Saving...";
+      btn.innerText = "⏳ Saving...";
       btn.disabled = true;
 
       try {
         for (const j of filled) {
-          const rep = j.reportNo || (selectedType === 'DPT' ? j.dpt_report_no : j.rt_report_no);
-          const dt = j.ndtDate || (selectedType === 'DPT' ? j.dpt_date : j.rt_date);
+          const jType = String(j.joint_type || '').toUpperCase().trim();
+          const currentRep = selectedType === "RT" ? j.rt_report_no : (jType === 'EB' ? j.induction_bend_dpt_report_no : j.dpt_report_no);
+          const currentDate = selectedType === "RT" ? j.rt_date : (jType === 'EB' ? j.induction_bend_dpt_date : j.dpt_date);
+
+          const rep = String(j.inputRep !== undefined ? j.inputRep : currentRep).trim();
+          const dt = (j.inputDate !== undefined ? j.inputDate : currentDate);
           const updateObj = {};
 
           if (selectedType === "DPT") {
-            updateObj.dpt_report_no = rep;
-            updateObj.dpt_date = dt;
+            if (jType === 'EB') {
+              updateObj.induction_bend_dpt_report_no = rep;
+              updateObj.induction_bend_dpt_date = dt;
+            } else {
+              updateObj.dpt_report_no = rep;
+              updateObj.dpt_date = dt;
+            }
           } else {
+            // RT
             updateObj.rt_report_no = rep;
             updateObj.rt_date = dt;
-            updateObj.xr_no = j.xrNo || j.xr_no;
-            updateObj.accepted_rejected = j.status || 'Accepted';
+            updateObj.xr_no = String(j.inputXr !== undefined ? j.inputXr : j.xr_no).trim();
+            updateObj.accepted_rejected = j.inputStatus || j.accepted_rejected || 'Accepted';
           }
 
           const { error } = await db.from('lhs_entries').update(updateObj).eq('id', j.id);
@@ -439,7 +535,7 @@
     }
 
     /* -------------------------------------------------------------
-       2. NORMAL LOT (OFFER) LOGIC (MATCHING SCREENSHOT 1 & 2)
+       2. NORMAL LOT (OFFER) LOGIC (Excludes 100% and PJ Lots)
     -------------------------------------------------------------- */
     async function loadOfferLotsList() {
       const container = document.getElementById('lotPillsList');
@@ -448,30 +544,50 @@
       document.getElementById('selectedLotCard').style.display = "none";
 
       try {
-        // Query all joints matching selected NDT Type
-        let query = db.from('lhs_entries').select('*');
-        if (selectedType === "RT") {
-          query = query.eq('joint_type', 'BW');
-        } else {
-          query = query.neq('joint_type', 'BW');
-        }
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
 
-        const { data, error } = await query;
-        if (error) throw error;
+        while (hasMore) {
+          let query = db.from('lhs_entries').select('*');
+          if (selectedType === "RT") {
+            query = query.eq('joint_type', 'BW');
+          } else {
+            query = query.in('joint_type', ['EB', 'LET', 'SOB', 'SOF', 'SW']);
+          }
+
+          const { data, error } = await query.order('id', { ascending: true }).range(from, from + 999);
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
 
         const lotMap = new Map();
 
-        (data || []).forEach(r => {
-          let rawLot = "", repNo = "", ndtDate = "";
+        allRows.forEach(r => {
+          const jType = String(r.joint_type || '').toUpperCase().trim();
+          let rawLot = "", repNo = "", ndtDate = "", pct = "";
+
           if (selectedType === "RT") {
             rawLot = r.rt_lot_no;
             repNo = r.rt_report_no;
             ndtDate = r.rt_date;
+            pct = r.rt_percentage;
           } else {
-            rawLot = r.joint_type === "EB" ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
-            repNo = r.joint_type === "EB" ? r.induction_bend_dpt_report_no : r.dpt_report_no;
-            ndtDate = r.joint_type === "EB" ? r.induction_bend_dpt_date : r.dpt_date;
+            rawLot = jType === "EB" ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
+            repNo = jType === "EB" ? r.induction_bend_dpt_report_no : r.dpt_report_no;
+            ndtDate = jType === "EB" ? r.induction_bend_dpt_date : r.dpt_date;
+            pct = r.dpt_percentage;
           }
+
+          // 🟢 100% અથવા PJ-01/02 વાળા જોઈન્ટ્સ સામાન્ય OFFER લિસ્ટમાં નહીં આવે
+          if (isValue100Percent(pct) || isPJLot(rawLot)) return;
 
           const cleanNum = extractCleanLotNum(rawLot);
           if (!cleanNum || ["NA", "0", "PJ1", "PJ2"].includes(cleanNum.toUpperCase())) return;
@@ -483,14 +599,14 @@
           const item = lotMap.get(cleanNum);
           item.totalJoints++;
 
-          const hasRep = repNo && String(repNo).trim() !== '' && String(repNo).toUpperCase() !== 'NA';
-          const hasDt = ndtDate && String(ndtDate).trim() !== '' && String(ndtDate).toUpperCase() !== 'NA';
+          const hasRep = repNo && String(repNo).trim() !== '' && String(repNo).toUpperCase() !== 'NA' && String(repNo) !== '0';
+          const hasDt = ndtDate && String(ndtDate).trim() !== '' && String(ndtDate).toUpperCase() !== 'NA' && String(ndtDate) !== '0';
           if (hasRep && hasDt) {
             item.clearedCount++;
           }
         });
 
-        // Filter Offer Lots: Only show lots where not all joints are cleared
+        // માત્ર અપૂર્ણ (OFFER) લોટ જ બતાવવા
         offerLots = Array.from(lotMap.values()).filter(l => l.clearedCount < l.totalJoints);
         offerLots.sort((a, b) => {
           const numA = parseInt(a.lotNum, 10);
@@ -504,10 +620,9 @@
           return;
         }
 
-        // Render Clean White Pills matching Screenshot 1 & 2
         container.innerHTML = offerLots.map(l => `
           <button class="lot-pill" id="pill_lot_${l.lotNum}" onclick="handleSelectLot('${l.lotNum}')">
-            LOT-${l.lotNum}
+            LOT-${l.lotNum} (${l.totalJoints - l.clearedCount} Bal)
           </button>
         `).join('');
 
@@ -520,7 +635,6 @@
     async function handleSelectLot(lotNum) {
       selectedLot = lotNum;
 
-      // Update Active Button styling matching Screenshot 2
       document.querySelectorAll('.lot-pill').forEach(btn => btn.classList.remove('active'));
       const activePill = document.getElementById(`pill_lot_${lotNum}`);
       if (activePill) activePill.classList.add('active');
@@ -530,30 +644,42 @@
       document.getElementById('selectedLotCard').style.display = "block";
 
       try {
-        let query = db.from('lhs_entries').select('*');
-        if (selectedType === "RT") {
-          query = query.eq('joint_type', 'BW');
-        } else {
-          query = query.neq('joint_type', 'BW');
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          let query = db.from('lhs_entries').select('*');
+          if (selectedType === "RT") {
+            query = query.eq('joint_type', 'BW');
+          } else {
+            query = query.in('joint_type', ['EB', 'LET', 'SOB', 'SOF', 'SW']);
+          }
+
+          const { data, error } = await query.order('id', { ascending: true }).range(from, from + 999);
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
         }
 
-        const { data, error } = await query.order('id', { ascending: true });
-        if (error) throw error;
-
-        // Filter joints that belong to this lot number (handles AIPL/DPT/LOT-721 or 721)
-        normalJoints = (data || []).filter(r => {
+        normalJoints = allRows.filter(r => {
+          const jType = String(r.joint_type || '').toUpperCase().trim();
           let rawLot = "";
           if (selectedType === "RT") {
             rawLot = r.rt_lot_no;
           } else {
-            rawLot = r.joint_type === "EB" ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
+            rawLot = jType === "EB" ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
           }
           return extractCleanLotNum(rawLot) === lotNum;
         });
 
-        // Set Heading like: "📋 DPT LOT-721 Details (3 Joints)"
         document.getElementById('selectedLotHeading').innerText = `📋 ${selectedType} LOT-${lotNum} Details (${normalJoints.length} Joints)`;
-
         document.getElementById('thNormalXr').style.display = selectedType === "RT" ? "table-cell" : "none";
         document.getElementById('thNormalStatus').style.display = selectedType === "RT" ? "table-cell" : "none";
 
@@ -563,11 +689,11 @@
         }
 
         tbody.innerHTML = normalJoints.map((j, idx) => {
-          const repNo = selectedType === "RT" ? j.rt_report_no : (j.joint_type === "EB" ? j.induction_bend_dpt_report_no : j.dpt_report_no);
-          const dt = selectedType === "RT" ? j.rt_date : (j.joint_type === "EB" ? j.induction_bend_dpt_date : j.dpt_date);
-          const isLocked = repNo && dt && String(repNo).trim() !== '' && String(dt).trim() !== '';
+          const jType = String(j.joint_type || '').toUpperCase().trim();
+          const repNo = selectedType === "RT" ? j.rt_report_no : (jType === "EB" ? j.induction_bend_dpt_report_no : j.dpt_report_no);
+          const dt = selectedType === "RT" ? j.rt_date : (jType === "EB" ? j.induction_bend_dpt_date : j.dpt_date);
+          const isLocked = repNo && dt && String(repNo).trim() !== '' && String(repNo).toUpperCase() !== 'NA' && String(dt).trim() !== '' && String(dt).toUpperCase() !== 'NA';
 
-          // Calculate Size & Thickness display (matching screenshot "8"/8.18)
           let sizeThkDisp = "-";
           if (j.weld_npd && j.thk) sizeThkDisp = `${j.weld_npd}"/${j.thk}`;
           else if (j.weld_npd) sizeThkDisp = `${j.weld_npd}"`;
@@ -576,18 +702,18 @@
           return `
             <tr>
               <td>${idx + 1}</td>
-              <td>${j.drawing_no || '-'}</td>
+              <td style="text-align:left; padding-left:10px;">${j.drawing_no || '-'}</td>
               <td>${j.pipe_class || '-'}</td>
               <td style="font-weight:bold; color:#0f172a;">${j.joint_no}</td>
               <td>${sizeThkDisp}</td>
               <td style="font-weight:600;">${selectedLot}</td>
               <td>${j.welder_no || 'NA'}</td>
-              <td>${j.joint_type || '-'}</td>
+              <td>${jType || '-'}</td>
               <td>${j.weld_visual_report_no || '-'}</td>
               <td>${formatDateDisplay(j.visual_date)}</td>
               <td>${selectedType}</td>
 
-              <!-- NDT Report No Input -->
+              <!-- Report No Input -->
               <td>
                 <input type="text" value="${repNo || ''}" ${isLocked ? 'disabled' : ''}
                   onchange="normalJoints[${idx}].inputRep = this.value"
@@ -595,7 +721,7 @@
                   style="width:115px; text-align:center; ${isLocked ? 'background:#f1f5f9; font-weight:bold;' : ''}">
               </td>
 
-              <!-- NDT Date Input -->
+              <!-- Date Input -->
               <td>
                 <input type="${isLocked ? 'text' : 'date'}" value="${isLocked ? formatDateDisplay(dt) : (dt || '')}" ${isLocked ? 'disabled' : ''}
                   onchange="normalJoints[${idx}].inputDate = this.value"
@@ -612,7 +738,7 @@
                 </td>
               ` : ''}
 
-              <!-- RT Accepted / Rejected -->
+              <!-- RT Status -->
               ${selectedType === "RT" ? `
                 <td>
                   <select ${isLocked ? 'disabled' : ''} onchange="normalJoints[${idx}].inputStatus = this.value"
@@ -623,7 +749,7 @@
                 </td>
               ` : ''}
 
-              <td>${j.remarks || ''}</td>
+              <td>${j.remarks || '-'}</td>
               <td style="font-weight:700; color:${j.ndt_clearance ? '#16a34a' : '#64748b'};">
                 ${j.ndt_clearance ? formatDateDisplay(j.ndt_clearance) : (isLocked ? formatDateDisplay(dt) : '-')}
               </td>
@@ -638,11 +764,11 @@
     }
 
     async function handleSaveNormal() {
-      // Find joints that were not cleared and user filled Report No and Date
       const filled = normalJoints.filter(j => {
-        const repNo = selectedType === "RT" ? j.rt_report_no : (j.joint_type === "EB" ? j.induction_bend_dpt_report_no : j.dpt_report_no);
-        const dt = selectedType === "RT" ? j.rt_date : (j.joint_type === "EB" ? j.induction_bend_dpt_date : j.dpt_date);
-        const isLocked = repNo && dt && String(repNo).trim() !== '' && String(dt).trim() !== '';
+        const jType = String(j.joint_type || '').toUpperCase().trim();
+        const repNo = selectedType === "RT" ? j.rt_report_no : (jType === "EB" ? j.induction_bend_dpt_report_no : j.dpt_report_no);
+        const dt = selectedType === "RT" ? j.rt_date : (jType === "EB" ? j.induction_bend_dpt_date : j.dpt_date);
+        const isLocked = repNo && dt && String(repNo).trim() !== '' && String(repNo).toUpperCase() !== 'NA' && String(dt).trim() !== '' && String(dt).toUpperCase() !== 'NA';
         if (isLocked) return false;
 
         return j.inputRep && j.inputDate;
@@ -653,34 +779,36 @@
       }
 
       const btn = document.getElementById('btnSaveNormal');
-      btn.innerText = "Saving...";
+      btn.innerText = "⏳ Saving...";
       btn.disabled = true;
 
       try {
         for (const j of filled) {
+          const jType = String(j.joint_type || '').toUpperCase().trim();
           const updateObj = {};
+          const repVal = String(j.inputRep).trim();
+          const dtVal = j.inputDate;
+
           if (selectedType === "RT") {
-            updateObj.rt_report_no = j.inputRep.trim();
-            updateObj.rt_date = j.inputDate;
-            if (j.inputXr) updateObj.xr_no = j.inputXr.trim();
+            updateObj.rt_report_no = repVal;
+            updateObj.rt_date = dtVal;
+            if (j.inputXr) updateObj.xr_no = String(j.inputXr).trim();
             updateObj.accepted_rejected = j.inputStatus || 'Accepted';
-            updateObj.ndt_clearance = j.inputDate; // Auto-set NDT Clearance Date
           } else {
-            if (j.joint_type === "EB") {
-              updateObj.induction_bend_dpt_report_no = j.inputRep.trim();
-              updateObj.induction_bend_dpt_date = j.inputDate;
+            if (jType === "EB") {
+              updateObj.induction_bend_dpt_report_no = repVal;
+              updateObj.induction_bend_dpt_date = dtVal;
             } else {
-              updateObj.dpt_report_no = j.inputRep.trim();
-              updateObj.dpt_date = j.inputDate;
+              updateObj.dpt_report_no = repVal;
+              updateObj.dpt_date = dtVal;
             }
-            updateObj.ndt_clearance = j.inputDate; // Auto-set NDT Clearance Date
           }
 
           const { error } = await db.from('lhs_entries').update(updateObj).eq('id', j.id);
           if (error) throw error;
         }
 
-        alert(`✅ ${filled.length} Joint(s) નો ડેટા સફળતાપૂર્વક ક્લિયર અને સેવ થઈ ગયો!`);
+        alert(`✅ ${filled.length} Joint(s) નો ડેટા સફળતાપૂર્વક lhs_entries માં સેવ થઈ ગયો!`);
         await handleSelectLot(selectedLot);
         await loadOfferLotsList();
 
