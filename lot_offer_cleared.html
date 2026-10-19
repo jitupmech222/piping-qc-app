@@ -556,13 +556,14 @@
 
         allRows.forEach(r => {
           const jType = String(r.joint_type || '').toUpperCase().trim();
-          let rawLot = "", repNo = "", ndtDate = "", pct = "";
+          let rawLot = "", repNo = "", ndtDate = "", xrNo = "", pct = "";
 
           if (selectedType === "RT") {
             if (jType !== "BW" && !r.rt_lot_no) return;
             rawLot = r.rt_lot_no;
             repNo = r.rt_report_no;
             ndtDate = r.rt_date;
+            xrNo = r.xr_no;
             pct = r.rt_percentage;
           } else {
             if (jType === "BW") return;
@@ -572,6 +573,7 @@
             pct = r.dpt_percentage;
           }
 
+          // ૧૦૦% અથવા PJ વાળા જોઈન્ટ્સ 100% મોડમાં જશે
           if (isValue100Percent(pct) || isPJLot(rawLot)) return;
 
           const cleanLot = extractCleanLotNum(rawLot);
@@ -579,20 +581,32 @@
 
           const lotKey = cleanLot.toUpperCase();
           if (!lotMap.has(lotKey)) {
-            lotMap.set(lotKey, { lotNum: cleanLot, totalJoints: 0, clearedCount: 0 });
+            lotMap.set(lotKey, { lotNum: cleanLot, totalJoints: 0, isFullyCleared: false });
           }
 
           const item = lotMap.get(lotKey);
           item.totalJoints++;
 
+          // 🟢 તપાસો કે આ જોઈન્ટમાં રિપોર્ટ અને તારીખ ભરેલા છે કે નહીં
           const hasRep = repNo && String(repNo).trim() !== '' && String(repNo).toUpperCase() !== 'NA' && String(repNo) !== '0';
           const hasDt = ndtDate && String(ndtDate).trim() !== '' && String(ndtDate).toUpperCase() !== 'NA' && String(ndtDate) !== '0';
-          if (hasRep && hasDt) {
-            item.clearedCount++;
+
+          if (selectedType === "RT") {
+            const hasXr = xrNo && String(xrNo).trim() !== '' && String(xrNo).toUpperCase() !== 'NA' && String(xrNo) !== '0';
+            // RT માટે: Report No + Date + XR No ત્રણેય ભરેલા હોય એટલે આખો લોટ ક્લિયર!
+            if (hasRep && hasDt && hasXr) {
+              item.isFullyCleared = true;
+            }
+          } else {
+            // DPT માટે: Report No + Date બંને ભરેલા હોય એટલે આખો લોટ ક્લિયર!
+            if (hasRep && hasDt) {
+              item.isFullyCleared = true;
+            }
           }
         });
 
-        offerLots = Array.from(lotMap.values()).filter(l => l.clearedCount < l.totalJoints);
+        // 🟢 OFFER લિસ્ટમાં માત્ર એવા જ લોટ્સ આવશે જેનો ૧ પણ જોઈન્ટ ક્લિયર ન થયો હોય!
+        offerLots = Array.from(lotMap.values()).filter(l => !l.isFullyCleared);
         offerLots.sort((a, b) => {
           const numA = parseInt(a.lotNum, 10);
           const numB = parseInt(b.lotNum, 10);
@@ -601,13 +615,13 @@
         });
 
         if (offerLots.length === 0) {
-          container.innerHTML = `<span style="color:#16a34a; font-weight:bold; font-size:13px;">🎉 કોઈ ${selectedType} Lot OFFER માટે પેન્ડિંગ નથી.</span>`;
+          container.innerHTML = `<span style="color:#16a34a; font-weight:bold; font-size:13px;">🎉 કોઈ ${selectedType} Lot OFFER માટે પેન્ડિંગ નથી. (તમામ Lots ક્લિયર થઈ ગયા છે)</span>`;
           return;
         }
 
         container.innerHTML = offerLots.map(l => `
           <button class="lot-pill" id="pill_lot_${l.lotNum}" onclick="handleSelectLot('${l.lotNum}')">
-            LOT-${l.lotNum} (${l.totalJoints - l.clearedCount} Bal)
+            LOT-${l.lotNum} (${l.totalJoints} Joints)
           </button>
         `).join('');
 
@@ -748,7 +762,7 @@
       });
 
       if (filled.length === 0) {
-        return alert('ℹ️ સેવ કરવા માટે કોઈ નવા જોઈન્ટમાં Report No અને Date ભરેલા નથી!');
+        return alert('ℹ️ સેવ કરવા માટે કોઈ જોઈન્ટમાં Report No અને Date ભરેલા નથી!');
       }
 
       const btn = document.getElementById('btnSaveNormal');
@@ -784,8 +798,11 @@
           if (error) throw error;
         }
 
-        alert(`✅ ${filled.length} Joint(s) નો ડેટા સફળતાપૂર્વક lhs_entries માં સેવ થઈ ગયો!`);
-        await handleSelectLot(selectedLot);
+        alert(`✅ LOT-${selectedLot} સફળતાપૂર્વક CLEAR થઈ ગયો અને Offer લિસ્ટમાંથી દૂર કરવામાં આવ્યો છે!`);
+        
+        // 🟢 લોટ ક્લિયર થઈ જતાં ટેબલ હાઇડ કરી દેવું અને નવી યાદી લાવવી
+        document.getElementById('selectedLotCard').style.display = "none";
+        selectedLot = "";
         await loadOfferLotsList();
 
       } catch (err) {
@@ -796,7 +813,6 @@
         btn.disabled = false;
       }
     }
-
     window.addEventListener('DOMContentLoaded', () => {
       if (verifyAdminAccess()) {
         updateUIButtons();
