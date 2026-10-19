@@ -1231,16 +1231,20 @@
   }
 
   function backToHubMenu() {
-    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
-    document.getElementById('stageContainer').style.display = 'none';
-    document.getElementById('hubMainMenu').style.display = 'block';
-  }
+  document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('stageContainer').style.display = 'none';
+  document.getElementById('hubMainMenu').style.display = 'block';
 
-  /* 👉 Future Program Notice for QA/QC */
-  function futureModuleNotice(name) {
-    alert(`ℹ️ "${name}" module will be added in future.`);
+  // 🟢 URL પેરામીટર (?tab=...) ક્લીન કરવા માટે
+  if (window.location.search) {
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
+}
 
+/* 👉 Future Program Notice for QA/QC */
+function futureModuleNotice(name) {
+  alert(`ℹ️ "${name}" module will be added in future.`);
+}
   /* STAGE OPERATIONS */
   async function openStage(stage) {
     currentStage = stage;
