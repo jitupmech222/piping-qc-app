@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Record | QA/QC Engine</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, -apple-system, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Top Toolbar */
+    .top-toolbar {
+      background: #ffffff;
+      padding: 8px 16px;
+      border-bottom: 1px solid #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .toolbar-left { display: flex; align-items: center; gap: 12px; }
+    .toolbar-title h2 { margin: 0; font-size: 16px; color: #0f172a; }
+    .toolbar-title span { font-size: 11px; color: #16a34a; font-weight: bold; }
+
+    .btn-back {
+      padding: 5px 12px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 12px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-back:hover { background: #f1f5f9; }
+
+    .toolbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .btn-mode {
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 12px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+    }
+    .btn-mode.active-view { border: 2px solid #0284c7; background: #0284c7; color: #ffffff; }
+    .btn-mode.active-edit { border: 2px solid #ea580c; background: #ea580c; color: #ffffff; }
+
+    .btn-save {
+      padding: 5px 14px;
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn-save:hover { background: #15803d; }
+    .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .btn-clear {
+      padding: 5px 10px;
+      border: 1px solid #777;
+      background: #777;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .btn-export {
+      padding: 5px 12px;
+      background: #059669;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-export:hover { background: #047857; }
+
+    /* Pagination Bar */
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 16px;
+      background: #ffffff;
+      border-bottom: 1px solid #cbd5e1;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .pagination-bar select, .pagination-bar button {
+      padding: 2px 6px;
+      font-size: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
+      cursor: pointer;
+      background: #fff;
+    }
+
+    /* Table Container */
+    .table-container {
+      flex: 1;
+      overflow: auto;
+      background: #ffffff;
+      position: relative;
+    }
+    table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 3200px; font-size: 12px; }
+    
+    th {
+      position: sticky;
+      top: 0;
+      background: #17365d;
+      color: #ffffff;
+      padding: 8px 6px;
+      border: 1px solid #1e3a8a;
+      text-align: center;
+      white-space: nowrap;
+      z-index: 10;
+      user-select: none;
+    }
+    td {
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      text-align: center;
+      white-space: nowrap;
+      background: #ffffff;
+    }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    .filter-btn-icon {
+      border: none;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      font-size: 10px;
+      padding: 1px 3px;
+      margin-left: 3px;
+      border-radius: 2px;
+    }
+    .filter-btn-icon.active { background: #ffd54f; color: #000; }
+
+    /* Filter Popup */
+    .filter-popover {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: #fff;
+      padding: 8px;
+      border: 1px solid #999;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+      min-width: 240px;
+      border-radius: 4px;
+      text-align: left;
+      color: #0f172a;
+    }
+
+    .cell-edit-input {
+      width: 95%;
+      padding: 3px 5px;
+      font-size: 11.5px;
+      border: 1.5px solid #0284c7;
+      border-radius: 3px;
+      box-sizing: border-box;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP TOOLBAR -->
+  <div class="top-toolbar">
+    <div class="toolbar-left">
+      <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
+      <div class="toolbar-title">
+        <h2>📊 LHS Entries Live Records (<span id="recordCount">0</span> Rows)</h2>
+        <span>⚡ Database: lhs_entries</span>
+      </div>
+    </div>
+
+    <div class="toolbar-right">
+      <button type="button" id="btnModeView" class="btn-mode active-view" onclick="setMode(false)">👁️ View</button>
+      <button type="button" id="btnModeEdit" class="btn-mode" onclick="setMode(true)">✏️ Edit</button>
+      <button type="button" id="btnSave" class="btn-save" style="display: none;" onclick="saveChanges()">💾 Save Changes</button>
+      <button type="button" id="btnClearFilters" class="btn-clear" onclick="clearAllFilters()">✖ Clear Filters</button>
+      <button type="button" class="btn-export" onclick="exportToExcel()">📥 Export to Excel</button>
+    </div>
+  </div>
+
+  <!-- PAGINATION CONTROLS -->
+  <div class="pagination-bar">
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <span>Rows per page:</span>
+      <select id="pageSizeSelect" onchange="changePageSize(this.value)">
+        <option value="50">50</option>
+        <option value="100" selected>100</option>
+        <option value="200">200</option>
+      </select>
+      <span id="pageInfoText" style="color: #64748b; margin-left: 8px;">Showing 0 - 0 of 0</span>
+    </div>
+
+    <div style="display: flex; gap: 4px; align-items: center;">
+      <button onclick="gotoPage(1)">⏮ First</button>
+      <button onclick="prevPage()">◀ Prev</button>
+      <span style="font-weight: bold; padding: 0 4px;" id="currentPageDisplay">Page 1 of 1</span>
+      <button onclick="nextPage()">Next ▶</button>
+      <button onclick="gotoLastPage()">Last ⏭</button>
+    </div>
+  </div>
+
+  <!-- MAIN TABLE CONTAINER -->
+  <div class="table-container" id="tableWrapper" onclick="closeFilterPopup()">
+    <table id="mainTable">
+      <thead>
+        <tr id="headerRow"></tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="50" style="padding: 40px; text-align: center; color: #64748b;">⏳ Loading LHS Records...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 🟢 EXACT 46 DATA COLUMNS AS PER YOUR SUPABASE lhs_entries TABLE
+    const COLUMNS = [
+      { key: "cwp", title: "CWP" },
+      { key: "system_ug_ag", title: "System(UG-AG)" },
+      { key: "unit_wbs", title: "Unit-WBS" },
+      { key: "unit", title: "UNIT" },
+      { key: "service", title: "Service" },
+      { key: "drawing_no", title: "ISO No/Drawing No/Line No", width: 230, align: "left" },
+      { key: "spool_no", title: "Spool Unique No.", width: 140 },
+      { key: "joint_no", title: "Joint No." },
+      { key: "spool_size", title: "Spool Size" },
+      { key: "joint_type", title: "Type of Joint" },
+      { key: "weld_npd", title: "WELD NPD" },
+      { key: "rev_no", title: "Rev No." },
+      { key: "allocation", title: "Allocation" },
+      { key: "moc", title: "MOC" },
+      { key: "ibr_non_ibr", title: "IBR-NON IBR" },
+      { key: "thk", title: "Thk." },
+      { key: "paint_system", title: "Paint System" },
+      { key: "pipe_class", title: "Pipe Class" },
+      { key: "induction_bend_report_no", title: "Induction bend Report No" },
+      { key: "induction_bend_dpt_lot_no", title: "Induction bend DPT Lot no" },
+      { key: "induction_bend_dpt_report_no", title: "Induction bend DPT Report No" },
+      { key: "induction_bend_dpt_date", title: "Induction bend DPT Date", isDate: true },
+      { key: "fitup_date", title: "FIT UP Date", isDate: true },
+      { key: "welder_no", title: "Welder No" },
+      { key: "wps_no", title: "WPS" },
+      { key: "weld_inch_dia", title: "Weld INCH DIA." },
+      { key: "weld_visual_report_no", title: "WELD VISUAL REPORT NO" },
+      { key: "visual_date", title: "VISUAL Date", isDate: true },
+      { key: "dpt_percentage", title: "DPT %" },
+      { key: "dpt_report_no", title: "DPT REPORT NO" },
+      { key: "dpt_date", title: "DPT DATE", isDate: true },
+      { key: "dpt_lot_no", title: "DPT LOT NO" },
+      { key: "rt_percentage", title: "RT %" },
+      { key: "rt_report_no", title: "RT REPORT NO" },
+      { key: "rt_date", title: "RT DATE", isDate: true },
+      { key: "xr_no", title: "XR NO" },
+      { key: "accepted_rejected", title: "Accepted/Rejected" },
+      { key: "rt_lot_no", title: "RT LOT NO" },
+      { key: "rf_pad_test_report_no", title: "RF PAD TEST Report No" },
+      { key: "rf_pad_test_date", title: "RF PAD TEST Date", isDate: true },
+      { key: "pwht_report_no", title: "PWHT REPORT NO" },
+      { key: "pwht_date", title: "PWHT DATE", isDate: true },
+      { key: "ndt_clearance", title: "NDT CLEARANCE", isDate: true },
+      { key: "fd_date", title: "FD Date", isDate: true },
+      { key: "shift_dc_no", title: "Shift to Laydown / DC No" },
+      { key: "remarks", title: "Remarks" }
+    ];
+
+    let allRows = [];
+    let isEditMode = false;
+    let editedRows = new Map();
+    let columnFilters = {};
+
+    let currentPage = 1;
+    let pageSize = 100;
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ Access Denied: માત્ર Admin પાસે જ View Record ની પરમિશન છે!");
+        window.location.href = 'index.html?tab=qaqc';
+        return false;
+      }
+      return true;
+    }
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (!str || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
+
+    // 1. FETCH RECORDS DIRECTLY FROM lhs_entries
+    async function loadRecords() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = `<tr><td colspan="50" style="padding: 40px; text-align: center; color: #64748b;">⏳ Loading LHS Records...</td></tr>`;
+
+      try {
+        let rows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('*')
+            .order('id', { ascending: true })
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            rows = rows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        allRows = rows;
+        document.getElementById('recordCount').innerText = allRows.length;
+        renderHeader();
+        applyFiltersAndRender();
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="50" style="color: red; padding: 20px;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    // 2. HEADER & FILTER BUILDER
+    function renderHeader() {
+      const tr = document.getElementById('headerRow');
+      tr.innerHTML = `
+        <th style="width: 50px;">Sr</th>
+        ${isEditMode ? '<th style="width: 70px; background: #b91c1c;">Action</th>' : ''}
+        ${COLUMNS.map(col => {
+          const isActive = Boolean(columnFilters[col.key]);
+          return `
+            <th style="min-width: ${col.width || 100}px; position: relative;">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+                <span>${col.title}</span>
+                <button class="filter-btn-icon ${isActive ? 'active' : ''}" onclick="toggleFilter(event, '${col.key}')">🔽</button>
+              </div>
+              <div id="popover_${col.key}" class="filter-popover" style="display: none;" onclick="event.stopPropagation()">
+                <input type="text" id="input_filter_${col.key}" placeholder="Search..." style="width: 100%; padding: 5px; margin-bottom: 6px; font-size: 11.5px; border: 1px solid #0284c7; border-radius: 3px;">
+                <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                  <button type="button" onclick="setSpecialFilter('${col.key}', 'BLANK')" style="flex:1; padding: 3px; font-size: 10px; cursor: pointer;">⬜ Blank</button>
+                  <button type="button" onclick="setSpecialFilter('${col.key}', 'NON_BLANK')" style="flex:1; padding: 3px; font-size: 10px; cursor: pointer;">⬛ Non-Blank</button>
+                </div>
+                <div style="display: flex; gap: 4px;">
+                  <button type="button" onclick="applyFilter('${col.key}')" style="flex:1; padding: 4px; background: #17365d; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">OK</button>
+                  <button type="button" onclick="clearFilter('${col.key}')" style="flex:1; padding: 4px; background: #777; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">CLEAR</button>
+                </div>
+              </div>
+            </th>
+          `;
+        }).join('')}
+      `;
+    }
+
+    function toggleFilter(e, key) {
+      e.stopPropagation();
+      const pop = document.getElementById(`popover_${key}`);
+      const isVisible = pop.style.display === 'block';
+
+      document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
+      if (!isVisible) {
+        pop.style.display = 'block';
+        const input = document.getElementById(`input_filter_${key}`);
+        input.value = columnFilters[key] && !columnFilters[key].startsWith('[[') ? columnFilters[key] : '';
+        input.focus();
+      }
+    }
+
+    function closeFilterPopup() {
+      document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
+    }
+
+    function applyFilter(key) {
+      const val = document.getElementById(`input_filter_${key}`).value.trim();
+      if (val) columnFilters[key] = val;
+      else delete columnFilters[key];
+      closeFilterPopup();
+      currentPage = 1;
+      renderHeader();
+      applyFiltersAndRender();
+    }
+
+    function setSpecialFilter(key, type) {
+      columnFilters[key] = `[[${type}]]`;
+      closeFilterPopup();
+      currentPage = 1;
+      renderHeader();
+      applyFiltersAndRender();
+    }
+
+    function clearFilter(key) {
+      delete columnFilters[key];
+      closeFilterPopup();
+      currentPage = 1;
+      renderHeader();
+      applyFiltersAndRender();
+    }
+
+    function clearAllFilters() {
+      columnFilters = {};
+      closeFilterPopup();
+      currentPage = 1;
+      renderHeader();
+      applyFiltersAndRender();
+    }
+
+    // 3. FILTERING & PAGINATION LOGIC
+    function getFilteredRows() {
+      return allRows.filter(r => {
+        for (const [key, term] of Object.entries(columnFilters)) {
+          let val = String(r[key] ?? '').trim();
+          const colDef = COLUMNS.find(c => c.key === key);
+          if (colDef && colDef.isDate) val = formatDateDisplay(val);
+
+          if (term === '[[BLANK]]') {
+            if (val !== '' && val !== '-' && val.toLowerCase() !== 'null') return false;
+          } else if (term === '[[NON_BLANK]]') {
+            if (val === '' || val === '-' || val.toLowerCase() === 'null') return false;
+          } else {
+            if (!val.toLowerCase().includes(term.toLowerCase())) return false;
+          }
+        }
+        return true;
+      });
+    }
+
+    function applyFiltersAndRender() {
+      const filtered = getFilteredRows();
+      const totalRows = filtered.length;
+      const totalPages = Math.ceil(totalRows / pageSize) || 1;
+
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const start = (currentPage - 1) * pageSize;
+      const pageRows = filtered.slice(start, start + pageSize);
+
+      document.getElementById('pageInfoText').innerText = `Showing ${totalRows > 0 ? start + 1 : 0} - ${Math.min(start + pageSize, totalRows)} of ${totalRows}`;
+      document.getElementById('currentPageDisplay').innerText = `Page ${currentPage} of ${totalPages}`;
+
+      const tbody = document.getElementById('tableBody');
+      if (pageRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="50" style="padding: 30px; text-align: center; color: #777;">કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = pageRows.map((r, idx) => {
+        const rowId = r.id;
+        const srNo = start + idx + 1;
+        const isEdited = editedRows.has(rowId);
+
+        return `
+          <tr style="background: ${isEdited ? '#fef3c7' : '#ffffff'};">
+            <td>${srNo}</td>
+            ${isEditMode ? `
+              <td>
+                <button onclick="deleteRow(${rowId})" style="border: 1px solid #fca5a5; background: #fee2e2; color: #dc2626; border-radius: 3px; cursor: pointer; padding: 2px 6px; font-weight: bold;">🗑️</button>
+              </td>
+            ` : ''}
+            ${COLUMNS.map(c => {
+              const currentVal = editedRows.has(rowId) && editedRows.get(rowId)[c.key] !== undefined 
+                ? editedRows.get(rowId)[c.key] 
+                : (r[c.key] ?? '');
+
+              const displayVal = c.isDate ? formatDateDisplay(currentVal) : currentVal;
+
+              if (isEditMode) {
+                return `
+                  <td>
+                    <input type="text" class="cell-edit-input" value="${displayVal === '-' ? '' : displayVal}" onchange="handleCellChange(${rowId}, '${c.key}', this.value)">
+                  </td>
+                `;
+              } else {
+                const alignStyle = c.align ? `text-align: ${c.align}; padding-left: 8px; font-weight: 500;` : '';
+                return `<td style="${alignStyle}">${displayVal || '-'}</td>`;
+              }
+            }).join('')}
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 4. PAGINATION ACTIONS
+    function changePageSize(val) {
+      pageSize = Number(val);
+      currentPage = 1;
+      applyFiltersAndRender();
+    }
+    function gotoPage(p) { currentPage = p; applyFiltersAndRender(); }
+    function prevPage() { if (currentPage > 1) { currentPage--; applyFiltersAndRender(); } }
+    function nextPage() { currentPage++; applyFiltersAndRender(); }
+    function gotoLastPage() {
+      const totalPages = Math.ceil(getFilteredRows().length / pageSize) || 1;
+      currentPage = totalPages;
+      applyFiltersAndRender();
+    }
+
+    // 5. EDIT & SAVE HANDLERS
+    function setMode(edit) {
+      isEditMode = edit;
+      document.getElementById('btnModeView').className = `btn-mode ${!edit ? 'active-view' : ''}`;
+      document.getElementById('btnModeEdit').className = `btn-mode ${edit ? 'active-edit' : ''}`;
+      document.getElementById('btnSave').style.display = edit ? 'inline-block' : 'none';
+      renderHeader();
+      applyFiltersAndRender();
+    }
+
+    function handleCellChange(rowId, colKey, newVal) {
+      if (!editedRows.has(rowId)) editedRows.set(rowId, {});
+      editedRows.get(rowId)[colKey] = newVal.trim() === '' ? null : newVal.trim();
+      
+      const target = allRows.find(x => x.id === rowId);
+      if (target) target[colKey] = newVal.trim() === '' ? null : newVal.trim();
+    }
+
+    async function deleteRow(rowId) {
+      if (!confirm(`શું તમે ખરેખર આ રેકોર્ડ (ID: ${rowId}) ડિલીટ કરવા માંગો છો?`)) return;
+
+      try {
+        const { error } = await db.from('lhs_entries').delete().eq('id', rowId);
+        if (error) throw error;
+
+        allRows = allRows.filter(r => r.id !== rowId);
+        editedRows.delete(rowId);
+        document.getElementById('recordCount').innerText = allRows.length;
+        applyFiltersAndRender();
+        alert("✅ રેકોર્ડ સફળતાપૂર્વક ડિલીટ થઈ ગયો!");
+      } catch (err) {
+        alert("❌ ડિલીટ કરવામાં ભૂલ આવી: " + err.message);
+      }
+    }
+
+    async function saveChanges() {
+      if (editedRows.size === 0) return alert("ℹ️ કોઈ ફેરફાર થયેલ નથી.");
+      if (!confirm(`શું તમે ખરેખર ${editedRows.size} રો ના ફેરફારો Database માં સેવ કરવા માંગો છો?`)) return;
+
+      const btnSave = document.getElementById('btnSave');
+      btnSave.disabled = true;
+      btnSave.innerText = "⏳ Saving...";
+
+      try {
+        for (const [id, payload] of editedRows.entries()) {
+          const { error } = await db.from('lhs_entries').update(payload).eq('id', id);
+          if (error) throw error;
+        }
+
+        alert(`✅ સફળતાપૂર્વક ${editedRows.size} રેકોર્ડ્સ Database માં સેવ થઈ ગયા!`);
+        editedRows.clear();
+        setMode(false);
+        await loadRecords();
+      } catch (err) {
+        alert("❌ સેવ કરવામાં ભૂલ આવી: " + err.message);
+      } finally {
+        btnSave.disabled = false;
+        btnSave.innerText = "💾 Save Changes";
+      }
+    }
+
+    // 6. EXPORT TO EXCEL
+    async function exportToExcel() {
+      const filtered = getFilteredRows();
+      if (filtered.length === 0) return alert("⚠️ હાલ ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('LHS_Entries', { views: [{ state: 'frozen', ySplit: 1, showGridLines: true }] });
+
+      const headers = ["Sr", ...COLUMNS.map(c => c.title)];
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 24;
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF17365D' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+
+      filtered.forEach((r, idx) => {
+        const rowVals = [
+          idx + 1,
+          ...COLUMNS.map(c => {
+            const v = r[c.key] ?? '';
+            return c.isDate ? formatDateDisplay(v) : v;
+          })
+        ];
+        worksheet.addRow(rowVals);
+      });
+
+      worksheet.columns.forEach((col, i) => {
+        col.width = Math.max(headers[i].length + 4, 14);
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      const today = new Date().toISOString().split('T')[0];
+      link.href = URL.createObjectURL(blob);
+      link.download = `LHS_Entries_Export_${today}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifyAdminAccess()) {
+        loadRecords();
+      }
+    });
+  </script>
+</body>
+</html>
