@@ -1089,6 +1089,7 @@
       if (lbl) lbl.innerText = "Backup All Database Tables (Single Excel File)";
     }
   }
+  // 🟢 1. REVISED CACHE FUNCTION (No Silent Break)
   async function ensureAllRecordsCached() {
     if (allRecordsCache.length > 0) return allRecordsCache;
     let allRows = [];
@@ -1097,35 +1098,60 @@
     let hasMore = true;
 
     while (hasMore) {
-      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
-      if (error) break;
+      // id સોર્ટિંગ વગર અથવા ચોક્કસ રેન્જ સાથે સુરક્ષિત ફેચ
+      const { data, error } = await db
+        .from('piping_joints')
+        .select('*')
+        .range(from, from + step - 1);
+
+      if (error) {
+        console.error("❌ Supabase Fetch Error at range:", from, error.message);
+        break;
+      }
+
       if (data && data.length > 0) {
         allRows = allRows.concat(data);
+        console.log(`Fetched ${data.length} rows (Total so far: ${allRows.length})`);
         from += step;
         if (data.length < step) hasMore = false;
       } else {
         hasMore = false;
       }
     }
+
     allRecordsCache = allRows;
+    console.log("✅ Final Cached Records in Memory:", allRecordsCache.length);
     return allRecordsCache;
   }
 
+  // 🟢 2. REVISED METRICS CALCULATION
   async function loadTopDashboardMetrics() {
     await ensureAllRecordsCached();
 
-    const totalSpools = new Set(allRecordsCache.map(r => r.Spool_number).filter(Boolean)).size;
+    // ૧. કુલ જોઈન્ટ્સ (જે ડેટાબેઝમાં ૪,૦૪૭ છે)
+    const totalJointRows = allRecordsCache.length;
+
+    // ૨. કુલ અનન્ય સ્પૂલ્સ
+    const totalSpools = new Set(allRecordsCache.map(r => String(r.Spool_number || '').trim()).filter(Boolean)).size;
+
+    // ૩. વેલ્ડ આઈડી સરવાળો
     let weldSum = 0;
     allRecordsCache.forEach(r => {
       const v = r.Weld_id || r.Joint_no;
-      if (v) { const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); if (!isNaN(n)) weldSum += n; }
+      if (v) {
+        const n = parseFloat(String(v).replace(/[^0-9.]/g, ''));
+        if (!isNaN(n)) weldSum += n;
+      }
     });
 
-    const weldedRows = allRecordsCache.filter(r => r.Weld_visual_date);
-    const weldPct = totalSpools > 0 ? ((new Set(weldedRows.map(r => r.Spool_number)).size / totalSpools) * 100).toFixed(1) : 0;
-    const pendingNdtRows = allRecordsCache.filter(r => r.Weld_visual_date && !r.Ndt_clearance);
+    // ૪. વેલ્ડિંગ અને NDT પેન્ડિંગ
+    const weldedRows = allRecordsCache.filter(r => r.Weld_visual_date && String(r.Weld_visual_date).trim() !== '');
+    const weldPct = totalJointRows > 0 ? ((weldedRows.length / totalJointRows) * 100).toFixed(1) : 0;
+    const pendingNdtRows = allRecordsCache.filter(r => r.Weld_visual_date && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === ''));
 
-    document.getElementById('kpiTotalSpool').innerText = totalSpools;
+    // ૫. UI માં સેટ કરવું
+    // જો તમે કાર્ડ પર ૪,૦૪૭ જોઈન્ટ્સ દર્શાવવા માંગતા હોવ:
+    document.getElementById('kpiTotalSpool').innerText = `${totalSpools} (${totalJointRows} Joints)`;
     document.getElementById('kpiTotalWeld').innerText = Number.isInteger(weldSum) ? weldSum : weldSum.toFixed(2);
     document.getElementById('kpiWeldingRate').innerText = `${weldPct}%`;
     document.getElementById('kpiPendingNdt').innerText = `${pendingNdtRows.length} items`;
