@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piping Console | Operations Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- 🟢 Excel Backup માટે ExcelJS લાઇબ્રેરી -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <style>
     :root {
       --sidebar-bg: #0b1329;
@@ -602,24 +600,15 @@
           <span>📋</span><span>LHS ENTRY</span>
         </button>
 
-        
+        <!-- 2 to 10 (Future Modules) -->
         <!-- 2. LOT ENTRY (NOW FULLY ACTIVE) -->
         <button class="sub-btn" onclick="window.location.href='lot_entry.html'" style="border-left: 4px solid #0d6efd; font-weight: bold;">
           <span>🧾</span><span>LOT ENTRY</span>
         </button>
-        <!-- 3. LOT OFFER / CLEARED (NOW FULLY ACTIVE) -->
-        <button class="sub-btn" onclick="window.location.href='lot_offer_cleared.html'" style="border-left: 4px solid #d97706; font-weight: bold;">
-          <span>🔍</span><span>LOT OFFER / CLEARED</span>
-        </button>
+        <button class="sub-btn" onclick="futureModuleNotice('LOT OFFER / CLEARED')"><span>🔍</span><span>LOT OFFER / CLEARED</span></button>
         <button class="sub-btn" onclick="futureModuleNotice('LOT GENERATE')"><span>⚙️</span><span>LOT GENERATE</span></button>
-        <!-- 5. DPT LOT STATUS (NOW FULLY ACTIVE) -->
-        <button class="sub-btn" onclick="window.location.href='dpt_lot_status.html'" style="border-left: 4px solid #7b1fa2; font-weight: bold;">
-          <span>🔬</span><span>DPT LOT STATUS</span>
-        </button>
-        <!-- 6. RT LOT STATUS (NOW FULLY ACTIVE) -->
-        <button class="sub-btn" onclick="window.location.href='rt_lot_status.html'" style="border-left: 4px solid #0284c7; font-weight: bold;">
-          <span>☢️</span><span>RT LOT STATUS</span>
-        </button>
+        <button class="sub-btn" onclick="futureModuleNotice('DPT LOT STATUS')"><span>🔬</span><span>DPT LOT STATUS</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('RT LOT STATUS')"><span>☢️</span><span>RT LOT STATUS</span></button>
         <button class="sub-btn" onclick="futureModuleNotice('NDT / DC')"><span>📦</span><span>NDT / DC</span></button>
         <button class="sub-btn" onclick="futureModuleNotice('MTO ENTRY')"><span>📑</span><span>MTO ENTRY</span></button>
         <button class="sub-btn" onclick="futureModuleNotice('PWHT')"><span>🔥</span><span>PWHT</span></button>
@@ -663,10 +652,9 @@
     </div>
 
     <!-- SUB-PANEL: Data -->
-    <!-- SUB-PANEL: Data -->
     <div id="dataHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">💾 Data Registers & Updates</h3>
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">Data Registers & Updates</h3>
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
@@ -681,11 +669,6 @@
         </button>
         <button class="sub-btn" onclick="window.location.href='master_register.html'">
           <span>📊</span><span>Open Master Register Full View</span>
-        </button>
-
-        <!-- 🟢 5. ALL TABLES EXCEL BACKUP BUTTON (Admin Only) -->
-        <button class="sub-btn" id="btnFullBackupHub" style="display:none; grid-column: 1 / -1; justify-content:center; background:#ecfdf5; border:1.5px solid #10b981; color:#047857; font-size:14px;" onclick="downloadAllTablesExcelBackup()">
-          <span>📥</span><span id="backupBtnLabel">Backup All Database Tables (Single Excel File)</span>
         </button>
       </div>
     </div>
@@ -812,106 +795,16 @@
     }
   }
 
-  const LOCKOUT_MINUTES = 2;
-  const MAX_ATTEMPTS = 2;
-
-  async function verifyLogin() {
+  function verifyLogin() {
     const u = document.getElementById('loginUser').value.trim().toLowerCase();
     const p = document.getElementById('loginPass').value.trim();
-    const err = document.getElementById('loginError');
-    const btnLogin = document.querySelector('.btn-login');
-
-    err.style.display = 'none';
-
-    // ૧. Supabase માંથી આ યુઝરનું સેન્ટ્રલ લૉક સ્ટેટસ તપાસો
-    btnLogin.disabled = true;
-    btnLogin.innerText = "⏳ Checking security...";
-
-    try {
-      const { data: userStatus, error: fetchErr } = await db
-        .from('user_auth_status')
-        .select('*')
-        .eq('username', u)
-        .single();
-
-      if (fetchErr && fetchErr.code !== 'PGRST116') {
-        throw fetchErr;
-      }
-
-      // જો એકાઉન્ટ લૉક હોય તો સમય તપાસો
-      if (userStatus && userStatus.locked_until) {
-        const lockTime = new Date(userStatus.locked_until).getTime();
-        const now = Date.now();
-        const remainingMs = lockTime - now;
-
-        if (remainingMs > 0) {
-          const remainingSec = Math.ceil(remainingMs / 1000);
-          const mins = Math.floor(remainingSec / 60);
-          const secs = remainingSec % 60;
-
-          err.style.display = 'block';
-          err.innerHTML = `🔒 2 વખત ખોટો પાસવર્ડ દાખલ કર્યો છે.<br>આ એકાઉન્ટ <b>${mins}m ${secs}s</b> માટે તમામ ડિવાઇસ પર લૉક છે!`;
-          btnLogin.disabled = false;
-          btnLogin.innerText = "Login to Portal ➔";
-          return;
-        } else {
-          // ૫ મિનિટ પૂરી થઈ ગઈ - લૉક રીસેટ કરો
-          await db.from('user_auth_status').update({
-            failed_attempts: 0,
-            locked_until: null
-          }).eq('username', u);
-        }
-      }
-
-      // ૨. પાસવર્ડ ચેક કરો
-      if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
-        // ✅ સાચો પાસવર્ડ: ડેટાબેઝમાં પ્રયાસો 0 કરી દો
-        await db.from('user_auth_status').update({
-          failed_attempts: 0,
-          locked_until: null,
-          last_attempt_at: new Date().toISOString()
-        }).eq('username', u);
-
-        currentUser = { username: u, ...USER_ROLES[u] };
-        sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
-        err.style.display = 'none';
-        checkSessionAuth();
-      } else {
-        // ❌ ખોટો પાસવર્ડ: અસફળ પ્રયાસ ૧ વધારો
-        const currentAttempts = (userStatus ? userStatus.failed_attempts : 0) + 1;
-
-        if (currentAttempts >= MAX_ATTEMPTS) {
-          // ૨ ખોટા પ્રયાસ -> ૫ મિનિટ માટે લૉક સેટ કરો
-          const lockUntil = new Date(Date.now() + (LOCKOUT_MINUTES * 60 * 1000)).toISOString();
-          
-          await db.from('user_auth_status').upsert({
-            username: u,
-            failed_attempts: currentAttempts,
-            locked_until: lockUntil,
-            last_attempt_at: new Date().toISOString()
-          });
-
-          err.style.display = 'block';
-          err.innerHTML = `🔒 સતત 2 વખત ખોટો પાસવર્ડ દાખલ કર્યો છે!<br>આ એકાઉન્ટ 5 મિનિટ માટે તમામ ડિવાઇસ પર લૉક થઈ ગયું છે.`;
-        } else {
-          // ૧ અસફળ પ્રયાસ
-          await db.from('user_auth_status').upsert({
-            username: u,
-            failed_attempts: currentAttempts,
-            last_attempt_at: new Date().toISOString()
-          });
-
-          err.style.display = 'block';
-          err.innerHTML = `⚠️ Invalid Password! (બાકી રહેલ પ્રયાસ: ${MAX_ATTEMPTS - currentAttempts})`;
-        }
-      }
-    } catch (errCatch) {
-      console.error(errCatch);
-      err.style.display = 'block';
-      err.innerText = "સિક્યોરિટી સર્વર સાથે સંપર્ક થઈ શક્યો નથી: " + errCatch.message;
-    } finally {
-      btnLogin.disabled = false;
-      btnLogin.innerText = "Login to Portal ➔";
+    if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
+      currentUser = { username: u, ...USER_ROLES[u] };
+      sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
+      document.getElementById('loginError').style.display = 'none';
+      checkSessionAuth();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
     }
   }
 
@@ -927,9 +820,6 @@
     if (!currentUser) return;
     const isAdmin = currentUser.username === 'admin';
 
-    const btnBackup = document.getElementById('btnFullBackupHub');
-    if (btnBackup) btnBackup.style.display = isAdmin ? 'flex' : 'none';
-    
     // 🛡️ QA/QC Module: Only for Admin
     const navQaqc = document.getElementById('navQaqcLink');
     const cardQaqc = document.getElementById('cardQaqcHub');
@@ -953,143 +843,6 @@
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
   }
 
-
-  // 🟢 ALL TABLES MULTI-SHEET EXCEL BACKUP FUNCTION
-  async function downloadAllTablesExcelBackup() {
-    if (!currentUser || currentUser.username !== 'admin') {
-      return alert("⚠️ માત્ર Admin પાસે જ Full Database Backup લેવાની પરમિશન છે!");
-    }
-
-    if (!confirm("શું તમે તમામ Database Tables નો સંપૂર્ણ બેકઅપ એક જ Excel ફાઇલમાં (અલગ-અલગ Sheet તરીકે) ડાઉનલોડ કરવા માંગો છો?")) return;
-
-    const btn = document.getElementById('btnFullBackupHub');
-    const lbl = document.getElementById('backupBtnLabel');
-    if (btn) btn.disabled = true;
-
-    // તમારા Supabase ના તમામ ટેબલ્સની યાદી
-    const tablesToBackup = [
-      { tableName: 'piping_joints', sheetName: 'Master_Piping_Joints' },
-      { tableName: 'Line_list', sheetName: 'Line_List' },
-      { tableName: 'Sap_code', sheetName: 'SAP_Codes' },
-      { tableName: 'mto', sheetName: 'MTO_Register' },
-      { tableName: 'lhs_entries', sheetName: 'LHS_Entries' },
-      { tableName: 'ndt_lots', sheetName: 'NDT_Lots' }
-    ];
-
-    try {
-      const workbook = new ExcelJS.Workbook();
-      let totalRecordsBackedUp = 0;
-
-      for (const item of tablesToBackup) {
-        if (lbl) lbl.innerText = `⏳ Fetching ${item.tableName}... Please wait...`;
-
-        let allRows = [];
-        let from = 0;
-        let hasMore = true;
-
-        // 1000-1000 ના બેચમાં ટેબલનો પૂરેપૂરો ડેટા ખેંચવો
-        while (hasMore) {
-          const { data, error } = await db
-            .from(item.tableName)
-            .select('*')
-            .order('id', { ascending: true })
-            .range(from, from + 999);
-
-          if (error) {
-            console.warn(`Skipping or error in ${item.tableName}:`, error.message);
-            hasMore = false;
-            break;
-          }
-
-          if (data && data.length > 0) {
-            allRows = allRows.concat(data);
-            from += 1000;
-            if (data.length < 1000) hasMore = false;
-          } else {
-            hasMore = false;
-          }
-        }
-
-        // દરેક ટેબલ માટે અલગ Sheet બનાવવી
-        const worksheet = workbook.addWorksheet(item.sheetName, {
-          views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
-        });
-
-        if (allRows.length > 0) {
-          totalRecordsBackedUp += allRows.length;
-          const headers = Object.keys(allRows[0]);
-
-          // 1. Header Row ઉમેરવી અને સ્ટાઇલ આપવી
-          const headerRow = worksheet.addRow(headers);
-          headerRow.height = 24;
-          headerRow.eachCell((cell) => {
-            cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            cell.border = {
-              top: { style: 'thin' },
-              left: { style: 'thin' },
-              bottom: { style: 'medium' },
-              right: { style: 'thin' }
-            };
-          });
-
-          // 2. Data Rows ઉમેરવી
-          allRows.forEach(rowObj => {
-            const rowValues = headers.map(h => {
-              const val = rowObj[h];
-              return (val !== null && val !== undefined) ? val : '';
-            });
-            const dataRow = worksheet.addRow(rowValues);
-            dataRow.height = 19;
-            dataRow.eachCell((cell) => {
-              cell.font = { name: 'Calibri', size: 10.5 };
-              cell.border = {
-                top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-              };
-            });
-          });
-
-          // 3. કૉલમની પહોળાઈ (Width) સેટ કરવી
-          worksheet.columns.forEach((col, idx) => {
-            const headerLen = headers[idx] ? headers[idx].length : 10;
-            col.width = Math.max(headerLen + 6, 15);
-          });
-        } else {
-          // જો ટેબલ ખાલી હોય તો મેસેજ મૂકવો
-          worksheet.addRow([`No records found in ${item.tableName}`]);
-        }
-      }
-
-      if (lbl) lbl.innerText = `⏳ Generating Excel file...`;
-
-      // Excel ફાઇલ જનરેટ કરીને ડાઉનલોડ કરાવવી
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const link = document.createElement('a');
-      const today = new Date().toISOString().split('T')[0];
-
-      link.href = URL.createObjectURL(blob);
-      link.download = `Piping_Full_Database_Backup_${today}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-
-      alert(`✅ બેકઅપ પૂર્ણ!\nતમામ 6 ટેબલ્સના કુલ ${totalRecordsBackedUp} રેકોર્ડ્સ એક જ Excel ફાઇલ (Piping_Full_Database_Backup_${today}.xlsx) માં સફળતાપૂર્વક ડાઉનલોડ થઈ ગયા છે!`);
-
-    } catch (err) {
-      console.error("Backup Error:", err);
-      alert("❌ બેકઅપ લેવામાં ભૂલ આવી: " + err.message);
-    } finally {
-      if (btn) btn.disabled = false;
-      if (lbl) lbl.innerText = "Backup All Database Tables (Single Excel File)";
-    }
-  }
-  // 🟢 1. REVISED CACHE FUNCTION (No Silent Break)
   async function ensureAllRecordsCached() {
     if (allRecordsCache.length > 0) return allRecordsCache;
     let allRows = [];
@@ -1098,60 +851,35 @@
     let hasMore = true;
 
     while (hasMore) {
-      // id સોર્ટિંગ વગર અથવા ચોક્કસ રેન્જ સાથે સુરક્ષિત ફેચ
-      const { data, error } = await db
-        .from('piping_joints')
-        .select('*')
-        .range(from, from + step - 1);
-
-      if (error) {
-        console.error("❌ Supabase Fetch Error at range:", from, error.message);
-        break;
-      }
-
+      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+      if (error) break;
       if (data && data.length > 0) {
         allRows = allRows.concat(data);
-        console.log(`Fetched ${data.length} rows (Total so far: ${allRows.length})`);
         from += step;
         if (data.length < step) hasMore = false;
       } else {
         hasMore = false;
       }
     }
-
     allRecordsCache = allRows;
-    console.log("✅ Final Cached Records in Memory:", allRecordsCache.length);
     return allRecordsCache;
   }
 
-  // 🟢 2. REVISED METRICS CALCULATION
   async function loadTopDashboardMetrics() {
     await ensureAllRecordsCached();
 
-    // ૧. કુલ જોઈન્ટ્સ (જે ડેટાબેઝમાં ૪,૦૪૭ છે)
-    const totalJointRows = allRecordsCache.length;
-
-    // ૨. કુલ અનન્ય સ્પૂલ્સ
-    const totalSpools = new Set(allRecordsCache.map(r => String(r.Spool_number || '').trim()).filter(Boolean)).size;
-
-    // ૩. વેલ્ડ આઈડી સરવાળો
+    const totalSpools = new Set(allRecordsCache.map(r => r.Spool_number).filter(Boolean)).size;
     let weldSum = 0;
     allRecordsCache.forEach(r => {
       const v = r.Weld_id || r.Joint_no;
-      if (v) {
-        const n = parseFloat(String(v).replace(/[^0-9.]/g, ''));
-        if (!isNaN(n)) weldSum += n;
-      }
+      if (v) { const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); if (!isNaN(n)) weldSum += n; }
     });
 
-    // ૪. વેલ્ડિંગ અને NDT પેન્ડિંગ
-    const weldedRows = allRecordsCache.filter(r => r.Weld_visual_date && String(r.Weld_visual_date).trim() !== '');
-    const weldPct = totalJointRows > 0 ? ((weldedRows.length / totalJointRows) * 100).toFixed(1) : 0;
-    const pendingNdtRows = allRecordsCache.filter(r => r.Weld_visual_date && (!r.Ndt_clearance || String(r.Ndt_clearance).trim() === ''));
+    const weldedRows = allRecordsCache.filter(r => r.Weld_visual_date);
+    const weldPct = totalSpools > 0 ? ((new Set(weldedRows.map(r => r.Spool_number)).size / totalSpools) * 100).toFixed(1) : 0;
+    const pendingNdtRows = allRecordsCache.filter(r => r.Weld_visual_date && !r.Ndt_clearance);
 
-    // ૫. UI માં સેટ કરવું
-    // જો તમે કાર્ડ પર ૪,૦૪૭ જોઈન્ટ્સ દર્શાવવા માંગતા હોવ:
-    document.getElementById('kpiTotalSpool').innerText = `${totalSpools} (${totalJointRows} Joints)`;
+    document.getElementById('kpiTotalSpool').innerText = totalSpools;
     document.getElementById('kpiTotalWeld').innerText = Number.isInteger(weldSum) ? weldSum : weldSum.toFixed(2);
     document.getElementById('kpiWeldingRate').innerText = `${weldPct}%`;
     document.getElementById('kpiPendingNdt').innerText = `${pendingNdtRows.length} items`;
