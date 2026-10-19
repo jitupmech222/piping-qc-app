@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NDT / DC Module | QA/QC</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, -apple-system, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 20px; -webkit-font-smoothing: antialiased; }
+
+    .top-header {
+      background: #ffffff;
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .top-header-left { display: flex; align-items: center; gap: 14px; }
+    .top-header h2 { margin: 0; color: #17365d; font-size: 20px; font-weight: 800; }
+
+    .btn-back {
+      padding: 6px 14px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; }
+
+    .mode-switch-group { display: flex; gap: 10px; }
+    .btn-mode {
+      padding: 9px 22px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .btn-mode-ndt {
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
+    }
+    .btn-mode-ndt.active {
+      border: 2px solid #0284c7;
+      background: #0284c7;
+      color: #fff;
+    }
+    .btn-mode-dc {
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
+    }
+    .btn-mode-dc.active {
+      border: 2px solid #16a34a;
+      background: #16a34a;
+      color: #fff;
+    }
+
+    .card {
+      background: #ffffff;
+      padding: 18px 20px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .search-box-wrapper { position: relative; width: 340px; max-width: 100%; }
+    .search-input {
+      padding: 9px 12px;
+      width: 100%;
+      border-radius: 6px;
+      border: 1.5px solid #cbd5e1;
+      font-size: 14px;
+      font-weight: 500;
+      outline: none;
+    }
+    .search-input:focus { border-color: #0284c7; }
+
+    .search-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 0 0 6px 6px;
+      max-height: 240px;
+      overflow-y: auto;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+      z-index: 1000;
+      margin-top: 2px;
+      display: none;
+    }
+    .dropdown-item {
+      padding: 9px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+    .dropdown-item:hover { background: #f0fdfa; color: #0f766e; }
+
+    .inputs-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      background: #f1f5f9;
+      padding: 12px 16px;
+      border-radius: 6px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .inputs-bar label {
+      display: block;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #334155;
+    }
+    .inputs-bar input {
+      padding: 7px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    .btn-save {
+      padding: 9px 24px;
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-save:hover { background: #15803d; }
+    .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th {
+      background: #17365d;
+      color: #fff;
+      padding: 8px;
+      font-size: 12px;
+      border: 1px solid #cbd5e1;
+      text-align: center;
+    }
+    td {
+      padding: 7px;
+      text-align: center;
+      font-size: 13px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+
+    .btn-remove {
+      padding: 3px 8px;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 11px;
+    }
+    .btn-remove:hover { background: #dc2626; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <div class="top-header-left">
+      <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
+      <h2>📦 NDT / DC MODULE</h2>
+      <span id="navSubTitle" style="font-size: 12px; color: #64748b; font-weight: bold;"></span>
+    </div>
+
+    <!-- NDT / DC MODE SWITCH BUTTONS -->
+    <div class="mode-switch-group">
+      <button type="button" id="btnModeNdt" class="btn-mode btn-mode-ndt active" onclick="switchMode('NDT')">
+        ⚡ NDT
+      </button>
+      <button type="button" id="btnModeDc" class="btn-mode btn-mode-dc" onclick="switchMode('DC')">
+        🚚 DC
+      </button>
+    </div>
+  </div>
+
+  <!-- SEARCH & AUTO-FILTER DROPDOWN CARD -->
+  <div class="card">
+    <label style="display: block; font-size: 13px; font-weight: bold; color: #334155; margin-bottom: 6px;">
+      Search & Select Spool for <span id="labelModeTitle" style="color: #0284c7;">NDT</span> (<span id="pendingCount">0</span> Pending):
+    </label>
+
+    <div class="search-box-wrapper" id="searchWrapper">
+      <input
+        type="text"
+        id="spoolSearchInput"
+        class="search-input"
+        placeholder="Enter spool unique no (e.g. 5-47107)..."
+        oninput="handleSearchType(this.value)"
+        autocomplete="off"
+      />
+      <div id="spoolDropdown" class="search-dropdown"></div>
+    </div>
+  </div>
+
+  <!-- SELECTED SPOOLS TABLE & SAVE FORM CARD -->
+  <div class="card" id="selectedSection" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <h4 style="margin: 0; color: #17365d; font-size: 15px;">
+        Selected Spools for <span id="selectedModeHeading">NDT</span> (<span id="selectedCount">0</span>)
+      </h4>
+      <button type="button" class="btn-save" id="btnSaveData" onclick="handleSaveData()">
+        💾 SAVE ENTRY
+      </button>
+    </div>
+
+    <!-- DYNAMIC INPUTS ROW -->
+    <div class="inputs-bar">
+      <div id="dcNoGroup" style="display: none;">
+        <label>DC No (e.g. AEPL-08, GE-01):</label>
+        <input type="text" id="inputDcNo" placeholder="AEPL-08, GE-01..." style="width: 170px;">
+      </div>
+
+      <div>
+        <label id="inputDateLabel">NDT Date:</label>
+        <input type="date" id="inputActionDate" required>
+      </div>
+    </div>
+
+    <!-- SELECTED SPOOLS TABLE -->
+    <table style="width: 100%;">
+      <thead>
+        <tr>
+          <th style="width: 50px;">Sr.</th>
+          <th>Spool Unique No</th>
+          <th>ISO No / Drawing No / Line No</th>
+          <th style="width: 90px;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="selectedTableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentMode = "NDT";
+    let pendingSpools = [];
+    let selectedSpools = [];
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ Access Denied: માત્ર Admin પાસે જ NDT / DC અપડેટ કરવાની પરમિશન છે!");
+        window.location.href = 'index.html?tab=qaqc';
+        return false;
+      }
+      document.getElementById('navSubTitle').innerText = `| Admin: ${user.name}`;
+      return true;
+    }
+
+    // MODE SWITCH HANDLER (NDT / DC)
+    function switchMode(newMode) {
+      currentMode = newMode;
+      selectedSpools = [];
+      document.getElementById('spoolSearchInput').value = '';
+      closeDropdown();
+
+      if (newMode === 'NDT') {
+        document.getElementById('btnModeNdt').classList.add('active');
+        document.getElementById('btnModeDc').classList.remove('active');
+        document.getElementById('labelModeTitle').innerText = 'NDT';
+        document.getElementById('labelModeTitle').style.color = '#0284c7';
+        document.getElementById('selectedModeHeading').innerText = 'NDT';
+        document.getElementById('dcNoGroup').style.display = 'none';
+        document.getElementById('inputDateLabel').innerText = 'NDT Date:';
+      } else {
+        document.getElementById('btnModeDc').classList.add('active');
+        document.getElementById('btnModeNdt').classList.remove('active');
+        document.getElementById('labelModeTitle').innerText = 'DC';
+        document.getElementById('labelModeTitle').style.color = '#16a34a';
+        document.getElementById('selectedModeHeading').innerText = 'DC';
+        document.getElementById('dcNoGroup').style.display = 'block';
+        document.getElementById('inputDateLabel').innerText = 'Dispatch Date:';
+      }
+
+      renderSelectedTable();
+      loadPendingSpools();
+    }
+
+    // 1. LOAD PENDING SPOOLS FROM DATABASE
+    async function loadPendingSpools() {
+      document.getElementById('pendingCount').innerText = '...';
+
+      try {
+        let allLhs = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('spool_no, drawing_no, ndt_clearance, fd_date, shift_dc_no')
+            .order('id', { ascending: true })
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allLhs = allLhs.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        const spoolMap = new Map();
+
+        allLhs.forEach(r => {
+          const spNo = String(r.spool_no || '').trim().toUpperCase();
+          if (!spNo || ['NA', '0', 'NULL', 'UNDEFINED'].includes(spNo)) return;
+
+          const isoNo = r.drawing_no || '-';
+
+          if (currentMode === 'NDT') {
+            const ndt = String(r.ndt_clearance || '').trim();
+            if (!ndt || ndt === '0' || ndt.toUpperCase() === 'NA') {
+              if (!spoolMap.has(spNo)) spoolMap.set(spNo, { spoolNo: spNo, isoNo });
+            }
+          } else if (currentMode === 'DC') {
+            const fd = String(r.fd_date || '').trim();
+            if (!fd || fd === '0' || fd.toUpperCase() === 'NA') {
+              if (!spoolMap.has(spNo)) spoolMap.set(spNo, { spoolNo: spNo, isoNo });
+            }
+          }
+        });
+
+        pendingSpools = Array.from(spoolMap.values());
+        document.getElementById('pendingCount').innerText = pendingSpools.length;
+
+      } catch (err) {
+        console.error("Error loading pending spools:", err);
+        document.getElementById('pendingCount').innerText = '0';
+      }
+    }
+
+    // 2. SEARCH & FILTER DROPDOWN
+    function handleSearchType(term) {
+      const q = term.trim().toUpperCase();
+      const dropdown = document.getElementById('spoolDropdown');
+
+      if (!q) {
+        closeDropdown();
+        return;
+      }
+
+      const filtered = pendingSpools.filter(p =>
+        p.spoolNo.includes(q) && !selectedSpools.some(s => s.spoolNo === p.spoolNo)
+      ).slice(0, 30);
+
+      if (filtered.length === 0) {
+        dropdown.innerHTML = `<div style="padding:10px 12px; font-size:13px; color:#94a3b8; font-style:italic;">"${term}" વાળો કોઈ પેન્ડિંગ Spool મળ્યો નથી.</div>`;
+        dropdown.style.display = 'block';
+        return;
+      }
+
+      dropdown.innerHTML = filtered.map(item => `
+        <div class="dropdown-item" onclick="selectSpool('${item.spoolNo}', '${item.isoNo}')">
+          <span style="font-weight:bold; color:#0f172a;">${item.spoolNo}</span>
+          <span style="font-size:11.5px; color:#64748b;">${item.isoNo}</span>
+        </div>
+      `).join('');
+      dropdown.style.display = 'block';
+    }
+
+    function selectSpool(spoolNo, isoNo) {
+      selectedSpools.push({ spoolNo, isoNo });
+      document.getElementById('spoolSearchInput').value = '';
+      closeDropdown();
+      renderSelectedTable();
+    }
+
+    function removeSelectedSpool(index) {
+      selectedSpools.splice(index, 1);
+      renderSelectedTable();
+    }
+
+    function closeDropdown() {
+      document.getElementById('spoolDropdown').style.display = 'none';
+    }
+
+    // 3. RENDER SELECTED TABLE
+    function renderSelectedTable() {
+      const sec = document.getElementById('selectedSection');
+      const tbody = document.getElementById('selectedTableBody');
+      document.getElementById('selectedCount').innerText = selectedSpools.length;
+
+      if (selectedSpools.length === 0) {
+        sec.style.display = 'none';
+        tbody.innerHTML = '';
+        return;
+      }
+
+      sec.style.display = 'block';
+      tbody.innerHTML = selectedSpools.map((item, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td style="font-weight:bold; color:#0f172a;">${item.spoolNo}</td>
+          <td>${item.isoNo || '-'}</td>
+          <td>
+            <button type="button" class="btn-remove" onclick="removeSelectedSpool(${idx})">✕ Remove</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // 4. SAVE NDT / DC DATA ONLY TO lhs_entries (piping_joints REMOVED)
+    async function handleSaveData() {
+      if (selectedSpools.length === 0) {
+        return alert("⚠️ ઓછામાં ઓછો એક Spool પસંદ કરો.");
+      }
+
+      const actionDate = document.getElementById('inputActionDate').value;
+      if (!actionDate) {
+        return alert("⚠️ કૃપા કરીને તારીખ પસંદ કરો.");
+      }
+
+      let dcNo = '';
+      if (currentMode === 'DC') {
+        dcNo = document.getElementById('inputDcNo').value.trim().toUpperCase();
+        if (!dcNo) {
+          return alert("⚠️ કૃપા કરીને DC No. દાખલ કરો.");
+        }
+      }
+
+      const saveBtn = document.getElementById('btnSaveData');
+      saveBtn.disabled = true;
+      saveBtn.innerText = "⏳ Saving...";
+
+      const targetSpools = selectedSpools.map(s => s.spoolNo);
+
+      try {
+        // 🟢 ONLY UPDATE lhs_entries TABLE
+        for (const sp of targetSpools) {
+          if (currentMode === 'NDT') {
+            const { error: lhsErr } = await db
+              .from('lhs_entries')
+              .update({ ndt_clearance: actionDate })
+              .ilike('spool_no', sp);
+
+            if (lhsErr) throw lhsErr;
+
+          } else if (currentMode === 'DC') {
+            const { error: lhsErr } = await db
+              .from('lhs_entries')
+              .update({
+                fd_date: actionDate,
+                shift_dc_no: dcNo
+              })
+              .ilike('spool_no', sp);
+
+            if (lhsErr) throw lhsErr;
+          }
+        }
+
+        alert(`✅ સફળતાપૂર્વક ${targetSpools.length} Spool(s) માટે ${currentMode} ડેટા માત્ર lhs_entries માં સેવ થઈ ગયો!`);
+
+        selectedSpools = [];
+        document.getElementById('inputActionDate').value = '';
+        if (document.getElementById('inputDcNo')) document.getElementById('inputDcNo').value = '';
+        renderSelectedTable();
+        await loadPendingSpools();
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ સેવ કરવામાં ભૂલ આવી: " + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "💾 SAVE ENTRY";
+      }
+    }
+
+    // Close search dropdown on click outside
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('searchWrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifyAdminAccess()) {
+        // Set today's date by default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('inputActionDate').value = today;
+        loadPendingSpools();
+      }
+    });
+  </script>
+</body>
+</html>
