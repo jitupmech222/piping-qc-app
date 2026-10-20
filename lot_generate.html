@@ -244,7 +244,7 @@
 
     function updatePlaceholder() {
       const type = document.querySelector('input[name="ndtType"]:checked').value;
-      document.getElementById('lblLotInput').innerText = `2. Enter ${type} Lot Number:`;
+      document.getElementById('lblLotInput').innerText = `${type} Lot Number:`;
       document.getElementById('inputLotNo').placeholder = type === 'RT' ? 'e.g. 01, 101, PJ-01' : 'e.g. 02, 03, 700';
     }
 
