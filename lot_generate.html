@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lot Generate | QA/QC Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- ExcelJS Library for Client-side Excel Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 20px; -webkit-font-smoothing: antialiased; }
+
+    .top-header {
+      background: #ffffff;
+      padding: 16px 22px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .top-header-left { display: flex; align-items: center; gap: 14px; }
+    .top-header h2 { margin: 0; color: #17365d; font-size: 20px; font-weight: 800; }
+
+    .btn-back {
+      padding: 7px 15px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { background: #f1f5f9; }
+
+    .main-card {
+      max-width: 850px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      padding: 26px 30px;
+    }
+
+    .form-group { margin-bottom: 22px; }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 24px;
+      background: #f8fafc;
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: 1.5px solid #cbd5e1;
+      width: fit-content;
+    }
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      color: #334155;
+    }
+    .radio-label input[type="radio"] {
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+      accent-color: #0284c7;
+    }
+
+    .input-lot {
+      width: 100%;
+      max-width: 320px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+    }
+    .input-lot:focus { border-color: #0284c7; }
+
+    .btn-generate {
+      padding: 12px 28px;
+      background: #17365d;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-generate:hover { background: #0f233d; }
+    .btn-generate:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* Alert Message Cards */
+    .result-box {
+      margin-top: 24px;
+      padding: 18px 20px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .result-success { background: #dcfce7; color: #15803d; border: 1.5px solid #bbf7d0; }
+    .result-error { background: #fee2e2; color: #b91c1c; border: 1.5px solid #fecaca; font-weight: 600; }
+
+    /* Preview Table */
+    .preview-card {
+      margin-top: 26px;
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      padding: 18px;
+      display: none;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+    th { background: #17365d; color: #fff; padding: 8px; border: 1px solid #cbd5e1; font-weight: 700; }
+    td { padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; }
+    tr:nth-child(even) td { background: #f8fafc; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <div class="top-header-left">
+      <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
+      <h2>⚙️ LOT GENERATE MODULE</h2>
+      <span id="navSubTitle" style="font-size: 12px; color: #64748b; font-weight: bold;"></span>
+    </div>
+  </div>
+
+  <!-- MAIN GENERATE CARD -->
+  <div class="main-card">
+    <!-- 1. NDT TYPE SELECTION -->
+    <div class="form-group">
+      <label>1. Select NDT Type:</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="ndtType" value="RT" checked onchange="updatePlaceholder()">
+          ☢️ RT (Radiography)
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="ndtType" value="DPT" onchange="updatePlaceholder()">
+          🔬 DPT (Penetrant)
+        </label>
+      </div>
+    </div>
+
+    <!-- 2. LOT NUMBER INPUT -->
+    <div class="form-group">
+      <label id="lblLotInput">2. Enter RT Lot Number:</label>
+      <input
+        type="text"
+        id="inputLotNo"
+        class="input-lot"
+        placeholder="e.g. 01, 101, 359 or PJ-01"
+        autocomplete="off"
+        onkeydown="if(event.key === 'Enter') handleGenerateLot()"
+      />
+    </div>
+
+    <!-- ACTION BUTTON -->
+    <button type="button" id="btnGen" class="btn-generate" onclick="handleGenerateLot()">
+      📑 Generate & Download LOT Excel
+    </button>
+
+    <!-- STATUS MESSAGES -->
+    <div id="statusAlert" style="display: none;"></div>
+
+    <!-- PREVIEW TABLE -->
+    <div id="previewCard" class="preview-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h4 style="margin: 0; color: #17365d;" id="previewHeading">Preview Joints</h4>
+        <span style="font-size: 12px; color: #16a34a; font-weight: 700;">✓ Ready in Downloaded File</span>
+      </div>
+      <div style="overflow-x: auto; max-height: 280px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Sr.</th>
+              <th>Drawing No</th>
+              <th>Spool No</th>
+              <th>Joint No</th>
+              <th>Type</th>
+              <th>Size</th>
+              <th>Thk</th>
+              <th>Welder</th>
+              <th>Visual Report</th>
+              <th>Visual Date</th>
+            </tr>
+          </thead>
+          <tbody id="previewTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ Access Denied: માત્ર Admin પાસે જ Lot Generate ની પરમિશન છે!");
+        window.location.href = 'index.html?tab=qaqc';
+        return false;
+      }
+      document.getElementById('navSubTitle').innerText = `| Admin: ${user.name}`;
+      return true;
+    }
+
+    function updatePlaceholder() {
+      const type = document.querySelector('input[name="ndtType"]:checked').value;
+      document.getElementById('lblLotInput').innerText = `2. Enter ${type} Lot Number:`;
+      document.getElementById('inputLotNo').placeholder = type === 'RT' ? 'e.g. 01, 101, PJ-01' : 'e.g. 02, 03, 700';
+    }
+
+    function extractCleanLotNum(val) {
+      if (val === null || val === undefined) return "";
+      const str = String(val).trim();
+      if (!str || ["NA", "0", "NULL", "UNDEFINED"].includes(str.toUpperCase())) return "";
+      const upper = str.toUpperCase().replace(/\s+/g, '');
+      if (upper.includes("PJ-01") || upper.includes("PJ1") || upper.includes("PJ-1")) return "PJ-01";
+      if (upper.includes("PJ-02") || upper.includes("PJ2") || upper.includes("PJ-2")) return "PJ-02";
+      return str;
+    }
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (!str || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
+
+    // MAIN GENERATE AND EXCEL DOWNLOAD HANDLER
+    async function handleGenerateLot() {
+      const ndtType = document.querySelector('input[name="ndtType"]:checked').value;
+      const rawLot = document.getElementById('inputLotNo').value.trim();
+
+      const alertBox = document.getElementById('statusAlert');
+      const previewCard = document.getElementById('previewCard');
+      alertBox.style.display = 'none';
+      previewCard.style.display = 'none';
+
+      if (!rawLot) {
+        alert("⚠️ મહેરબાની કરીને Lot Number દાખલ કરો!");
+        document.getElementById('inputLotNo').focus();
+        return;
+      }
+
+      const btnGen = document.getElementById('btnGen');
+      btnGen.disabled = true;
+      btnGen.innerText = "⏳ Generating Excel...";
+
+      try {
+        // ૧. તમામ ડેટા Supabase (lhs_entries) માંથી ખેંચવો
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('*')
+            .order('id', { ascending: true })
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        const targetLotClean = extractCleanLotNum(rawLot).toUpperCase();
+
+        // ૨. ચોક્કસ NDT Type અને Lot Number મુજબ જોઈન્ટ્સ ફિલ્ટર કરવા
+        const matchedJoints = allRows.filter(r => {
+          const jType = String(r.joint_type || '').toUpperCase().trim();
+          let lotVal = "";
+
+          if (ndtType === "RT") {
+            lotVal = r.rt_lot_no;
+          } else {
+            // DPT: EB માટે induction_bend_dpt_lot_no, અન્યથા dpt_lot_no
+            lotVal = jType === "EB" ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
+          }
+
+          const cLot = extractCleanLotNum(lotVal).toUpperCase();
+          if (!cLot) return false;
+
+          // Numeric અથવા Exact Match (e.g. '01' === '1' or 'PJ-01')
+          const matchesExact = cLot === targetLotClean;
+          const matchesNumeric = (!isNaN(parseInt(cLot, 10)) && !isNaN(parseInt(targetLotClean, 10))) &&
+                                 (parseInt(cLot, 10) === parseInt(targetLotClean, 10));
+
+          return matchesExact || matchesNumeric;
+        });
+
+        if (matchedJoints.length === 0) {
+          alertBox.className = "result-box result-error";
+          alertBox.innerHTML = `❌ કોઈ જોઈન્ટ્સ મળ્યા નથી! ${ndtType} LOT-<b>${rawLot}</b> વાળો કોઈ રેકોર્ડ lhs_entries ટેબલમાં નથી.`;
+          alertBox.style.display = 'block';
+          return;
+        }
+
+        // ૩. Client-Side Excel Workbook તૈયાર કરવી
+        const workbook = new ExcelJS.Workbook();
+        const sheetName = `${ndtType}_LOT_${rawLot}`;
+        const worksheet = workbook.addWorksheet(sheetName, {
+          views: [{ state: 'frozen', ySplit: 4, showGridLines: true }]
+        });
+
+        // Title Header Rows
+        worksheet.mergeCells('A1:J1');
+        const titleCell = worksheet.getCell('A1');
+        titleCell.value = `PIPING INSPECTION & QA/QC - ${ndtType} LOT OFFER SHEET`;
+        titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF17365D' } };
+        titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+        worksheet.getRow(1).height = 28;
+
+        // Lot Information Row
+        worksheet.mergeCells('A2:J2');
+        const subCell = worksheet.getCell('A2');
+        subCell.value = `NDT TYPE: ${ndtType}  |  LOT NO: ${rawLot}  |  TOTAL JOINTS: ${matchedJoints.length}  |  GENERATED DATE: ${new Date().toLocaleDateString('en-GB')}`;
+        subCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF0F172A' } };
+        subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+        subCell.alignment = { vertical: 'middle', horizontal: 'center' };
+        worksheet.getRow(2).height = 22;
+
+        worksheet.addRow([]); // Blank row 3
+
+        // Columns Headers (Row 4)
+        const headers = [
+          "Sr.", "ISO / Drawing No", "Spool Unique No", "Joint No", "Joint Type",
+          "Weld Size", "Thk", "Welder No", "Visual Report No", "Visual Date"
+        ];
+        const headerRow = worksheet.addRow(headers);
+        headerRow.height = 24;
+        headerRow.eachCell((cell) => {
+          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F766E' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+        });
+
+        // Add Data Rows
+        matchedJoints.forEach((j, idx) => {
+          const rowData = [
+            idx + 1,
+            j.drawing_no || '-',
+            j.spool_no || '-',
+            j.joint_no || '-',
+            j.joint_type || '-',
+            j.weld_npd ? `${j.weld_npd}"` : '-',
+            j.thk || '-',
+            j.welder_no || 'NA',
+            j.weld_visual_report_no || '-',
+            formatDateDisplay(j.visual_date)
+          ];
+          const r = worksheet.addRow(rowData);
+          r.height = 20;
+          r.eachCell((cell, colIdx) => {
+            cell.font = { name: 'Calibri', size: 10.5 };
+            cell.alignment = { vertical: 'middle', horizontal: colIdx === 2 ? 'left' : 'center' };
+            cell.border = { top: { style: 'thin', color: { argb: 'FFE2E8F0' } }, left: { style: 'thin', color: { argb: 'FFE2E8F0' } }, bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } }, right: { style: 'thin', color: { argb: 'FFE2E8F0' } } };
+          });
+        });
+
+        // Column Widths
+        worksheet.columns = [
+          { width: 6 }, { width: 32 }, { width: 18 }, { width: 12 }, { width: 14 },
+          { width: 12 }, { width: 10 }, { width: 14 }, { width: 20 }, { width: 16 }
+        ];
+
+        // ૪. Auto Download File
+        const fileName = `${ndtType}_LOT_${rawLot}_Joints.xlsx`;
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+        // ૫. UI Success Alert દર્શાવો
+        alertBox.className = "result-box result-success";
+        alertBox.innerHTML = `
+          <h3 style="margin: 0 0 8px 0;">✅ LOT Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
+          <p style="margin: 3px 0;"><b>NDT Type:</b> ${ndtType} | <b>Lot No:</b> ${rawLot}</p>
+          <p style="margin: 3px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળી આવ્યા</p>
+          <p style="margin: 3px 0;"><b>File Name:</b> 📥 <u>${fileName}</u> (Downloaded)</p>
+        `;
+        alertBox.style.display = 'block';
+
+        // Preview Table ભરો
+        document.getElementById('previewHeading').innerText = `Preview: ${ndtType} LOT-${rawLot} (${matchedJoints.length} Joints)`;
+        document.getElementById('previewTbody').innerHTML = matchedJoints.map((j, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td style="text-align:left;">${j.drawing_no || '-'}</td>
+            <td><b>${j.spool_no || '-'}</b></td>
+            <td><b>${j.joint_no}</b></td>
+            <td>${j.joint_type || '-'}</td>
+            <td>${j.weld_npd ? j.weld_npd + '"' : '-'}</td>
+            <td>${j.thk || '-'}</td>
+            <td>${j.welder_no || 'NA'}</td>
+            <td>${j.weld_visual_report_no || '-'}</td>
+            <td>${formatDateDisplay(j.visual_date)}</td>
+          </tr>
+        `).join('');
+        previewCard.style.display = 'block';
+
+      } catch (err) {
+        console.error(err);
+        alertBox.className = "result-box result-error";
+        alertBox.innerHTML = `❌ Error: ${err.message}`;
+        alertBox.style.display = 'block';
+      } finally {
+        btnGen.disabled = false;
+        btnGen.innerText = "📑 Generate & Download LOT Excel";
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifyAdminAccess()) {
+        updatePlaceholder();
+      }
+    });
+  </script>
+</body>
+</html>
