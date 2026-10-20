@@ -146,7 +146,7 @@
   <div class="top-header">
     <div class="top-header-left">
       <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
-      <h2>⚙️ LOT GENERATE MODULE</h2>
+      <h2>LOT GENERATE</h2>
       <span id="navSubTitle" style="font-size: 12px; color: #64748b; font-weight: bold;"></span>
     </div>
   </div>
@@ -155,22 +155,22 @@
   <div class="main-card">
     <!-- 1. NDT TYPE -->
     <div class="form-group">
-      <label>1. Select NDT Type:</label>
+      <label>NDT Type</label>
       <div class="radio-group">
         <label class="radio-label">
           <input type="radio" name="ndtType" value="RT" checked onchange="updatePlaceholder()">
-          ☢️ RT (Radiography)
+           RT 
         </label>
         <label class="radio-label">
           <input type="radio" name="ndtType" value="DPT" onchange="updatePlaceholder()">
-          🔬 DPT (Penetrant)
+          DPT
         </label>
       </div>
     </div>
 
     <!-- 2. LOT NUMBER INPUT -->
     <div class="form-group">
-      <label id="lblLotInput">2. Enter RT Lot Number:</label>
+      <label id="lblLotInput">RT Lot Number:</label>
       <input
         type="text"
         id="inputLotNo"
@@ -183,7 +183,7 @@
 
     <!-- ACTION BUTTON -->
     <button type="button" id="btnGen" class="btn-generate" onclick="handleGenerateLot()">
-      📑 Generate & Download LOT Master Excel
+      Download 
     </button>
 
     <!-- STATUS ALERT -->
@@ -193,7 +193,7 @@
     <div id="previewCard" class="preview-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <h4 style="margin: 0; color: #17365d;" id="previewHeading">Preview Joints</h4>
-        <span style="font-size: 12px; color: #16a34a; font-weight: 700;">✓ Formatted via LOT MASTER.xlsx</span>
+        <span style="font-size: 12px; color: #16a34a; font-weight: 700;"></span>
       </div>
       <div style="overflow-x: auto; max-height: 320px;">
         <table>
@@ -537,10 +537,7 @@
         // ૭. UI સફળતા સંદેશ
         alertBox.className = "result-box result-success";
         alertBox.innerHTML = `
-          <h3 style="margin: 0 0 6px 0;">✅ LOT MASTER ફોર્મેટમાં Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
-          <p style="margin: 2px 0;"><b>NDT Type:</b> ${ndtType} | <b>Lot No:</b> ${rawLot}</p>
-          <p style="margin: 2px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળ્યા</p>
-          <p style="margin: 2px 0;"><b>Row 6 to 26 Borders:</b> ✓ તમામ સેલ્સમાં બોર્ડર લાગુ કરી દેવામાં આવી છે.</p>
+          <h3 style="margin: 0 0 6px 0;">✅</h3>
           <p style="margin: 2px 0;"><b>File Downloaded:</b> 📥 <u>${fileName}</u></p>
         `;
         alertBox.style.display = 'block';
