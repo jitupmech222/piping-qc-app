@@ -95,6 +95,39 @@
     }
     .btn-export:hover { background: #047857; }
 
+    /* 🟢 New Raw Action Buttons */
+    .btn-download-raw {
+      padding: 5px 12px;
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-download-raw:hover { background: #0369a1; }
+    .btn-download-raw:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .btn-update-raw {
+      padding: 5px 12px;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-update-raw:hover { background: #b91c1c; }
+    .btn-update-raw:disabled { background: #94a3b8; cursor: not-allowed; }
+
     /* Pagination Bar */
     .pagination-bar {
       display: flex;
@@ -202,7 +235,12 @@
       <button type="button" id="btnModeEdit" class="btn-mode" onclick="setMode(true)">✏️ Edit</button>
       <button type="button" id="btnSave" class="btn-save" style="display: none;" onclick="saveChanges()">💾 Save Changes</button>
       <button type="button" id="btnClearFilters" class="btn-clear" onclick="clearAllFilters()">✖ Clear Filters</button>
-      <button type="button" class="btn-export" onclick="exportToExcel()">📥 Export to Excel</button>
+      <button type="button" class="btn-export" onclick="exportToExcel()">📑 Export View</button>
+
+      <!-- 🟢 TWO NEW ACTION BUTTONS -->
+      <button type="button" class="btn-download-raw" onclick="downloadRawData()">📥 Download Data</button>
+      <button type="button" class="btn-update-raw" onclick="triggerUpdateData()">🔄 Update Data</button>
+      <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="handleExcelUpload(event)">
     </div>
   </div>
 
@@ -601,7 +639,7 @@
       }
     }
 
-    // 6. EXPORT TO EXCEL
+    // 6. EXPORT TO EXCEL (VIEW FORMAT)
     async function exportToExcel() {
       const filtered = getFilteredRows();
       if (filtered.length === 0) return alert("⚠️ હાલ ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
@@ -642,6 +680,229 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    }
+
+    /* -----------------------------------------------------------------
+       🟢 7. DOWNLOAD DATA (EXACT SUPABASE COLUMN NAMES FOR RAW BACKUP)
+    ------------------------------------------------------------------ */
+    async function downloadRawData() {
+      const btn = document.querySelector('.btn-download-raw');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "⏳ Fetching...";
+      }
+
+      try {
+        let allData = [];
+        let from = 0;
+        let hasMore = true;
+
+        // Fetch all 1000s in batch
+        while (hasMore) {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('*')
+            .order('id', { ascending: true })
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allData = allData.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        if (allData.length === 0) {
+          alert("⚠️ lhs_entries ટેબલમાં કોઈ ડેટા નથી!");
+          return;
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('lhs_entries', {
+          views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
+        });
+
+        // Exact Supabase column keys as header row
+        const rawKeys = COLUMNS.map(c => c.key);
+        const headerRow = worksheet.addRow(rawKeys);
+        headerRow.height = 24;
+        headerRow.eachCell((cell) => {
+          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+
+        allData.forEach(r => {
+          const rowVals = rawKeys.map(k => {
+            const val = r[k];
+            if (val === null || val === undefined) return '';
+            if (typeof val === 'string' && val.includes('T')) {
+              return val.split('T')[0];
+            }
+            return val;
+          });
+          worksheet.addRow(rowVals);
+        });
+
+        worksheet.columns.forEach((col, i) => {
+          col.width = Math.max(rawKeys[i].length + 4, 15);
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const link = document.createElement('a');
+        const today = new Date().toISOString().split('T')[0];
+        link.href = URL.createObjectURL(blob);
+        link.download = `lhs_entries_raw_backup_${today}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ ડાઉનલોડ કરવામાં ભૂલ આવી: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = "📥 Download Data";
+        }
+      }
+    }
+
+    /* -----------------------------------------------------------------
+       🟢 8. UPDATE DATA (CLEAR TABLE & BULK INSERT FROM EXCEL)
+    ------------------------------------------------------------------ */
+    function triggerUpdateData() {
+      document.getElementById('excelFileInput').value = '';
+      document.getElementById('excelFileInput').click();
+    }
+
+    async function handleExcelUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const confirm1 = confirm(`⚠️ સાવધાન: શું તમે ખરેખર "${file.name}" ફાઇલમાંથી નવો ડેટા અપડેટ કરવા માંગો છો?\n\nઆ કરવાથી lhs_entries ટેબલનો તમામ જૂનો ડેટા રિમૂવ (DELETE) થઈ જશે!`);
+      if (!confirm1) return;
+
+      const confirm2 = confirm("🚨 અંતિમ ચેતવણી: જૂનો ડેટા કાયમ માટે ડિલીટ થઈ જશે. શું તમે ખાતરીપૂર્વક આગળ વધવા માંગો છો?");
+      if (!confirm2) return;
+
+      const btn = document.querySelector('.btn-update-raw');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "⏳ Processing Excel...";
+      }
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(arrayBuffer);
+        const worksheet = workbook.worksheets[0];
+
+        if (!worksheet || worksheet.rowCount < 2) {
+          throw new Error("એક્સેલ ફાઇલમાં ડેટા મળ્યો નથી!");
+        }
+
+        // Header mapping
+        const headerRow = worksheet.getRow(1);
+        const fileHeaders = [];
+        headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+          fileHeaders[colNumber] = String(cell.value || '').trim().toLowerCase();
+        });
+
+        const validKeys = COLUMNS.map(c => c.key.toLowerCase());
+        const dateKeys = COLUMNS.filter(c => c.isDate).map(c => c.key.toLowerCase());
+
+        const parsedRows = [];
+        for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
+          const row = worksheet.getRow(rowNumber);
+          let hasVal = false;
+          const rowObj = {};
+
+          fileHeaders.forEach((key, colIndex) => {
+            if (!key || !validKeys.includes(key)) return;
+            const cell = row.getCell(colIndex);
+            let val = cell.value;
+
+            // Handle rich text or formula objects
+            if (val && typeof val === 'object') {
+              if (val.result !== undefined) val = val.result;
+              else if (val.text !== undefined) val = val.text;
+              else if (val instanceof Date) {
+                val = val.toISOString().split('T')[0];
+              }
+            }
+
+            if (val !== null && val !== undefined && String(val).trim() !== '' && String(val).trim().toUpperCase() !== 'NULL') {
+              hasVal = true;
+              if (dateKeys.includes(key)) {
+                if (val instanceof Date) {
+                  val = val.toISOString().split('T')[0];
+                } else {
+                  const s = String(val).trim();
+                  const parts = s.split(/[-/]/);
+                  if (parts.length === 3 && parts[2].length === 4) {
+                    val = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                  } else if (parts.length === 3 && parts[0].length === 4) {
+                    val = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                  }
+                }
+              }
+              rowObj[key] = val;
+            } else {
+              rowObj[key] = null;
+            }
+          });
+
+          if (hasVal) {
+            parsedRows.push(rowObj);
+          }
+        }
+
+        if (parsedRows.length === 0) {
+          throw new Error("એક્સેલ ફાઇલમાં કોઈ માન્ય ડેટા રો મળી નથી!");
+        }
+
+        if (btn) btn.innerText = "⏳ Deleting old records...";
+
+        // Step 1: Remove all existing records from lhs_entries
+        const { error: delError } = await db
+          .from('lhs_entries')
+          .delete()
+          .neq('id', 0);
+
+        if (delError) {
+          throw new Error("જૂનો ડેટા ડિલીટ કરવામાં નિષ્ફળ: " + delError.message);
+        }
+
+        if (btn) btn.innerText = `⏳ Inserting 0 / ${parsedRows.length}...`;
+
+        // Step 2: Insert new rows in batches of 300
+        const batchSize = 300;
+        for (let i = 0; i < parsedRows.length; i += batchSize) {
+          const batch = parsedRows.slice(i, i + batchSize);
+          const { error: insError } = await db.from('lhs_entries').insert(batch);
+          if (insError) {
+            throw new Error(`ડેટા ઇન્સર્ટ કરવામાં ભૂલ (બેચ ${i + 1} - ${Math.min(i + batchSize, parsedRows.length)}): ` + insError.message);
+          }
+          if (btn) btn.innerText = `⏳ Inserting ${Math.min(i + batchSize, parsedRows.length)} / ${parsedRows.length}...`;
+        }
+
+        alert(`✅ સફળતાપૂર્વક તમામ ${parsedRows.length} રેકોર્ડ્સ lhs_entries માં અપડેટ થઈ ગયા છે!`);
+        await loadRecords();
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ Update નિષ્ફળ: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = "🔄 Update Data";
+        }
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
