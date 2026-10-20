@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piping Console | Operations Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- 🟢 Excel Backup માટે ExcelJS લાઇબ્રેરી -->
+  <!-- Excel Backup માટે ExcelJS લાઇબ્રેરી -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-  <!-- 🟢 Live Charts માટે Chart.js લાઇબ્રેરી -->
+  <!-- Live Charts માટે Chart.js લાઇબ્રેરી -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -18,7 +18,8 @@
       --border: #e2e8f0;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --primary: #0d9488;
+      --primary: #2563eb;
+      --teal: #0d9488;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -31,7 +32,270 @@
       overflow-x: hidden;
     }
 
-    /* Left Sidebar */
+    /* =========================================================
+       🟢 GENBA-STYLE MODERN SPLIT-SCREEN LOGIN STYLING
+    ========================================================= */
+    #loginOverlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #f8fafc;
+      z-index: 99999;
+      display: flex;
+      overflow-y: auto;
+    }
+
+    .split-login-wrapper {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* Left Pane - Clean Form Area */
+    .login-left-pane {
+      flex: 1;
+      max-width: 520px;
+      padding: 48px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      box-shadow: 4px 0 24px rgba(15, 23, 42, 0.03);
+      position: relative;
+    }
+
+    .login-brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+
+    .login-brand-img {
+      height: 48px;
+      width: auto;
+      max-width: 60px;
+      object-fit: contain;
+    }
+
+    .login-brand-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+    }
+
+    .login-brand-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .welcome-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.6px;
+      margin-bottom: 8px;
+    }
+
+    .welcome-sub {
+      font-size: 14.5px;
+      color: #64748b;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    .login-form-group {
+      margin-bottom: 18px;
+    }
+
+    .login-form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+
+    .modern-input, .modern-select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #0f172a;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .modern-input:focus, .modern-select:focus {
+      background: #ffffff;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .btn-login-modern {
+      width: 100%;
+      padding: 13px;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+      transition: all 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .btn-login-modern:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-login-modern:active {
+      transform: translateY(0);
+    }
+
+    .login-error-card {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .login-footer-note {
+      margin-top: 28px;
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: center;
+    }
+
+    /* Right Pane - Visual Dashboard Showcase */
+    .login-right-pane {
+      flex: 1.3;
+      background: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 50%, #eff6ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-right-pane::before {
+      content: "";
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, rgba(37, 99, 235, 0) 70%);
+      top: -100px;
+      right: -100px;
+    }
+
+    .preview-card-mockup {
+      width: 100%;
+      max-width: 620px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      padding: 24px 28px;
+      transform: perspective(1000px) rotateY(-3deg) rotateX(2deg);
+      transition: transform 0.4s ease;
+    }
+
+    .preview-card-mockup:hover {
+      transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+    }
+
+    .mockup-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f1f5f9;
+      margin-bottom: 18px;
+    }
+
+    .mockup-pills {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mockup-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .mockup-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .mockup-kpi {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .mockup-chart-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 16px;
+      height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .mockup-chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      height: 100px;
+      padding-top: 10px;
+    }
+
+    .mockup-bar {
+      flex: 1;
+      background: linear-gradient(180deg, #2563eb 0%, #60a5fa 100%);
+      border-radius: 6px 6px 0 0;
+      opacity: 0.85;
+    }
+
+    @media (max-width: 992px) {
+      .login-right-pane { display: none; }
+      .login-left-pane { max-width: 100%; border-right: none; }
+    }
+
+    /* =========================================================
+       MAIN DASHBOARD WORKSPACE & SIDEBAR STYLES
+    ========================================================= */
     .sidebar {
       width: 250px;
       background: var(--sidebar-bg);
@@ -68,7 +332,6 @@
       gap: 12px;
     }
 
-    /* 🟢 PFS Logo Styling */
     .brand-logo-img {
       height: 40px;
       width: auto;
@@ -148,11 +411,8 @@
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35);
     }
-    .btn-big-logout:active {
-      transform: translateY(0);
-    }
+    .btn-big-logout:active { transform: translateY(0); }
 
-    /* Main Workspace */
     .main-workspace {
       flex: 1;
       padding: 24px 32px;
@@ -243,7 +503,6 @@
     }
     .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
 
-    /* Modern Header & KPI Styles */
     .dashboard-header {
       display: flex;
       align-items: center;
@@ -267,11 +526,7 @@
       color: var(--text-muted);
     }
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
 
     .date-badge {
       background: #ffffff;
@@ -317,7 +572,6 @@
     }
     .btn-hero-action:hover { opacity: 0.9; }
 
-    /* 4 Top Sleek KPI Cards */
     .kpi-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -334,18 +588,8 @@
       position: relative;
     }
 
-    .kpi-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .kpi-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
+    .kpi-top { display: flex; justify-content: space-between; align-items: center; }
+    .kpi-name { font-size: 13px; font-weight: 600; color: var(--text-muted); }
     .kpi-icon-pill {
       width: 38px;
       height: 38px;
@@ -355,7 +599,6 @@
       justify-content: center;
       font-size: 18px;
     }
-
     .kpi-value {
       font-size: 28px;
       font-weight: 800;
@@ -363,7 +606,6 @@
       margin-top: 14px;
       letter-spacing: -0.5px;
     }
-
     .kpi-footer {
       display: flex;
       align-items: center;
@@ -371,7 +613,6 @@
       font-size: 12px;
       margin-top: 8px;
     }
-
     .tag-growth {
       color: #16a34a;
       font-weight: 700;
@@ -380,7 +621,6 @@
       border-radius: 4px;
     }
 
-    /* Charts Row */
     .charts-row {
       display: grid;
       grid-template-columns: 2fr 1.1fr;
@@ -403,12 +643,7 @@
       margin-bottom: 14px;
     }
 
-    .chart-title-box h3 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 800;
-      color: #0f172a;
-    }
+    .chart-title-box h3 { margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; }
 
     .time-pills {
       background: #f1f5f9;
@@ -428,13 +663,8 @@
       color: #64748b;
       cursor: pointer;
     }
-    .time-pill-btn.active {
-      background: #ffffff;
-      color: #0f172a;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
+    .time-pill-btn.active { background: #ffffff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
-    /* Sub panels & Menus */
     .sub-panel { display: none; margin-top: 10px; }
     .sub-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
     .sub-btn {
@@ -510,10 +740,6 @@
     .tag-completed { background: #15803d; color: #ffffff; }
     .tag-hold { background: #c2410c; color: #ffffff; }
 
-    #loginOverlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-    .login-box { background: white; width: 380px; padding: 30px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .btn-login { background: #0d9488; color: white; width: 100%; border: none; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 8px; margin-top: 16px; cursor: pointer; }
-
     @media (max-width: 1024px) {
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
       .charts-row { grid-template-columns: 1fr; }
@@ -525,29 +751,109 @@
 </head>
 <body>
 
-<!-- Login Modal -->
+<!-- 🟢 GENBA-STYLE INBUILT SPLIT LOGIN SCREEN -->
 <div id="loginOverlay">
-  <div class="login-box">
-    <div style="text-align: center; margin-bottom: 20px;">
-      <h3 style="margin: 0; font-size: 20px; font-weight: 800;">Login</h3>
+  <div class="split-login-wrapper">
+    
+    <!-- Left Login Form Area -->
+    <div class="login-left-pane">
+      <div class="login-brand-header">
+        <img src="PFS logo.webp" alt="PFS Logo" class="login-brand-img">
+        <div>
+          <div class="login-brand-name">PIPEFLOW SYS</div>
+          <div class="login-brand-tag">Piping & QC Console</div>
+        </div>
+      </div>
+
+      <h1 class="welcome-title">Welcome back!</h1>
+      <p class="welcome-sub">Please select your operational role and enter your security credentials to access the console.</p>
+
+      <!-- Security Notice Card -->
+      <div id="loginError" class="login-error-card">⚠️ Invalid Credentials!</div>
+
+      <div class="login-form-group">
+        <label for="loginUser">Select Role</label>
+        <select id="loginUser" class="modern-select">
+          <option value="admin">Admin</option>
+          <option value="bending">Bending</option>
+          <option value="fitup">Fit-up</option>
+          <option value="welding">Welding</option>
+          <option value="qc/dc">QC/DC</option>
+          <option value="viewer">Viewer</option>
+        </select>
+      </div>
+
+      <div class="login-form-group">
+        <label for="loginPass">Password</label>
+        <input type="password" id="loginPass" class="modern-input" placeholder="••••••••••••" onkeydown="if(event.key==='Enter') verifyLogin()">
+      </div>
+
+      <button type="button" class="btn-login-modern" onclick="verifyLogin()">
+        <span>Continue to Portal</span>
+        <span>➔</span>
+      </button>
+
+      <div class="login-footer-note">
+        Protected by Encrypted Database Authentication &bull; www.pipeflowsys.in
+      </div>
     </div>
-    <div>
-      <label>Select Role:</label>
-      <select id="loginUser">
-        <option value="admin">Admin</option>
-        <option value="bending">Bending</option>
-        <option value="fitup">Fit-up</option>
-        <option value="welding">Welding</option>
-        <option value="qc/dc">QC/DC</option>
-        <option value="viewer">Viewer</option>
-      </select>
+
+    <!-- Right Live Showcase Area (Matching Genba Mockup) -->
+    <div class="login-right-pane">
+      <div class="preview-card-mockup">
+        <div class="mockup-top-bar">
+          <div class="mockup-pills">
+            <span class="mockup-dot" style="background:#ef4444;"></span>
+            <span class="mockup-dot" style="background:#f59e0b;"></span>
+            <span class="mockup-dot" style="background:#10b981;"></span>
+          </div>
+          <div style="font-size:12px; font-weight:700; color:#64748b; display:flex; align-items:center; gap:6px;">
+            <span class="live-dot"></span> Live Operations Insight
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <h4 style="margin:0; font-size:17px; font-weight:800; color:#0f172a;">Overall Piping Progress</h4>
+          <span style="font-size:12px; color:#64748b;">Glimpse of active spools, welded joints & dispatch metrics</span>
+        </div>
+
+        <!-- KPI Mini Grid -->
+        <div class="mockup-kpi-grid">
+          <div class="mockup-kpi">
+            <span style="font-size:11px; color:#64748b; font-weight:600;">Total Spool Scope</span>
+            <div style="font-size:20px; font-weight:800; color:#0f172a; margin-top:4px;">4,047</div>
+            <span style="font-size:10px; color:#16a34a; font-weight:700;">3,717 Dispatched</span>
+          </div>
+          <div class="mockup-kpi">
+            <span style="font-size:11px; color:#64748b; font-weight:600;">Joints (Weld ID)</span>
+            <div style="font-size:20px; font-weight:800; color:#7c3aed; margin-top:4px;">42,255</div>
+            <span style="font-size:10px; color:#7c3aed; font-weight:700;">39,440 Done</span>
+          </div>
+          <div class="mockup-kpi">
+            <span style="font-size:11px; color:#64748b; font-weight:600;">Completion Rate</span>
+            <div style="font-size:20px; font-weight:800; color:#2563eb; margin-top:4px;">91.8%</div>
+            <span style="font-size:10px; color:#d97706; font-weight:700;">330 In Shop</span>
+          </div>
+        </div>
+
+        <!-- Miniature Chart Showcase -->
+        <div class="mockup-chart-box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; font-weight:700; color:#334155;">Stage Pipeline Progression</span>
+            <span style="font-size:10.5px; background:#eff6ff; color:#2563eb; padding:2px 8px; border-radius:999px; font-weight:700;">Active Flow</span>
+          </div>
+          <div class="mockup-chart-bars">
+            <div class="mockup-bar" style="height:95%;" title="Issued"></div>
+            <div class="mockup-bar" style="height:82%;" title="Bended"></div>
+            <div class="mockup-bar" style="height:76%;" title="Fit-up"></div>
+            <div class="mockup-bar" style="height:68%;" title="Welded"></div>
+            <div class="mockup-bar" style="height:55%;" title="NDT Clear"></div>
+            <div class="mockup-bar" style="height:48%;" title="Dispatched"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div>
-      <label>Password:</label>
-      <input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter') verifyLogin()">
-    </div>
-    <div id="loginError" style="color: #dc2626; font-size: 12px; font-weight: bold; margin-top: 8px; display: none; text-align: center;">⚠️ Invalid Password!</div>
-    <button type="button" class="btn-login" onclick="verifyLogin()">Login ➔</button>
+
   </div>
 </div>
 
@@ -572,7 +878,7 @@
   </div>
 </div>
 
-<!-- Main App Layout -->
+<!-- Main App Layout (Protected Behind Login) -->
 <div id="appContent" style="display: none; width: 100%;">
 
   <!-- Left Sidebar -->
@@ -580,7 +886,6 @@
     <div>
       <div class="brand-area">
         <div class="brand-left">
-          <!-- 🟢 PFS Logo Image Updated -->
           <img src="PFS logo.webp" alt="PFS Logo" class="brand-logo-img">
           <div>
             <div class="brand-name">PIPING CONSOLE</div>
@@ -643,7 +948,6 @@
 
     <!-- MAIN DASHBOARD OVERVIEW -->
     <div id="hubMainMenu">
-      <!-- Header Area -->
       <div class="dashboard-header">
         <div class="dashboard-title-area">
           <h2>Dashboard Overview</h2>
@@ -661,7 +965,7 @@
         </div>
       </div>
 
-      <!-- 4 Sleek KPI Cards -->
+      <!-- 4 Top KPI Cards -->
       <div class="kpi-row">
         <!-- 1. Total Spools -->
         <div class="modern-kpi-card">
@@ -718,7 +1022,6 @@
 
       <!-- Charts Row -->
       <div class="charts-row">
-        <!-- Wave Line Chart (Stage Progress Pipeline) -->
         <div class="chart-card">
           <div class="chart-card-header">
             <div class="chart-title-box">
@@ -734,7 +1037,6 @@
           </div>
         </div>
 
-        <!-- Donut Chart (Dispatched vs Balance) -->
         <div class="chart-card">
           <div class="chart-card-header">
             <div class="chart-title-box">
@@ -765,7 +1067,7 @@
       </div>
     </div>
 
-    <!-- 🛡️ SUB-PANEL: QA/QC Module -->
+    <!-- SUB-PANEL: QA/QC Module -->
     <div id="qaqcHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">QA/QC Inspection & Tracking</h3>
@@ -855,7 +1157,6 @@
           <span>📊</span><span>Open Master Register Full View</span>
         </button>
 
-        <!-- ALL TABLES EXCEL BACKUP BUTTON (Admin Only) -->
         <button class="sub-btn" id="btnFullBackupHub" style="display:none; grid-column: 1 / -1; justify-content:center; background:#ecfdf5; border:1.5px solid #10b981; color:#047857; font-size:14px;" onclick="downloadAllTablesExcelBackup()">
           <span>📥</span><span id="backupBtnLabel">Backup All Database Tables (Single Excel File)</span>
         </button>
@@ -942,7 +1243,6 @@
   let selectedQueue = [];
   let cumulativeRows = [];
 
-  // Chart instances
   let waveChartInstance = null;
   let donutChartInstance = null;
 
@@ -1032,11 +1332,11 @@
     const u = document.getElementById('loginUser').value.trim().toLowerCase();
     const p = document.getElementById('loginPass').value.trim();
     const err = document.getElementById('loginError');
-    const btnLogin = document.querySelector('.btn-login');
+    const btnLogin = document.querySelector('.btn-login-modern');
 
     err.style.display = 'none';
     btnLogin.disabled = true;
-    btnLogin.innerText = "⏳ Checking security...";
+    btnLogin.innerHTML = "<span>⏳ Checking security...</span>";
 
     try {
       const { data: userStatus, error: fetchErr } = await db
@@ -1060,9 +1360,9 @@
           const secs = remainingSec % 60;
 
           err.style.display = 'block';
-          err.innerHTML = `🔒 2 વખત ખોટો પાસવર્ડ દાખલ કર્યો છે.<br>આ એકાઉન્ટ <b>${mins}m ${secs}s</b> માટે તમામ ડિવાઇસ પર લૉક છે!`;
+          err.innerHTML = `🔒 ૨ વખત ખોટો પાસવર્ડ દાખલ કર્યો છે.<br>આ એકાઉન્ટ <b>${mins}m ${secs}s</b> માટે લૉક છે!`;
           btnLogin.disabled = false;
-          btnLogin.innerText = "Login to Portal ➔";
+          btnLogin.innerHTML = "<span>Continue to Portal</span><span>➔</span>";
           return;
         } else {
           await db.from('user_auth_status').update({
@@ -1097,7 +1397,7 @@
           });
 
           err.style.display = 'block';
-          err.innerHTML = `🔒 સતત 2 વખત ખોટો પાસવર્ડ દાખલ કર્યો છે!<br>આ એકાઉન્ટ 5 મિનિટ માટે તમામ ડિવાઇસ પર લૉક થઈ ગયું છે.`;
+          err.innerHTML = `🔒 સતત ૨ વખત ખોટો પાસવર્ડ દાખલ કર્યો છે!<br>આ એકાઉન્ટ ૨ મિનિટ માટે તમામ ડિવાઇસ પર લૉક થઈ ગયું છે.`;
         } else {
           await db.from('user_auth_status').upsert({
             username: u,
@@ -1115,7 +1415,7 @@
       err.innerText = "સિક્યોરિટી સર્વર સાથે સંપર્ક થઈ શક્યો નથી: " + errCatch.message;
     } finally {
       btnLogin.disabled = false;
-      btnLogin.innerText = "Login to Portal ➔";
+      btnLogin.innerHTML = "<span>Continue to Portal</span><span>➔</span>";
     }
   }
 
@@ -1134,11 +1434,9 @@
     const btnBackup = document.getElementById('btnFullBackupHub');
     if (btnBackup) btnBackup.style.display = isAdmin ? 'flex' : 'none';
     
-    // QA/QC Module: Only for Admin
     const navQaqc = document.getElementById('navQaqcLink');
     if (navQaqc) navQaqc.style.display = isAdmin ? 'flex' : 'none';
 
-    // Material Buttons
     const btnMtoUpdate = document.getElementById('btnMtoUpdateHub');
     const btnIgp = document.getElementById('btnIgpUpdateHub');
     const btnMin = document.getElementById('btnMinUpdateHub');
@@ -1146,7 +1444,6 @@
     if (btnIgp) btnIgp.style.display = isAdmin ? 'flex' : 'none';
     if (btnMin) btnMin.style.display = isAdmin ? 'flex' : 'none';
 
-    // Data Buttons
     const btnDataUpdate = document.getElementById('btnDataUpdateHub');
     const btnLineList = document.getElementById('btnLineListHub');
     const btnSapCode = document.getElementById('btnSapCodeHub');
@@ -1155,7 +1452,6 @@
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
   }
 
-  // ALL TABLES MULTI-SHEET EXCEL BACKUP FUNCTION
   async function downloadAllTablesExcelBackup() {
     if (!currentUser || currentUser.username !== 'admin') {
       return alert("⚠️ માત્ર Admin પાસે જ Full Database Backup લેવાની પરમિશન છે!");
@@ -1272,7 +1568,7 @@
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
 
-      alert(`✅ બેકઅપ પૂર્ણ!\nતમામ 6 ટેબલ્સના કુલ ${totalRecordsBackedUp} રેકોર્ડ્સ એક જ Excel ફાઇલમાં ડાઉનલોડ થઈ ગયા છે!`);
+      alert(`✅ બેકઅપ પૂર્ણ!\nતમામ ૬ ટેબલ્સના કુલ ${totalRecordsBackedUp} રેકોર્ડ્સ એક જ Excel ફાઇલમાં ડાઉનલોડ થઈ ગયા છે!`);
 
     } catch (err) {
       console.error("Backup Error:", err);
@@ -1310,43 +1606,36 @@
     await loadTopDashboardMetrics();
   }
 
-  // LOAD DASHBOARD OVERVIEW METRICS & RENDER CHARTS
   async function loadTopDashboardMetrics() {
     const allRows = await ensureAllRecordsCached();
     if (allRows.length === 0) return;
 
     const dispatchedRows = allRows.filter(r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '');
 
-    // 1. Spools
     const totalSpoolsCount = new Set(allRows.map(r => r.Spool_number).filter(Boolean)).size;
     const dispSpoolsCount = new Set(dispatchedRows.map(r => r.Spool_number).filter(Boolean)).size;
     if (document.getElementById('cardTotalSpool')) document.getElementById('cardTotalSpool').innerText = totalSpoolsCount;
     if (document.getElementById('cardDispSpool')) document.getElementById('cardDispSpool').innerText = dispSpoolsCount;
 
-    // 2. Weld ID
     const totalWeldSum = calculateWeldSum(allRows);
     const dispWeldSum = calculateWeldSum(dispatchedRows);
     if (document.getElementById('cardTotalWeld')) document.getElementById('cardTotalWeld').innerText = totalWeldSum;
     if (document.getElementById('cardDispWeld')) document.getElementById('cardDispWeld').innerText = dispWeldSum;
 
-    // 3. Bend Qty
     const totalBendSum = calculateBendSum(allRows);
     const dispBendSum = calculateBendSum(dispatchedRows);
     if (document.getElementById('cardTotalBend')) document.getElementById('cardTotalBend').innerText = totalBendSum;
     if (document.getElementById('cardDispBend')) document.getElementById('cardDispBend').innerText = dispBendSum;
 
-    // 4. Rate
     const pct = totalSpoolsCount > 0 ? ((dispSpoolsCount / totalSpoolsCount) * 100).toFixed(1) : 0;
     if (document.getElementById('cardCompletionRate')) document.getElementById('cardCompletionRate').innerText = `${pct}%`;
     if (document.getElementById('cardPendingSpools')) document.getElementById('cardPendingSpools').innerText = `${totalSpoolsCount - dispSpoolsCount} Spools`;
 
-    // 5. Date badge
     const today = new Date();
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
     const dateBadge = document.getElementById('headerLiveDate');
     if (dateBadge) dateBadge.innerText = today.toLocaleDateString('en-US', options);
 
-    // 6. Stages for Line Chart
     const stagesConfig = [
       { name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '' },
       { name: 'BEND', isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '' },
@@ -1539,7 +1828,6 @@
     alert(`ℹ️ "${name}" module will be added in future.`);
   }
 
-  /* STAGE OPERATIONS */
   async function openStage(stage) {
     currentStage = stage;
     selectedQueue = [];
