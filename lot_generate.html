@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lot Generate | QA/QC Module</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Client-side Excel generation library matching generate_lot.py -->
+  <!-- Client-side Excel generation library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
@@ -137,7 +137,7 @@
     table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
     th { background: #17365d; color: #fff; padding: 8px; border: 1px solid #cbd5e1; font-weight: 700; text-align: center; }
     td { padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; }
-    tr:nth-child(even) td { background: #f8fafc; }
+    tr:nth-child(even) td { background-color: #f8fafc; }
   </style>
 </head>
 <body>
@@ -151,7 +151,7 @@
     </div>
   </div>
 
-  <!-- MAIN GENERATE CARD -->
+  <!-- MAIN CARD -->
   <div class="main-card">
     <!-- 1. NDT TYPE -->
     <div class="form-group">
@@ -193,7 +193,7 @@
     <div id="previewCard" class="preview-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <h4 style="margin: 0; color: #17365d;" id="previewHeading">Preview Joints</h4>
-        <span style="font-size: 12px; color: #16a34a; font-weight: 700;">✓ Formatted as LOT MASTER.xlsx</span>
+        <span style="font-size: 12px; color: #16a34a; font-weight: 700;">✓ Formatted via LOT MASTER.xlsx</span>
       </div>
       <div style="overflow-x: auto; max-height: 320px;">
         <table>
@@ -279,7 +279,31 @@
       return str;
     }
 
-    // 🟢 MAIN GENERATE FUNCTION (Mirror of generate_lot.py)
+    async function fetchAllLhsRows() {
+      let allRows = [];
+      let from = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await db
+          .from('lhs_entries')
+          .select('*')
+          .order('id', { ascending: true })
+          .range(from, from + 999);
+
+        if (error) throw error;
+        if (data && data.length > 0) {
+          allRows = allRows.concat(data);
+          from += 1000;
+          if (data.length < 1000) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+      return allRows;
+    }
+
+    // 🟢 LOAD GITHUB TEMPLATE ('LOT MASTER.xlsx') AND GENERATE
     async function handleGenerateLot() {
       const ndtType = document.querySelector('input[name="ndtType"]:checked').value;
       const rawLot = document.getElementById('inputLotNo').value.trim();
@@ -297,37 +321,17 @@
 
       const btnGen = document.getElementById('btnGen');
       btnGen.disabled = true;
-      btnGen.innerText = "⏳ Generating Excel...";
+      btnGen.innerText = "⏳ Loading Template & Generating...";
 
       try {
-        // ૧. તમામ ડેટા Supabase (lhs_entries) માંથી ખેંચવો
-        let allRows = [];
-        let from = 0;
-        let hasMore = true;
-
-        while (hasMore) {
-          const { data, error } = await db
-            .from('lhs_entries')
-            .select('*')
-            .order('id', { ascending: true })
-            .range(from, from + 999);
-
-          if (error) throw error;
-          if (data && data.length > 0) {
-            allRows = allRows.concat(data);
-            from += 1000;
-            if (data.length < 1000) hasMore = false;
-          } else {
-            hasMore = false;
-          }
-        }
-
+        // ૧. Supabase માંથી ડેટા ફેચ કરવો
+        const allRows = await fetchAllLhsRows();
         const targetLotClean = extractCleanLotNum(rawLot).toUpperCase();
         let matchedJoints = [];
         let headerNdt = "";
         let headerWps = "";
 
-        // ================= RT LOGIC (Col AL in Python) =================
+        // ================= RT LOGIC =================
         if (ndtType === "RT") {
           matchedJoints = allRows.filter(r => {
             const lotVal = extractCleanLotNum(r.rt_lot_no).toUpperCase();
@@ -346,9 +350,9 @@
           headerNdt = "RT-" + (rtValues.length > 0 ? rtValues.join(" & ") : "100%");
           headerWps = "WPS-" + (wpsValues.length > 0 ? wpsValues.join(" & ") : "NA");
 
-        // ================= DPT LOGIC (Auto-detect AF / T in Python) =================
+        // ================= DPT LOGIC =================
         } else {
-          // ૧. પહેલા dpt_lot_no (Col AF) માં ચેક કરવું
+          // પહેલા dpt_lot_no ચેક કરવું
           matchedJoints = allRows.filter(r => {
             const lotVal = extractCleanLotNum(r.dpt_lot_no).toUpperCase();
             if (!lotVal) return false;
@@ -363,7 +367,7 @@
             headerNdt = "DPT-" + (dptValues.length > 0 ? dptValues.join(" & ") : "100%");
             headerWps = "WPS-" + (wpsValues.length > 0 ? wpsValues.join(" & ") : "NA");
           } else {
-            // ૨. જો dpt_lot_no માં ન મળે તો induction_bend_dpt_lot_no (Col T - EB) માં ચેક કરવું
+            // જો ન મળે તો induction_bend_dpt_lot_no (EB) ચેક કરવું
             matchedJoints = allRows.filter(r => {
               const lotVal = extractCleanLotNum(r.induction_bend_dpt_lot_no).toUpperCase();
               if (!lotVal) return false;
@@ -380,11 +384,16 @@
           }
         }
 
-        // ================= CREATE LOT MASTER WORKBOOK =================
+        // ૨. GitHub પરથી તમારું અપલોડ કરેલું 'LOT MASTER.xlsx' ટેમ્પલેટ લોડ કરવું
+        const templateResponse = await fetch(encodeURI('LOT MASTER.xlsx'));
+        if (!templateResponse.ok) {
+          throw new Error("GitHub પર 'LOT MASTER.xlsx' ટેમ્પલેટ ફાઈલ લોડ થઈ શકી નથી.");
+        }
+        const templateBuffer = await templateResponse.arrayBuffer();
+
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet(ndtType, {
-          views: [{ showGridLines: true }]
-        });
+        await workbook.xlsx.load(templateBuffer);
+        const worksheet = workbook.worksheets[0]; // પ્રથમ શીટ
 
         const centerStyle = { vertical: 'middle', horizontal: 'center' };
         const borderStyle = {
@@ -394,46 +403,17 @@
           right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
         };
 
-        // Title Rows
-        worksheet.mergeCells('A1:Q2');
-        const cTitle = worksheet.getCell('A1');
-        cTitle.value = "LOT MASTER - NDT INSPECTION RECORD";
-        cTitle.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-        cTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF17365D' } };
-        cTitle.alignment = centerStyle;
-
-        // Header Row 4 (WPS, NDT, LOT NAME as in Python)
+        // ૩. હેડર સેલ્સ અપડેટ કરવા (generate_lot.py મુજબ)
         worksheet.getCell('D4').value = headerWps;
         worksheet.getCell('I4').value = headerNdt;
         worksheet.getCell('N4').value = `LOT NAME: MPL/AIPL/${ndtType}/LOT-${rawLot}`;
-
-        ['D4', 'I4', 'N4'].forEach(pos => {
-          const c = worksheet.getCell(pos);
-          c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF0F172A' } };
-          c.alignment = centerStyle;
-        });
-
-        // Lot No Cell G7
         worksheet.getCell('G7').value = isNaN(parseInt(rawLot, 10)) ? rawLot : parseInt(rawLot, 10);
-        worksheet.getCell('G7').font = { name: 'Calibri', size: 11, bold: true };
-        worksheet.getCell('G7').alignment = centerStyle;
 
-        // Table Headers (Row 6)
-        const colHeaders = [
-          "Sr", "Drawing No", "", "Pipe Class", "Joint No", "Size & Thk", "",
-          "Welder No", "Type", "", "Weld Visual Report No", "Visual Date",
-          "Type of NDT", "NDT Report No", "NDT Date", "Spool No", "NDT Clearance"
-        ];
-        const hRow = worksheet.getRow(6);
-        hRow.values = colHeaders;
-        hRow.height = 24;
-        hRow.eachCell((cell) => {
-          cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F766E' } };
-          cell.alignment = centerStyle;
+        ['D4', 'I4', 'N4', 'G7'].forEach(pos => {
+          worksheet.getCell(pos).alignment = centerStyle;
         });
 
-        // Data Rows starting from Row 7
+        // ૪. Row 7 થી જોઈન્ટ્સનો ડેટા ભરવો
         let rowOut = 7;
         let sr = 1;
         let lastSpool = null;
@@ -494,28 +474,7 @@
           sr++;
         });
 
-        // Column Widths
-        worksheet.columns = [
-          { key: 'A', width: 6 },
-          { key: 'B', width: 28 },
-          { key: 'C', width: 4 },
-          { key: 'D', width: 14 },
-          { key: 'E', width: 10 },
-          { key: 'F', width: 14 },
-          { key: 'G', width: 8 },
-          { key: 'H', width: 12 },
-          { key: 'I', width: 10 },
-          { key: 'J', width: 4 },
-          { key: 'K', width: 18 },
-          { key: 'L', width: 13 },
-          { key: 'M', width: 12 },
-          { key: 'N', width: 18 },
-          { key: 'O', width: 13 },
-          { key: 'P', width: 16 },
-          { key: 'Q', width: 14 }
-        ];
-
-        // ૪. Auto Download
+        // ૫. ભરેલી નવી એક્સેલ ફાઈલ ડાઉનલોડ કરાવો
         const fileName = `${ndtType}_LOT_${rawLot}.xlsx`;
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -527,12 +486,12 @@
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
 
-        // ૫. UI Success
+        // ૬. UI પરિણામ દર્શાવો
         alertBox.className = "result-box result-success";
         alertBox.innerHTML = `
-          <h3 style="margin: 0 0 6px 0;">✅ LOT Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
+          <h3 style="margin: 0 0 6px 0;">✅ LOT MASTER ફોર્મેટમાં Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
           <p style="margin: 2px 0;"><b>NDT Type:</b> ${ndtType} | <b>Lot No:</b> ${rawLot}</p>
-          <p style="margin: 2px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળ્યા</p>
+          <p style="margin: 2px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળી આવ્યા</p>
           <p style="margin: 2px 0;"><b>Header NDT:</b> ${headerNdt} | <b>Header WPS:</b> ${headerWps}</p>
           <p style="margin: 2px 0;"><b>File Downloaded:</b> 📥 <u>${fileName}</u></p>
         `;
