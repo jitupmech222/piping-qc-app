@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piping Console | Operations Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- 🟢 Excel Backup માટે ExcelJS લાઇબ્રેરી -->
+  <!-- 🟢 Excel Backup માટે ExcelJS લાઇબ્રેરી -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <!-- 🟢 Live Charts માટે Chart.js લાઇબ્રેરી -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --sidebar-bg: #0b1329;
@@ -125,6 +127,7 @@
     .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1e293b; color: #2dd4bf; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #334155; }
     .user-details { font-size: 12px; color: #ffffff; font-weight: 600; }
     .user-details span { display: block; font-size: 10px; color: #64748b; font-weight: normal; }
+    
     .btn-big-logout {
       width: 100%;
       padding: 10px 14px;
@@ -243,76 +246,196 @@
     }
     .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
 
-    .welcome-hero {
-      background: linear-gradient(135deg, #0d9488 0%, #047857 100%);
-      border-radius: 18px;
-      padding: 24px 28px;
-      color: #ffffff;
+    /* 🟢 New Reference Header & Modern KPI Styles */
+    .dashboard-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
       margin-bottom: 24px;
-      box-shadow: 0 8px 20px rgba(13, 148, 136, 0.2);
     }
-    .welcome-text h2 { font-size: 22px; font-weight: 800; }
-    .btn-hero-action {
+
+    .dashboard-title-area h2 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    .dashboard-title-area p {
+      margin: 4px 0 0 0;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date-badge {
       background: #ffffff;
-      color: #047857;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .btn-export {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 18px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      transition: all 0.2s;
+    }
+    .btn-export:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+    .btn-hero-action {
+      background: #0f172a;
+      color: #ffffff;
       border: none;
       border-radius: 999px;
-      padding: 10px 22px;
+      padding: 8px 18px;
       font-size: 13px;
       font-weight: 800;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-hero-action:hover { background: #f0fdfa; transform: translateY(-1px); }
+    .btn-hero-action:hover { opacity: 0.9; }
 
+    /* 4 Top Sleek KPI Cards */
     .kpi-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
-    .kpi-card {
+
+    .modern-kpi-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 16px;
-      padding: 18px 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      position: relative;
+    }
+
+    .kpi-top {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
     }
-    .kpi-title { font-size: 12px; font-weight: 600; color: #64748b; }
-    .kpi-val { font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 6px; letter-spacing: -0.5px; }
-    .kpi-sub { font-size: 11px; font-weight: 700; color: #16a34a; margin-top: 6px; }
 
-    /* Centered Left-Aligned Category Cards */
-    .category-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
+    .kpi-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
     }
-    .category-card {
+
+    .kpi-icon-pill {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 14px;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .tag-growth {
+      color: #16a34a;
+      font-weight: 700;
+      background: #f0fdf4;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Charts Row */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1.1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .chart-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 18px;
-      padding: 22px 28px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      text-align: left;
-      min-height: 140px;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
-    .category-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06); border-color: #cbd5e1; }
-    .cat-body { margin-top: 0; width: 100%; text-align: left; }
-    .cat-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
-    .cat-desc { font-size: 13px; color: #64748b; line-height: 1.4; }
+
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .chart-title-box h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .time-pills {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 3px;
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .time-pill-btn {
+      border: none;
+      background: transparent;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .time-pill-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
 
     /* Sub panels & Menus */
     .sub-panel { display: none; margin-top: 10px; }
@@ -396,7 +519,10 @@
 
     @media (max-width: 1024px) {
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
-      .category-grid { grid-template-columns: 1fr; }
+      .charts-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .kpi-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -469,19 +595,19 @@
         <span>📊</span> <span>Dashboard Overview</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('mechHub')">
-        <span></span> <span>Mechanical</span>
+        <span>⚙️</span> <span>Mechanical</span>
       </a>
       <a class="nav-item" id="navQaqcLink" style="display:none;" onclick="openCategoryHub('qaqcHub')">
-        <span></span> <span>QA/QC Module</span>
+        <span>🛡️</span> <span>QA/QC Module</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('matHub')">
-        <span></span> <span>Material</span>
+        <span>📦</span> <span>Material</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('reportHub')">
-        <span></span> <span>Report</span>
+        <span>📈</span> <span>Report</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('dataHub')">
-        <span></span> <span>Data</span>
+        <span>💾</span> <span>Data</span>
       </a>
     </div>
 
@@ -517,83 +643,108 @@
       </div>
     </div>
 
-    <!-- MAIN DASHBOARD -->
+    <!-- 🟢 MAIN DASHBOARD OVERVIEW (NEW REFERENCE DESIGN) -->
     <div id="hubMainMenu">
-      <div class="welcome-hero">
-        <div class="welcome-text">
-          <h2 id="heroWelcomeTitle">Welcome back, Admin!</h2>
+      <!-- Header Area from Reference Image -->
+      <div class="dashboard-header">
+        <div class="dashboard-title-area">
+          <h2>Dashboard Overview</h2>
+          <p id="welcomeGreeting">Welcome back, Admin!</p>
         </div>
-        <button class="btn-hero-action" onclick="openCategoryHub('mechHub')">Open Mechanical Spools ➔</button>
+        <div class="header-actions">
+          <div class="date-badge">
+            <span>📅</span>
+            <span id="headerLiveDate">Oct 20, 2026</span>
+          </div>
+          <button class="btn-export" onclick="window.location.href='master_register.html'">
+            <span>📥</span>
+            <span>Export Data</span>
+          </button>
+        </div>
       </div>
 
+      <!-- 4 Sleek KPI Cards from Reference Image -->
       <div class="kpi-row">
-        <div class="kpi-card">
-          <div>
-            <div class="kpi-title">Total Spools</div>
-            <div class="kpi-val" id="kpiTotalSpool">0</div>
-            <div class="kpi-sub">✓ Fully registered</div>
+        <!-- 1. Total Spools -->
+        <div class="modern-kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-name">Total Spool Scope</span>
+            <div class="kpi-icon-pill" style="background:#eff6ff; color:#2563eb;">📦</div>
+          </div>
+          <div class="kpi-value" id="cardTotalSpool">0</div>
+          <div class="kpi-footer">
+            <span class="tag-growth">Dispatched: <span id="cardDispSpool">0</span></span>
+            <span style="color:#64748b;">completed</span>
           </div>
         </div>
 
-        <div class="kpi-card">
-          <div>
-            <div class="kpi-title">Total Joints (Weld ID)</div>
-            <div class="kpi-val" id="kpiTotalWeld">0</div>
-            <div class="kpi-sub" style="color:#0284c7;">⚡ In scope</div>
+        <!-- 2. Total Weld ID -->
+        <div class="modern-kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-name">Total Joints (Weld ID)</span>
+            <div class="kpi-icon-pill" style="background:#ede9fe; color:#7c3aed;">⚡</div>
+          </div>
+          <div class="kpi-value" id="cardTotalWeld">0</div>
+          <div class="kpi-footer">
+            <span class="tag-growth" style="color:#7c3aed; background:#f5f3ff;">Done: <span id="cardDispWeld">0</span></span>
+            <span style="color:#64748b;">welded joints</span>
           </div>
         </div>
 
-        <div class="kpi-card">
-          <div>
-            <div class="kpi-title">Welding Completion</div>
-            <div class="kpi-val" id="kpiWeldingRate">0%</div>
-            <div class="kpi-sub" style="color:#16a34a;">↗ Progress matrix</div>
+        <!-- 3. Total Bend Scope -->
+        <div class="modern-kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-name">Total Bend Scope</span>
+            <div class="kpi-icon-pill" style="background:#f0fdf4; color:#16a34a;">📐</div>
+          </div>
+          <div class="kpi-value" id="cardTotalBend">0</div>
+          <div class="kpi-footer">
+            <span class="tag-growth">Done: <span id="cardDispBend">0</span></span>
+            <span style="color:#64748b;">bended qty</span>
           </div>
         </div>
 
-        <div class="kpi-card">
-          <div>
-            <div class="kpi-title">Pending NDT</div>
-            <div class="kpi-val" id="kpiPendingNdt">0 items</div>
-            <div class="kpi-sub" style="color:#eab308;">⚠️ Action required</div>
+        <!-- 4. Dispatch Rate -->
+        <div class="modern-kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-name">Dispatch Completion</span>
+            <div class="kpi-icon-pill" style="background:#fef3c7; color:#d97706;">📊</div>
+          </div>
+          <div class="kpi-value" id="cardCompletionRate">0%</div>
+          <div class="kpi-footer">
+            <span class="tag-growth" id="cardPendingSpools">0 Spools</span>
+            <span style="color:#64748b;">balance in shop</span>
           </div>
         </div>
       </div>
 
-      <!-- 5 Category Cards -->
-      <div class="category-grid">
-        <div class="category-card" onclick="openCategoryHub('mechHub')">
-          <div class="cat-body">
-            <div class="cat-title">Mechanical</div>
-            <div class="cat-desc">Bending, Fit-Up, Welding, NDT, FD & Spool Tracking register.</div>
+      <!-- Charts Row from Reference Image -->
+      <div class="charts-row">
+        <!-- Wave Line Chart (Stage Progress Pipeline) -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title-box">
+              <h3>Stage Progression Pipeline</h3>
+            </div>
+            <div class="time-pills">
+              <button class="time-pill-btn active">Live</button>
+              <button class="time-pill-btn" onclick="refreshProgressData()">Refresh</button>
+            </div>
+          </div>
+          <div style="height: 250px;">
+            <canvas id="pipelineWaveChart"></canvas>
           </div>
         </div>
 
-        <div class="category-card" id="cardQaqcHub" style="display:none;" onclick="openCategoryHub('qaqcHub')">
-          <div class="cat-body">
-            <div class="cat-title">QA/QC Module</div>
-            <div class="cat-desc">LHS Entry, Lot Entry, Lot Offer, DPT & RT Status, NDT DC, PWHT.</div>
-         </div>
-      </div>
-
-        <div class="category-card" onclick="openCategoryHub('matHub')">
-          <div class="cat-body">
-            <div class="cat-title">Material</div>
-            <div class="cat-desc">MTO Update, IGP, MIN & MTO Register records.</div>
+        <!-- Donut Chart (Dispatched vs Balance) -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title-box">
+              <h3>Spool Status Ratio</h3>
+            </div>
           </div>
-        </div>
-
-        <div class="category-card" onclick="openCategoryHub('reportHub')">
-          <div class="cat-body">
-            <div class="cat-title">Reports</div>
-            <div class="cat-desc">Daily Report, Progress & Priority Dashboards.</div>
-          </div>
-        </div>
-
-        <div class="category-card" onclick="openCategoryHub('dataHub')" style="grid-column: 1 / -1;">
-          <div class="cat-body">
-            <div class="cat-title">Data</div>
-            <div class="cat-desc">Line List, SAP Codes, Batch Excel Update & Master Register.</div>
+          <div style="height: 250px; display:flex; justify-content:center; align-items:center;">
+            <canvas id="statusDonutChart"></canvas>
           </div>
         </div>
       </div>
@@ -623,39 +774,28 @@
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
-        <!-- 🟢 1. LHS ENTRY (LIVE WORKING MODULE) -->
         <button class="sub-btn" onclick="window.location.href='lhs_entry.html'" style="border-left: 4px solid #16a34a; font-weight: bold;">
-          <span></span><span>LHS ENTRY</span>
+          <span>📋</span><span>LHS ENTRY</span>
         </button>
-
-        
-        <!-- 2. LOT ENTRY (NOW FULLY ACTIVE) -->
         <button class="sub-btn" onclick="window.location.href='lot_entry.html'" style="border-left: 4px solid #0d6efd; font-weight: bold;">
-          <span></span><span>LOT ENTRY</span>
+          <span>🧾</span><span>LOT ENTRY</span>
         </button>
-        <!-- 3. LOT OFFER / CLEARED (NOW FULLY ACTIVE) -->
         <button class="sub-btn" onclick="window.location.href='lot_offer_cleared.html'" style="border-left: 4px solid #d97706; font-weight: bold;">
-          <span></span><span>LOT OFFER / CLEARED</span>
+          <span>🔍</span><span>LOT OFFER / CLEARED</span>
         </button>
         <button class="sub-btn" onclick="window.location.href='lot_generate.html'" style="border-left: 4px solid #0f766e; font-weight: bold;">
-          <span></span><span>LOT GENERATE</span>
+          <span>⚙️</span><span>LOT GENERATE</span>
         </button>
-        <!-- 5. DPT LOT STATUS (NOW FULLY ACTIVE) -->
         <button class="sub-btn" onclick="window.location.href='dpt_lot_status.html'" style="border-left: 4px solid #7b1fa2; font-weight: bold;">
-          <span></span><span>DPT LOT STATUS</span>
+          <span>🔬</span><span>DPT LOT STATUS</span>
         </button>
-        <!-- 6. RT LOT STATUS (NOW FULLY ACTIVE) -->
         <button class="sub-btn" onclick="window.location.href='rt_lot_status.html'" style="border-left: 4px solid #0284c7; font-weight: bold;">
-          <span></span><span>RT LOT STATUS</span>
+          <span>☢️</span><span>RT LOT STATUS</span>
         </button>
-       
-
-        <!-- 🟢 નવો સક્રિય કોડ -->
         <button class="sub-btn" onclick="window.location.href='ndt_dc.html'" style="border-left: 4px solid #16a34a; font-weight: bold;">
-          <span></span><span>NDT / DC</span>
+          <span>📦</span><span>NDT / DC</span>
         </button>
-        
-        <button class="sub-btn" onclick="futureModuleNotice('PWHT')"><span></span><span>PWHT</span></button>
+        <button class="sub-btn" onclick="futureModuleNotice('PWHT')"><span>🔥</span><span>PWHT</span></button>
         <button class="sub-btn" onclick="window.location.href='view_record.html'" style="border-left: 4px solid #0284c7; font-weight: bold;">
           <span>📊</span><span>VIEW RECORD</span>
         </button>
@@ -670,16 +810,16 @@
       </div>
       <div class="sub-menu-grid">
         <button class="sub-btn" id="btnMtoUpdateHub" style="display:none;" onclick="window.location.href='mto_update_entry.html'">
-          <span></span><span>MTO Update</span>
+          <span>📦</span><span>MTO Update</span>
         </button>
         <button class="sub-btn" id="btnIgpUpdateHub" style="display:none;" onclick="window.location.href='igp_update.html'">
-          <span></span><span>IGP Update</span>
+          <span>🚚</span><span>IGP Update</span>
         </button>
         <button class="sub-btn" id="btnMinUpdateHub" style="display:none;" onclick="window.location.href='min_update.html'">
-          <span></span><span>MIN Update</span>
+          <span>📋</span><span>MIN Update</span>
         </button>
         <button class="sub-btn" onclick="window.location.href='mto_register.html'">
-          <span></span><span>MTO Register</span>
+          <span>📑</span><span>MTO Register</span>
         </button>
       </div>
     </div>
@@ -698,7 +838,6 @@
     </div>
 
     <!-- SUB-PANEL: Data -->
-    <!-- SUB-PANEL: Data -->
     <div id="dataHub" class="sub-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">💾 Data Registers & Updates</h3>
@@ -706,19 +845,19 @@
       </div>
       <div class="sub-menu-grid">
         <button class="sub-btn" id="btnLineListHub" style="display:none;" onclick="window.location.href='line_list.html'">
-          <span></span><span>Line List Master</span>
+          <span>📋</span><span>Line List Master</span>
         </button>
         <button class="sub-btn" id="btnSapCodeHub" style="display:none;" onclick="window.location.href='sap_code.html'">
-          <span></span><span>Material SAP Codes</span>
+          <span>📦</span><span>Material SAP Codes</span>
         </button>
         <button class="sub-btn" id="btnDataUpdateHub" style="display:none;" onclick="window.location.href='data_update.html'">
-          <span></span><span>master Update</span>
+          <span>🔄</span><span>master Update</span>
         </button>
         <button class="sub-btn" onclick="window.location.href='master_register.html'">
           <span>📊</span><span>Open Master Register Full View</span>
         </button>
 
-        <!-- 🟢 5. ALL TABLES EXCEL BACKUP BUTTON (Admin Only) -->
+        <!-- ALL TABLES EXCEL BACKUP BUTTON (Admin Only) -->
         <button class="sub-btn" id="btnFullBackupHub" style="display:none; grid-column: 1 / -1; justify-content:center; background:#ecfdf5; border:1.5px solid #10b981; color:#047857; font-size:14px;" onclick="downloadAllTablesExcelBackup()">
           <span>📥</span><span id="backupBtnLabel">Backup All Database Tables (Single Excel File)</span>
         </button>
@@ -805,6 +944,36 @@
   let selectedQueue = [];
   let cumulativeRows = [];
 
+  // Chart instances
+  let waveChartInstance = null;
+  let donutChartInstance = null;
+
+  function calculateWeldSum(rows) {
+    let sum = 0;
+    rows.forEach(r => {
+      const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
+      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+        const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+        const num = parseFloat(cleaned);
+        if (!isNaN(num)) sum += num;
+      }
+    });
+    return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
+  }
+
+  function calculateBendSum(rows) {
+    let sum = 0;
+    rows.forEach(r => {
+      const rawVal = r.Bend_qty !== undefined ? r.Bend_qty : r.bend_qty;
+      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+        const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
+        const num = parseFloat(cleaned);
+        if (!isNaN(num)) sum += num;
+      }
+    });
+    return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
+  }
+
   function formatDateDisplay(val) {
     if (!val) return '-';
     const str = String(val).trim();
@@ -836,13 +1005,14 @@
       
       document.getElementById('sideUserName').innerText = currentUser.name;
       document.getElementById('sideUserRole').innerText = `${currentUser.username}@piping.org`;
-      document.getElementById('heroWelcomeTitle').innerText = `Welcome back, ${currentUser.name}!`;
+      if (document.getElementById('welcomeGreeting')) {
+        document.getElementById('welcomeGreeting').innerText = `Welcome back, ${currentUser.name}!`;
+      }
       document.getElementById('userAvatarChar').innerText = currentUser.name.substring(0,2).toUpperCase();
 
       updateRoleVisibility();
       loadTopDashboardMetrics();
 
-      // 🟢 આ ૬ લાઇન ઉમેરો: URL પરથી ?tab=qaqc ચેક કરીને સીધું QA/QC Module ખોલવા માટે
       const urlParams = new URLSearchParams(window.location.search);
       const openTab = urlParams.get('tab');
       if (openTab === 'qaqc') {
@@ -867,8 +1037,6 @@
     const btnLogin = document.querySelector('.btn-login');
 
     err.style.display = 'none';
-
-    // ૧. Supabase માંથી આ યુઝરનું સેન્ટ્રલ લૉક સ્ટેટસ તપાસો
     btnLogin.disabled = true;
     btnLogin.innerText = "⏳ Checking security...";
 
@@ -883,7 +1051,6 @@
         throw fetchErr;
       }
 
-      // જો એકાઉન્ટ લૉક હોય તો સમય તપાસો
       if (userStatus && userStatus.locked_until) {
         const lockTime = new Date(userStatus.locked_until).getTime();
         const now = Date.now();
@@ -900,7 +1067,6 @@
           btnLogin.innerText = "Login to Portal ➔";
           return;
         } else {
-          // ૫ મિનિટ પૂરી થઈ ગઈ - લૉક રીસેટ કરો
           await db.from('user_auth_status').update({
             failed_attempts: 0,
             locked_until: null
@@ -908,9 +1074,7 @@
         }
       }
 
-      // ૨. પાસવર્ડ ચેક કરો
       if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
-        // ✅ સાચો પાસવર્ડ: ડેટાબેઝમાં પ્રયાસો 0 કરી દો
         await db.from('user_auth_status').update({
           failed_attempts: 0,
           locked_until: null,
@@ -922,11 +1086,9 @@
         err.style.display = 'none';
         checkSessionAuth();
       } else {
-        // ❌ ખોટો પાસવર્ડ: અસફળ પ્રયાસ ૧ વધારો
         const currentAttempts = (userStatus ? userStatus.failed_attempts : 0) + 1;
 
         if (currentAttempts >= MAX_ATTEMPTS) {
-          // ૨ ખોટા પ્રયાસ -> ૫ મિનિટ માટે લૉક સેટ કરો
           const lockUntil = new Date(Date.now() + (LOCKOUT_MINUTES * 60 * 1000)).toISOString();
           
           await db.from('user_auth_status').upsert({
@@ -939,7 +1101,6 @@
           err.style.display = 'block';
           err.innerHTML = `🔒 સતત 2 વખત ખોટો પાસવર્ડ દાખલ કર્યો છે!<br>આ એકાઉન્ટ 5 મિનિટ માટે તમામ ડિવાઇસ પર લૉક થઈ ગયું છે.`;
         } else {
-          // ૧ અસફળ પ્રયાસ
           await db.from('user_auth_status').upsert({
             username: u,
             failed_attempts: currentAttempts,
@@ -975,11 +1136,9 @@
     const btnBackup = document.getElementById('btnFullBackupHub');
     if (btnBackup) btnBackup.style.display = isAdmin ? 'flex' : 'none';
     
-    // 🛡️ QA/QC Module: Only for Admin
+    // QA/QC Module: Only for Admin
     const navQaqc = document.getElementById('navQaqcLink');
-    const cardQaqc = document.getElementById('cardQaqcHub');
     if (navQaqc) navQaqc.style.display = isAdmin ? 'flex' : 'none';
-    if (cardQaqc) cardQaqc.style.display = isAdmin ? 'flex' : 'none';
 
     // Material Buttons
     const btnMtoUpdate = document.getElementById('btnMtoUpdateHub');
@@ -998,8 +1157,7 @@
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
   }
 
-
-  // 🟢 ALL TABLES MULTI-SHEET EXCEL BACKUP FUNCTION
+  // ALL TABLES MULTI-SHEET EXCEL BACKUP FUNCTION
   async function downloadAllTablesExcelBackup() {
     if (!currentUser || currentUser.username !== 'admin') {
       return alert("⚠️ માત્ર Admin પાસે જ Full Database Backup લેવાની પરમિશન છે!");
@@ -1011,7 +1169,6 @@
     const lbl = document.getElementById('backupBtnLabel');
     if (btn) btn.disabled = true;
 
-    // તમારા Supabase ના તમામ ટેબલ્સની યાદી
     const tablesToBackup = [
       { tableName: 'piping_joints', sheetName: 'Master_Piping_Joints' },
       { tableName: 'Line_list', sheetName: 'Line_List' },
@@ -1032,7 +1189,6 @@
         let from = 0;
         let hasMore = true;
 
-        // 1000-1000 ના બેચમાં ટેબલનો પૂરેપૂરો ડેટા ખેંચવો
         while (hasMore) {
           const { data, error } = await db
             .from(item.tableName)
@@ -1055,7 +1211,6 @@
           }
         }
 
-        // દરેક ટેબલ માટે અલગ Sheet બનાવવી
         const worksheet = workbook.addWorksheet(item.sheetName, {
           views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
         });
@@ -1064,7 +1219,6 @@
           totalRecordsBackedUp += allRows.length;
           const headers = Object.keys(allRows[0]);
 
-          // 1. Header Row ઉમેરવી અને સ્ટાઇલ આપવી
           const headerRow = worksheet.addRow(headers);
           headerRow.height = 24;
           headerRow.eachCell((cell) => {
@@ -1079,7 +1233,6 @@
             };
           });
 
-          // 2. Data Rows ઉમેરવી
           allRows.forEach(rowObj => {
             const rowValues = headers.map(h => {
               const val = rowObj[h];
@@ -1098,20 +1251,17 @@
             });
           });
 
-          // 3. કૉલમની પહોળાઈ (Width) સેટ કરવી
           worksheet.columns.forEach((col, idx) => {
             const headerLen = headers[idx] ? headers[idx].length : 10;
             col.width = Math.max(headerLen + 6, 15);
           });
         } else {
-          // જો ટેબલ ખાલી હોય તો મેસેજ મૂકવો
           worksheet.addRow([`No records found in ${item.tableName}`]);
         }
       }
 
       if (lbl) lbl.innerText = `⏳ Generating Excel file...`;
 
-      // Excel ફાઇલ જનરેટ કરીને ડાઉનલોડ કરાવવી
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const link = document.createElement('a');
@@ -1124,7 +1274,7 @@
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
 
-      alert(`✅ બેકઅપ પૂર્ણ!\nતમામ 6 ટેબલ્સના કુલ ${totalRecordsBackedUp} રેકોર્ડ્સ એક જ Excel ફાઇલ (Piping_Full_Database_Backup_${today}.xlsx) માં સફળતાપૂર્વક ડાઉનલોડ થઈ ગયા છે!`);
+      alert(`✅ બેકઅપ પૂર્ણ!\nતમામ 6 ટેબલ્સના કુલ ${totalRecordsBackedUp} રેકોર્ડ્સ એક જ Excel ફાઇલમાં ડાઉનલોડ થઈ ગયા છે!`);
 
     } catch (err) {
       console.error("Backup Error:", err);
@@ -1134,6 +1284,7 @@
       if (lbl) lbl.innerText = "Backup All Database Tables (Single Excel File)";
     }
   }
+
   async function ensureAllRecordsCached() {
     if (allRecordsCache.length > 0) return allRecordsCache;
     let allRows = [];
@@ -1156,24 +1307,135 @@
     return allRecordsCache;
   }
 
-  async function loadTopDashboardMetrics() {
-    await ensureAllRecordsCached();
+  async function refreshProgressData() {
+    allRecordsCache = [];
+    await loadTopDashboardMetrics();
+  }
 
-    const totalSpools = new Set(allRecordsCache.map(r => r.Spool_number).filter(Boolean)).size;
-    let weldSum = 0;
-    allRecordsCache.forEach(r => {
-      const v = r.Weld_id || r.Joint_no;
-      if (v) { const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); if (!isNaN(n)) weldSum += n; }
+  // 🟢 LOAD DASHBOARD OVERVIEW METRICS & RENDER CHARTS
+  async function loadTopDashboardMetrics() {
+    const allRows = await ensureAllRecordsCached();
+    if (allRows.length === 0) return;
+
+    const dispatchedRows = allRows.filter(r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '');
+
+    // 1. Spools
+    const totalSpoolsCount = new Set(allRows.map(r => r.Spool_number).filter(Boolean)).size;
+    const dispSpoolsCount = new Set(dispatchedRows.map(r => r.Spool_number).filter(Boolean)).size;
+    if (document.getElementById('cardTotalSpool')) document.getElementById('cardTotalSpool').innerText = totalSpoolsCount;
+    if (document.getElementById('cardDispSpool')) document.getElementById('cardDispSpool').innerText = dispSpoolsCount;
+
+    // 2. Weld ID
+    const totalWeldSum = calculateWeldSum(allRows);
+    const dispWeldSum = calculateWeldSum(dispatchedRows);
+    if (document.getElementById('cardTotalWeld')) document.getElementById('cardTotalWeld').innerText = totalWeldSum;
+    if (document.getElementById('cardDispWeld')) document.getElementById('cardDispWeld').innerText = dispWeldSum;
+
+    // 3. Bend Qty
+    const totalBendSum = calculateBendSum(allRows);
+    const dispBendSum = calculateBendSum(dispatchedRows);
+    if (document.getElementById('cardTotalBend')) document.getElementById('cardTotalBend').innerText = totalBendSum;
+    if (document.getElementById('cardDispBend')) document.getElementById('cardDispBend').innerText = dispBendSum;
+
+    // 4. Rate
+    const pct = totalSpoolsCount > 0 ? ((dispSpoolsCount / totalSpoolsCount) * 100).toFixed(1) : 0;
+    if (document.getElementById('cardCompletionRate')) document.getElementById('cardCompletionRate').innerText = `${pct}%`;
+    if (document.getElementById('cardPendingSpools')) document.getElementById('cardPendingSpools').innerText = `${totalSpoolsCount - dispSpoolsCount} Spools`;
+
+    // 5. Date badge
+    const today = new Date();
+    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    const dateBadge = document.getElementById('headerLiveDate');
+    if (dateBadge) dateBadge.innerText = today.toLocaleDateString('en-US', options);
+
+    // 6. Stages for Line Chart
+    const stagesConfig = [
+      { name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '' },
+      { name: 'BEND', isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '' },
+      { name: 'FIT UP', isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '' },
+      { name: 'WELD VISUAL', isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '' },
+      { name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '' },
+      { name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '' }
+    ];
+
+    const stageLabels = [];
+    const stageCompletions = [];
+
+    stagesConfig.forEach(st => {
+      const compRows = allRows.filter(st.isComp);
+      const compSpools = new Set(compRows.map(r => r.Spool_number).filter(Boolean)).size;
+      stageLabels.push(st.name);
+      stageCompletions.push(compSpools);
     });
 
-    const weldedRows = allRecordsCache.filter(r => r.Weld_visual_date);
-    const weldPct = totalSpools > 0 ? ((new Set(weldedRows.map(r => r.Spool_number)).size / totalSpools) * 100).toFixed(1) : 0;
-    const pendingNdtRows = allRecordsCache.filter(r => r.Weld_visual_date && !r.Ndt_clearance);
+    renderFigmaCharts(stageLabels, stageCompletions, dispSpoolsCount, totalSpoolsCount - dispSpoolsCount);
+  }
 
-    document.getElementById('kpiTotalSpool').innerText = totalSpools;
-    document.getElementById('kpiTotalWeld').innerText = Number.isInteger(weldSum) ? weldSum : weldSum.toFixed(2);
-    document.getElementById('kpiWeldingRate').innerText = `${weldPct}%`;
-    document.getElementById('kpiPendingNdt').innerText = `${pendingNdtRows.length} items`;
+  function renderFigmaCharts(stageLabels, stageCompletions, dispCount, balCount) {
+    const waveCanvas = document.getElementById('pipelineWaveChart');
+    if (!waveCanvas) return;
+    const waveCtx = waveCanvas.getContext('2d');
+    if (waveChartInstance) waveChartInstance.destroy();
+
+    const gradient = waveCtx.createLinearGradient(0, 0, 0, 240);
+    gradient.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
+    gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+    waveChartInstance = new Chart(waveCtx, {
+      type: 'line',
+      data: {
+        labels: stageLabels,
+        datasets: [{
+          label: 'Completed Spools',
+          data: stageCompletions,
+          borderColor: '#2563eb',
+          borderWidth: 3,
+          fill: true,
+          backgroundColor: gradient,
+          tension: 0.45,
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#2563eb',
+          pointBorderWidth: 2,
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxRotation: 25, minRotation: 15, font: { size: 10, weight: 600 } } },
+          y: { grid: { color: '#f1f5f9' }, beginAtZero: false }
+        }
+      }
+    });
+
+    const donutCanvas = document.getElementById('statusDonutChart');
+    if (!donutCanvas) return;
+    const donutCtx = donutCanvas.getContext('2d');
+    if (donutChartInstance) donutChartInstance.destroy();
+
+    donutChartInstance = new Chart(donutCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Dispatched', 'Shop Balance'],
+        datasets: [{
+          data: [dispCount, balCount],
+          backgroundColor: ['#2563eb', '#f59e0b'],
+          borderWidth: 4,
+          borderColor: '#ffffff',
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12, weight: 600 } } }
+        }
+      }
+    });
   }
 
   function handleGlobalSpoolSearch(term) {
@@ -1249,7 +1511,6 @@
   }
 
   function openCategoryHub(hubId) {
-    // 🛡️ Extra Security Check: Strict Admin block for QA/QC
     if (hubId === 'qaqcHub') {
       if (!currentUser || currentUser.username !== 'admin') {
         alert("⚠️ માત્ર Admin પાસે જ QA/QC Module જોવાની અથવા વાપરવાની પરમિશન છે!");
@@ -1266,20 +1527,20 @@
   }
 
   function backToHubMenu() {
-  document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
-  document.getElementById('stageContainer').style.display = 'none';
-  document.getElementById('hubMainMenu').style.display = 'block';
+    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
+    document.getElementById('stageContainer').style.display = 'none';
+    document.getElementById('hubMainMenu').style.display = 'block';
+    loadTopDashboardMetrics();
 
-  // 🟢 URL પેરામીટર (?tab=...) ક્લીન કરવા માટે
-  if (window.location.search) {
-    window.history.replaceState({}, document.title, window.location.pathname);
+    if (window.location.search) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }
-}
 
-/* 👉 Future Program Notice for QA/QC */
-function futureModuleNotice(name) {
-  alert(`ℹ️ "${name}" module will be added in future.`);
-}
+  function futureModuleNotice(name) {
+    alert(`ℹ️ "${name}" module will be added in future.`);
+  }
+
   /* STAGE OPERATIONS */
   async function openStage(stage) {
     currentStage = stage;
