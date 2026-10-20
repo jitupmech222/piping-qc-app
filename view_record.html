@@ -156,6 +156,12 @@
     }
     table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 3200px; font-size: 12px; }
     
+    /* 🟢 100% FIXED / FREEZE TABLE HEADER */
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 25;
+    }
     th {
       position: sticky;
       top: 0;
@@ -165,7 +171,7 @@
       border: 1px solid #1e3a8a;
       text-align: center;
       white-space: nowrap;
-      z-index: 10;
+      z-index: 25;
       user-select: none;
     }
     td {
@@ -177,7 +183,7 @@
     }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
-    /* 🟢 Filter Button Styles as per Master Image */
+    /* Filter Button Styles */
     .filter-btn-icon {
       border: none;
       background: #0284c7;
@@ -196,7 +202,7 @@
     .filter-btn-icon:hover { background: #0369a1; }
     .filter-btn-icon.active { background: #ffd54f; color: #0f172a; font-weight: bold; }
 
-    /* 🟢 Filter Popover Modal Box (Exact Master UI) */
+    /* Filter Popover Modal Box */
     .filter-popover {
       position: absolute;
       top: 100%;
@@ -299,7 +305,7 @@
     <div class="toolbar-left">
       <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
       <div class="toolbar-title">
-        <h2>📊 LHS(<span id="recordCount">0</span> Rows)</h2>
+        <h2>📊 LHS (<span id="recordCount">0</span> Rows)</h2>
         <span></span>
       </div>
     </div>
@@ -409,7 +415,7 @@
     let isEditMode = false;
     let editedRows = new Map();
 
-    // 🟢 Stores active filter Sets per column: { colKey: Set(['val1', 'val2']) }
+    // Active filters: { colKey: Set(['val1', 'val2']) }
     let columnFilters = {};
     let openPopoverColKey = null;
 
@@ -480,7 +486,7 @@
       }
     }
 
-    // 2. HEADER BUILDER WITH DROPDOWN BUTTONS
+    // 🟢 2. FIXED HEADER BUILDER (Removed 'position: relative;' to allow freeze header)
     function renderHeader() {
       const tr = document.getElementById('headerRow');
       tr.innerHTML = `
@@ -489,7 +495,7 @@
         ${COLUMNS.map(col => {
           const isActive = Boolean(columnFilters[col.key]);
           return `
-            <th id="th_${col.key}" style="min-width: ${col.width || 105}px; position: relative;">
+            <th id="th_${col.key}" style="min-width: ${col.width || 105}px;">
               <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                 <span>${col.title}</span>
                 <button type="button" class="filter-btn-icon ${isActive ? 'active' : ''}" onclick="toggleFilter(event, '${col.key}')" title="Filter ${col.title}">▾</button>
@@ -501,7 +507,7 @@
       `;
     }
 
-    // 🟢 3. CASCADING FILTER LOGIC: EVALUATE ROWS BASED ON ACTIVE FILTERS
+    // 3. CASCADING FILTER LOGIC
     function getFilteredRows(excludeColKey = null) {
       return allRows.filter(r => {
         for (const [key, allowedSet] of Object.entries(columnFilters)) {
@@ -527,7 +533,7 @@
       });
     }
 
-    // 🟢 4. OPEN FILTER POPOVER WITH ONLY CASCADED VALUES
+    // 4. FILTER POPOVER WITH CASCADED VALUES
     function toggleFilter(e, key) {
       e.stopPropagation();
       const pop = document.getElementById(`popover_${key}`);
@@ -539,7 +545,6 @@
         openPopoverColKey = key;
         buildPopoverContent(key);
 
-        // Adjust position so it doesn't go off screen
         const th = document.getElementById(`th_${key}`);
         const rect = th.getBoundingClientRect();
         if (rect.left + 280 > window.innerWidth) {
@@ -561,12 +566,10 @@
       openPopoverColKey = null;
     }
 
-    // BUILD POPOVER HTML WITH DYNAMIC VALUE COUNTS FROM FILTERED SUBSET
     function buildPopoverContent(key) {
       const colDef = COLUMNS.find(c => c.key === key);
       const pop = document.getElementById(`popover_${key}`);
 
-      // 🟢 Calculate counts from rows matching all OTHER active filters
       const relevantRows = getFilteredRows(key);
       const valCounts = new Map();
 
@@ -584,7 +587,6 @@
         valCounts.set(val, (valCounts.get(val) || 0) + 1);
       });
 
-      // Sort values alphabetically / numerically with (Blanks) at bottom
       const sortedVals = Array.from(valCounts.keys()).sort((a, b) => {
         if (a === '(Blanks)') return 1;
         if (b === '(Blanks)') return -1;
@@ -594,19 +596,17 @@
         return a.localeCompare(b, undefined, { numeric: true });
       });
 
-      const currentSelected = columnFilters[key]; // Set of selected values or undefined
+      const currentSelected = columnFilters[key];
 
       pop.innerHTML = `
         <input type="text" id="search_${key}" class="popover-search-input" placeholder="Search in ${colDef.title}..." oninput="handleFilterSearch('${key}', this.value)" autocomplete="off">
         
         <div class="popover-list-box" id="list_box_${key}">
-          <!-- (Select All) -->
           <label class="filter-item-label" style="font-weight: bold; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
             <input type="checkbox" id="select_all_${key}" onchange="toggleSelectAll('${key}', this.checked)" ${!currentSelected || currentSelected.size === sortedVals.length ? 'checked' : ''}>
             <span>(Select All)</span>
           </label>
 
-          <!-- Value Checkboxes with Counts -->
           ${sortedVals.map(val => {
             const count = valCounts.get(val);
             const isChecked = !currentSelected || currentSelected.has(val);
@@ -670,10 +670,8 @@
       const checkedVals = checkboxes.filter(c => c.checked).map(c => c.value);
 
       if (checkedVals.length === totalCount) {
-        // All checked = remove filter
         delete columnFilters[key];
       } else if (checkedVals.length === 0) {
-        // None checked = match nothing
         columnFilters[key] = new Set(['__NONE__']);
       } else {
         columnFilters[key] = new Set(checkedVals);
@@ -701,7 +699,6 @@
       applyFiltersAndRender();
     }
 
-    // Close popover when clicking anywhere outside
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.filter-popover') && !e.target.closest('.filter-btn-icon')) {
         closeFilterPopup();
