@@ -1438,7 +1438,7 @@
           });
 
           err.style.display = 'block';
-          err.innerHTML = `⚠️ Invalid Password! (બાકી રહેલ પ્રયાસ: ${MAX_ATTEMPTS - currentAttempts})`;
+          err.innerHTML = `⚠️ Invalid Password! (Attempts remaining: ${MAX_ATTEMPTS - currentAttempts})`;
         }
       }
     } catch (errCatch) {
