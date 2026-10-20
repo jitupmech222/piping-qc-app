@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lot Generate | QA/QC Module</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- ExcelJS Library for Client-side Excel Generation -->
+  <!-- Client-side Excel generation library matching generate_lot.py -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
@@ -44,7 +44,7 @@
     .btn-back:hover { background: #f1f5f9; }
 
     .main-card {
-      max-width: 850px;
+      max-width: 900px;
       margin: 0 auto;
       background: #ffffff;
       border-radius: 12px;
@@ -116,7 +116,6 @@
     .btn-generate:hover { background: #0f233d; }
     .btn-generate:disabled { background: #94a3b8; cursor: not-allowed; }
 
-    /* Alert Message Cards */
     .result-box {
       margin-top: 24px;
       padding: 18px 20px;
@@ -127,7 +126,6 @@
     .result-success { background: #dcfce7; color: #15803d; border: 1.5px solid #bbf7d0; }
     .result-error { background: #fee2e2; color: #b91c1c; border: 1.5px solid #fecaca; font-weight: 600; }
 
-    /* Preview Table */
     .preview-card {
       margin-top: 26px;
       background: #ffffff;
@@ -137,7 +135,7 @@
       display: none;
     }
     table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-    th { background: #17365d; color: #fff; padding: 8px; border: 1px solid #cbd5e1; font-weight: 700; }
+    th { background: #17365d; color: #fff; padding: 8px; border: 1px solid #cbd5e1; font-weight: 700; text-align: center; }
     td { padding: 6px 8px; border: 1px solid #cbd5e1; text-align: center; }
     tr:nth-child(even) td { background: #f8fafc; }
   </style>
@@ -155,7 +153,7 @@
 
   <!-- MAIN GENERATE CARD -->
   <div class="main-card">
-    <!-- 1. NDT TYPE SELECTION -->
+    <!-- 1. NDT TYPE -->
     <div class="form-group">
       <label>1. Select NDT Type:</label>
       <div class="radio-group">
@@ -177,7 +175,7 @@
         type="text"
         id="inputLotNo"
         class="input-lot"
-        placeholder="e.g. 01, 101, 359 or PJ-01"
+        placeholder="e.g. 01, 101, PJ-01"
         autocomplete="off"
         onkeydown="if(event.key === 'Enter') handleGenerateLot()"
       />
@@ -185,32 +183,35 @@
 
     <!-- ACTION BUTTON -->
     <button type="button" id="btnGen" class="btn-generate" onclick="handleGenerateLot()">
-      📑 Generate & Download LOT Excel
+      📑 Generate & Download LOT Master Excel
     </button>
 
-    <!-- STATUS MESSAGES -->
+    <!-- STATUS ALERT -->
     <div id="statusAlert" style="display: none;"></div>
 
     <!-- PREVIEW TABLE -->
     <div id="previewCard" class="preview-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <h4 style="margin: 0; color: #17365d;" id="previewHeading">Preview Joints</h4>
-        <span style="font-size: 12px; color: #16a34a; font-weight: 700;">✓ Ready in Downloaded File</span>
+        <span style="font-size: 12px; color: #16a34a; font-weight: 700;">✓ Formatted as LOT MASTER.xlsx</span>
       </div>
-      <div style="overflow-x: auto; max-height: 280px;">
+      <div style="overflow-x: auto; max-height: 320px;">
         <table>
           <thead>
             <tr>
               <th>Sr.</th>
               <th>Drawing No</th>
-              <th>Spool No</th>
+              <th>Pipe Class</th>
               <th>Joint No</th>
-              <th>Type</th>
-              <th>Size</th>
-              <th>Thk</th>
+              <th>Size & Thk</th>
               <th>Welder</th>
-              <th>Visual Report</th>
+              <th>Type</th>
+              <th>Visual Rep No</th>
               <th>Visual Date</th>
+              <th>NDT Rep No (XR No)</th>
+              <th>NDT Date</th>
+              <th>Spool No</th>
+              <th>NDT Clearance</th>
             </tr>
           </thead>
           <tbody id="previewTbody"></tbody>
@@ -258,16 +259,27 @@
     }
 
     function formatDateDisplay(val) {
-      if (!val) return '-';
+      if (!val) return '';
       const str = String(val).trim();
-      if (!str || str.toLowerCase() === 'null') return '-';
+      if (!str || str.toLowerCase() === 'null' || str.toUpperCase() === 'NA') return '';
       const dPart = str.includes('T') ? str.split('T')[0] : str;
       const parts = dPart.split('-');
       if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
       return str;
     }
 
-    // MAIN GENERATE AND EXCEL DOWNLOAD HANDLER
+    function percentText(val) {
+      if (!val) return "";
+      const str = String(val).trim();
+      if (str.endsWith("%")) return str;
+      const n = parseFloat(str);
+      if (!isNaN(n)) {
+        return n <= 1 ? `${Math.round(n * 100)}%` : `${Math.round(n)}%`;
+      }
+      return str;
+    }
+
+    // 🟢 MAIN GENERATE FUNCTION (Mirror of generate_lot.py)
     async function handleGenerateLot() {
       const ndtType = document.querySelector('input[name="ndtType"]:checked').value;
       const rawLot = document.getElementById('inputLotNo').value.trim();
@@ -311,109 +323,200 @@
         }
 
         const targetLotClean = extractCleanLotNum(rawLot).toUpperCase();
+        let matchedJoints = [];
+        let headerNdt = "";
+        let headerWps = "";
 
-        // ૨. ચોક્કસ NDT Type અને Lot Number મુજબ જોઈન્ટ્સ ફિલ્ટર કરવા
-        const matchedJoints = allRows.filter(r => {
-          const jType = String(r.joint_type || '').toUpperCase().trim();
-          let lotVal = "";
+        // ================= RT LOGIC (Col AL in Python) =================
+        if (ndtType === "RT") {
+          matchedJoints = allRows.filter(r => {
+            const lotVal = extractCleanLotNum(r.rt_lot_no).toUpperCase();
+            if (!lotVal) return false;
+            return lotVal === targetLotClean ||
+                   (parseInt(lotVal, 10) === parseInt(targetLotClean, 10) && !isNaN(parseInt(targetLotClean, 10)));
+          });
 
-          if (ndtType === "RT") {
-            lotVal = r.rt_lot_no;
-          } else {
-            // DPT: EB માટે induction_bend_dpt_lot_no, અન્યથા dpt_lot_no
-            lotVal = jType === "EB" ? r.induction_bend_dpt_lot_no : r.dpt_lot_no;
+          if (matchedJoints.length === 0) {
+            throw new Error(`RT LOT NO "${rawLot}" lhs_entries માં મળ્યો નથી.`);
           }
 
-          const cLot = extractCleanLotNum(lotVal).toUpperCase();
-          if (!cLot) return false;
+          const rtValues = [...new Set(matchedJoints.map(r => percentText(r.rt_percentage)).filter(Boolean))].sort();
+          const wpsValues = [...new Set(matchedJoints.map(r => String(r.wps_no || '').trim()).filter(Boolean))].sort();
 
-          // Numeric અથવા Exact Match (e.g. '01' === '1' or 'PJ-01')
-          const matchesExact = cLot === targetLotClean;
-          const matchesNumeric = (!isNaN(parseInt(cLot, 10)) && !isNaN(parseInt(targetLotClean, 10))) &&
-                                 (parseInt(cLot, 10) === parseInt(targetLotClean, 10));
+          headerNdt = "RT-" + (rtValues.length > 0 ? rtValues.join(" & ") : "100%");
+          headerWps = "WPS-" + (wpsValues.length > 0 ? wpsValues.join(" & ") : "NA");
 
-          return matchesExact || matchesNumeric;
-        });
+        // ================= DPT LOGIC (Auto-detect AF / T in Python) =================
+        } else {
+          // ૧. પહેલા dpt_lot_no (Col AF) માં ચેક કરવું
+          matchedJoints = allRows.filter(r => {
+            const lotVal = extractCleanLotNum(r.dpt_lot_no).toUpperCase();
+            if (!lotVal) return false;
+            return lotVal === targetLotClean ||
+                   (parseInt(lotVal, 10) === parseInt(targetLotClean, 10) && !isNaN(parseInt(targetLotClean, 10)));
+          });
 
-        if (matchedJoints.length === 0) {
-          alertBox.className = "result-box result-error";
-          alertBox.innerHTML = `❌ કોઈ જોઈન્ટ્સ મળ્યા નથી! ${ndtType} LOT-<b>${rawLot}</b> વાળો કોઈ રેકોર્ડ lhs_entries ટેબલમાં નથી.`;
-          alertBox.style.display = 'block';
-          return;
+          if (matchedJoints.length > 0) {
+            const dptValues = [...new Set(matchedJoints.map(r => percentText(r.dpt_percentage)).filter(Boolean))].sort();
+            const wpsValues = [...new Set(matchedJoints.map(r => String(r.wps_no || '').trim()).filter(Boolean))].sort();
+
+            headerNdt = "DPT-" + (dptValues.length > 0 ? dptValues.join(" & ") : "100%");
+            headerWps = "WPS-" + (wpsValues.length > 0 ? wpsValues.join(" & ") : "NA");
+          } else {
+            // ૨. જો dpt_lot_no માં ન મળે તો induction_bend_dpt_lot_no (Col T - EB) માં ચેક કરવું
+            matchedJoints = allRows.filter(r => {
+              const lotVal = extractCleanLotNum(r.induction_bend_dpt_lot_no).toUpperCase();
+              if (!lotVal) return false;
+              return lotVal === targetLotClean ||
+                     (parseInt(lotVal, 10) === parseInt(targetLotClean, 10) && !isNaN(parseInt(targetLotClean, 10)));
+            });
+
+            if (matchedJoints.length === 0) {
+              throw new Error(`DPT LOT NO "${rawLot}" dpt_lot_no અથવા induction_bend_dpt_lot_no માં મળ્યો નથી.`);
+            }
+
+            headerNdt = "DPT-10%";
+            headerWps = "WPS-NA";
+          }
         }
 
-        // ૩. Client-Side Excel Workbook તૈયાર કરવી
+        // ================= CREATE LOT MASTER WORKBOOK =================
         const workbook = new ExcelJS.Workbook();
-        const sheetName = `${ndtType}_LOT_${rawLot}`;
-        const worksheet = workbook.addWorksheet(sheetName, {
-          views: [{ state: 'frozen', ySplit: 4, showGridLines: true }]
+        const worksheet = workbook.addWorksheet(ndtType, {
+          views: [{ showGridLines: true }]
         });
 
-        // Title Header Rows
-        worksheet.mergeCells('A1:J1');
-        const titleCell = worksheet.getCell('A1');
-        titleCell.value = `PIPING INSPECTION & QA/QC - ${ndtType} LOT OFFER SHEET`;
-        titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF17365D' } };
-        titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-        worksheet.getRow(1).height = 28;
+        const centerStyle = { vertical: 'middle', horizontal: 'center' };
+        const borderStyle = {
+          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+        };
 
-        // Lot Information Row
-        worksheet.mergeCells('A2:J2');
-        const subCell = worksheet.getCell('A2');
-        subCell.value = `NDT TYPE: ${ndtType}  |  LOT NO: ${rawLot}  |  TOTAL JOINTS: ${matchedJoints.length}  |  GENERATED DATE: ${new Date().toLocaleDateString('en-GB')}`;
-        subCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF0F172A' } };
-        subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
-        subCell.alignment = { vertical: 'middle', horizontal: 'center' };
-        worksheet.getRow(2).height = 22;
+        // Title Rows
+        worksheet.mergeCells('A1:Q2');
+        const cTitle = worksheet.getCell('A1');
+        cTitle.value = "LOT MASTER - NDT INSPECTION RECORD";
+        cTitle.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+        cTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF17365D' } };
+        cTitle.alignment = centerStyle;
 
-        worksheet.addRow([]); // Blank row 3
+        // Header Row 4 (WPS, NDT, LOT NAME as in Python)
+        worksheet.getCell('D4').value = headerWps;
+        worksheet.getCell('I4').value = headerNdt;
+        worksheet.getCell('N4').value = `LOT NAME: MPL/AIPL/${ndtType}/LOT-${rawLot}`;
 
-        // Columns Headers (Row 4)
-        const headers = [
-          "Sr.", "ISO / Drawing No", "Spool Unique No", "Joint No", "Joint Type",
-          "Weld Size", "Thk", "Welder No", "Visual Report No", "Visual Date"
+        ['D4', 'I4', 'N4'].forEach(pos => {
+          const c = worksheet.getCell(pos);
+          c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF0F172A' } };
+          c.alignment = centerStyle;
+        });
+
+        // Lot No Cell G7
+        worksheet.getCell('G7').value = isNaN(parseInt(rawLot, 10)) ? rawLot : parseInt(rawLot, 10);
+        worksheet.getCell('G7').font = { name: 'Calibri', size: 11, bold: true };
+        worksheet.getCell('G7').alignment = centerStyle;
+
+        // Table Headers (Row 6)
+        const colHeaders = [
+          "Sr", "Drawing No", "", "Pipe Class", "Joint No", "Size & Thk", "",
+          "Welder No", "Type", "", "Weld Visual Report No", "Visual Date",
+          "Type of NDT", "NDT Report No", "NDT Date", "Spool No", "NDT Clearance"
         ];
-        const headerRow = worksheet.addRow(headers);
-        headerRow.height = 24;
-        headerRow.eachCell((cell) => {
-          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+        const hRow = worksheet.getRow(6);
+        hRow.values = colHeaders;
+        hRow.height = 24;
+        hRow.eachCell((cell) => {
+          cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F766E' } };
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+          cell.alignment = centerStyle;
         });
 
-        // Add Data Rows
-        matchedJoints.forEach((j, idx) => {
-          const rowData = [
-            idx + 1,
-            j.drawing_no || '-',
-            j.spool_no || '-',
-            j.joint_no || '-',
-            j.joint_type || '-',
-            j.weld_npd ? `${j.weld_npd}"` : '-',
-            j.thk || '-',
-            j.welder_no || 'NA',
-            j.weld_visual_report_no || '-',
-            formatDateDisplay(j.visual_date)
-          ];
-          const r = worksheet.addRow(rowData);
-          r.height = 20;
-          r.eachCell((cell, colIdx) => {
-            cell.font = { name: 'Calibri', size: 10.5 };
-            cell.alignment = { vertical: 'middle', horizontal: colIdx === 2 ? 'left' : 'center' };
-            cell.border = { top: { style: 'thin', color: { argb: 'FFE2E8F0' } }, left: { style: 'thin', color: { argb: 'FFE2E8F0' } }, bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } }, right: { style: 'thin', color: { argb: 'FFE2E8F0' } } };
+        // Data Rows starting from Row 7
+        let rowOut = 7;
+        let sr = 1;
+        let lastSpool = null;
+
+        matchedJoints.forEach(j => {
+          const jType = String(j.joint_type || '').toUpperCase().trim();
+          const isBW = jType === 'BW';
+
+          let reportNo = "";
+          let ndtDate = "";
+          let xrNo = "";
+
+          if (ndtType === "RT") {
+            reportNo = (j.rt_report_no && j.rt_report_no !== 'NA') ? j.rt_report_no : "";
+            ndtDate = formatDateDisplay(j.rt_date);
+            xrNo = (j.xr_no && j.xr_no !== 'NA') ? j.xr_no : "";
+          } else {
+            if (jType === 'EB') {
+              reportNo = (j.induction_bend_dpt_report_no && j.induction_bend_dpt_report_no !== 'NA') ? j.induction_bend_dpt_report_no : "";
+              ndtDate = formatDateDisplay(j.induction_bend_dpt_date);
+            } else {
+              reportNo = (j.dpt_report_no && j.dpt_report_no !== 'NA') ? j.dpt_report_no : "";
+              ndtDate = formatDateDisplay(j.dpt_date);
+            }
+          }
+
+          const repDisplay = (reportNo && xrNo) ? `${reportNo} (${xrNo})` : reportNo;
+          const sizeThk = (j.weld_npd && j.thk) ? `${j.weld_npd}"/${j.thk}` : (j.weld_npd ? `${j.weld_npd}"` : (j.thk || "-"));
+
+          worksheet.getCell(`A${rowOut}`).value = sr;
+          worksheet.getCell(`B${rowOut}`).value = j.drawing_no || '';
+          worksheet.getCell(`D${rowOut}`).value = j.pipe_class || '';
+          worksheet.getCell(`E${rowOut}`).value = j.joint_no || '';
+          worksheet.getCell(`F${rowOut}`).value = sizeThk;
+          worksheet.getCell(`H${rowOut}`).value = j.welder_no || 'NA';
+          worksheet.getCell(`I${rowOut}`).value = jType;
+          worksheet.getCell(`K${rowOut}`).value = j.weld_visual_report_no || '';
+          worksheet.getCell(`L${rowOut}`).value = formatDateDisplay(j.visual_date);
+          worksheet.getCell(`M${rowOut}`).value = isBW ? "RT" : "DPT";
+          worksheet.getCell(`N${rowOut}`).value = repDisplay;
+          worksheet.getCell(`O${rowOut}`).value = ndtDate;
+          worksheet.getCell(`Q${rowOut}`).value = formatDateDisplay(j.ndt_clearance);
+
+          const currentSpool = j.spool_no || '';
+          if (currentSpool !== lastSpool) {
+            worksheet.getCell(`P${rowOut}`).value = currentSpool;
+            lastSpool = currentSpool;
+          }
+
+          "ABCDEFHIJKLMNOPQ".split("").forEach(col => {
+            const c = worksheet.getCell(`${col}${rowOut}`);
+            c.font = { name: 'Calibri', size: 10 };
+            c.alignment = col === 'B' ? { vertical: 'middle', horizontal: 'left' } : centerStyle;
+            c.border = borderStyle;
           });
+
+          rowOut++;
+          sr++;
         });
 
         // Column Widths
         worksheet.columns = [
-          { width: 6 }, { width: 32 }, { width: 18 }, { width: 12 }, { width: 14 },
-          { width: 12 }, { width: 10 }, { width: 14 }, { width: 20 }, { width: 16 }
+          { key: 'A', width: 6 },
+          { key: 'B', width: 28 },
+          { key: 'C', width: 4 },
+          { key: 'D', width: 14 },
+          { key: 'E', width: 10 },
+          { key: 'F', width: 14 },
+          { key: 'G', width: 8 },
+          { key: 'H', width: 12 },
+          { key: 'I', width: 10 },
+          { key: 'J', width: 4 },
+          { key: 'K', width: 18 },
+          { key: 'L', width: 13 },
+          { key: 'M', width: 12 },
+          { key: 'N', width: 18 },
+          { key: 'O', width: 13 },
+          { key: 'P', width: 16 },
+          { key: 'Q', width: 14 }
         ];
 
-        // ૪. Auto Download File
-        const fileName = `${ndtType}_LOT_${rawLot}_Joints.xlsx`;
+        // ૪. Auto Download
+        const fileName = `${ndtType}_LOT_${rawLot}.xlsx`;
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const link = document.createElement('a');
@@ -424,42 +527,54 @@
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
 
-        // ૫. UI Success Alert દર્શાવો
+        // ૫. UI Success
         alertBox.className = "result-box result-success";
         alertBox.innerHTML = `
-          <h3 style="margin: 0 0 8px 0;">✅ LOT Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
-          <p style="margin: 3px 0;"><b>NDT Type:</b> ${ndtType} | <b>Lot No:</b> ${rawLot}</p>
-          <p style="margin: 3px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળી આવ્યા</p>
-          <p style="margin: 3px 0;"><b>File Name:</b> 📥 <u>${fileName}</u> (Downloaded)</p>
+          <h3 style="margin: 0 0 6px 0;">✅ LOT Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
+          <p style="margin: 2px 0;"><b>NDT Type:</b> ${ndtType} | <b>Lot No:</b> ${rawLot}</p>
+          <p style="margin: 2px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળ્યા</p>
+          <p style="margin: 2px 0;"><b>Header NDT:</b> ${headerNdt} | <b>Header WPS:</b> ${headerWps}</p>
+          <p style="margin: 2px 0;"><b>File Downloaded:</b> 📥 <u>${fileName}</u></p>
         `;
         alertBox.style.display = 'block';
 
-        // Preview Table ભરો
+        // Preview Table
         document.getElementById('previewHeading').innerText = `Preview: ${ndtType} LOT-${rawLot} (${matchedJoints.length} Joints)`;
-        document.getElementById('previewTbody').innerHTML = matchedJoints.map((j, i) => `
-          <tr>
-            <td>${i + 1}</td>
-            <td style="text-align:left;">${j.drawing_no || '-'}</td>
-            <td><b>${j.spool_no || '-'}</b></td>
-            <td><b>${j.joint_no}</b></td>
-            <td>${j.joint_type || '-'}</td>
-            <td>${j.weld_npd ? j.weld_npd + '"' : '-'}</td>
-            <td>${j.thk || '-'}</td>
-            <td>${j.welder_no || 'NA'}</td>
-            <td>${j.weld_visual_report_no || '-'}</td>
-            <td>${formatDateDisplay(j.visual_date)}</td>
-          </tr>
-        `).join('');
+        document.getElementById('previewTbody').innerHTML = matchedJoints.map((j, i) => {
+          const jType = String(j.joint_type || '').toUpperCase().trim();
+          const sizeThk = (j.weld_npd && j.thk) ? `${j.weld_npd}"/${j.thk}` : (j.weld_npd ? `${j.weld_npd}"` : (j.thk || "-"));
+          let rep = ndtType === 'RT' ? (j.rt_report_no || '') : (jType === 'EB' ? j.induction_bend_dpt_report_no : j.dpt_report_no);
+          if (ndtType === 'RT' && j.xr_no) rep += ` (${j.xr_no})`;
+          const dt = ndtType === 'RT' ? j.rt_date : (jType === 'EB' ? j.induction_bend_dpt_date : j.dpt_date);
+
+          return `
+            <tr>
+              <td>${i + 1}</td>
+              <td style="text-align:left;">${j.drawing_no || '-'}</td>
+              <td>${j.pipe_class || '-'}</td>
+              <td><b>${j.joint_no}</b></td>
+              <td>${sizeThk}</td>
+              <td>${j.welder_no || 'NA'}</td>
+              <td>${jType}</td>
+              <td>${j.weld_visual_report_no || '-'}</td>
+              <td>${formatDateDisplay(j.visual_date)}</td>
+              <td>${rep || '-'}</td>
+              <td>${formatDateDisplay(dt)}</td>
+              <td><b>${j.spool_no || '-'}</b></td>
+              <td>${formatDateDisplay(j.ndt_clearance)}</td>
+            </tr>
+          `;
+        }).join('');
         previewCard.style.display = 'block';
 
       } catch (err) {
         console.error(err);
         alertBox.className = "result-box result-error";
-        alertBox.innerHTML = `❌ Error: ${err.message}`;
+        alertBox.innerHTML = `❌ ${err.message}`;
         alertBox.style.display = 'block';
       } finally {
         btnGen.disabled = false;
-        btnGen.innerText = "📑 Generate & Download LOT Excel";
+        btnGen.innerText = "📑 Generate & Download LOT Master Excel";
       }
     }
 
