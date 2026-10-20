@@ -8,36 +8,6 @@
 <!-- 🟢 Excel Backup માટે ExcelJS લાઇબ્રેરી -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <style>
-    /* 🟢 મોટું લાલ લૉગ આઉટ બટન */
-.btn-big-logout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 14px;
-  margin-top: 12px;
-  background: #dc2626;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
-  transition: all 0.2s ease;
-}
-
-.btn-big-logout:hover {
-  background: #b91c1c;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35);
-}
-
-.btn-big-logout:active {
-  transform: translateY(0);
-}
     :root {
       --sidebar-bg: #0b1329;
       --sidebar-active: #0d9488;
@@ -146,8 +116,8 @@
 
     .user-footer {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 12px;
       padding-top: 14px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
@@ -155,8 +125,32 @@
     .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1e293b; color: #2dd4bf; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #334155; }
     .user-details { font-size: 12px; color: #ffffff; font-weight: 600; }
     .user-details span { display: block; font-size: 10px; color: #64748b; font-weight: normal; }
-    .btn-logout-icon { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
-    .btn-logout-icon:hover { color: #ef4444; }
+    .btn-big-logout {
+      width: 100%;
+      padding: 10px 14px;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+      transition: all 0.2s ease;
+    }
+    .btn-big-logout:hover {
+      background: #b91c1c;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35);
+    }
+    .btn-big-logout:active {
+      transform: translateY(0);
+    }
 
     /* Main Workspace */
     .main-workspace {
@@ -499,24 +493,9 @@
           <span id="sideUserRole" style="font-size:10.5px; color:#64748b;">admin@piping.org</span>
         </div>
       </div>
-      <div class="user-footer" style="flex-direction: column; align-items: stretch; gap: 8px;">
-  <!-- User Profile Info -->
-  <div style="display: flex; align-items: center; justify-content: space-between;">
-    <div class="user-profile">
-      <div class="avatar" id="userAvatarChar">AD</div>
-      <div class="user-details">
-        <span id="sideUserName" style="color:#ffffff; font-weight:bold; font-size:12.5px;">System Admin</span>
-        <span id="sideUserRole" style="font-size:10.5px; color:#64748b;">admin@piping.org</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 🟢 મોટું લૉગ આઉટ બટન -->
-  <button type="button" class="btn-big-logout" onclick="userLogout()">
-    <span>🚪</span>
-    <span>LOG OUT</span>
-  </button>
-</div>
+      <button type="button" class="btn-big-logout" onclick="userLogout()">
+        🚪 LOG OUT
+      </button>
     </div>
   </aside>
 
