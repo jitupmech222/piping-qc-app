@@ -95,7 +95,6 @@
     }
     .btn-export:hover { background: #047857; }
 
-    /* 🟢 New Raw Action Buttons */
     .btn-download-raw {
       padding: 5px 12px;
       background: #0284c7;
@@ -178,34 +177,109 @@
     }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
+    /* 🟢 Filter Button Styles as per Master Image */
     .filter-btn-icon {
       border: none;
-      background: transparent;
-      color: #fff;
+      background: #0284c7;
+      color: #ffffff;
       cursor: pointer;
-      font-size: 10px;
-      padding: 1px 3px;
-      margin-left: 3px;
-      border-radius: 2px;
+      font-size: 11px;
+      padding: 2px 5px;
+      margin-left: 4px;
+      border-radius: 4px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
     }
-    .filter-btn-icon.active { background: #ffd54f; color: #000; }
+    .filter-btn-icon:hover { background: #0369a1; }
+    .filter-btn-icon.active { background: #ffd54f; color: #0f172a; font-weight: bold; }
 
-    /* Filter Popup */
+    /* 🟢 Filter Popover Modal Box (Exact Master UI) */
     .filter-popover {
       position: absolute;
       top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
       z-index: 1000;
-      background: #fff;
-      padding: 8px;
-      border: 1px solid #999;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-      min-width: 240px;
-      border-radius: 4px;
+      background: #ffffff;
+      padding: 12px;
+      border: 1.5px solid #cbd5e1;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      width: 270px;
+      border-radius: 8px;
       text-align: left;
       color: #0f172a;
+      font-family: Arial, sans-serif;
     }
+
+    .popover-search-input {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      outline: none;
+    }
+    .popover-search-input:focus { border-color: #0284c7; }
+
+    .popover-list-box {
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 6px 8px;
+      background: #ffffff;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .filter-item-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: #1e293b;
+      cursor: pointer;
+      user-select: none;
+      padding: 2px 0;
+    }
+    .filter-item-label:hover { color: #0284c7; }
+    .filter-item-label input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      accent-color: #0284c7;
+    }
+
+    .btn-popover-ok {
+      flex: 1;
+      padding: 7px;
+      background: #17365d;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-popover-ok:hover { background: #0f233d; }
+
+    .btn-popover-clear {
+      flex: 1;
+      padding: 7px;
+      background: #64748b;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-popover-clear:hover { background: #475569; }
 
     .cell-edit-input {
       width: 95%;
@@ -237,7 +311,6 @@
       <button type="button" id="btnClearFilters" class="btn-clear" onclick="clearAllFilters()">✖ Clear Filters</button>
       <button type="button" class="btn-export" onclick="exportToExcel()">📑 Export View</button>
 
-      <!-- 🟢 TWO NEW ACTION BUTTONS -->
       <button type="button" class="btn-download-raw" onclick="downloadRawData()">📥 Download Data</button>
       <button type="button" class="btn-update-raw" onclick="triggerUpdateData()">🔄 Update Data</button>
       <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="handleExcelUpload(event)">
@@ -266,7 +339,7 @@
   </div>
 
   <!-- MAIN TABLE CONTAINER -->
-  <div class="table-container" id="tableWrapper" onclick="closeFilterPopup()">
+  <div class="table-container" id="tableWrapper">
     <table id="mainTable">
       <thead>
         <tr id="headerRow"></tr>
@@ -282,7 +355,7 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 🟢 EXACT 46 DATA COLUMNS AS PER YOUR SUPABASE lhs_entries TABLE
+    // 🟢 46 COLUMNS DEFINITION
     const COLUMNS = [
       { key: "cwp", title: "CWP" },
       { key: "system_ug_ag", title: "System(UG-AG)" },
@@ -335,7 +408,10 @@
     let allRows = [];
     let isEditMode = false;
     let editedRows = new Map();
+
+    // 🟢 Stores active filter Sets per column: { colKey: Set(['val1', 'val2']) }
     let columnFilters = {};
+    let openPopoverColKey = null;
 
     let currentPage = 1;
     let pageSize = 100;
@@ -404,7 +480,7 @@
       }
     }
 
-    // 2. HEADER & FILTER BUILDER
+    // 2. HEADER BUILDER WITH DROPDOWN BUTTONS
     function renderHeader() {
       const tr = document.getElementById('headerRow');
       tr.innerHTML = `
@@ -413,65 +489,203 @@
         ${COLUMNS.map(col => {
           const isActive = Boolean(columnFilters[col.key]);
           return `
-            <th style="min-width: ${col.width || 100}px; position: relative;">
-              <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+            <th id="th_${col.key}" style="min-width: ${col.width || 105}px; position: relative;">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                 <span>${col.title}</span>
-                <button class="filter-btn-icon ${isActive ? 'active' : ''}" onclick="toggleFilter(event, '${col.key}')">🔽</button>
+                <button type="button" class="filter-btn-icon ${isActive ? 'active' : ''}" onclick="toggleFilter(event, '${col.key}')" title="Filter ${col.title}">▾</button>
               </div>
-              <div id="popover_${col.key}" class="filter-popover" style="display: none;" onclick="event.stopPropagation()">
-                <input type="text" id="input_filter_${col.key}" placeholder="Search..." style="width: 100%; padding: 5px; margin-bottom: 6px; font-size: 11.5px; border: 1px solid #0284c7; border-radius: 3px;">
-                <div style="display: flex; gap: 4px; margin-bottom: 6px;">
-                  <button type="button" onclick="setSpecialFilter('${col.key}', 'BLANK')" style="flex:1; padding: 3px; font-size: 10px; cursor: pointer;">⬜ Blank</button>
-                  <button type="button" onclick="setSpecialFilter('${col.key}', 'NON_BLANK')" style="flex:1; padding: 3px; font-size: 10px; cursor: pointer;">⬛ Non-Blank</button>
-                </div>
-                <div style="display: flex; gap: 4px;">
-                  <button type="button" onclick="applyFilter('${col.key}')" style="flex:1; padding: 4px; background: #17365d; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">OK</button>
-                  <button type="button" onclick="clearFilter('${col.key}')" style="flex:1; padding: 4px; background: #777; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">CLEAR</button>
-                </div>
-              </div>
+              <div id="popover_${col.key}" class="filter-popover" style="display: none;" onclick="event.stopPropagation()"></div>
             </th>
           `;
         }).join('')}
       `;
     }
 
+    // 🟢 3. CASCADING FILTER LOGIC: EVALUATE ROWS BASED ON ACTIVE FILTERS
+    function getFilteredRows(excludeColKey = null) {
+      return allRows.filter(r => {
+        for (const [key, allowedSet] of Object.entries(columnFilters)) {
+          if (excludeColKey && key === excludeColKey) continue;
+
+          const colDef = COLUMNS.find(c => c.key === key);
+          let val = r[key];
+          if (val === null || val === undefined || String(val).trim() === '' || String(val).toLowerCase() === 'null') {
+            val = '(Blanks)';
+          } else {
+            val = String(val).trim();
+            if (colDef && colDef.isDate) {
+              val = formatDateDisplay(val);
+              if (val === '-') val = '(Blanks)';
+            }
+          }
+
+          if (!allowedSet.has(val)) {
+            return false;
+          }
+        }
+        return true;
+      });
+    }
+
+    // 🟢 4. OPEN FILTER POPOVER WITH ONLY CASCADED VALUES
     function toggleFilter(e, key) {
       e.stopPropagation();
       const pop = document.getElementById(`popover_${key}`);
       const isVisible = pop.style.display === 'block';
 
-      document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
+      closeFilterPopup();
+
       if (!isVisible) {
+        openPopoverColKey = key;
+        buildPopoverContent(key);
+
+        // Adjust position so it doesn't go off screen
+        const th = document.getElementById(`th_${key}`);
+        const rect = th.getBoundingClientRect();
+        if (rect.left + 280 > window.innerWidth) {
+          pop.style.left = 'auto';
+          pop.style.right = '0';
+        } else {
+          pop.style.left = '0';
+          pop.style.right = 'auto';
+        }
+
         pop.style.display = 'block';
-        const input = document.getElementById(`input_filter_${key}`);
-        input.value = columnFilters[key] && !columnFilters[key].startsWith('[[') ? columnFilters[key] : '';
-        input.focus();
+        const searchInput = document.getElementById(`search_${key}`);
+        if (searchInput) searchInput.focus();
       }
     }
 
     function closeFilterPopup() {
       document.querySelectorAll('.filter-popover').forEach(p => p.style.display = 'none');
+      openPopoverColKey = null;
     }
 
-    function applyFilter(key) {
-      const val = document.getElementById(`input_filter_${key}`).value.trim();
-      if (val) columnFilters[key] = val;
-      else delete columnFilters[key];
+    // BUILD POPOVER HTML WITH DYNAMIC VALUE COUNTS FROM FILTERED SUBSET
+    function buildPopoverContent(key) {
+      const colDef = COLUMNS.find(c => c.key === key);
+      const pop = document.getElementById(`popover_${key}`);
+
+      // 🟢 Calculate counts from rows matching all OTHER active filters
+      const relevantRows = getFilteredRows(key);
+      const valCounts = new Map();
+
+      relevantRows.forEach(r => {
+        let val = r[key];
+        if (val === null || val === undefined || String(val).trim() === '' || String(val).toLowerCase() === 'null') {
+          val = '(Blanks)';
+        } else {
+          val = String(val).trim();
+          if (colDef.isDate) {
+            val = formatDateDisplay(val);
+            if (val === '-') val = '(Blanks)';
+          }
+        }
+        valCounts.set(val, (valCounts.get(val) || 0) + 1);
+      });
+
+      // Sort values alphabetically / numerically with (Blanks) at bottom
+      const sortedVals = Array.from(valCounts.keys()).sort((a, b) => {
+        if (a === '(Blanks)') return 1;
+        if (b === '(Blanks)') return -1;
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return a.localeCompare(b, undefined, { numeric: true });
+      });
+
+      const currentSelected = columnFilters[key]; // Set of selected values or undefined
+
+      pop.innerHTML = `
+        <input type="text" id="search_${key}" class="popover-search-input" placeholder="Search in ${colDef.title}..." oninput="handleFilterSearch('${key}', this.value)" autocomplete="off">
+        
+        <div class="popover-list-box" id="list_box_${key}">
+          <!-- (Select All) -->
+          <label class="filter-item-label" style="font-weight: bold; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+            <input type="checkbox" id="select_all_${key}" onchange="toggleSelectAll('${key}', this.checked)" ${!currentSelected || currentSelected.size === sortedVals.length ? 'checked' : ''}>
+            <span>(Select All)</span>
+          </label>
+
+          <!-- Value Checkboxes with Counts -->
+          ${sortedVals.map(val => {
+            const count = valCounts.get(val);
+            const isChecked = !currentSelected || currentSelected.has(val);
+            const safeAttr = escapeAttr(val);
+            return `
+              <label class="filter-item-label filter-val-item" data-val="${safeAttr}">
+                <input type="checkbox" class="filter-val-checkbox" value="${safeAttr}" ${isChecked ? 'checked' : ''} onchange="updateSelectAllState('${key}')">
+                <span>${escapeHtml(val)} <span style="color:#64748b; font-size:11px;">(${count})</span></span>
+              </label>
+            `;
+          }).join('')}
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-popover-ok" onclick="applyCheckboxFilter('${key}')">OK</button>
+          <button type="button" class="btn-popover-clear" onclick="clearCheckboxFilter('${key}')">Clear</button>
+        </div>
+      `;
+
+      updateSelectAllState(key);
+    }
+
+    function handleFilterSearch(key, term) {
+      const q = term.trim().toLowerCase();
+      const listBox = document.getElementById(`list_box_${key}`);
+      const items = listBox.querySelectorAll('.filter-val-item');
+      items.forEach(el => {
+        const valText = el.getAttribute('data-val').toLowerCase();
+        el.style.display = valText.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function toggleSelectAll(key, isChecked) {
+      const listBox = document.getElementById(`list_box_${key}`);
+      const checkboxes = listBox.querySelectorAll('.filter-val-checkbox');
+      checkboxes.forEach(cb => {
+        const parent = cb.closest('.filter-val-item');
+        if (parent && parent.style.display !== 'none') {
+          cb.checked = isChecked;
+        }
+      });
+    }
+
+    function updateSelectAllState(key) {
+      const selectAll = document.getElementById(`select_all_${key}`);
+      const listBox = document.getElementById(`list_box_${key}`);
+      if (!selectAll || !listBox) return;
+
+      const checkboxes = Array.from(listBox.querySelectorAll('.filter-val-checkbox'));
+      const allChecked = checkboxes.length > 0 && checkboxes.every(c => c.checked);
+      const someChecked = checkboxes.some(c => c.checked);
+
+      selectAll.checked = allChecked;
+      selectAll.indeterminate = !allChecked && someChecked;
+    }
+
+    function applyCheckboxFilter(key) {
+      const listBox = document.getElementById(`list_box_${key}`);
+      const checkboxes = Array.from(listBox.querySelectorAll('.filter-val-checkbox'));
+      const totalCount = checkboxes.length;
+      const checkedVals = checkboxes.filter(c => c.checked).map(c => c.value);
+
+      if (checkedVals.length === totalCount) {
+        // All checked = remove filter
+        delete columnFilters[key];
+      } else if (checkedVals.length === 0) {
+        // None checked = match nothing
+        columnFilters[key] = new Set(['__NONE__']);
+      } else {
+        columnFilters[key] = new Set(checkedVals);
+      }
+
       closeFilterPopup();
       currentPage = 1;
       renderHeader();
       applyFiltersAndRender();
     }
 
-    function setSpecialFilter(key, type) {
-      columnFilters[key] = `[[${type}]]`;
-      closeFilterPopup();
-      currentPage = 1;
-      renderHeader();
-      applyFiltersAndRender();
-    }
-
-    function clearFilter(key) {
+    function clearCheckboxFilter(key) {
       delete columnFilters[key];
       closeFilterPopup();
       currentPage = 1;
@@ -487,26 +701,14 @@
       applyFiltersAndRender();
     }
 
-    // 3. FILTERING & PAGINATION LOGIC
-    function getFilteredRows() {
-      return allRows.filter(r => {
-        for (const [key, term] of Object.entries(columnFilters)) {
-          let val = String(r[key] ?? '').trim();
-          const colDef = COLUMNS.find(c => c.key === key);
-          if (colDef && colDef.isDate) val = formatDateDisplay(val);
+    // Close popover when clicking anywhere outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.filter-popover') && !e.target.closest('.filter-btn-icon')) {
+        closeFilterPopup();
+      }
+    });
 
-          if (term === '[[BLANK]]') {
-            if (val !== '' && val !== '-' && val.toLowerCase() !== 'null') return false;
-          } else if (term === '[[NON_BLANK]]') {
-            if (val === '' || val === '-' || val.toLowerCase() === 'null') return false;
-          } else {
-            if (!val.toLowerCase().includes(term.toLowerCase())) return false;
-          }
-        }
-        return true;
-      });
-    }
-
+    // 5. TABLE RENDERING & PAGINATION
     function applyFiltersAndRender() {
       const filtered = getFilteredRows();
       const totalRows = filtered.length;
@@ -563,7 +765,7 @@
       }).join('');
     }
 
-    // 4. PAGINATION ACTIONS
+    // PAGINATION CONTROLS
     function changePageSize(val) {
       pageSize = Number(val);
       currentPage = 1;
@@ -578,7 +780,7 @@
       applyFiltersAndRender();
     }
 
-    // 5. EDIT & SAVE HANDLERS
+    // 6. EDIT & SAVE HANDLERS
     function setMode(edit) {
       isEditMode = edit;
       document.getElementById('btnModeView').className = `btn-mode ${!edit ? 'active-view' : ''}`;
@@ -639,7 +841,7 @@
       }
     }
 
-    // 6. EXPORT TO EXCEL (VIEW FORMAT)
+    // 7. EXPORT TO EXCEL
     async function exportToExcel() {
       const filtered = getFilteredRows();
       if (filtered.length === 0) return alert("⚠️ હાલ ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
@@ -682,9 +884,7 @@
       document.body.removeChild(link);
     }
 
-    /* -----------------------------------------------------------------
-       🟢 7. DOWNLOAD DATA (EXACT SUPABASE COLUMN NAMES FOR RAW BACKUP)
-    ------------------------------------------------------------------ */
+    // 8. DOWNLOAD DATA (EXACT SUPABASE COLUMN NAMES)
     async function downloadRawData() {
       const btn = document.querySelector('.btn-download-raw');
       if (btn) {
@@ -697,7 +897,6 @@
         let from = 0;
         let hasMore = true;
 
-        // Fetch all 1000s in batch
         while (hasMore) {
           const { data, error } = await db
             .from('lhs_entries')
@@ -725,7 +924,6 @@
           views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
         });
 
-        // Exact Supabase column keys as header row
         const rawKeys = COLUMNS.map(c => c.key);
         const headerRow = worksheet.addRow(rawKeys);
         headerRow.height = 24;
@@ -772,9 +970,7 @@
       }
     }
 
-    /* -----------------------------------------------------------------
-       🟢 8. UPDATE DATA (CLEAR TABLE & BULK INSERT FROM EXCEL)
-    ------------------------------------------------------------------ */
+    // 9. UPDATE DATA (CLEAR & BULK INSERT FROM EXCEL)
     function triggerUpdateData() {
       document.getElementById('excelFileInput').value = '';
       document.getElementById('excelFileInput').click();
@@ -806,7 +1002,6 @@
           throw new Error("એક્સેલ ફાઇલમાં ડેટા મળ્યો નથી!");
         }
 
-        // Header mapping
         const headerRow = worksheet.getRow(1);
         const fileHeaders = [];
         headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
@@ -827,7 +1022,6 @@
             const cell = row.getCell(colIndex);
             let val = cell.value;
 
-            // Handle rich text or formula objects
             if (val && typeof val === 'object') {
               if (val.result !== undefined) val = val.result;
               else if (val.text !== undefined) val = val.text;
@@ -868,7 +1062,6 @@
 
         if (btn) btn.innerText = "⏳ Deleting old records...";
 
-        // Step 1: Remove all existing records from lhs_entries
         const { error: delError } = await db
           .from('lhs_entries')
           .delete()
@@ -880,13 +1073,12 @@
 
         if (btn) btn.innerText = `⏳ Inserting 0 / ${parsedRows.length}...`;
 
-        // Step 2: Insert new rows in batches of 300
         const batchSize = 300;
         for (let i = 0; i < parsedRows.length; i += batchSize) {
           const batch = parsedRows.slice(i, i + batchSize);
           const { error: insError } = await db.from('lhs_entries').insert(batch);
           if (insError) {
-            throw new Error(`ડેટા ઇન્સર્ટ કરવામાં ભૂલ (બેચ ${i + 1} - ${Math.min(i + batchSize, parsedRows.length)}): ` + insError.message);
+            throw new Error(`ડેટા ઇન્સર્ટ કરવામાં ભૂલ (બેચ ${i + 1}): ` + insError.message);
           }
           if (btn) btn.innerText = `⏳ Inserting ${Math.min(i + batchSize, parsedRows.length)} / ${parsedRows.length}...`;
         }
@@ -903,6 +1095,13 @@
           btn.innerText = "🔄 Update Data";
         }
       }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function escapeAttr(str) {
+      return String(str).replace(/"/g, '&quot;');
     }
 
     window.addEventListener('DOMContentLoaded', () => {
