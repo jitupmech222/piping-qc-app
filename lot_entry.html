@@ -118,7 +118,7 @@
     <div style="display:flex; align-items:center; gap:12px;">
       <!-- 🟢 નવો અપડેટ કરેલો કોડ (Link) -->
       <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
-      <h2 style="color:#17365d; font-size:18px;">🧾 LOT ENTRY & MANAGEMENT</h2>
+      <h2 style="color:#17365d; font-size:18px;"> LOT ASSIGN</h2>
     </div>
     <button class="btn-create-lot" onclick="openCreateLotModal()">➕ Create Lot No</button>
   </div>
@@ -127,7 +127,7 @@
   <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
     <label style="font-weight:bold; font-size:13px;">Spool Unique No:</label>
     <input type="text" id="spoolNoInput" placeholder="Enter Spool No (e.g. 7-07044)" style="width:240px;" onkeydown="if(event.key==='Enter') handleVerifySpool()" autocomplete="off">
-    <button type="button" class="btn-create-lot" style="background:#17365d;" onclick="handleVerifySpool()">🔍 Verify Spool</button>
+    <button type="button" class="btn-create-lot" style="background:#17365d;" onclick="handleVerifySpool()">Verify Spool</button>
     <span id="lookupStatus" style="font-size:12.5px; font-weight:600; color:#64748b;"></span>
   </div>
 
