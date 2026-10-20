@@ -299,20 +299,20 @@
     <div class="toolbar-left">
       <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
       <div class="toolbar-title">
-        <h2>📊 LHS Entries Live Records (<span id="recordCount">0</span> Rows)</h2>
-        <span>⚡ Database: lhs_entries</span>
+        <h2>📊 LHS(<span id="recordCount">0</span> Rows)</h2>
+        <span></span>
       </div>
     </div>
 
     <div class="toolbar-right">
-      <button type="button" id="btnModeView" class="btn-mode active-view" onclick="setMode(false)">👁️ View</button>
-      <button type="button" id="btnModeEdit" class="btn-mode" onclick="setMode(true)">✏️ Edit</button>
-      <button type="button" id="btnSave" class="btn-save" style="display: none;" onclick="saveChanges()">💾 Save Changes</button>
+      <button type="button" id="btnModeView" class="btn-mode active-view" onclick="setMode(false)"> View</button>
+      <button type="button" id="btnModeEdit" class="btn-mode" onclick="setMode(true)"> Edit</button>
+      <button type="button" id="btnSave" class="btn-save" style="display: none;" onclick="saveChanges()"> Save</button>
       <button type="button" id="btnClearFilters" class="btn-clear" onclick="clearAllFilters()">✖ Clear Filters</button>
-      <button type="button" class="btn-export" onclick="exportToExcel()">📑 Export View</button>
+      <button type="button" class="btn-export" onclick="exportToExcel()"> Export View</button>
 
-      <button type="button" class="btn-download-raw" onclick="downloadRawData()">📥 Download Data</button>
-      <button type="button" class="btn-update-raw" onclick="triggerUpdateData()">🔄 Update Data</button>
+      <button type="button" class="btn-download-raw" onclick="downloadRawData()"> Download Data</button>
+      <button type="button" class="btn-update-raw" onclick="triggerUpdateData()"> Update Data</button>
       <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="handleExcelUpload(event)">
     </div>
   </div>
