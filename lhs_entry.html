@@ -128,6 +128,37 @@
     }
     .btn-save:hover { background: #15803d; }
     .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* Dropdown Auto-Complete Styles */
+    .spool-dropdown-box {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1.5px solid #0d6efd;
+      border-radius: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      margin-top: 4px;
+    }
+    .spool-dropdown-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12.5px;
+      transition: background 0.15s;
+    }
+    .spool-dropdown-item:hover {
+      background: #f0fdf4;
+      color: #0f766e;
+    }
   </style>
 </head>
 <body>
@@ -135,17 +166,31 @@
   <!-- 1. TOP HEADER -->
   <div class="top-header">
     <div style="display:flex; align-items:center; gap:12px;">
-      <!-- 🟢 નવો અપડેટ કરેલો કોડ (Link) -->
       <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
-      <h2> LHS ENTRY</h2>
+      <h2>📋 LHS ENTRY</h2>
     </div>
     <button id="btnChangeSpool" class="btn-reset" style="display:none;" onclick="handleChangeSpool()">🔄 Change Spool</button>
   </div>
 
-  <!-- 2. SEARCH & VERIFY SPOOL BOX -->
-  <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+  <!-- 2. SEARCH & VERIFY SPOOL BOX WITH AUTO-COMPLETE -->
+  <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; position:relative;">
     <label style="font-size:13px;">Spool Unique No:</label>
-    <input type="text" id="spoolNoInput" placeholder="Enter Spool No (e.g. 7-07044)" style="width:260px;" onkeydown="if(event.key==='Enter') handleVerifySpool()" autocomplete="off">
+    
+    <!-- Input Wrapper with Auto-Complete Dropdown -->
+    <div style="position:relative; width:280px;">
+      <input
+        type="text"
+        id="spoolNoInput"
+        placeholder="Enter Spool No (e.g. 7-07044)"
+        style="width:100%; font-weight:700;"
+        oninput="handleSpoolSearch(this.value)"
+        onfocus="if(this.value.trim()) handleSpoolSearch(this.value)"
+        onkeydown="if(event.key==='Enter') handleVerifySpool()"
+        autocomplete="off"
+      >
+      <div id="spoolDropdown" class="spool-dropdown-box"></div>
+    </div>
+
     <button type="button" id="btnVerifySpool" class="btn-primary" onclick="handleVerifySpool()">Verify Spool</button>
     <span id="lookupStatus" style="font-size:12.5px; font-weight:600; color:#64748b;"></span>
   </div>
@@ -153,7 +198,7 @@
   <!-- 3. VERIFIED SPOOL WORKSPACE -->
   <div id="verifiedSection" style="display:none; flex-direction:column; gap:16px;">
 
-    <!-- AUTO-FETCHED LINE LIST INFO BAR -->
+    <!-- AUTO-FETCHED INFO BAR -->
     <div class="card" style="display:flex; gap:20px; align-items:center; font-size:13px; flex-wrap:wrap; background:#f0fdf4; border-color:#bbf7d0;">
       <div><b style="color:#64748b;">Spool:</b> <span id="dispSpoolNo" style="color:#17365d; font-weight:800; font-size:14px;"></span></div>
       <div><b style="color:#64748b;">Drawing No:</b> <span id="dispDrawingNo" style="color:#0f172a; font-weight:700;"></span></div>
@@ -345,7 +390,6 @@
       return true;
     }
 
-    // Business Logic Arrays & Mappings
     const validWelders = ["620", "622", "625", "738", "904", "815", "853", "770", "710", "711", "969", "625/1200", "770/1200", "815/1200", "625/1305", "770/1305", "815/1305", "815/1004"];
     const wpsForSpecial = ["620", "622", "625", "815", "770"];
     const weldJointTypes = ["BW", "SOF", "SOB", "LET", "SW"];
@@ -366,20 +410,91 @@
     let isReportNoAutoFetched = false;
 
     /* -------------------------------------------------------------
-       1. VERIFY SPOOL (From Line_list & checks existing lhs_entries)
+       🟢 1. LIVE SEARCH & FILTER FROM piping_joints (where Fd_date is null)
+    -------------------------------------------------------------- */
+    let searchTimeout = null;
+
+    async function handleSpoolSearch(term) {
+      clearTimeout(searchTimeout);
+      const q = String(term || '').trim().toLowerCase();
+      const dropdown = document.getElementById('spoolDropdown');
+
+      if (!q) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      searchTimeout = setTimeout(async () => {
+        try {
+          // Query piping_joints where Fd_date IS NULL and Spool_number matches
+          const { data, error } = await db
+            .from('piping_joints')
+            .select('Spool_number, Drawing_no')
+            .is('Fd_date', null)
+            .ilike('Spool_number', `%${q}%`)
+            .limit(30);
+
+          if (error) throw error;
+
+          // Distinct Spools Filter (Multiple joints per spool prevented)
+          const uniqueSpools = new Map();
+          (data || []).forEach(r => {
+            const sp = String(r.Spool_number || '').trim();
+            if (sp && !uniqueSpools.has(sp)) {
+              uniqueSpools.set(sp, r.Drawing_no || '');
+            }
+          });
+
+          if (uniqueSpools.size === 0) {
+            dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px; text-align:center;">કોઈ Spool મળ્યો નથી (અથવા FD Dispatch થઈ ચૂક્યો છે)</div>';
+            dropdown.style.display = 'block';
+            return;
+          }
+
+          dropdown.innerHTML = Array.from(uniqueSpools.entries()).map(([spoolNo, dwgNo]) => `
+            <div class="spool-dropdown-item" onclick="selectSpoolSuggestion('${spoolNo}')">
+              <span style="font-weight:bold; color:#0f172a;">${spoolNo}</span>
+              <span style="font-size:11px; color:#64748b;">${dwgNo}</span>
+            </div>
+          `).join('');
+
+          dropdown.style.display = 'block';
+        } catch (err) {
+          console.error("Spool search error:", err);
+        }
+      }, 200);
+    }
+
+    function selectSpoolSuggestion(spoolNo) {
+      document.getElementById('spoolNoInput').value = spoolNo;
+      document.getElementById('spoolDropdown').style.display = 'none';
+      handleVerifySpool();
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#spoolNoInput') && !e.target.closest('#spoolDropdown')) {
+        const drop = document.getElementById('spoolDropdown');
+        if (drop) drop.style.display = 'none';
+      }
+    });
+
+    /* -------------------------------------------------------------
+       2. VERIFY SPOOL (From Line_list or piping_joints Fallback)
     -------------------------------------------------------------- */
     async function handleVerifySpool() {
       const spool = document.getElementById('spoolNoInput').value.trim().toUpperCase();
       if (!spool) return alert('⚠️ Spool Unique No. ટાઇપ કરો');
 
+      document.getElementById('spoolDropdown').style.display = 'none';
       const btn = document.getElementById('btnVerifySpool');
       const statusText = document.getElementById('lookupStatus');
       btn.innerText = "⏳ Verifying...";
       btn.disabled = true;
-      statusText.innerText = "Checking Line_list database...";
+      statusText.innerText = "Checking databases...";
 
       try {
-        // A. Line_list Table Lookup
+        // A. Primary Lookup: Line_list Table
         const { data: lineRows, error: lineErr } = await db
           .from('Line_list')
           .select('*')
@@ -387,12 +502,36 @@
           .limit(1);
 
         if (lineErr) throw lineErr;
-        if (!lineRows || lineRows.length === 0) {
-          statusText.innerText = "";
-          return alert(`❌ Spool "${spool}" Line_list ટેબલમાં મળ્યો નથી!`);
+
+        let foundRow = (lineRows && lineRows.length > 0) ? lineRows[0] : null;
+
+        // B. Fallback Lookup: piping_joints Table
+        if (!foundRow) {
+          const { data: pjRows, error: pjErr } = await db
+            .from('piping_joints')
+            .select('*')
+            .ilike('Spool_number', spool)
+            .limit(1);
+
+          if (!pjErr && pjRows && pjRows.length > 0) {
+            foundRow = {
+              Spool_number: pjRows[0].Spool_number,
+              Drawing_no: pjRows[0].Drawing_no,
+              UNIT: pjRows[0].UNIT || pjRows[0].Unit || '-',
+              Allocation: pjRows[0].Allocation || '-',
+              Spool_size: pjRows[0].Spool_size || '-',
+              MOC: pjRows[0].MOC || '-',
+              Pipe_Class: pjRows[0].Pipe_Class || pjRows[0].Pipe_class || ''
+            };
+          }
         }
 
-        verifiedSpoolData = lineRows[0];
+        if (!foundRow) {
+          statusText.innerText = "";
+          return alert(`❌ Spool "${spool}" Line_list અથવા piping_joints માં મળ્યો નથી!`);
+        }
+
+        verifiedSpoolData = foundRow;
         document.getElementById('dispSpoolNo').innerText = verifiedSpoolData.Spool_number;
         document.getElementById('dispDrawingNo').innerText = verifiedSpoolData.Drawing_no || '-';
         document.getElementById('dispUnit').innerText = verifiedSpoolData.UNIT || '-';
@@ -401,7 +540,7 @@
         document.getElementById('dispMoc').innerText = verifiedSpoolData.MOC || '-';
         document.getElementById('pipeClassInput').value = verifiedSpoolData.Pipe_Class || '';
 
-        // B. Fetch Existing Filled Joints from lhs_entries
+        // C. Fetch Existing Filled Joints from lhs_entries
         const { data: existRows, error: existErr } = await db
           .from('lhs_entries')
           .select('*')
@@ -412,7 +551,7 @@
         existingJoints = existRows || [];
         renderExistingJointsTable();
 
-        // C. Check Auto-Report Number
+        // D. Auto-fetch Weld Visual Report No from prior joints
         const repInput = document.getElementById('reportNoInput');
         const autoTag = document.getElementById('autoFetchedTag');
         const foundRep = existingJoints.find(j => j.weld_visual_report_no && String(j.weld_visual_report_no).trim() !== '' && String(j.weld_visual_report_no).toUpperCase() !== 'NULL');
@@ -442,7 +581,7 @@
         alert('❌ Error: ' + err.message);
         statusText.innerText = "";
       } finally {
-        btn.innerText = "🔍 Verify Spool";
+        btn.innerText = "Verify Spool";
         btn.disabled = false;
       }
     }
@@ -476,7 +615,7 @@
     }
 
     /* -------------------------------------------------------------
-       2. WELDER & WPS DYNAMIC RULES
+       3. WELDER & WPS RULES
     -------------------------------------------------------------- */
     function handleJointTypeChange(type) {
       const welderWrap = document.getElementById('welderWrapper');
@@ -505,7 +644,7 @@
     }
 
     /* -------------------------------------------------------------
-       3. ADD JOINT TO QUEUE & VALIDATION
+       4. ADD JOINT TO QUEUE & VALIDATION
     -------------------------------------------------------------- */
     function handleAddJoint() {
       const jointNo = document.getElementById('newJointNo').value.trim().toUpperCase();
@@ -514,24 +653,20 @@
       const welderNo = document.getElementById('newWelderNo').value;
       const wpsNo = document.getElementById('newWpsNo').value;
 
-      // Joint Regex Validation
       if (!jointNo.match(/^J0\d{1,2}[A-Z]?$/i)) {
         return alert('⚠️ Joint No નો ફોર્મેટ યોગ્ય નથી! (દા.ત. J01, J02A)');
       }
       if (!jointType) return alert('⚠️ મહેરબાની કરીને Joint Type પસંદ કરો!');
       if (!weldId) return alert('⚠️ મહેરબાની કરીને Weld Size પસંદ કરો!');
 
-      // Check Duplicates in Database
       if (existingJoints.some(j => String(j.joint_no).toUpperCase().trim() === jointNo)) {
         return alert(`❌ જોઈન્ટ "${jointNo}" પહેલેથી જ lhs_entries માં સેવ થયેલો છે!`);
       }
 
-      // Check Duplicates in Current Queue
       if (queuedJoints.some(j => String(j.jointNo).toUpperCase().trim() === jointNo)) {
         return alert(`❌ જોઈન્ટ "${jointNo}" તમે નીચેના લિસ્ટમાં પહેલેથી જ ઉમેરી દીધો છે!`);
       }
 
-      // Welder & WPS Rules for Welded Types
       if (weldJointTypes.includes(jointType)) {
         if (!welderNo) return alert('⚠️ મહેરબાની કરીને Welder No પસંદ કરો!');
         if (!wpsNo) return alert('⚠️ મહેરબાની કરીને WPS No પસંદ કરો!');
@@ -552,7 +687,6 @@
         inchDia
       });
 
-      // Reset Inputs
       document.getElementById('newJointNo').value = '';
       document.getElementById('newJointType').value = '';
       document.getElementById('newWeldSize').value = '';
@@ -598,7 +732,6 @@
         </tr>
       `).join('');
 
-      // Dynamic NDT Toggle
       const hasBW = queuedJoints.some(j => j.jointType === 'BW');
       const hasDPT = queuedJoints.some(j => ['LET', 'SOB', 'SOF', 'SW'].includes(j.jointType));
       document.getElementById('rtFieldWrap').style.display = hasBW ? 'block' : 'none';
@@ -606,7 +739,7 @@
     }
 
     /* -------------------------------------------------------------
-       4. SUBMIT ALL QUEUED JOINTS (46 Columns Mapping to lhs_entries)
+       5. SUBMIT TO lhs_entries TABLE
     -------------------------------------------------------------- */
     async function handleSubmitAll() {
       if (queuedJoints.length === 0) return alert('⚠️ ઓછામાં ઓછો એક નવો જોઈન્ટ ઉમેરો!');
@@ -622,24 +755,20 @@
         return alert('⚠️ Fit-Up Date, Visual Date અને Report No. દાખલ કરવા ફરજિયાત છે!');
       }
 
-      // RT% requirement check only if BW exists
       const hasBW = queuedJoints.some(j => j.jointType === 'BW');
       if (hasBW && !rtPercentage) {
         return alert('⚠️ BW જોઈન્ટ હોવાથી RT% પસંદ કરવો ફરજિયાત છે!');
       }
 
-      // DPT% requirement check only if SOF, SOB, LET, SW exists (EB excluded)
       const hasDPT = queuedJoints.some(j => ['LET', 'SOB', 'SOF', 'SW'].includes(j.jointType));
       if (hasDPT && !dptPercentage) {
         return alert('⚠️ DPT પ્રકારના જોઈન્ટ હોવાથી DPT% પસંદ કરવો ફરજિયાત છે!');
       }
 
-      // Report No Regex Validation
       if (!/^\d{4}[AB]?$/.test(reportNo)) {
         return alert('❌ Invalid Report No! ફોર્મેટ માત્ર 4 આંકડા અથવા પાછળ A/B હોઈ શકે (દા.ત. 1001, 1001A, 1001B)');
       }
 
-      // Check Report No Conflict across other spools in Supabase
       const { data: repCheck, error: repErr } = await db
         .from('lhs_entries')
         .select('spool_no')
@@ -647,9 +776,7 @@
         .neq('spool_no', verifiedSpoolData.Spool_number)
         .limit(1);
 
-      if (repErr) {
-        console.error(repErr);
-      } else if (repCheck && repCheck.length > 0) {
+      if (!repErr && repCheck && repCheck.length > 0) {
         return alert(`❌ Report No "${reportNo}" પહેલેથી બીજા Spool "${repCheck[0].spool_no}" માટે વપરાયેલો છે!`);
       }
 
@@ -658,28 +785,24 @@
       btnSave.disabled = true;
 
       try {
-        // Complete 46 Columns Sequential Mapping
-        // Complete 46 Columns Sequential Mapping with Joint Type Validation
         const rowsToInsert = queuedJoints.map(j => {
           const jType = String(j.jointType || '').trim().toUpperCase();
 
-          // 🟢 Joint-Specific NDT Percentage Logic
           let finalRt = null;
           let finalDpt = null;
 
           if (jType === 'BW') {
-            finalRt = rtPercentage || null;      // BW: Only RT%
-            finalDpt = null;                     // DPT% is strictly NULL
+            finalRt = rtPercentage || null;
+            finalDpt = null;
           } else if (jType === 'EB') {
-            finalRt = null;                      // EB: RT% is NULL
-            finalDpt = null;                     // EB: DPT% is NULL (10% DPT is Fix & separate)
+            finalRt = null;
+            finalDpt = null;
           } else if (['SOF', 'SOB', 'LET', 'SW'].includes(jType)) {
-            finalRt = null;                      // Branch/Fillet: RT% is strictly NULL
-            finalDpt = dptPercentage || null;    // Only DPT%
+            finalRt = null;
+            finalDpt = dptPercentage || null;
           }
 
           return {
-            // 1 to 7: Basic Details
             cwp: verifiedSpoolData.CWP || null,
             system_ug_ag: verifiedSpoolData.System_UG_AG || null,
             unit_wbs: verifiedSpoolData.Unit_WBS || null,
@@ -688,7 +811,6 @@
             drawing_no: verifiedSpoolData.Drawing_no || null,
             spool_no: verifiedSpoolData.Spool_number,
 
-            // 8 to 18: Joint & Pipe Specifications
             joint_no: j.jointNo,
             spool_size: verifiedSpoolData.Spool_size || null,
             joint_type: j.jointType,
@@ -701,13 +823,11 @@
             paint_system: verifiedSpoolData.Paint_code || null,
             pipe_class: pipeClass || verifiedSpoolData.Pipe_Class || null,
 
-            // 19 to 22: Induction Bend Details (Default NULL for New Joint)
             induction_bend_report_no: null,
             induction_bend_dpt_lot_no: null,
             induction_bend_dpt_report_no: null,
             induction_bend_dpt_date: null,
 
-            // 23 to 28: Fit-up, Welder & Visual Inspection
             fitup_date: fitupDate,
             welder_no: j.welderNo,
             wps_no: j.wpsNo,
@@ -715,13 +835,11 @@
             weld_visual_report_no: reportNo,
             visual_date: visualDate,
 
-            // 29 to 32: DPT Testing Details
             dpt_percentage: finalDpt,
             dpt_report_no: null,
             dpt_date: null,
             dpt_lot_no: null,
 
-            // 33 to 38: RT Testing Details
             rt_percentage: finalRt,
             rt_report_no: null,
             rt_date: null,
@@ -729,25 +847,20 @@
             accepted_rejected: null,
             rt_lot_no: null,
 
-            // 39 to 40: RF Pad Testing
             rf_pad_test_report_no: null,
             rf_pad_test_date: null,
 
-            // 41 to 42: PWHT Details
             pwht_report_no: null,
             pwht_date: null,
 
-            // 43 to 45: Clearance & Dispatch
             ndt_clearance: null,
             fd_date: null,
             shift_dc_no: null,
 
-            // 46: Remarks
             remarks: verifiedSpoolData.Remarks || null
           };
         });
 
-        // Supabase Insert Operation
         const { error: insertErr } = await db.from('lhs_entries').insert(rowsToInsert);
         if (insertErr) throw insertErr;
 
@@ -771,6 +884,7 @@
       document.getElementById('spoolNoInput').disabled = false;
       document.getElementById('spoolNoInput').style.background = "#fff";
       document.getElementById('spoolNoInput').value = "";
+      document.getElementById('spoolDropdown').style.display = 'none';
       document.getElementById('lookupStatus').innerText = "";
       document.getElementById('btnVerifySpool').style.display = 'inline-block';
       document.getElementById('btnChangeSpool').style.display = 'none';
