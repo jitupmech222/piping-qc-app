@@ -303,7 +303,7 @@
       return allRows;
     }
 
-    // 🟢 LOAD GITHUB TEMPLATE ('LOT MASTER.xlsx') AND GENERATE
+    // 🟢 LOAD TEMPLATE, PRESERVE PRINT SETUP & FIX BORDERS FOR ROWS 6 TO 26
     async function handleGenerateLot() {
       const ndtType = document.querySelector('input[name="ndtType"]:checked').value;
       const rawLot = document.getElementById('inputLotNo').value.trim();
@@ -384,7 +384,7 @@
           }
         }
 
-        // ૨. GitHub પરથી તમારું અપલોડ કરેલું 'LOT MASTER.xlsx' ટેમ્પલેટ લોડ કરવું
+        // ૨. GitHub પરથી અપલોડ કરેલું 'LOT MASTER.xlsx' ટેમ્પલેટ લોડ કરવું
         const templateResponse = await fetch(encodeURI('LOT MASTER.xlsx'));
         if (!templateResponse.ok) {
           throw new Error("GitHub પર 'LOT MASTER.xlsx' ટેમ્પલેટ ફાઈલ લોડ થઈ શકી નથી.");
@@ -393,88 +393,136 @@
 
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(templateBuffer);
-        const worksheet = workbook.worksheets[0]; // પ્રથમ શીટ
+        const worksheet = workbook.worksheets[0];
 
-        const centerStyle = { vertical: 'middle', horizontal: 'center' };
-        const borderStyle = {
-          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-          bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-          right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
-        };
+        // 🟢 PRINT PREVIEW FIX:
+        // Do NOT touch worksheet.columns! This keeps the original column widths 100% intact.
+        // Ensure fitToPage is enabled so Print Preview fits on 1 page without altering original template margins.
+        if (!worksheet.pageSetup) {
+          worksheet.pageSetup = {};
+        }
+        worksheet.pageSetup.fitToPage = true;
+        worksheet.pageSetup.fitToWidth = 1;
+        worksheet.pageSetup.fitToHeight = 1;
+        worksheet.pageSetup.orientation = 'landscape';
 
-        // ૩. હેડર સેલ્સ અપડેટ કરવા (generate_lot.py મુજબ)
+        const centerAlign = { vertical: 'middle', horizontal: 'center' };
+        const leftAlign = { vertical: 'middle', horizontal: 'left' };
+
+        // ૩. હેડર સેલ્સ અપડેટ કરવા (Row 4 અને G7)
         worksheet.getCell('D4').value = headerWps;
         worksheet.getCell('I4').value = headerNdt;
         worksheet.getCell('N4').value = `LOT NAME: MPL/AIPL/${ndtType}/LOT-${rawLot}`;
         worksheet.getCell('G7').value = isNaN(parseInt(rawLot, 10)) ? rawLot : parseInt(rawLot, 10);
 
-        ['D4', 'I4', 'N4', 'G7'].forEach(pos => {
-          worksheet.getCell(pos).alignment = centerStyle;
-        });
+        worksheet.getCell('D4').alignment = centerAlign;
+        worksheet.getCell('I4').alignment = centerAlign;
+        worksheet.getCell('N4').alignment = centerAlign;
+        worksheet.getCell('G7').alignment = centerAlign;
 
-        // ૪. Row 7 થી જોઈન્ટ્સનો ડેટા ભરવો
-        let rowOut = 7;
-        let sr = 1;
+        // ૪. Row 7 થી Row 26 (૨૦ ડેટા રો) માં જોઈન્ટ્સનો ડેટા ભરવો અને બાકીની રો સાફ કરવી
         let lastSpool = null;
+        const totalTableRows = 20; // Table row 7 to row 26
 
-        matchedJoints.forEach(j => {
-          const jType = String(j.joint_type || '').toUpperCase().trim();
-          const isBW = jType === 'BW';
+        for (let i = 0; i < totalTableRows; i++) {
+          const rowNum = 7 + i;
+          const j = matchedJoints[i];
 
-          let reportNo = "";
-          let ndtDate = "";
-          let xrNo = "";
+          if (j) {
+            const jType = String(j.joint_type || '').toUpperCase().trim();
+            const isBW = jType === 'BW';
 
-          if (ndtType === "RT") {
-            reportNo = (j.rt_report_no && j.rt_report_no !== 'NA') ? j.rt_report_no : "";
-            ndtDate = formatDateDisplay(j.rt_date);
-            xrNo = (j.xr_no && j.xr_no !== 'NA') ? j.xr_no : "";
-          } else {
-            if (jType === 'EB') {
-              reportNo = (j.induction_bend_dpt_report_no && j.induction_bend_dpt_report_no !== 'NA') ? j.induction_bend_dpt_report_no : "";
-              ndtDate = formatDateDisplay(j.induction_bend_dpt_date);
+            let reportNo = "";
+            let ndtDate = "";
+            let xrNo = "";
+
+            if (ndtType === "RT") {
+              reportNo = (j.rt_report_no && j.rt_report_no !== 'NA') ? String(j.rt_report_no).trim() : "";
+              ndtDate = formatDateDisplay(j.rt_date);
+              xrNo = (j.xr_no && j.xr_no !== 'NA') ? String(j.xr_no).trim() : "";
             } else {
-              reportNo = (j.dpt_report_no && j.dpt_report_no !== 'NA') ? j.dpt_report_no : "";
-              ndtDate = formatDateDisplay(j.dpt_date);
+              if (jType === 'EB') {
+                reportNo = (j.induction_bend_dpt_report_no && j.induction_bend_dpt_report_no !== 'NA') ? String(j.induction_bend_dpt_report_no).trim() : "";
+                ndtDate = formatDateDisplay(j.induction_bend_dpt_date);
+              } else {
+                reportNo = (j.dpt_report_no && j.dpt_report_no !== 'NA') ? String(j.dpt_report_no).trim() : "";
+                ndtDate = formatDateDisplay(j.dpt_date);
+              }
             }
+
+            const repDisplay = (reportNo && xrNo) ? `${reportNo} (${xrNo})` : reportNo;
+            const sizeThk = (j.weld_npd && j.thk) ? `${j.weld_npd}"/${j.thk}` : (j.weld_npd ? `${j.weld_npd}"` : (j.thk || "-"));
+
+            worksheet.getCell(`A${rowNum}`).value = i + 1;
+            worksheet.getCell(`B${rowNum}`).value = j.drawing_no || '';
+            worksheet.getCell(`D${rowNum}`).value = j.pipe_class || '';
+            worksheet.getCell(`E${rowNum}`).value = j.joint_no || '';
+            worksheet.getCell(`F${rowNum}`).value = sizeThk;
+            worksheet.getCell(`H${rowNum}`).value = j.welder_no || 'NA';
+            worksheet.getCell(`I${rowNum}`).value = jType;
+            worksheet.getCell(`K${rowNum}`).value = j.weld_visual_report_no || '';
+            worksheet.getCell(`L${rowNum}`).value = formatDateDisplay(j.visual_date);
+            worksheet.getCell(`M${rowNum}`).value = isBW ? "RT" : "DPT";
+            worksheet.getCell(`N${rowNum}`).value = repDisplay;
+            worksheet.getCell(`O${rowNum}`).value = ndtDate;
+            worksheet.getCell(`Q${rowNum}`).value = formatDateDisplay(j.ndt_clearance);
+
+            const currentSpool = j.spool_no || '';
+            if (currentSpool && currentSpool !== lastSpool) {
+              worksheet.getCell(`P${rowNum}`).value = currentSpool;
+              lastSpool = currentSpool;
+            } else {
+              worksheet.getCell(`P${rowNum}`).value = (currentSpool === lastSpool && i > 0) ? '' : currentSpool;
+            }
+          } else {
+            // ખાલી રોમાંથી જૂનો ડેટા સાફ કરવો (Col G સિવાય)
+            ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q'].forEach(col => {
+              worksheet.getCell(`${col}${rowNum}`).value = '';
+            });
           }
 
-          const repDisplay = (reportNo && xrNo) ? `${reportNo} (${xrNo})` : reportNo;
-          const sizeThk = (j.weld_npd && j.thk) ? `${j.weld_npd}"/${j.thk}` : (j.weld_npd ? `${j.weld_npd}"` : (j.thk || "-"));
-
-          worksheet.getCell(`A${rowOut}`).value = sr;
-          worksheet.getCell(`B${rowOut}`).value = j.drawing_no || '';
-          worksheet.getCell(`D${rowOut}`).value = j.pipe_class || '';
-          worksheet.getCell(`E${rowOut}`).value = j.joint_no || '';
-          worksheet.getCell(`F${rowOut}`).value = sizeThk;
-          worksheet.getCell(`H${rowOut}`).value = j.welder_no || 'NA';
-          worksheet.getCell(`I${rowOut}`).value = jType;
-          worksheet.getCell(`K${rowOut}`).value = j.weld_visual_report_no || '';
-          worksheet.getCell(`L${rowOut}`).value = formatDateDisplay(j.visual_date);
-          worksheet.getCell(`M${rowOut}`).value = isBW ? "RT" : "DPT";
-          worksheet.getCell(`N${rowOut}`).value = repDisplay;
-          worksheet.getCell(`O${rowOut}`).value = ndtDate;
-          worksheet.getCell(`Q${rowOut}`).value = formatDateDisplay(j.ndt_clearance);
-
-          const currentSpool = j.spool_no || '';
-          if (currentSpool !== lastSpool) {
-            worksheet.getCell(`P${rowOut}`).value = currentSpool;
-            lastSpool = currentSpool;
-          }
-
-          "ABCDEFHIJKLMNOPQ".split("").forEach(col => {
-            const c = worksheet.getCell(`${col}${rowOut}`);
-            c.font = { name: 'Calibri', size: 10 };
-            c.alignment = col === 'B' ? { vertical: 'middle', horizontal: 'left' } : centerStyle;
-            c.border = borderStyle;
+          // ફોન્ટ અને એલાઇનમેન્ટ
+          ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q'].forEach(col => {
+            const cell = worksheet.getCell(`${col}${rowNum}`);
+            cell.font = { name: 'Calibri', size: 10 };
+            cell.alignment = (col === 'B') ? leftAlign : centerAlign;
           });
+        }
 
-          rowOut++;
-          sr++;
-        });
+        // 🟢 ૫. ROW 6 થી 26 સુધી સંપૂર્ણ બોર્ડર લાગુ કરવી (FIX MISSING BORDERS)
+        const thinBorder = {
+          top: { style: 'thin', color: { argb: 'FF000000' } },
+          left: { style: 'thin', color: { argb: 'FF000000' } },
+          bottom: { style: 'thin', color: { argb: 'FF000000' } },
+          right: { style: 'thin', color: { argb: 'FF000000' } }
+        };
 
-        // ૫. ભરેલી નવી એક્સેલ ફાઈલ ડાઉનલોડ કરાવો
+        const colsWithoutG = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q'];
+
+        // Row 6 (હેડર) થી Row 26 સુધીના તમામ સેલને ચારેય બાજુ પાતળી કાળી બોર્ડર
+        for (let r = 6; r <= 26; r++) {
+          colsWithoutG.forEach(col => {
+            const cell = worksheet.getCell(`${col}${r}`);
+            cell.border = thinBorder;
+          });
+        }
+
+        // Column G Row 6 (હેડર સેલ "NDT Lot No.") ને બોર્ડર
+        worksheet.getCell('G6').border = thinBorder;
+
+        // Column G (Row 7 થી 26 - Merged Lot No Box):
+        // બહારની બોર્ડર જાળવવી જેથી વચ્ચે આડી લાઈનો ન પડે અને બોક્સ અખંડ રહે
+        for (let r = 7; r <= 26; r++) {
+          const cellG = worksheet.getCell(`G${r}`);
+          cellG.border = {
+            top: r === 7 ? { style: 'thin', color: { argb: 'FF000000' } } : undefined,
+            bottom: r === 26 ? { style: 'thin', color: { argb: 'FF000000' } } : undefined,
+            left: { style: 'thin', color: { argb: 'FF000000' } },
+            right: { style: 'thin', color: { argb: 'FF000000' } }
+          };
+        }
+
+        // ૬. ફાઈલ ડાઉનલોડ
         const fileName = `${ndtType}_LOT_${rawLot}.xlsx`;
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -486,13 +534,13 @@
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
 
-        // ૬. UI પરિણામ દર્શાવો
+        // ૭. UI સફળતા સંદેશ
         alertBox.className = "result-box result-success";
         alertBox.innerHTML = `
           <h3 style="margin: 0 0 6px 0;">✅ LOT MASTER ફોર્મેટમાં Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
           <p style="margin: 2px 0;"><b>NDT Type:</b> ${ndtType} | <b>Lot No:</b> ${rawLot}</p>
-          <p style="margin: 2px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળી આવ્યા</p>
-          <p style="margin: 2px 0;"><b>Header NDT:</b> ${headerNdt} | <b>Header WPS:</b> ${headerWps}</p>
+          <p style="margin: 2px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળ્યા</p>
+          <p style="margin: 2px 0;"><b>Row 6 to 26 Borders:</b> ✓ તમામ સેલ્સમાં બોર્ડર લાગુ કરી દેવામાં આવી છે.</p>
           <p style="margin: 2px 0;"><b>File Downloaded:</b> 📥 <u>${fileName}</u></p>
         `;
         alertBox.style.display = 'block';
