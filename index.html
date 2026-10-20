@@ -65,20 +65,17 @@
     .brand-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .brand-logo {
-      width: 36px;
-      height: 36px;
-      background: #0d9488;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 18px;
-      font-weight: 900;
+    /* 🟢 PFS Logo Styling */
+    .brand-logo-img {
+      height: 40px;
+      width: auto;
+      max-width: 48px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
     }
 
     .brand-name { font-size: 14px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
@@ -246,7 +243,7 @@
     }
     .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
 
-    /* 🟢 New Reference Header & Modern KPI Styles */
+    /* Modern Header & KPI Styles */
     .dashboard-header {
       display: flex;
       align-items: center;
@@ -583,7 +580,8 @@
     <div>
       <div class="brand-area">
         <div class="brand-left">
-          <div class="brand-logo">✦</div>
+          <!-- 🟢 PFS Logo Image Updated -->
+          <img src="PFS logo.webp" alt="PFS Logo" class="brand-logo-img">
           <div>
             <div class="brand-name">PIPING CONSOLE</div>
           </div>
@@ -643,9 +641,9 @@
       </div>
     </div>
 
-    <!-- 🟢 MAIN DASHBOARD OVERVIEW (NEW REFERENCE DESIGN) -->
+    <!-- MAIN DASHBOARD OVERVIEW -->
     <div id="hubMainMenu">
-      <!-- Header Area from Reference Image -->
+      <!-- Header Area -->
       <div class="dashboard-header">
         <div class="dashboard-title-area">
           <h2>Dashboard Overview</h2>
@@ -663,7 +661,7 @@
         </div>
       </div>
 
-      <!-- 4 Sleek KPI Cards from Reference Image -->
+      <!-- 4 Sleek KPI Cards -->
       <div class="kpi-row">
         <!-- 1. Total Spools -->
         <div class="modern-kpi-card">
@@ -718,7 +716,7 @@
         </div>
       </div>
 
-      <!-- Charts Row from Reference Image -->
+      <!-- Charts Row -->
       <div class="charts-row">
         <!-- Wave Line Chart (Stage Progress Pipeline) -->
         <div class="chart-card">
@@ -1312,7 +1310,7 @@
     await loadTopDashboardMetrics();
   }
 
-  // 🟢 LOAD DASHBOARD OVERVIEW METRICS & RENDER CHARTS
+  // LOAD DASHBOARD OVERVIEW METRICS & RENDER CHARTS
   async function loadTopDashboardMetrics() {
     const allRows = await ensureAllRecordsCached();
     if (allRows.length === 0) return;
