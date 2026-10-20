@@ -109,6 +109,37 @@
       padding: 24px;
       box-shadow: 0 5px 20px rgba(0,0,0,0.25);
     }
+
+    /* 🟢 Dropdown Auto-Complete Styles */
+    .spool-dropdown-box {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1.5px solid #0d6efd;
+      border-radius: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      margin-top: 4px;
+    }
+    .spool-dropdown-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12.5px;
+      transition: background 0.15s;
+    }
+    .spool-dropdown-item:hover {
+      background: #f0fdf4;
+      color: #0f766e;
+    }
   </style>
 </head>
 <body>
@@ -116,17 +147,30 @@
   <!-- Top Bar -->
   <div class="top-header">
     <div style="display:flex; align-items:center; gap:12px;">
-      <!-- 🟢 નવો અપડેટ કરેલો કોડ (Link) -->
       <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
-      <h2 style="color:#17365d; font-size:18px;"> LOT ASSIGN</h2>
+      <h2 style="color:#17365d; font-size:18px;">📋 LOT ASSIGN</h2>
     </div>
     <button class="btn-create-lot" onclick="openCreateLotModal()">➕ Create Lot No</button>
   </div>
 
-  <!-- Search Spool -->
-  <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+  <!-- 🟢 Search Spool Box with Live Suggestion Dropdown -->
+  <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; position:relative;">
     <label style="font-weight:bold; font-size:13px;">Spool Unique No:</label>
-    <input type="text" id="spoolNoInput" placeholder="Enter Spool No (e.g. 7-07044)" style="width:240px;" onkeydown="if(event.key==='Enter') handleVerifySpool()" autocomplete="off">
+    
+    <div style="position:relative; width:280px;">
+      <input
+        type="text"
+        id="spoolNoInput"
+        placeholder="Enter Spool No (e.g. 7-07044)"
+        style="width:100%; font-weight:700;"
+        oninput="handleSpoolSearch(this.value)"
+        onfocus="if(this.value.trim()) handleSpoolSearch(this.value)"
+        onkeydown="if(event.key==='Enter') handleVerifySpool()"
+        autocomplete="off"
+      >
+      <div id="spoolDropdown" class="spool-dropdown-box"></div>
+    </div>
+
     <button type="button" class="btn-create-lot" style="background:#17365d;" onclick="handleVerifySpool()">Verify Spool</button>
     <span id="lookupStatus" style="font-size:12.5px; font-weight:600; color:#64748b;"></span>
   </div>
@@ -163,7 +207,7 @@
     </div>
   </div>
 
-  <!-- 🟢 CREATE LOT POPUP MODAL (Clean Cloud-Integrated) -->
+  <!-- 🟢 CREATE LOT POPUP MODAL -->
   <div class="modal-overlay" id="createLotModal">
     <div class="modal-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px;">
@@ -233,6 +277,73 @@
 
     let currentVerifiedSpool = "";
     let jointsList = [];
+    let searchTimeout = null;
+
+    /* -------------------------------------------------------------
+       🟢 1. LIVE SEARCH & FILTER FROM piping_joints (where Fd_date is null)
+    -------------------------------------------------------------- */
+    async function handleSpoolSearch(term) {
+      clearTimeout(searchTimeout);
+      const q = String(term || '').trim().toLowerCase();
+      const dropdown = document.getElementById('spoolDropdown');
+
+      if (!q) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      searchTimeout = setTimeout(async () => {
+        try {
+          const { data, error } = await db
+            .from('piping_joints')
+            .select('Spool_number, Drawing_no')
+            .is('Fd_date', null)
+            .ilike('Spool_number', `%${q}%`)
+            .limit(30);
+
+          if (error) throw error;
+
+          const uniqueSpools = new Map();
+          (data || []).forEach(r => {
+            const sp = String(r.Spool_number || '').trim();
+            if (sp && !uniqueSpools.has(sp)) {
+              uniqueSpools.set(sp, r.Drawing_no || '');
+            }
+          });
+
+          if (uniqueSpools.size === 0) {
+            dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px; text-align:center;">કોઈ Spool મળ્યો નથી (અથવા FD Dispatch થઈ ચૂક્યો છે)</div>';
+            dropdown.style.display = 'block';
+            return;
+          }
+
+          dropdown.innerHTML = Array.from(uniqueSpools.entries()).map(([spoolNo, dwgNo]) => `
+            <div class="spool-dropdown-item" onclick="selectSpoolSuggestion('${spoolNo}')">
+              <span style="font-weight:bold; color:#0f172a;">${spoolNo}</span>
+              <span style="font-size:11px; color:#64748b;">${dwgNo}</span>
+            </div>
+          `).join('');
+
+          dropdown.style.display = 'block';
+        } catch (err) {
+          console.error("Spool search error:", err);
+        }
+      }, 200);
+    }
+
+    function selectSpoolSuggestion(spoolNo) {
+      document.getElementById('spoolNoInput').value = spoolNo;
+      document.getElementById('spoolDropdown').style.display = 'none';
+      handleVerifySpool();
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#spoolNoInput') && !e.target.closest('#spoolDropdown')) {
+        const drop = document.getElementById('spoolDropdown');
+        if (drop) drop.style.display = 'none';
+      }
+    });
 
     function normalizeNdt(val) {
       if (!val || String(val).trim() === "" || String(val).toUpperCase() === "NA") return "";
@@ -255,12 +366,13 @@
     }
 
     /* -------------------------------------------------------------
-       1. VERIFY SPOOL (Load from lhs_entries)
+       2. VERIFY SPOOL (Load from lhs_entries where spool_no matches)
     -------------------------------------------------------------- */
     async function handleVerifySpool() {
       const spool = document.getElementById('spoolNoInput').value.trim().toUpperCase();
       if (!spool) return alert('⚠️ કૃપા કરીને Spool Unique No. દાખલ કરો.');
 
+      document.getElementById('spoolDropdown').style.display = 'none';
       const statusText = document.getElementById('lookupStatus');
       statusText.innerText = "⏳ Verifying...";
 
@@ -358,7 +470,7 @@
     }
 
     /* -------------------------------------------------------------
-       2. SAVE LOT DATA (Validation with ndt_lots & Capacity check)
+       3. SAVE LOT DATA (Validation with ndt_lots)
     -------------------------------------------------------------- */
     async function handleSaveLotData() {
       const pendingJoints = jointsList.filter(j => {
@@ -368,7 +480,6 @@
 
       if (pendingJoints.length === 0) return alert('ℹ️ કોઈ નવો Lot Number ઉમેરેલો નથી.');
 
-      // Check Empty Inputs
       for (const j of pendingJoints) {
         if (!j.lotNumber && j.ndtPercentage !== '100%') {
           return alert(`⚠️ જોઈન્ટ ${j.jointNo} માટે Lot Number દાખલ કરવો જરૂરી છે!`);
@@ -380,7 +491,6 @@
       btnSave.disabled = true;
 
       try {
-        // Fetch all lots from Supabase ndt_lots for validation
         const { data: allLots, error: lotErr } = await db.from('ndt_lots').select('*');
         if (lotErr) throw lotErr;
 
@@ -391,7 +501,6 @@
           const inputLot = j.lotNumber.toUpperCase();
           const cleanNum = inputLot.replace(/[^0-9]/g, "");
 
-          // Validate lot existence
           const matchedLot = allLots.find(l => {
             return l.lot_name.toUpperCase() === inputLot || l.clean_num === cleanNum || l.lot_name.toUpperCase().endsWith(`LOT-${cleanNum}`);
           });
@@ -402,14 +511,12 @@
             return alert(`❌ જોઈન્ટ ${j.jointNo} માટે દાખલ કરેલ Lot "${inputLot}" ndt_lots માસ્ટરમાં મળ્યો નથી! કૃપા કરીને "+ Create Lot No" થી નવો લોટ બનાવો.`);
           }
 
-          // Joint Type Matching
           if (matchedLot.joint_type && matchedLot.joint_type !== j.jointType) {
             btnSave.disabled = false;
             btnSave.innerText = "💾 SAVE LOT DATA";
             return alert(`❌ જોઈન્ટ ${j.jointNo} (${j.jointType}) માટે પસંદ કરેલો Lot "${inputLot}" Joint Type '${matchedLot.joint_type}' માટે બનેલો છે!`);
           }
 
-          // NDT% Matching
           const lotNdt = parsePurePct(matchedLot.ndt_percentage);
           if (lotNdt && numericNdt && lotNdt !== numericNdt) {
             btnSave.disabled = false;
@@ -417,7 +524,6 @@
             return alert(`❌ જોઈન્ટ ${j.jointNo} નો NDT% ${numericNdt}% છે, જ્યારે Lot "${inputLot}" ${lotNdt}% માટે બનેલો છે!`);
           }
 
-          // WPS Matching (Except EB)
           if (j.jointType !== 'EB') {
             const lotWps = String(matchedLot.wps_no || '').trim().toUpperCase();
             const jointWps = String(j.wpsNo || '').trim().toUpperCase();
@@ -455,7 +561,7 @@
     }
 
     /* -------------------------------------------------------------
-       3. CREATE LOT MODAL CONTROLLER & LIVE CLOUD SAVE
+       4. CREATE LOT MODAL CONTROLLER
     -------------------------------------------------------------- */
     function openCreateLotModal() {
       document.getElementById('modalLotNumber').value = "";
@@ -525,7 +631,6 @@
       btn.disabled = true;
 
       try {
-        // Check Duplicate in ndt_lots table
         const { data: dupCheck, error: dupErr } = await db
           .from('ndt_lots')
           .select('id')
@@ -539,7 +644,6 @@
           return alert(`❌ Lot "${fullLotName}" પહેલેથી જ ndt_lots માં સેવ થયેલો છે!`);
         }
 
-        // Insert into Supabase ndt_lots
         const { error: insErr } = await db.from('ndt_lots').insert([{
           lot_type: lotType,
           lot_name: fullLotName,
