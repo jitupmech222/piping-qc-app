@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inch Dia Progress Report | QA/QC Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Formatted Excel Export Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 18px 24px; -webkit-font-smoothing: antialiased; }
+
+    .top-header {
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-back {
+      padding: 7px 16px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f1f5f9; color: #0284c7; }
+
+    .card {
+      background: #ffffff;
+      padding: 18px 22px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .input-group label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .input-group input[type="date"] {
+      padding: 9px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      outline: none;
+      background: #fff;
+    }
+    .input-group input[type="date"]:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .btn-generate {
+      padding: 10px 20px;
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+      transition: all 0.2s;
+    }
+    .btn-generate:hover { background: #0369a1; transform: translateY(-1px); }
+
+    .btn-export-excel {
+      padding: 10px 18px;
+      background: #15803d;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(21, 128, 61, 0.2);
+      transition: all 0.2s;
+    }
+    .btn-export-excel:hover { background: #166534; transform: translateY(-1px); }
+    .btn-export-excel:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    .btn-whatsapp {
+      padding: 10px 18px;
+      background: #25d366;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+      transition: all 0.2s;
+    }
+    .btn-whatsapp:hover { background: #1eb956; transform: translateY(-1px); }
+    .btn-whatsapp:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    /* Report Table */
+    .table-container {
+      overflow-x: auto;
+      max-height: 65vh;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      margin-top: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12.5px;
+      min-width: 900px;
+    }
+    th {
+      background: #d7e4bc;
+      color: #1e3a1e;
+      border-right: 1px solid #b5c696;
+      border-bottom: 2px solid #a3b880;
+      padding: 11px 12px;
+      font-weight: 800;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+    }
+    td {
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 9px 12px;
+      text-align: center;
+      background: #ffffff;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    /* Grand Total Row */
+    tr.total-row td {
+      background: #fce4d6 !important;
+      color: #7c2d12;
+      font-weight: 800;
+      font-size: 13px;
+      border-top: 2px solid #fdba74;
+      border-bottom: 2px solid #fdba74;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
+      <h2 style="color:#0284c7; font-size:18px; font-weight:800;">⚡ INCH DIA & BEND PROGRESS REPORT</h2>
+    </div>
+    <span id="navSubTitle" style="font-size:12.5px; font-weight:bold; color:#64748b;"></span>
+  </div>
+
+  <!-- Filter & Action Card -->
+  <div class="card">
+    <div class="filter-bar">
+      <div class="input-group">
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" required>
+      </div>
+
+      <div class="input-group">
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate" required>
+      </div>
+
+      <button type="button" class="btn-generate" onclick="generateInchDiaReport()">
+        <span>📊 Generate Report</span>
+      </button>
+
+      <button type="button" id="btnDownloadExcel" class="btn-export-excel" onclick="downloadInchDiaExcel()" disabled>
+        <span>📥 Download Excel (.xlsx)</span>
+      </button>
+
+      <button type="button" id="btnShareWhatsApp" class="btn-whatsapp" onclick="shareWhatsAppSummary()" disabled>
+        <span>📲 Share on WhatsApp</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Report Data Container -->
+  <div class="card" id="reportCard" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <span style="font-size:14px; font-weight:bold; color:#0f172a;" id="reportPeriodText">Report Summary</span>
+      <span style="font-size:12px; color:#64748b;" id="recordCountText"></span>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="min-width: 120px;">DATE</th>
+            <th>FIT-UP BEND QTY</th>
+            <th>FIT-UP ID</th>
+            <th>VISUAL BEND QTY</th>
+            <th>VISUAL ID</th>
+            <th>DISPATCH BEND QTY</th>
+            <th>DISPATCH ID</th>
+          </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const TARGET_JOINTS = ["BW", "LET", "SOB", "SOF"];
+    let generatedRows = [];
+    let grandTotals = {};
+    let activeStart = "";
+    let activeEnd = "";
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલાં Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ આ રિપોર્ટ જોવાની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      document.getElementById('navSubTitle').innerText = `| Admin: ${user.name}`;
+      return true;
+    }
+
+    function cleanDateStr(val) {
+      if (!val) return "";
+      const str = String(val).trim();
+      if (!str || str.toLowerCase() === "null") return "";
+      return str.includes("T") ? str.split("T")[0] : str;
+    }
+
+    /* -------------------------------------------------------------
+       FETCH ALL LHS ENTRIES & GENERATE INCH DIA REPORT (DATE RANGE)
+    -------------------------------------------------------------- */
+    async function generateInchDiaReport() {
+      const startVal = document.getElementById('startDate').value;
+      const endVal = document.getElementById('endDate').value;
+
+      if (!startVal || !endVal) {
+        return alert("⚠️ કૃપા કરીને Start Date અને End Date બંને પસંદ કરો!");
+      }
+
+      const startDate = new Date(startVal + "T00:00:00");
+      const endDate = new Date(endVal + "T00:00:00");
+
+      if (startDate > endDate) {
+        return alert("❌ Start date must be before or equal to End date!");
+      }
+
+      activeStart = startVal;
+      activeEnd = endVal;
+
+      const btnGen = document.querySelector('.btn-generate');
+      btnGen.innerText = "⏳ Loading Data...";
+      btnGen.disabled = true;
+
+      try {
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('joint_type, weld_inch_dia, fitup_date, visual_date, fd_date')
+            .order('id', { ascending: true })
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        const cleanedRows = allRows.map(r => ({
+          type: String(r.joint_type || '').trim().toUpperCase(),
+          inchDia: parseFloat(r.weld_inch_dia) || 0,
+          fitup: cleanDateStr(r.fitup_date),
+          visual: cleanDateStr(r.visual_date),
+          fd: cleanDateStr(r.fd_date)
+        }));
+
+        generatedRows = [];
+        let tFitBend = 0, tFitId = 0, tVisBend = 0, tVisId = 0, tDisBend = 0, tDisId = 0;
+        let cur = new Date(startDate);
+
+        while (cur <= endDate) {
+          const yyyy = cur.getFullYear();
+          const mm = String(cur.getMonth() + 1).padStart(2, '0');
+          const dd = String(cur.getDate()).padStart(2, '0');
+          const dateIso = `${yyyy}-${mm}-${dd}`;
+          const dateDisp = `${dd}/${mm}/${yyyy}`;
+
+          let fitBend = 0, fitId = 0, visBend = 0, visId = 0, disBend = 0, disId = 0;
+
+          cleanedRows.forEach(r => {
+            // Fit-up
+            if (r.fitup === dateIso) {
+              if (r.type === 'EB') fitBend++;
+              if (TARGET_JOINTS.includes(r.type)) fitId += r.inchDia;
+            }
+            // Visual
+            if (r.visual === dateIso) {
+              if (r.type === 'EB') visBend++;
+              if (TARGET_JOINTS.includes(r.type)) visId += r.inchDia;
+            }
+            // Dispatch (FD Date)
+            if (r.fd === dateIso) {
+              if (r.type === 'EB') disBend++;
+              if (TARGET_JOINTS.includes(r.type)) disId += r.inchDia;
+            }
+          });
+
+          fitId = Math.round(fitId * 100) / 100;
+          visId = Math.round(visId * 100) / 100;
+          disId = Math.round(disId * 100) / 100;
+
+          tFitBend += fitBend;
+          tFitId += fitId;
+          tVisBend += visBend;
+          tVisId += visId;
+          tDisBend += disBend;
+          tDisId += disId;
+
+          generatedRows.push({
+            date: dateDisp,
+            fitBend,
+            fitId,
+            visBend,
+            visId,
+            disBend,
+            disId
+          });
+
+          cur.setDate(cur.getDate() + 1);
+        }
+
+        grandTotals = {
+          fitBend: tFitBend,
+          fitId: Math.round(tFitId * 100) / 100,
+          visBend: tVisBend,
+          visId: Math.round(tVisId * 100) / 100,
+          disBend: tDisBend,
+          disId: Math.round(tDisId * 100) / 100
+        };
+
+        renderReportTable();
+        document.getElementById('reportCard').style.display = 'block';
+        document.getElementById('btnDownloadExcel').disabled = false;
+        document.getElementById('btnShareWhatsApp').disabled = false;
+        document.getElementById('reportPeriodText').innerText = `Period: ${generatedRows[0].date} to ${generatedRows[generatedRows.length - 1].date}`;
+        document.getElementById('recordCountText').innerText = `Total Days: ${generatedRows.length} | Processed Joints: ${cleanedRows.length}`;
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error: " + err.message);
+      } finally {
+        btnGen.innerText = "📊 Generate Report";
+        btnGen.disabled = false;
+      }
+    }
+
+    function renderReportTable() {
+      const tbody = document.getElementById('reportBody');
+      const rowsHtml = generatedRows.map(r => `
+        <tr>
+          <td><b>${r.date}</b></td>
+          <td>${r.fitBend}</td>
+          <td>${r.fitId.toFixed(2)}</td>
+          <td>${r.visBend}</td>
+          <td>${r.visId.toFixed(2)}</td>
+          <td>${r.disBend}</td>
+          <td>${r.disId.toFixed(2)}</td>
+        </tr>
+      `).join('');
+
+      const totalHtml = `
+        <tr class="total-row">
+          <td>GRAND TOTAL</td>
+          <td>${grandTotals.fitBend}</td>
+          <td>${grandTotals.fitId.toFixed(2)}</td>
+          <td>${grandTotals.visBend}</td>
+          <td>${grandTotals.visId.toFixed(2)}</td>
+          <td>${grandTotals.disBend}</td>
+          <td>${grandTotals.disId.toFixed(2)}</td>
+        </tr>
+      `;
+
+      tbody.innerHTML = rowsHtml + totalHtml;
+    }
+
+    /* -------------------------------------------------------------
+       DOWNLOAD EXCEL WITH PYTHON MATCHING FORMATTING
+    -------------------------------------------------------------- */
+    async function downloadInchDiaExcel() {
+      if (generatedRows.length === 0) return;
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Progress Report', {
+        views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
+      });
+
+      const headers = [
+        'DATE',
+        'FIT-UP BEND QTY',
+        'FIT-UP ID',
+        'VISUAL BEND QTY',
+        'VISUAL ID',
+        'DISPATCH BEND QTY',
+        'DISPATCH ID'
+      ];
+
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 28;
+
+      headerRow.eachCell(cell => {
+        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF000000' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD7E4BC' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      });
+
+      generatedRows.forEach(r => {
+        const row = worksheet.addRow([r.date, r.fitBend, r.fitId, r.visBend, r.visId, r.disBend, r.disId]);
+        row.height = 22;
+        row.eachCell((cell, colNum) => {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = { top: { style: 'thin', color: { argb: 'FFD0D0D0' } }, left: { style: 'thin', color: { argb: 'FFD0D0D0' } }, bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } }, right: { style: 'thin', color: { argb: 'FFD0D0D0' } } };
+          if ([3, 5, 7].includes(colNum)) {
+            cell.numFmt = '#,##0.00';
+          }
+        });
+      });
+
+      // Total Row
+      const totalRow = worksheet.addRow([
+        'GRAND TOTAL',
+        grandTotals.fitBend,
+        grandTotals.fitId,
+        grandTotals.visBend,
+        grandTotals.visId,
+        grandTotals.disBend,
+        grandTotals.disId
+      ]);
+      totalRow.height = 32;
+
+      totalRow.eachCell((cell, colNum) => {
+        cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF000000' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE4D6' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'medium' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+        if ([3, 5, 7].includes(colNum)) {
+          cell.numFmt = '#,##0.00';
+        }
+      });
+
+      worksheet.columns.forEach(col => { col.width = 20; });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      const startParts = activeStart.split('-');
+      const endParts = activeEnd.split('-');
+      const fileName = `INCH_DIA_PROGRESS_REPORT_${startParts[2]}_${startParts[1]}_${startParts[0]}_to_${endParts[2]}_${endParts[1]}_${endParts[0]}.xlsx`;
+
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    /* -------------------------------------------------------------
+       SHARE WHATSAPP SUMMARY
+    -------------------------------------------------------------- */
+    function shareWhatsAppSummary() {
+      if (generatedRows.length === 0) return;
+
+      const text = 
+`*DAILY INCH DIA PROGRESS REPORT*
+Period: ${generatedRows[0].date} to ${generatedRows[generatedRows.length - 1].date}
+---------------------------
+*FIT-UP:* ${grandTotals.fitId.toFixed(2)} ID (${grandTotals.fitBend} Bend)
+*VISUAL:* ${grandTotals.visId.toFixed(2)} ID (${grandTotals.visBend} Bend)
+*DISPATCH:* ${grandTotals.disId.toFixed(2)} ID (${grandTotals.disBend} Bend)
+---------------------------
+Report generated from PipeFlowSys Console`;
+
+      const encoded = encodeURIComponent(text);
+      window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      verifyAdminAccess();
+      // Default to: Start = 1st of current month, End = Today
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('startDate').value = `${yyyy}-${mm}-01`;
+      document.getElementById('endDate').value = `${yyyy}-${mm}-${dd}`;
+    });
+  </script>
+</body>
+</html>
