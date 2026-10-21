@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Amount Progress Report | QA/QC Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- ExcelJS Library for Formatted Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 18px 24px; -webkit-font-smoothing: antialiased; }
+
+    /* Top Bar */
+    .top-header {
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-back {
+      padding: 7px 16px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f1f5f9; color: #0284c7; }
+
+    .card {
+      background: #ffffff;
+      padding: 18px 22px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+
+    /* Filter Controls Bar */
+    .filter-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .input-group label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .input-group input[type="date"] {
+      padding: 9px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      outline: none;
+      background: #fff;
+    }
+    .input-group input[type="date"]:focus {
+      border-color: #0d9488;
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    }
+
+    .btn-generate {
+      padding: 10px 20px;
+      background: #0f766e;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+      transition: all 0.2s;
+    }
+    .btn-generate:hover { background: #115e59; transform: translateY(-1px); }
+
+    .btn-export-excel {
+      padding: 10px 20px;
+      background: #15803d;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(21, 128, 61, 0.2);
+      transition: all 0.2s;
+    }
+    .btn-export-excel:hover { background: #166534; transform: translateY(-1px); }
+    .btn-export-excel:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    /* Report Table */
+    .table-container {
+      overflow-x: auto;
+      max-height: 65vh;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      margin-top: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    th {
+      background: #d7e4bc; /* Matches original Python report styling */
+      color: #1e3a1e;
+      border: 1px solid #b5c696;
+      padding: 12px 14px;
+      font-weight: 800;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 14px;
+      text-align: center;
+      background: #ffffff;
+      font-variant-numeric: tabular-nums;
+    }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    /* Total Row */
+    tr.total-row td {
+      background: #fce4d6 !important; /* Matches original Python total row styling */
+      color: #7c2d12;
+      font-weight: 800;
+      border-top: 2px solid #fdba74;
+      border-bottom: 2px solid #fdba74;
+      font-size: 13.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
+      <h2 style="color:#0f766e; font-size:18px; font-weight:800;">📈 QA/QC WORK AMOUNT PROGRESS REPORT</h2>
+    </div>
+    <span id="navSubTitle" style="font-size:12.5px; font-weight:bold; color:#64748b;"></span>
+  </div>
+
+  <!-- Filter & Action Card -->
+  <div class="card">
+    <div class="filter-bar">
+      <div class="input-group">
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" required>
+      </div>
+
+      <div class="input-group">
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate" required>
+      </div>
+
+      <button type="button" class="btn-generate" onclick="generateProgressReport()">
+        <span>📊 Generate Report</span>
+      </button>
+
+      <button type="button" id="btnDownloadExcel" class="btn-export-excel" onclick="downloadProgressExcel()" disabled>
+        <span>📥 Download Excel (.xlsx)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Report Data Container -->
+  <div class="card" id="reportCard" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:14px; font-weight:bold; color:#0f172a;" id="reportPeriodText">Report Summary</span>
+      <span style="font-size:12px; color:#64748b;" id="recordCountText"></span>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="min-width: 140px;">DATE</th>
+            <th>FIT-UP VALUE (₹)</th>
+            <th>WELD VISUAL VALUE (₹)</th>
+            <th>NDT VALUE (₹)</th>
+            <th>DISPATCH VALUE (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Rate Table for Induction Bends (EB) matching Python logic
+    const EB_RATES = {
+      2: 495,
+      3: 742.5,
+      4: 990,
+      6: 1732.5,
+      8: 2310,
+      10: 2887.5,
+      12: 4455,
+      14: 5197.5,
+      16: 5940
+    };
+
+    let generatedRows = [];
+    let grandTotals = {};
+    let activeStart = "";
+    let activeEnd = "";
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલાં Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ QA/QC Progress જોવાની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      document.getElementById('navSubTitle').innerText = `| Admin: ${user.name}`;
+      return true;
+    }
+
+    // Value calculation formula matching Python calculate_value()
+    function calculateJointValue(row) {
+      const jointType = String(row.joint_type || '').trim().toUpperCase();
+      const weldNpd = parseFloat(row.weld_npd);
+      const inchDia = parseFloat(row.weld_inch_dia);
+
+      if (isNaN(weldNpd)) return 0;
+
+      if (jointType === "EB") {
+        return EB_RATES[weldNpd] || 0;
+      } else if (["BW", "LET", "SOB", "SOF", "SW"].includes(jointType)) {
+        if (isNaN(inchDia)) return 0;
+        return inchDia * (weldNpd < 2 ? 794.4 : 673.2);
+      }
+      return 0;
+    }
+
+    function cleanDateStr(val) {
+      if (!val) return "";
+      const str = String(val).trim();
+      if (!str || str.toLowerCase() === "null") return "";
+      return str.includes("T") ? str.split("T")[0] : str;
+    }
+
+    function formatDisplayDate(dateObj) {
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const yyyy = dateObj.getFullYear();
+      return `${dd}-${mm}-${yyyy}`;
+    }
+
+    /* -------------------------------------------------------------
+       FETCH ALL LHS ENTRIES (PAGINATED) & GENERATE REPORT
+    -------------------------------------------------------------- */
+    async function generateProgressReport() {
+      const startVal = document.getElementById('startDate').value;
+      const endVal = document.getElementById('endDate').value;
+
+      if (!startVal || !endVal) {
+        return alert("⚠️ કૃપા કરીને Start Date અને End Date બંને પસંદ કરો!");
+      }
+
+      const startDate = new Date(startVal + "T00:00:00");
+      const endDate = new Date(endVal + "T00:00:00");
+
+      if (startDate > endDate) {
+        return alert("❌ Start date must be before or equal to End date!");
+      }
+
+      activeStart = startVal;
+      activeEnd = endVal;
+
+      const btnGen = document.querySelector('.btn-generate');
+      btnGen.innerText = "⏳ Loading Data...";
+      btnGen.disabled = true;
+
+      try {
+        // Fetch all rows from lhs_entries
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('joint_type, weld_npd, weld_inch_dia, fitup_date, visual_date, ndt_clearance, fd_date')
+            .order('id', { ascending: true })
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        // Precalculate values for each joint
+        const jointsWithVal = allRows.map(r => ({
+          val: calculateJointValue(r),
+          fitup: cleanDateStr(r.fitup_date),
+          visual: cleanDateStr(r.visual_date),
+          ndt: cleanDateStr(r.ndt_clearance),
+          dispatch: cleanDateStr(r.fd_date)
+        }));
+
+        // Generate report day by day
+        generatedRows = [];
+        let sumFit = 0, sumVis = 0, sumNdt = 0, sumDis = 0;
+        let cur = new Date(startDate);
+
+        while (cur <= endDate) {
+          const yyyy = cur.getFullYear();
+          const mm = String(cur.getMonth() + 1).padStart(2, '0');
+          const dd = String(cur.getDate()).padStart(2, '0');
+          const dateIso = `${yyyy}-${mm}-${dd}`;
+          const dateDisp = `${dd}-${mm}-${yyyy}`;
+
+          let fitVal = 0, visVal = 0, ndtVal = 0, disVal = 0;
+
+          jointsWithVal.forEach(j => {
+            if (j.fitup === dateIso) fitVal += j.val;
+            if (j.visual === dateIso) visVal += j.val;
+            if (j.ndt === dateIso) ndtVal += j.val;
+            if (j.dispatch === dateIso) disVal += j.val;
+          });
+
+          fitVal = Math.round(fitVal * 100) / 100;
+          visVal = Math.round(visVal * 100) / 100;
+          ndtVal = Math.round(ndtVal * 100) / 100;
+          disVal = Math.round(disVal * 100) / 100;
+
+          sumFit += fitVal;
+          sumVis += visVal;
+          sumNdt += ndtVal;
+          sumDis += disVal;
+
+          generatedRows.push({
+            date: dateDisp,
+            fitVal,
+            visVal,
+            ndtVal,
+            disVal
+          });
+
+          cur.setDate(cur.getDate() + 1);
+        }
+
+        grandTotals = {
+          fit: Math.round(sumFit * 100) / 100,
+          vis: Math.round(sumVis * 100) / 100,
+          ndt: Math.round(sumNdt * 100) / 100,
+          dis: Math.round(sumDis * 100) / 100
+        };
+
+        renderReportTable();
+        document.getElementById('reportCard').style.display = 'block';
+        document.getElementById('btnDownloadExcel').disabled = false;
+        document.getElementById('reportPeriodText').innerText = `Period: ${generatedRows[0].date} to ${generatedRows[generatedRows.length - 1].date}`;
+        document.getElementById('recordCountText').innerText = `Total Days: ${generatedRows.length} | Processed Joints: ${jointsWithVal.length}`;
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error: " + err.message);
+      } finally {
+        btnGen.innerText = "📊 Generate Report";
+        btnGen.disabled = false;
+      }
+    }
+
+    function renderReportTable() {
+      const tbody = document.getElementById('reportBody');
+      const rowsHtml = generatedRows.map(r => `
+        <tr>
+          <td><b>${r.date}</b></td>
+          <td>${r.fitVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td>${r.visVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td>${r.ndtVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td>${r.disVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+        </tr>
+      `).join('');
+
+      const totalHtml = `
+        <tr class="total-row">
+          <td>TOTAL</td>
+          <td>${grandTotals.fit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td>${grandTotals.vis.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td>${grandTotals.ndt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td>${grandTotals.dis.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+        </tr>
+      `;
+
+      tbody.innerHTML = rowsHtml + totalHtml;
+    }
+
+    /* -------------------------------------------------------------
+       EXPORT TO EXCEL WITH PYTHON MATCHING FORMATTING
+    -------------------------------------------------------------- */
+    async function downloadProgressExcel() {
+      if (generatedRows.length === 0) return;
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Report', {
+        views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
+      });
+
+      const headers = ["DATE", "FIT-UP VALUE", "WELD VISUAL VALUE", "NDT VALUE", "DISPATCH VALUE"];
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 30;
+
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF1E3A1E' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD7E4BC' } }; // #D7E4BC light green
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      });
+
+      // Data Rows
+      generatedRows.forEach(r => {
+        const row = worksheet.addRow([r.date, r.fitVal, r.visVal, r.ndtVal, r.disVal]);
+        row.height = 22;
+        row.eachCell((cell, colNumber) => {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = { top: { style: 'thin', color: { argb: 'FFD0D0D0' } }, left: { style: 'thin', color: { argb: 'FFD0D0D0' } }, bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } }, right: { style: 'thin', color: { argb: 'FFD0D0D0' } } };
+          if (colNumber > 1) {
+            cell.numFmt = '#,##0.00';
+          }
+        });
+      });
+
+      // Grand Total Row
+      const totalRow = worksheet.addRow(["TOTAL", grandTotals.fit, grandTotals.vis, grandTotals.ndt, grandTotals.dis]);
+      totalRow.height = 32;
+      totalRow.eachCell((cell, colNumber) => {
+        cell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FF7C2D12' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE4D6' } }; // #FCE4D6 light orange
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'medium' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+        if (colNumber > 1) {
+          cell.numFmt = '#,##0.00';
+        }
+      });
+
+      // Column widths
+      worksheet.columns.forEach(col => { col.width = 22; });
+
+      // Save File
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      const startParts = activeStart.split('-');
+      const endParts = activeEnd.split('-');
+      const fileName = `Work_Amount_Report_${startParts[2]}_${startParts[1]}_${startParts[0]}_to_${endParts[2]}_${endParts[1]}_${endParts[0]}.xlsx`;
+
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      verifyAdminAccess();
+      // Set default dates: Start = 1st of current month, End = Today
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('startDate').value = `${yyyy}-${mm}-01`;
+      document.getElementById('endDate').value = `${yyyy}-${mm}-${dd}`;
+    });
+  </script>
+</body>
+</html>
