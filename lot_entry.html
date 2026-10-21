@@ -513,7 +513,7 @@
           if (!matchedLot) {
             btnSave.disabled = false;
             btnSave.innerText = "💾 SAVE LOT DATA";
-            return alert(`❌ જોઈન્ટ ${j.jointNo} માટે દાખલ કરેલ Lot "${inputLot}" ndt_lots માસ્ટરમાં મળ્યો નથી! કૃપા કરીને "+ Create Lot No" થી નવો લોટ બનાવો.`);
+            return alert(`Entered Lot "${inputLot}" for ${j.jointNo} was not found in the ndt_lots master! Please create a new lot using "+ Create Lot No"."`);
           }
 
           if (matchedLot.joint_type && matchedLot.joint_type !== j.jointType) {
