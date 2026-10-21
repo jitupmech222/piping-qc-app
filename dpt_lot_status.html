@@ -79,30 +79,39 @@
     .btn-outline { padding: 9px 15px; border: 1px solid #17365d; background: #fff; color: #17365d; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; }
     .btn-gray { padding: 9px 15px; border: 1px solid #777; background: #777; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; }
 
-    /* Main Table */
+    /* 🟢 Main Table Card & Sticky Header Styles */
     .table-card {
       background: #ffffff;
       border-radius: 10px;
       overflow: auto;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       max-height: calc(100vh - 250px);
+      position: relative;
     }
-    table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 1550px; }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12.5px;
+      min-width: 1550px;
+    }
     th {
       background: #17365d;
       color: #ffffff;
       padding: 9px 6px;
-      border: 1px solid #fff;
+      border-right: 1px solid rgba(255, 255, 255, 0.25);
+      border-bottom: 2px solid #0f243e;
       text-align: center;
       font-size: 13px;
       white-space: nowrap;
       position: sticky;
       top: 0;
-      z-index: 5;
+      z-index: 20;
     }
     td {
       padding: 8px;
-      border: 1px solid #d0d0d0;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
       text-align: center;
       white-space: nowrap;
       background: #ffffff;
@@ -186,7 +195,6 @@
   <!-- TOP HEADER -->
   <div class="top-header">
     <div style="display:flex; align-items:center; gap:14px;">
-      <!-- 🟢 નવો અપડેટ કરેલો કોડ -->
       <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
       <h2>🔬 DPT LOT STATUS</h2>
     </div>
@@ -328,7 +336,6 @@
       tbody.innerHTML = `<tr><td colspan="13" style="padding:30px; text-align:center; color:#64748b;">⏳ Loading DPT Lots...</td></tr>`;
 
       try {
-        // Fetch all DPT joints from lhs_entries
         let allRows = [];
         let from = 0;
         let hasMore = true;
@@ -493,12 +500,13 @@
       applyFiltersAndRender();
     }
 
+    /* 🟢 2. RENDER HEADER (STICKY PRESERVED) */
     function renderHeader() {
       const tr = document.getElementById('headerRow');
       tr.innerHTML = COLUMNS.map(col => {
         const isActive = Boolean(columnFilters[col.key]);
         return `
-          <th style="position:relative;">
+          <th style="position: sticky; top: 0; z-index: 20; background: #17365d;">
             <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
               <span>${col.title}</span>
               <button class="filter-icon-btn ${isActive ? 'active' : ''}" onclick="toggleColumnFilterPopup(event, '${col.key}')">🔽</button>
@@ -599,7 +607,7 @@
     }
 
     /* -------------------------------------------------------------
-       2. MANUAL CLOSE LOT FUNCTION
+       3. MANUAL CLOSE LOT FUNCTION
     -------------------------------------------------------------- */
     async function handleManualClose() {
       const lotInput = document.getElementById('manualLotInput').value.trim();
@@ -609,7 +617,6 @@
       if (!confirm(`શું તમે ખરેખર Lot "${cleanLot}" ને MANUAL CLOSED કરવો છે?`)) return;
 
       try {
-        // Find matching joints in lhs_entries
         const { data: rows, error: fErr } = await db
           .from('lhs_entries')
           .select('id, joint_type, dpt_lot_no, induction_bend_dpt_lot_no')
@@ -626,7 +633,6 @@
           return alert(`❌ Lot "${lotInput}" ડેટાબેઝમાં મળ્યો નથી!`);
         }
 
-        // Update remarks to 'MANUAL CLOSED'
         const { error: updErr } = await db
           .from('lhs_entries')
           .update({ remarks: 'MANUAL CLOSED' })
@@ -645,7 +651,7 @@
     }
 
     /* -------------------------------------------------------------
-       3. POP-UP MODAL (15 Columns Details)
+       4. POP-UP MODAL (15 Columns Details)
     -------------------------------------------------------------- */
     async function openLotPopup(lotNo) {
       document.getElementById('popupTitle').innerText = `📋 DPT LOT-${lotNo} Details`;
