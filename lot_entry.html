@@ -110,7 +110,7 @@
       box-shadow: 0 5px 20px rgba(0,0,0,0.25);
     }
 
-    /* 🟢 Dropdown Auto-Complete Styles */
+    /* Dropdown Auto-Complete Styles */
     .spool-dropdown-box {
       position: absolute;
       top: 100%;
@@ -153,7 +153,7 @@
     <button class="btn-create-lot" onclick="openCreateLotModal()">➕ Create Lot No</button>
   </div>
 
-  <!-- 🟢 Search Spool Box with Live Suggestion Dropdown -->
+  <!-- Search Spool Box with Live Suggestion Dropdown -->
   <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; position:relative;">
     <label style="font-weight:bold; font-size:13px;">Spool Unique No:</label>
     
@@ -207,7 +207,7 @@
     </div>
   </div>
 
-  <!-- 🟢 CREATE LOT POPUP MODAL -->
+  <!-- CREATE LOT POPUP MODAL -->
   <div class="modal-overlay" id="createLotModal">
     <div class="modal-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px;">
@@ -280,7 +280,7 @@
     let searchTimeout = null;
 
     /* -------------------------------------------------------------
-       🟢 1. LIVE SEARCH & FILTER FROM piping_joints (where Fd_date is null)
+       1. LIVE SEARCH & FILTER FROM piping_joints (where Fd_date is null)
     -------------------------------------------------------------- */
     async function handleSpoolSearch(term) {
       clearTimeout(searchTimeout);
@@ -470,20 +470,24 @@
     }
 
     /* -------------------------------------------------------------
-       3. SAVE LOT DATA (Validation with ndt_lots)
+       3. SAVE LOT DATA (PARTIALLY LOT ENTRY ALLOWED)
     -------------------------------------------------------------- */
     async function handleSaveLotData() {
-      const pendingJoints = jointsList.filter(j => {
+      // 1. પહેલેથી સેવ થયેલા (લૉક થયેલા) જોઈન્ટ્સ સિવાયના જોઈન્ટ્સ અલગ તારવો
+      const unlockedJoints = jointsList.filter(j => {
         const isLocked = j.originalLotNumber && String(j.originalLotNumber).trim() !== "" && String(j.originalLotNumber).trim() !== "0";
         return !isLocked;
       });
 
-      if (pendingJoints.length === 0) return alert('ℹ️ કોઈ નવો Lot Number ઉમેરેલો નથી.');
+      // 2. માત્ર એવા જ જોઈન્ટ્સ પસંદ કરો જેમાં યુઝરે ખરેખર નવો Lot Number લખ્યો હોય (અથવા 100% હોય)
+      const jointsToSave = unlockedJoints.filter(j => {
+        const val = String(j.lotNumber || '').trim();
+        return val !== "" || j.ndtPercentage === '100%';
+      });
 
-      for (const j of pendingJoints) {
-        if (!j.lotNumber && j.ndtPercentage !== '100%') {
-          return alert(`⚠️ જોઈન્ટ ${j.jointNo} માટે Lot Number દાખલ કરવો જરૂરી છે!`);
-        }
+      // 3. જો કોઈ પણ જોઈન્ટમાં લોટ નંબર ન લખ્યો હોય તો જ સૂચના આપો
+      if (jointsToSave.length === 0) {
+        return alert('ℹ️ કૃપા કરીને ઓછામાં ઓછા ૧ જોઈન્ટ માટે Lot Number દાખલ કરો.');
       }
 
       const btnSave = document.getElementById('btnSaveLotData');
@@ -494,7 +498,8 @@
         const { data: allLots, error: lotErr } = await db.from('ndt_lots').select('*');
         if (lotErr) throw lotErr;
 
-        for (const j of pendingJoints) {
+        // 4. માત્ર જે જોઈન્ટ્સમાં નવો લોટ લખ્યો છે તેનું જ વેલિડેશન થશે (બાકીના ખાલી જોઈન્ટ્સ સ્કીપ થશે)
+        for (const j of jointsToSave) {
           const numericNdt = parsePurePct(j.ndtPercentage);
           if (numericNdt === 100 || j.lotNumber.toUpperCase() === 'NA') continue;
 
@@ -535,8 +540,8 @@
           }
         }
 
-        // Apply Updates to lhs_entries
-        for (const j of pendingJoints) {
+        // 5. માત્ર ભરેલા જોઈન્ટ્સને જ lhs_entries માં સેવ કરો
+        for (const j of jointsToSave) {
           const numericNdt = parsePurePct(j.ndtPercentage);
           const lotVal = numericNdt === 100 ? 'NA' : j.lotNumber;
           const updateObj = {};
@@ -549,7 +554,7 @@
           if (updErr) throw updErr;
         }
 
-        alert('🎉 સફળતાપૂર્વક તમામ જોઈન્ટ્સ માટે Lot Data સેવ થઈ ગયો!');
+        alert(`🎉 સફળતાપૂર્વક ${jointsToSave.length} જોઈન્ટ(સ) માટે Lot Data સેવ થઈ ગયો!`);
         handleVerifySpool();
       } catch (err) {
         console.error(err);
