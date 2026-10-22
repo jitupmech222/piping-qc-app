@@ -34,6 +34,118 @@
       padding-bottom: 24px;
     }
 
+    /* 🟢 INBUILT MOBILE LOGIN SCREEN */
+    #mobileLoginScreen {
+      min-height: 100vh;
+      width: 100%;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+    }
+
+    .login-mobile-box {
+      width: 100%;
+      max-width: 360px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 18px;
+      padding: 28px 22px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .login-logo-center {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .login-logo-center img {
+      height: 48px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
+
+    .login-logo-center h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    .login-logo-center span {
+      font-size: 11px;
+      color: var(--teal);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .login-form-group {
+      margin-bottom: 14px;
+    }
+
+    .login-form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #0b1329;
+      border: 1.5px solid #334155;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .login-input:focus {
+      border-color: var(--teal);
+    }
+
+    .btn-login-action {
+      width: 100%;
+      padding: 13px;
+      background: var(--teal);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-login-action:active {
+      transform: scale(0.98);
+      background: var(--teal-hover);
+    }
+
+    .login-error-text {
+      color: #ef4444;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* 🟢 MAIN APP INTERFACE (HIDDEN BEFORE LOGIN) */
+    #mobileAppContent {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+    }
+
     /* Mobile Header */
     .mobile-header {
       background: #0b1329;
@@ -73,24 +185,21 @@
       display: block;
     }
 
-    .live-badge {
-      display: inline-flex;
+    .header-actions {
+      display: flex;
       align-items: center;
-      gap: 5px;
-      background: rgba(34, 197, 94, 0.12);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      color: #4ade80;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
+      gap: 8px;
     }
 
-    .live-dot {
-      width: 6px;
-      height: 6px;
-      background: #22c55e;
-      border-radius: 50%;
+    .btn-logout-small {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
     }
 
     .container {
@@ -208,7 +317,7 @@
       color: var(--teal);
     }
 
-    /* Selected Spools Queue List */
+    /* Queue */
     .queue-box {
       background: #0f172a;
       border: 1px solid var(--card-border);
@@ -296,117 +405,216 @@
 </head>
 <body>
 
-  <!-- Top Mobile Bar -->
-  <header class="mobile-header">
-    <div class="brand-box">
-      <img src="PFS logo.webp" alt="PFS Logo" class="brand-logo">
-      <div class="brand-text">
-        <h1>PIPEFLOW SYS</h1>
-        <span>MECHANICAL ENTRY</span>
-      </div>
-    </div>
-    <div class="live-badge">
-      <span class="live-dot"></span>
-      <span>Live DB</span>
-    </div>
-  </header>
-
-  <div class="container">
-
-    <!-- Stage Chips Navigation -->
-    <div class="stage-scroll-container">
-      <button class="stage-chip active" onclick="switchStage('bending_issue', this)">01. Issue Bending</button>
-      <button class="stage-chip" onclick="switchStage('bend_entry', this)">02. Bend Done</button>
-      <button class="stage-chip" onclick="switchStage('fitup_entry', this)">03. Fit Up</button>
-      <button class="stage-chip" onclick="switchStage('weld_visual', this)">04. Visual</button>
-      <button class="stage-chip" onclick="switchStage('ndt_clearance', this)">05. NDT Clear</button>
-      <button class="stage-chip" onclick="switchStage('fd', this)">06. Final Dispatch</button>
-      <button class="stage-chip" onclick="switchStage('tracker', this)">🔍 Spool Tracker</button>
-    </div>
-
-    <!-- ENTRY FORM CONTAINER -->
-    <div id="entrySection" class="app-card">
-      <div class="card-title" id="stageHeading">⚙️ Stage Entry</div>
-
-      <!-- Spool Search -->
-      <label>Search & Select Spool:</label>
-      <div class="search-wrap">
-        <input type="text" id="spoolSearchInput" placeholder="Type Spool Unique No..." oninput="handleSearchSpool(this.value)" autocomplete="off">
-        <div id="suggestBox" class="suggest-box"></div>
+  <!-- 🟢 1. MOBILE INBUILT LOGIN VIEW -->
+  <div id="mobileLoginScreen">
+    <div class="login-mobile-box">
+      <div class="login-logo-center">
+        <img src="PFS logo.webp" alt="PFS Logo">
+        <h2>PIPEFLOW SYS</h2>
+        <span>Mechanical App Login</span>
       </div>
 
-      <!-- Bend Specific Fields (Only for Stage 2) -->
-      <div id="bendExtraFields" style="display:none; margin-top:8px;">
-        <label>Bend Qty:</label>
-        <input type="number" id="bendQtyInput" placeholder="Enter Bend Qty">
-        <label>Weld ID:</label>
-        <input type="text" id="weldIdInput" placeholder="Enter Weld ID">
+      <div class="login-form-group">
+        <label>Select Operational Role:</label>
+        <select id="loginRole" class="login-input">
+          <option value="admin">Admin</option>
+          <option value="bending">Bending</option>
+          <option value="fitup">Fit-up</option>
+          <option value="welding">Welding</option>
+          <option value="qc/dc">QC/DC</option>
+          <option value="viewer">Viewer</option>
+        </select>
       </div>
 
-      <!-- Stage Specific Inputs (Date / DC No) -->
-      <div id="stageInputsArea" style="margin-top:10px;"></div>
-
-      <!-- Selected Spool Queue -->
-      <div class="queue-box" id="queueContainer" style="display:none;">
-        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">
-          Selected Spools (<span id="queueCount">0</span>):
-        </div>
-        <div id="queueList"></div>
+      <div class="login-form-group">
+        <label>Password:</label>
+        <input type="password" id="loginPass" class="login-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeMobileLogin()">
       </div>
 
-      <button type="button" class="btn-save-mobile" id="btnSubmitMobile" onclick="submitMobileStage()">
-        💾 Save Entry to Database
+      <button type="button" class="btn-login-action" onclick="executeMobileLogin()">
+        🔓 Login to App
       </button>
-    </div>
 
-    <!-- SPOOL TRACKER SECTION -->
-    <div id="trackerSection" class="app-card" style="display:none;">
-      <div class="card-title">🔍 Live Spool Progress Tracker</div>
-      <label>Enter Spool Number:</label>
-      <div class="search-wrap">
-        <input type="text" id="trackSearchInput" placeholder="Search Spool..." oninput="handleTrackSearch(this.value)" autocomplete="off">
-        <div id="trackSuggestBox" class="suggest-box"></div>
-      </div>
-      <div id="trackResultCard" style="display:none; margin-top:14px;">
-        <div class="tracker-card">
-          <div style="font-weight:800; font-size:15px; color:#fff;" id="trkSpoolNo">Spool No</div>
-          <div style="font-size:12px; color:var(--teal); margin-top:2px;" id="trkDwgNo">Drawing No</div>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" id="trkMeta">Meta Details</div>
+      <div id="loginErrorMsg" class="login-error-text">⚠️ Invalid Password!</div>
+    </div>
+  </div>
+
+  <!-- 🟢 2. MAIN MOBILE APP VIEW -->
+  <div id="mobileAppContent">
+    <header class="mobile-header">
+      <div class="brand-box">
+        <img src="PFS logo.webp" alt="PFS Logo" class="brand-logo">
+        <div class="brand-text">
+          <h1>PIPEFLOW SYS</h1>
+          <span id="headerUserRole">MECHANICAL ENTRY</span>
         </div>
-        <div style="margin-top:10px;" id="timelineItems"></div>
       </div>
-    </div>
-
-    <!-- Balance Counter Card -->
-    <div class="app-card" style="padding:12px 16px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Current Stage Balance:</span>
-        <span style="font-size:14px; font-weight:800; color:var(--accent);" id="balanceCount">Loading...</span>
+      <div class="header-actions">
+        <button type="button" class="btn-logout-small" onclick="executeMobileLogout()">🚪 Exit</button>
       </div>
-    </div>
+    </header>
 
+    <div class="container">
+
+      <!-- Stage Chips Navigation -->
+      <div class="stage-scroll-container" id="stageChipsContainer">
+        <button class="stage-chip active" onclick="switchStage('bending_issue', this)">01. Issue Bending</button>
+        <button class="stage-chip" onclick="switchStage('bend_entry', this)">02. Bend Done</button>
+        <button class="stage-chip" onclick="switchStage('fitup_entry', this)">03. Fit Up</button>
+        <button class="stage-chip" onclick="switchStage('weld_visual', this)">04. Visual</button>
+        <button class="stage-chip" onclick="switchStage('ndt_clearance', this)">05. NDT Clear</button>
+        <button class="stage-chip" onclick="switchStage('fd', this)">06. Final Dispatch</button>
+        <button class="stage-chip" onclick="switchStage('tracker', this)">🔍 Spool Tracker</button>
+      </div>
+
+      <!-- ENTRY FORM CONTAINER -->
+      <div id="entrySection" class="app-card">
+        <div class="card-title" id="stageHeading">⚙️ Stage Entry</div>
+
+        <!-- Spool Search -->
+        <label>Search & Select Spool:</label>
+        <div class="search-wrap">
+          <input type="text" id="spoolSearchInput" placeholder="Type Spool Unique No..." oninput="handleSearchSpool(this.value)" autocomplete="off">
+          <div id="suggestBox" class="suggest-box"></div>
+        </div>
+
+        <!-- Bend Specific Fields (Stage 2) -->
+        <div id="bendExtraFields" style="display:none; margin-top:8px;">
+          <label>Bend Qty:</label>
+          <input type="number" id="bendQtyInput" placeholder="Enter Bend Qty">
+          <label>Weld ID:</label>
+          <input type="text" id="weldIdInput" placeholder="Enter Weld ID">
+        </div>
+
+        <!-- Dynamic Inputs -->
+        <div id="stageInputsArea" style="margin-top:10px;"></div>
+
+        <!-- Queue -->
+        <div class="queue-box" id="queueContainer" style="display:none;">
+          <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">
+            Selected Spools (<span id="queueCount">0</span>):
+          </div>
+          <div id="queueList"></div>
+        </div>
+
+        <button type="button" class="btn-save-mobile" id="btnSubmitMobile" onclick="submitMobileStage()">
+          💾 Save Entry to Database
+        </button>
+      </div>
+
+      <!-- SPOOL TRACKER SECTION -->
+      <div id="trackerSection" class="app-card" style="display:none;">
+        <div class="card-title">🔍 Live Spool Progress Tracker</div>
+        <label>Enter Spool Number:</label>
+        <div class="search-wrap">
+          <input type="text" id="trackSearchInput" placeholder="Search Spool..." oninput="handleTrackSearch(this.value)" autocomplete="off">
+          <div id="trackSuggestBox" class="suggest-box"></div>
+        </div>
+        <div id="trackResultCard" style="display:none; margin-top:14px;">
+          <div class="tracker-card">
+            <div style="font-weight:800; font-size:15px; color:#fff;" id="trkSpoolNo">Spool No</div>
+            <div style="font-size:12px; color:var(--teal); margin-top:2px;" id="trkDwgNo">Drawing No</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" id="trkMeta">Meta Details</div>
+          </div>
+          <div style="margin-top:10px;" id="timelineItems"></div>
+        </div>
+      </div>
+
+      <!-- Balance Counter Card -->
+      <div class="app-card" style="padding:12px 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Current Stage Balance:</span>
+          <span style="font-size:14px; font-weight:800; color:var(--accent);" id="balanceCount">Loading...</span>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <script>
+    const USER_ROLES = {
+      "admin": { pass: "ruhi@1947", name: "Admin", allowed: ["all"] },
+      "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry", "tracker"] },
+      "fitup": { pass: "rajan@456", name: "Fit-up Team", allowed: ["fitup_entry", "tracker"] },
+      "welding": { pass: "jagdish@789", name: "Welding Team", allowed: ["weld_visual", "tracker"] },
+      "qc/dc": { pass: "qc@6038", name: "QC/DC Team", allowed: ["ndt_clearance", "fd", "tracker"] },
+      "viewer": { pass: "view@123", name: "Viewer", allowed: ["tracker"] }
+    };
+
     const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    let currentUser = null;
     let currentStage = 'bending_issue';
     let balanceCache = [];
     let selectedQueue = [];
 
-    // Register Service Worker for PWA
+    // Service Worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
       });
     }
 
+    /* 🟢 LOGIN & AUTHENTICATION */
+    function checkMobileAuth() {
+      const savedAuth = sessionStorage.getItem('piping_app_auth');
+      if (savedAuth) {
+        currentUser = JSON.parse(savedAuth);
+        document.getElementById('mobileLoginScreen').style.display = 'none';
+        document.getElementById('mobileAppContent').style.display = 'flex';
+        document.getElementById('headerUserRole').innerText = `${currentUser.name.toUpperCase()}`;
+        
+        const defaultStage = currentUser.allowed.includes("all") ? "bending_issue" : currentUser.allowed[0];
+        switchStage(defaultStage);
+      } else {
+        document.getElementById('mobileLoginScreen').style.display = 'flex';
+        document.getElementById('mobileAppContent').style.display = 'none';
+      }
+    }
+
+    function executeMobileLogin() {
+      const role = document.getElementById('loginRole').value;
+      const pass = document.getElementById('loginPass').value.trim();
+      const err = document.getElementById('loginErrorMsg');
+
+      if (USER_ROLES[role] && USER_ROLES[role].pass === pass) {
+        err.style.display = 'none';
+        currentUser = { username: role, ...USER_ROLES[role] };
+        sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
+        checkMobileAuth();
+      } else {
+        err.style.display = 'block';
+      }
+    }
+
+    function executeMobileLogout() {
+      if (confirm('શું તમે ખરેખર એપમાંથી બહાર નીકળવા (Logout) માંગો છો?')) {
+        sessionStorage.removeItem('piping_app_auth');
+        currentUser = null;
+        document.getElementById('loginPass').value = '';
+        checkMobileAuth();
+      }
+    }
+
+    /* 🟢 STAGE CONTROLLER */
     function switchStage(stage, elem) {
+      if (currentUser && !currentUser.allowed.includes("all") && !currentUser.allowed.includes(stage)) {
+        alert("⚠️ આ સ્ટેજમાં એન્ટ્રી કરવા માટે તમારી પાસે પરમિશન નથી!");
+        return;
+      }
+
       currentStage = stage;
       document.querySelectorAll('.stage-chip').forEach(b => b.classList.remove('active'));
-      if (elem) elem.classList.add('active');
+      if (elem) {
+        elem.classList.add('active');
+      } else {
+        const chips = document.querySelectorAll('.stage-chip');
+        chips.forEach(c => {
+          if (c.getAttribute('onclick') && c.getAttribute('onclick').includes(stage)) c.classList.add('active');
+        });
+      }
 
       selectedQueue = [];
       renderQueue();
@@ -580,7 +788,7 @@
       }
     }
 
-    /* SPOOL TRACKER LOGIC */
+    /* TRACKER */
     async function handleTrackSearch(val) {
       const q = val.trim().toLowerCase();
       const box = document.getElementById('trackSuggestBox');
@@ -637,9 +845,7 @@
       }
     });
 
-    window.addEventListener('DOMContentLoaded', () => {
-      switchStage('bending_issue');
-    });
+    window.addEventListener('DOMContentLoaded', checkMobileAuth);
   </script>
 </body>
 </html>
