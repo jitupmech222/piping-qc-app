@@ -395,11 +395,15 @@
         await workbook.xlsx.load(templateBuffer);
         const worksheet = workbook.worksheets[0];
 
-        // 🟢 PRESERVE EXACT TEMPLATE PRINT SETTINGS:
-        if (worksheet.pageSetup) {
-          worksheet.pageSetup.fitToPage = false;
-          worksheet.pageSetup.printArea = 'A1:P30';
+        // 🟢 100% 1-PAGE FIT PRESERVATION:
+        // fitToPage = true સાથે width=1 અને height=1 ફરજિયાત રાખવાથી Remarks કે Bottom સહેજ પણ કપાશે નહીં!
+        if (!worksheet.pageSetup) {
+          worksheet.pageSetup = {};
         }
+        worksheet.pageSetup.orientation = 'landscape';
+        worksheet.pageSetup.fitToPage = true;
+        worksheet.pageSetup.fitToWidth = 1;
+        worksheet.pageSetup.fitToHeight = 1;
 
         const centerAlign = { vertical: 'middle', horizontal: 'center' };
 
@@ -412,21 +416,21 @@
         worksheet.getCell('I4').alignment = centerAlign;
         worksheet.getCell('N4').alignment = centerAlign;
 
-        // Column G (Row 7 થી 27 મર્જ્ડ સેલ):
+        // Column G (Row 7 થી 26 મર્જ્ડ સેલ):
         worksheet.getCell('G7').value = isNaN(parseInt(rawLot, 10)) ? rawLot : parseInt(rawLot, 10);
-        worksheet.getCell('G7').font = { name: 'Calibri', size: 12, bold: true };
+        worksheet.getCell('G7').font = { name: 'Calibri', size: 11, bold: true };
         worksheet.getCell('G7').alignment = centerAlign;
 
-        // ૪. Row 7 થી Row 27 (કુલ ૨૧ ડેટા રો - EXACT 25pt HEIGHT AS PER TEMPLATE FORMAT)
-        const totalTableRows = 21;
+        // ૪. Row 7 થી Row 26 (કુલ ૨૦ ડેટા રો - ટેમ્પલેટની ચોક્કસ સંખ્યા)
+        const totalTableRows = 20; // Row 7 to Row 26
         let lastSpool = null;
 
         for (let i = 0; i < totalTableRows; i++) {
           const rowNum = 7 + i;
           const j = matchedJoints[i];
 
-          // 🟢 અસલ ફોર્મેટ મુજબ રો હાઇટ બરાબર 25pt
-          worksheet.getRow(rowNum).height = 25;
+          // રો હાઇટ સંતુલિત રાખવી જેથી પ્રિન્ટમાં નીચેનું સહી બોક્સ કપાય નહીં
+          worksheet.getRow(rowNum).height = 19.5;
 
           if (j) {
             const jType = String(j.joint_type || '').toUpperCase().trim();
@@ -459,12 +463,12 @@
             worksheet.getCell(`E${rowNum}`).value = j.joint_no || '';
             worksheet.getCell(`F${rowNum}`).value = sizeThk;
 
-            // Welder No: નંબર સ્ટોર (લીલો ત્રિકોણ દૂર કરવા)
+            // Welder No: નંબર તરીકે સ્ટોર (લીલો ત્રિકોણ દૂર કરવા)
             worksheet.getCell(`H${rowNum}`).value = formatAsNumberIfPossible(j.welder_no || 'NA');
 
             worksheet.getCell(`I${rowNum}`).value = jType;
 
-            // Visual Report No: નંબર સ્ટોર (લીલો ત્રિકોણ દૂર કરવા)
+            // Visual Report No: નંબર તરીકે સ્ટોર (લીલો ત્રિકોણ દૂર કરવા)
             worksheet.getCell(`K${rowNum}`).value = formatAsNumberIfPossible(j.weld_visual_report_no || '');
 
             worksheet.getCell(`L${rowNum}`).value = formatDateDisplay(j.visual_date);
@@ -494,7 +498,7 @@
           });
         }
 
-        // ૫. ROW 6 થી 27 સુધી પાતળી કાળી બોર્ડર લાગુ કરવી
+        // ૫. ROW 6 થી 26 સુધી પાતળી કાળી બોર્ડર લાગુ કરવી
         const thinBorder = {
           top: { style: 'thin', color: { argb: 'FF000000' } },
           left: { style: 'thin', color: { argb: 'FF000000' } },
@@ -504,7 +508,7 @@
 
         const allTableCols = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
 
-        for (let r = 6; r <= 27; r++) {
+        for (let r = 6; r <= 26; r++) {
           allTableCols.forEach(col => {
             worksheet.getCell(`${col}${r}`).border = thinBorder;
           });
@@ -512,12 +516,12 @@
 
         worksheet.getCell('G6').border = thinBorder;
 
-        // Column G (Row 7 થી 27 મર્જ્ડ બોક્સ આઉટર બોર્ડર)
-        for (let r = 7; r <= 27; r++) {
+        // Column G (Row 7 થી 26 મર્જ્ડ બોક્સ આઉટર બોર્ડર)
+        for (let r = 7; r <= 26; r++) {
           const cellG = worksheet.getCell(`G${r}`);
           cellG.border = {
             top: r === 7 ? { style: 'thin', color: { argb: 'FF000000' } } : undefined,
-            bottom: r === 27 ? { style: 'thin', color: { argb: 'FF000000' } } : undefined,
+            bottom: r === 26 ? { style: 'thin', color: { argb: 'FF000000' } } : undefined,
             left: { style: 'thin', color: { argb: 'FF000000' } },
             right: { style: 'thin', color: { argb: 'FF000000' } }
           };
@@ -539,8 +543,7 @@
         alertBox.innerHTML = `
           <h3 style="margin: 0 0 6px 0;">✅ LOT MASTER ફોર્મેટમાં Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
           <p style="margin: 2px 0;"><b>NDT Type:</b> ${ndtType} | <b>Lot No:</b> ${rawLot}</p>
-          <p style="margin: 2px 0;"><b>Row Height:</b> 25pt (Row 7 to 27) ફિક્સ સેટ.</p>
-          <p style="margin: 2px 0;"><b>Print Preview:</b> ✓ ૧૦૦% અસલ ફોર્મેટ મુજબ ફુલ પેજ ફિટ.</p>
+          <p style="margin: 2px 0;"><b>Print Preview:</b> ✓ ૧૦૦% ૧ જ પેજમાં (Remarks અને Bottom કટ વગર) ફિટ.</p>
           <p style="margin: 2px 0;"><b>File Downloaded:</b> 📥 <u>${fileName}</u></p>
         `;
         alertBox.style.display = 'block';
