@@ -1,0 +1,22 @@
+{
+  "name": "PFS Mechanical Console",
+  "short_name": "PFS Mech",
+  "description": "PipeFlowSys Mechanical Workflow & Stage Tracker",
+  "start_url": "mech_mobile.html",
+  "display": "standalone",
+  "background_color": "#0b1329",
+  "theme_color": "#0b1329",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "PFS logo.webp",
+      "sizes": "192x192",
+      "type": "image/webp"
+    },
+    {
+      "src": "PFS logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp"
+    }
+  ]
+}
