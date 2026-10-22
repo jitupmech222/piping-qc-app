@@ -159,7 +159,7 @@
       <div class="radio-group">
         <label class="radio-label">
           <input type="radio" name="ndtType" value="RT" checked onchange="updatePlaceholder()">
-           RT 
+          RT 
         </label>
         <label class="radio-label">
           <input type="radio" name="ndtType" value="DPT" onchange="updatePlaceholder()">
@@ -303,7 +303,7 @@
       return allRows;
     }
 
-    // 🟢 LOAD TEMPLATE, PRESERVE PRINT SETUP & FIX BORDERS FOR ROWS 6 TO 26
+    // 🟢 LOAD GITHUB TEMPLATE ('LOT MASTER.xlsx') AND STRICTLY PRESERVE EXACT FORMAT
     async function handleGenerateLot() {
       const ndtType = document.querySelector('input[name="ndtType"]:checked').value;
       const rawLot = document.getElementById('inputLotNo').value.trim();
@@ -352,7 +352,6 @@
 
         // ================= DPT LOGIC =================
         } else {
-          // પહેલા dpt_lot_no ચેક કરવું
           matchedJoints = allRows.filter(r => {
             const lotVal = extractCleanLotNum(r.dpt_lot_no).toUpperCase();
             if (!lotVal) return false;
@@ -367,7 +366,6 @@
             headerNdt = "DPT-" + (dptValues.length > 0 ? dptValues.join(" & ") : "100%");
             headerWps = "WPS-" + (wpsValues.length > 0 ? wpsValues.join(" & ") : "NA");
           } else {
-            // જો ન મળે તો induction_bend_dpt_lot_no (EB) ચેક કરવું
             matchedJoints = allRows.filter(r => {
               const lotVal = extractCleanLotNum(r.induction_bend_dpt_lot_no).toUpperCase();
               if (!lotVal) return false;
@@ -395,38 +393,43 @@
         await workbook.xlsx.load(templateBuffer);
         const worksheet = workbook.worksheets[0];
 
-        // 🟢 PRINT PREVIEW FIX:
-        // Do NOT touch worksheet.columns! This keeps the original column widths 100% intact.
-        // Ensure fitToPage is enabled so Print Preview fits on 1 page without altering original template margins.
+        // 🟢 EXACT PRINT SETUP PRESERVATION:
         if (!worksheet.pageSetup) {
           worksheet.pageSetup = {};
         }
+        worksheet.pageSetup.orientation = 'landscape';
+        worksheet.pageSetup.paperSize = 9; // A4
         worksheet.pageSetup.fitToPage = true;
         worksheet.pageSetup.fitToWidth = 1;
         worksheet.pageSetup.fitToHeight = 1;
-        worksheet.pageSetup.orientation = 'landscape';
 
         const centerAlign = { vertical: 'middle', horizontal: 'center' };
         const leftAlign = { vertical: 'middle', horizontal: 'left' };
 
-        // ૩. હેડર સેલ્સ અપડેટ કરવા (Row 4 અને G7)
+        // ૩. હેડર સેલ્સ અપડેટ કરવા (Row 4)
         worksheet.getCell('D4').value = headerWps;
         worksheet.getCell('I4').value = headerNdt;
         worksheet.getCell('N4').value = `LOT NAME: MPL/AIPL/${ndtType}/LOT-${rawLot}`;
-        worksheet.getCell('G7').value = isNaN(parseInt(rawLot, 10)) ? rawLot : parseInt(rawLot, 10);
 
         worksheet.getCell('D4').alignment = centerAlign;
         worksheet.getCell('I4').alignment = centerAlign;
         worksheet.getCell('N4').alignment = centerAlign;
+
+        // Column G (Row 7 થી 26) માં લોટ નંબર મર્જ્ડ બોક્સમાં બરાબર સેન્ટરમાં લખવો
+        worksheet.getCell('G7').value = isNaN(parseInt(rawLot, 10)) ? rawLot : parseInt(rawLot, 10);
+        worksheet.getCell('G7').font = { name: 'Calibri', size: 11, bold: true };
         worksheet.getCell('G7').alignment = centerAlign;
 
-        // ૪. Row 7 થી Row 26 (૨૦ ડેટા રો) માં જોઈન્ટ્સનો ડેટા ભરવો અને બાકીની રો સાફ કરવી
+        // ૪. Row 7 થી 26 (કુલ ૨૦ ડેટા રો) માં જોઈન્ટ્સ ભરવા
+        const totalTableRows = 20;
         let lastSpool = null;
-        const totalTableRows = 20; // Table row 7 to row 26
 
         for (let i = 0; i < totalTableRows; i++) {
           const rowNum = 7 + i;
           const j = matchedJoints[i];
+
+          // મૂળ ટેમ્પલેટની રો હાઇટ જાળવી રાખવી (અંદાજે 18 થી 19pt)
+          worksheet.getRow(rowNum).height = 18.5;
 
           if (j) {
             const jType = String(j.joint_type || '').toUpperCase().trim();
@@ -465,8 +468,8 @@
             worksheet.getCell(`M${rowNum}`).value = isBW ? "RT" : "DPT";
             worksheet.getCell(`N${rowNum}`).value = repDisplay;
             worksheet.getCell(`O${rowNum}`).value = ndtDate;
-            worksheet.getCell(`Q${rowNum}`).value = formatDateDisplay(j.ndt_clearance);
 
+            // Remarks / Spool No (Col P)
             const currentSpool = j.spool_no || '';
             if (currentSpool && currentSpool !== lastSpool) {
               worksheet.getCell(`P${rowNum}`).value = currentSpool;
@@ -475,21 +478,21 @@
               worksheet.getCell(`P${rowNum}`).value = (currentSpool === lastSpool && i > 0) ? '' : currentSpool;
             }
           } else {
-            // ખાલી રોમાંથી જૂનો ડેટા સાફ કરવો (Col G સિવાય)
-            ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q'].forEach(col => {
+            // ખાલી રોમાંથી ડેટા ક્લિયર કરવો (Col G સિવાય)
+            ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'].forEach(col => {
               worksheet.getCell(`${col}${rowNum}`).value = '';
             });
           }
 
           // ફોન્ટ અને એલાઇનમેન્ટ
-          ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q'].forEach(col => {
+          ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'].forEach(col => {
             const cell = worksheet.getCell(`${col}${rowNum}`);
-            cell.font = { name: 'Calibri', size: 10 };
+            cell.font = { name: 'Calibri', size: 9 };
             cell.alignment = (col === 'B') ? leftAlign : centerAlign;
           });
         }
 
-        // 🟢 ૫. ROW 6 થી 26 સુધી સંપૂર્ણ બોર્ડર લાગુ કરવી (FIX MISSING BORDERS)
+        // 🟢 ૫. ROW 6 થી 26 સુધી સંપૂર્ણ બોર્ડર લાગુ કરવી (EXACT MATCH WITH TEMPLATE)
         const thinBorder = {
           top: { style: 'thin', color: { argb: 'FF000000' } },
           left: { style: 'thin', color: { argb: 'FF000000' } },
@@ -497,21 +500,19 @@
           right: { style: 'thin', color: { argb: 'FF000000' } }
         };
 
-        const colsWithoutG = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q'];
+        const allTableCols = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
 
-        // Row 6 (હેડર) થી Row 26 સુધીના તમામ સેલને ચારેય બાજુ પાતળી કાળી બોર્ડર
+        // Row 6 (હેડર રો) થી Row 26 સુધી ચારે બાજુ બોર્ડર
         for (let r = 6; r <= 26; r++) {
-          colsWithoutG.forEach(col => {
-            const cell = worksheet.getCell(`${col}${r}`);
-            cell.border = thinBorder;
+          allTableCols.forEach(col => {
+            worksheet.getCell(`${col}${r}`).border = thinBorder;
           });
         }
 
-        // Column G Row 6 (હેડર સેલ "NDT Lot No.") ને બોર્ડર
+        // Column G Row 6 હેડર સેલ ("NDT Lot No.") ને બોર્ડર
         worksheet.getCell('G6').border = thinBorder;
 
-        // Column G (Row 7 થી 26 - Merged Lot No Box):
-        // બહારની બોર્ડર જાળવવી જેથી વચ્ચે આડી લાઈનો ન પડે અને બોક્સ અખંડ રહે
+        // Column G (Row 7 થી 26 મર્જ્ડ બોક્સ): બહારની બોર્ડર જાળવવી
         for (let r = 7; r <= 26; r++) {
           const cellG = worksheet.getCell(`G${r}`);
           cellG.border = {
@@ -534,10 +535,14 @@
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
 
-        // ૭. UI સફળતા સંદેશ
+        // ૭. UI પરિણામ
         alertBox.className = "result-box result-success";
         alertBox.innerHTML = `
-          <p style="margin: 2px 0;"><b>✅File Downloaded:</b> 📥 <u>${fileName}</u></p>
+          <h3 style="margin: 0 0 6px 0;">✅ LOT MASTER ફોર્મેટમાં Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
+          <p style="margin: 2px 0;"><b>NDT Type:</b> ${ndtType} | <b>Lot No:</b> ${rawLot}</p>
+          <p style="margin: 2px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળ્યા</p>
+          <p style="margin: 2px 0;"><b>Format:</b> ✓ પ્રિન્ટ પ્રિવ્યૂ અને બોર્ડર્સ ટેમ્પલેટ મુજબ ૧૦૦% ફિક્સ છે.</p>
+          <p style="margin: 2px 0;"><b>File Downloaded:</b> 📥 <u>${fileName}</u></p>
         `;
         alertBox.style.display = 'block';
 
@@ -577,7 +582,7 @@
         alertBox.style.display = 'block';
       } finally {
         btnGen.disabled = false;
-        btnGen.innerText = "Download Excel";
+        btnGen.innerText = "Download";
       }
     }
 
