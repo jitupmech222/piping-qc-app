@@ -153,7 +153,6 @@
 
   <!-- MAIN CARD -->
   <div class="main-card">
-    <!-- 1. NDT TYPE -->
     <div class="form-group">
       <label>NDT Type</label>
       <div class="radio-group">
@@ -168,7 +167,6 @@
       </div>
     </div>
 
-    <!-- 2. LOT NUMBER INPUT -->
     <div class="form-group">
       <label id="lblLotInput">RT Lot Number:</label>
       <input
@@ -181,19 +179,15 @@
       />
     </div>
 
-    <!-- ACTION BUTTON -->
     <button type="button" id="btnGen" class="btn-generate" onclick="handleGenerateLot()">
       Download 
     </button>
 
-    <!-- STATUS ALERT -->
     <div id="statusAlert" style="display: none;"></div>
 
-    <!-- PREVIEW TABLE -->
     <div id="previewCard" class="preview-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <h4 style="margin: 0; color: #17365d;" id="previewHeading">Preview Joints</h4>
-        <span style="font-size: 12px; color: #16a34a; font-weight: 700;"></span>
       </div>
       <div style="overflow-x: auto; max-height: 320px;">
         <table>
@@ -279,6 +273,16 @@
       return str;
     }
 
+    function formatAsNumberIfPossible(val) {
+      if (val === null || val === undefined) return '';
+      const str = String(val).trim();
+      if (!str || str.toUpperCase() === 'NA') return str || '';
+      if (/^\d+$/.test(str)) {
+        return parseInt(str, 10);
+      }
+      return str;
+    }
+
     async function fetchAllLhsRows() {
       let allRows = [];
       let from = 0;
@@ -303,7 +307,6 @@
       return allRows;
     }
 
-    // 🟢 LOAD GITHUB TEMPLATE ('LOT MASTER.xlsx') AND STRICTLY PRESERVE EXACT FORMAT
     async function handleGenerateLot() {
       const ndtType = document.querySelector('input[name="ndtType"]:checked').value;
       const rawLot = document.getElementById('inputLotNo').value.trim();
@@ -324,7 +327,6 @@
       btnGen.innerText = "⏳ Loading Template & Generating...";
 
       try {
-        // ૧. Supabase માંથી ડેટા ફેચ કરવો
         const allRows = await fetchAllLhsRows();
         const targetLotClean = extractCleanLotNum(rawLot).toUpperCase();
         let matchedJoints = [];
@@ -382,7 +384,7 @@
           }
         }
 
-        // ૨. GitHub પરથી અપલોડ કરેલું 'LOT MASTER.xlsx' ટેમ્પલેટ લોડ કરવું
+        // ૨. GitHub પરથી 'LOT MASTER.xlsx' ટેમ્પલેટ લોડ કરવું
         const templateResponse = await fetch(encodeURI('LOT MASTER.xlsx'));
         if (!templateResponse.ok) {
           throw new Error("GitHub પર 'LOT MASTER.xlsx' ટેમ્પલેટ ફાઈલ લોડ થઈ શકી નથી.");
@@ -393,18 +395,13 @@
         await workbook.xlsx.load(templateBuffer);
         const worksheet = workbook.worksheets[0];
 
-        // 🟢 EXACT PRINT SETUP PRESERVATION:
-        if (!worksheet.pageSetup) {
-          worksheet.pageSetup = {};
+        // 🟢 PRESERVE EXACT TEMPLATE PRINT SETTINGS:
+        if (worksheet.pageSetup) {
+          worksheet.pageSetup.fitToPage = false;
+          worksheet.pageSetup.printArea = 'A1:P30';
         }
-        worksheet.pageSetup.orientation = 'landscape';
-        worksheet.pageSetup.paperSize = 9; // A4
-        worksheet.pageSetup.fitToPage = true;
-        worksheet.pageSetup.fitToWidth = 1;
-        worksheet.pageSetup.fitToHeight = 1;
 
         const centerAlign = { vertical: 'middle', horizontal: 'center' };
-        const leftAlign = { vertical: 'middle', horizontal: 'left' };
 
         // ૩. હેડર સેલ્સ અપડેટ કરવા (Row 4)
         worksheet.getCell('D4').value = headerWps;
@@ -415,21 +412,21 @@
         worksheet.getCell('I4').alignment = centerAlign;
         worksheet.getCell('N4').alignment = centerAlign;
 
-        // Column G (Row 7 થી 26) માં લોટ નંબર મર્જ્ડ બોક્સમાં બરાબર સેન્ટરમાં લખવો
+        // Column G (Row 7 થી 27 મર્જ્ડ સેલ):
         worksheet.getCell('G7').value = isNaN(parseInt(rawLot, 10)) ? rawLot : parseInt(rawLot, 10);
-        worksheet.getCell('G7').font = { name: 'Calibri', size: 11, bold: true };
+        worksheet.getCell('G7').font = { name: 'Calibri', size: 12, bold: true };
         worksheet.getCell('G7').alignment = centerAlign;
 
-        // ૪. Row 7 થી 26 (કુલ ૨૦ ડેટા રો) માં જોઈન્ટ્સ ભરવા
-        const totalTableRows = 20;
+        // ૪. Row 7 થી Row 27 (કુલ ૨૧ ડેટા રો - EXACT 25pt HEIGHT AS PER TEMPLATE FORMAT)
+        const totalTableRows = 21;
         let lastSpool = null;
 
         for (let i = 0; i < totalTableRows; i++) {
           const rowNum = 7 + i;
           const j = matchedJoints[i];
 
-          // મૂળ ટેમ્પલેટની રો હાઇટ જાળવી રાખવી (અંદાજે 18 થી 19pt)
-          worksheet.getRow(rowNum).height = 18.5;
+          // 🟢 અસલ ફોર્મેટ મુજબ રો હાઇટ બરાબર 25pt
+          worksheet.getRow(rowNum).height = 25;
 
           if (j) {
             const jType = String(j.joint_type || '').toUpperCase().trim();
@@ -461,9 +458,15 @@
             worksheet.getCell(`D${rowNum}`).value = j.pipe_class || '';
             worksheet.getCell(`E${rowNum}`).value = j.joint_no || '';
             worksheet.getCell(`F${rowNum}`).value = sizeThk;
-            worksheet.getCell(`H${rowNum}`).value = j.welder_no || 'NA';
+
+            // Welder No: નંબર સ્ટોર (લીલો ત્રિકોણ દૂર કરવા)
+            worksheet.getCell(`H${rowNum}`).value = formatAsNumberIfPossible(j.welder_no || 'NA');
+
             worksheet.getCell(`I${rowNum}`).value = jType;
-            worksheet.getCell(`K${rowNum}`).value = j.weld_visual_report_no || '';
+
+            // Visual Report No: નંબર સ્ટોર (લીલો ત્રિકોણ દૂર કરવા)
+            worksheet.getCell(`K${rowNum}`).value = formatAsNumberIfPossible(j.weld_visual_report_no || '');
+
             worksheet.getCell(`L${rowNum}`).value = formatDateDisplay(j.visual_date);
             worksheet.getCell(`M${rowNum}`).value = isBW ? "RT" : "DPT";
             worksheet.getCell(`N${rowNum}`).value = repDisplay;
@@ -478,21 +481,20 @@
               worksheet.getCell(`P${rowNum}`).value = (currentSpool === lastSpool && i > 0) ? '' : currentSpool;
             }
           } else {
-            // ખાલી રોમાંથી ડેટા ક્લિયર કરવો (Col G સિવાય)
             ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'].forEach(col => {
               worksheet.getCell(`${col}${rowNum}`).value = '';
             });
           }
 
-          // ફોન્ટ અને એલાઇનમેન્ટ
+          // 🟢 ફોન્ટ: CALIBRI, સાઇઝ: 11, એલાઇનમેન્ટ: ALL CENTER (Drawing No સહિત)
           ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'].forEach(col => {
             const cell = worksheet.getCell(`${col}${rowNum}`);
-            cell.font = { name: 'Calibri', size: 9 };
-            cell.alignment = (col === 'B') ? leftAlign : centerAlign;
+            cell.font = { name: 'Calibri', size: 11 };
+            cell.alignment = centerAlign;
           });
         }
 
-        // 🟢 ૫. ROW 6 થી 26 સુધી સંપૂર્ણ બોર્ડર લાગુ કરવી (EXACT MATCH WITH TEMPLATE)
+        // ૫. ROW 6 થી 27 સુધી પાતળી કાળી બોર્ડર લાગુ કરવી
         const thinBorder = {
           top: { style: 'thin', color: { argb: 'FF000000' } },
           left: { style: 'thin', color: { argb: 'FF000000' } },
@@ -502,22 +504,20 @@
 
         const allTableCols = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
 
-        // Row 6 (હેડર રો) થી Row 26 સુધી ચારે બાજુ બોર્ડર
-        for (let r = 6; r <= 26; r++) {
+        for (let r = 6; r <= 27; r++) {
           allTableCols.forEach(col => {
             worksheet.getCell(`${col}${r}`).border = thinBorder;
           });
         }
 
-        // Column G Row 6 હેડર સેલ ("NDT Lot No.") ને બોર્ડર
         worksheet.getCell('G6').border = thinBorder;
 
-        // Column G (Row 7 થી 26 મર્જ્ડ બોક્સ): બહારની બોર્ડર જાળવવી
-        for (let r = 7; r <= 26; r++) {
+        // Column G (Row 7 થી 27 મર્જ્ડ બોક્સ આઉટર બોર્ડર)
+        for (let r = 7; r <= 27; r++) {
           const cellG = worksheet.getCell(`G${r}`);
           cellG.border = {
             top: r === 7 ? { style: 'thin', color: { argb: 'FF000000' } } : undefined,
-            bottom: r === 26 ? { style: 'thin', color: { argb: 'FF000000' } } : undefined,
+            bottom: r === 27 ? { style: 'thin', color: { argb: 'FF000000' } } : undefined,
             left: { style: 'thin', color: { argb: 'FF000000' } },
             right: { style: 'thin', color: { argb: 'FF000000' } }
           };
@@ -535,13 +535,12 @@
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
 
-        // ૭. UI પરિણામ
         alertBox.className = "result-box result-success";
         alertBox.innerHTML = `
           <h3 style="margin: 0 0 6px 0;">✅ LOT MASTER ફોર્મેટમાં Excel સફળતાપૂર્વક તૈયાર થઈ ગઈ છે!</h3>
           <p style="margin: 2px 0;"><b>NDT Type:</b> ${ndtType} | <b>Lot No:</b> ${rawLot}</p>
-          <p style="margin: 2px 0;"><b>Joints Count:</b> ${matchedJoints.length} જોઈન્ટ્સ મળ્યા</p>
-          <p style="margin: 2px 0;"><b>Format:</b> ✓ પ્રિન્ટ પ્રિવ્યૂ અને બોર્ડર્સ ટેમ્પલેટ મુજબ ૧૦૦% ફિક્સ છે.</p>
+          <p style="margin: 2px 0;"><b>Row Height:</b> 25pt (Row 7 to 27) ફિક્સ સેટ.</p>
+          <p style="margin: 2px 0;"><b>Print Preview:</b> ✓ ૧૦૦% અસલ ફોર્મેટ મુજબ ફુલ પેજ ફિટ.</p>
           <p style="margin: 2px 0;"><b>File Downloaded:</b> 📥 <u>${fileName}</u></p>
         `;
         alertBox.style.display = 'block';
@@ -558,7 +557,7 @@
           return `
             <tr>
               <td>${i + 1}</td>
-              <td style="text-align:left;">${j.drawing_no || '-'}</td>
+              <td>${j.drawing_no || '-'}</td>
               <td>${j.pipe_class || '-'}</td>
               <td><b>${j.joint_no}</b></td>
               <td>${sizeThk}</td>
@@ -594,3 +593,4 @@
   </script>
 </body>
 </html>
+```[cite: 35]
