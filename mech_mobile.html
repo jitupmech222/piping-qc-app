@@ -455,12 +455,12 @@
 
       <!-- Stage Chips Navigation -->
       <div class="stage-scroll-container" id="stageChipsContainer">
-        <button class="stage-chip active" onclick="switchStage('bending_issue', this)">01. Issue Bending</button>
-        <button class="stage-chip" onclick="switchStage('bend_entry', this)">02. Bend Done</button>
-        <button class="stage-chip" onclick="switchStage('fitup_entry', this)">03. Fit Up</button>
-        <button class="stage-chip" onclick="switchStage('weld_visual', this)">04. Visual</button>
-        <button class="stage-chip" onclick="switchStage('ndt_clearance', this)">05. NDT Clear</button>
-        <button class="stage-chip" onclick="switchStage('fd', this)">06. Final Dispatch</button>
+        <button class="stage-chip active" onclick="switchStage('bending_issue', this)">Issue Bending</button>
+        <button class="stage-chip" onclick="switchStage('bend_entry', this)">Bend Done</button>
+        <button class="stage-chip" onclick="switchStage('fitup_entry', this)">Fit Up</button>
+        <button class="stage-chip" onclick="switchStage('weld_visual', this)">Visual</button>
+        <button class="stage-chip" onclick="switchStage('ndt_clearance', this)">NDT Clear</button>
+        <button class="stage-chip" onclick="switchStage('fd', this)">Final Dispatch</button>
         <button class="stage-chip" onclick="switchStage('tracker', this)">🔍 Spool Tracker</button>
       </div>
 
@@ -635,22 +635,22 @@
       bendBox.style.display = stage === 'bend_entry' ? 'block' : 'none';
 
       if (stage === 'bending_issue') {
-        heading.innerText = '01. Issued for Bending';
+        heading.innerText = 'Issued for Bending';
         inputArea.innerHTML = `<label>Bending Issue Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'bend_entry') {
-        heading.innerText = '02. Bend Completed';
+        heading.innerText = 'Bend Completed';
         inputArea.innerHTML = `<label>Bend Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'fitup_entry') {
-        heading.innerText = '03. Fit Up Completed';
+        heading.innerText = 'Fit Up Completed';
         inputArea.innerHTML = `<label>Fit-Up Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'weld_visual') {
-        heading.innerText = '04. Weld Visual Completed';
+        heading.innerText = 'Weld Visual Completed';
         inputArea.innerHTML = `<label>Visual Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'ndt_clearance') {
-        heading.innerText = '05. NDT Clearance';
+        heading.innerText = 'NDT Clearance';
         inputArea.innerHTML = `<label>NDT Clearance Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'fd') {
-        heading.innerText = '06. Final Dispatch & DC No';
+        heading.innerText = 'Final Dispatch & DC No';
         inputArea.innerHTML = `
           <label>DC Number:</label><input type="text" id="stageDcNo" placeholder="Enter Shift DC No" required>
           <label>Dispatch Date:</label><input type="date" id="stageDate">
