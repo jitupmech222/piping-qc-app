@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NDT & FD Pending Value Report | QA/QC Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Formatted Excel Export Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 18px 24px; -webkit-font-smoothing: antialiased; }
+
+    /* Top Bar */
+    .top-header {
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-back {
+      padding: 7px 16px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f1f5f9; color: #0284c7; }
+
+    .card {
+      background: #ffffff;
+      padding: 18px 22px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+
+    /* KPI Summary Cards */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .kpi-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kpi-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-val {
+      font-size: 24px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    /* Action Controls */
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .btn-refresh {
+      padding: 9px 18px;
+      background: #17365d;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-refresh:hover { background: #0f243e; }
+
+    .btn-export-excel {
+      padding: 9px 18px;
+      background: #15803d;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(21, 128, 61, 0.2);
+      transition: all 0.2s;
+    }
+    .btn-export-excel:hover { background: #166534; }
+    .btn-export-excel:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+
+    /* Table Container */
+    .table-container {
+      overflow-x: auto;
+      max-height: 65vh;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    th {
+      background: #dce6f1; /* Soft blue matching Python #DCE6F1 */
+      color: #1e3a5f;
+      border-right: 1px solid #b8cce4;
+      border-bottom: 2px solid #95b3d7;
+      padding: 11px 16px;
+      font-weight: 800;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+    }
+    td {
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 16px;
+      text-align: center;
+      background: #ffffff;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    /* Grand Total Row */
+    tr.total-row td {
+      background: #dce6f1 !important;
+      color: #1e3a5f;
+      font-weight: 800;
+      font-size: 13.5px;
+      border-top: 2px solid #95b3d7;
+      border-bottom: 2px solid #95b3d7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
+      <h2 style="color:#17365d; font-size:18px; font-weight:800;">⏳ NDT & FD PENDING VALUE REPORT</h2>
+    </div>
+    <span id="navSubTitle" style="font-size:12.5px; font-weight:bold; color:#64748b;"></span>
+  </div>
+
+  <!-- KPI Summary Cards -->
+  <div class="kpi-row">
+    <div class="kpi-card" style="border-left: 5px solid #d97706;">
+      <div>
+        <div class="kpi-title">NDT Pending Amount</div>
+        <div class="kpi-val" style="color: #d97706;" id="kpiNdtPending">₹0.00</div>
+      </div>
+      <div class="kpi-icon" style="background:#fef3c7; color:#d97706;">🔬</div>
+    </div>
+
+    <div class="kpi-card" style="border-left: 5px solid #2563eb;">
+      <div>
+        <div class="kpi-title">FD Pending Amount</div>
+        <div class="kpi-val" style="color: #2563eb;" id="kpiFdPending">₹0.00</div>
+      </div>
+      <div class="kpi-icon" style="background:#eff6ff; color:#2563eb;">🚚</div>
+    </div>
+
+    <div class="kpi-card" style="border-left: 5px solid #7c3aed;">
+      <div>
+        <div class="kpi-title">Total Pending (NDT + FD)</div>
+        <div class="kpi-val" style="color: #7c3aed;" id="kpiTotalPending">₹0.00</div>
+      </div>
+      <div class="kpi-icon" style="background:#f5f3ff; color:#7c3aed;">💰</div>
+    </div>
+  </div>
+
+  <!-- Main Report Card -->
+  <div class="card">
+    <div class="actions-bar">
+      <div>
+        <span style="font-size:14px; font-weight:bold; color:#0f172a;">Only Pending Dates Summary</span>
+        <span style="font-size:12px; color:#64748b; margin-left:8px;" id="recordStatusText">(Loading...)</span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-refresh" onclick="loadPendingReportData()">🔄 Refresh</button>
+        <button type="button" id="btnExportExcel" class="btn-export-excel" onclick="downloadPendingExcel()" disabled>
+          <span>📥 Download Excel (.xlsx)</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="min-width: 140px;">DATE</th>
+            <th>NDT BALANCE VALUE (₹)</th>
+            <th>FD BALANCE VALUE (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="reportBody">
+          <tr><td colspan="3" style="text-align:center; padding:30px; color:#64748b;">⏳ Reading data from lhs_entries...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // EB Fixed Rates matching Python script
+    const EB_RATES = {
+      2: 495,
+      3: 742.5,
+      4: 990,
+      6: 1732.5,
+      8: 2310,
+      10: 2887.5,
+      12: 4455,
+      14: 5197.5,
+      16: 5940
+    };
+
+    let reportRows = [];
+    let grandNdtTotal = 0;
+    let grandFdTotal = 0;
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલાં Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ આ રિપોર્ટ જોવાની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      document.getElementById('navSubTitle').innerText = `| Admin: ${user.name}`;
+      return true;
+    }
+
+    function calculateJointValue(row) {
+      const jointType = String(row.joint_type || '').trim().toUpperCase();
+      const weldNpd = parseFloat(row.weld_npd);
+      const inchDia = parseFloat(row.weld_inch_dia);
+
+      if (isNaN(weldNpd)) return 0;
+
+      if (jointType === "EB") {
+        return EB_RATES[weldNpd] || 0;
+      } else if (["BW", "LET", "SOB", "SOF"].includes(jointType)) {
+        if (isNaN(inchDia)) return 0;
+        return inchDia * (weldNpd < 2 ? 794.4 : 673.2);
+      }
+      return 0;
+    }
+
+    function cleanDateStr(val) {
+      if (!val) return "";
+      const str = String(val).trim();
+      if (!str || str.toLowerCase() === "null" || str.toUpperCase() === "NA") return "";
+      return str.includes("T") ? str.split("T")[0] : str;
+    }
+
+    function formatDisplayDate(isoDateStr) {
+      const parts = isoDateStr.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return isoDateStr;
+    }
+
+    /* -------------------------------------------------------------
+       READ-ONLY FETCH & PROCESS (STRICT SAFETY MODE)
+    -------------------------------------------------------------- */
+    async function loadPendingReportData() {
+      const tbody = document.getElementById('reportBody');
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px; color:#64748b;">⏳ Reading data from lhs_entries...</td></tr>`;
+      document.getElementById('recordStatusText').innerText = "(Fetching...)";
+      document.getElementById('btnExportExcel').disabled = true;
+
+      try {
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('joint_type, weld_npd, weld_inch_dia, visual_date, ndt_clearance, fd_date')
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        const ndtMap = new Map(); // visual_date -> sum(NDT_BAL_VAL)
+        const fdMap = new Map();  // ndt_date -> sum(FD_BAL_VAL)
+        const allDatesSet = new Set();
+
+        allRows.forEach(r => {
+          const val = calculateJointValue(r);
+          const visualDt = cleanDateStr(r.visual_date);
+          const ndtDt = cleanDateStr(r.ndt_clearance);
+          const dispatchDt = cleanDateStr(r.fd_date);
+
+          // NDT Pending: Visual છે પણ NDT નથી
+          if (visualDt && !ndtDt && val > 0) {
+            ndtMap.set(visualDt, (ndtMap.get(visualDt) || 0) + val);
+            allDatesSet.add(visualDt);
+          }
+
+          // FD Pending: NDT છે પણ Dispatch નથી
+          if (ndtDt && !dispatchDt && val > 0) {
+            fdMap.set(ndtDt, (fdMap.get(ndtDt) || 0) + val);
+            allDatesSet.add(ndtDt);
+          }
+        });
+
+        // Sorted unique dates
+        const sortedDates = Array.from(allDatesSet).sort();
+
+        reportRows = [];
+        grandNdtTotal = 0;
+        grandFdTotal = 0;
+
+        sortedDates.forEach(dIso => {
+          const ndtBal = Math.round((ndtMap.get(dIso) || 0) * 100) / 100;
+          const fdBal = Math.round((fdMap.get(dIso) || 0) * 100) / 100;
+
+          // Filter: Keep only where NDT > 0 or FD > 0
+          if (ndtBal > 0 || fdBal > 0) {
+            grandNdtTotal += ndtBal;
+            grandFdTotal += fdBal;
+            reportRows.push({
+              isoDate: dIso,
+              displayDate: formatDisplayDate(dIso),
+              ndtBal,
+              fdBal
+            });
+          }
+        });
+
+        grandNdtTotal = Math.round(grandNdtTotal * 100) / 100;
+        grandFdTotal = Math.round(grandFdTotal * 100) / 100;
+        const grandCombined = Math.round((grandNdtTotal + grandFdTotal) * 100) / 100;
+
+        // Update KPIs
+        document.getElementById('kpiNdtPending').innerText = `₹${grandNdtTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        document.getElementById('kpiFdPending').innerText = `₹${grandFdTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        document.getElementById('kpiTotalPending').innerText = `₹${grandCombined.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+        renderTable();
+        document.getElementById('recordStatusText').innerText = `(${reportRows.length} Pending Dates)`;
+        document.getElementById('btnExportExcel').disabled = reportRows.length === 0;
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:20px; color:#dc2626;">❌ Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('reportBody');
+      if (reportRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px; color:#15803d; font-weight:bold;">🎉 હાલમાં કોઈ NDT અથવા FD પેન્ડિંગ અમાઉન્ટ નથી!</td></tr>`;
+        return;
+      }
+
+      const rowsHtml = reportRows.map(r => `
+        <tr>
+          <td><b>${r.displayDate}</b></td>
+          <td>${r.ndtBal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td>${r.fdBal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+        </tr>
+      `).join('');
+
+      const totalHtml = `
+        <tr class="total-row">
+          <td>GRAND TOTAL</td>
+          <td>${grandNdtTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td>${grandFdTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+        </tr>
+      `;
+
+      tbody.innerHTML = rowsHtml + totalHtml;
+    }
+
+    /* -------------------------------------------------------------
+       EXCEL EXPORT (MATCHING PYTHON FORMATTING)
+    -------------------------------------------------------------- */
+    async function downloadPendingExcel() {
+      if (reportRows.length === 0) return;
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Pending_Report', {
+        views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
+      });
+
+      const headers = ["DATE", "NDT BALANCE VALUE", "FD BALANCE VALUE"];
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 28;
+
+      headerRow.eachCell(cell => {
+        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF1E3A5F' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCE6F1' } }; // Python #DCE6F1
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      });
+
+      reportRows.forEach(r => {
+        const row = worksheet.addRow([r.displayDate, r.ndtBal, r.fdBal]);
+        row.height = 20;
+        row.eachCell((cell, colNum) => {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = { top: { style: 'thin', color: { argb: 'FFD0D0D0' } }, left: { style: 'thin', color: { argb: 'FFD0D0D0' } }, bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } }, right: { style: 'thin', color: { argb: 'FFD0D0D0' } } };
+          if (colNum > 1) {
+            cell.numFmt = '#,##0.00';
+          }
+        });
+      });
+
+      // Total Row
+      const totalRow = worksheet.addRow(["GRAND TOTAL", grandNdtTotal, grandFdTotal]);
+      totalRow.height = 30;
+      totalRow.eachCell((cell, colNum) => {
+        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF1E3A5F' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCE6F1' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'medium' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+        if (colNum > 1) {
+          cell.numFmt = '#,##0.00';
+        }
+      });
+
+      worksheet.columns.forEach(col => { col.width = 24; });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      const now = new Date();
+      const timestamp = `${String(now.getDate()).padStart(2,'0')}${String(now.getMonth()+1).padStart(2,'0')}${now.getFullYear()}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+      link.href = URL.createObjectURL(blob);
+      link.download = `Only_Pending_Balance_${timestamp}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifyAdminAccess()) {
+        loadPendingReportData();
+      }
+    });
+  </script>
+</body>
+</html>
