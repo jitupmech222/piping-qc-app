@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spool Detail Report | QA/QC Module</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 16px 20px; -webkit-font-smoothing: antialiased; }
+
+    /* Top Bar */
+    .top-header {
+      background: #ffffff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-back {
+      padding: 7px 16px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f1f5f9; color: #0284c7; }
+
+    .card {
+      background: #ffffff;
+      padding: 18px 22px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+
+    /* Search Bar */
+    .search-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .search-box-wrap {
+      position: relative;
+      width: 300px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      outline: none;
+      background: #ffffff;
+    }
+    input[type="text"]:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+    }
+
+    .dropdown-suggest {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1.5px solid #0d6efd;
+      border-radius: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      margin-top: 4px;
+    }
+    .dropdown-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12.5px;
+    }
+    .dropdown-item:hover { background: #f0fdf4; color: #0f766e; }
+
+    .btn-action-primary {
+      padding: 10px 20px;
+      background: #17365d;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-action-primary:hover { background: #0f243e; }
+
+    .btn-download-pdf {
+      padding: 10px 18px;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-download-pdf:hover { background: #b91c1c; }
+
+    .btn-download-excel {
+      padding: 10px 18px;
+      background: #15803d;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-download-excel:hover { background: #166534; }
+
+    /* Printable Report Styling */
+    #reportDisplayArea {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 24px;
+      margin-top: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    }
+
+    .report-title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #2C3E50;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+      min-width: 1200px;
+    }
+    th {
+      background: #2C3E50;
+      color: #ffffff;
+      padding: 8px 6px;
+      border: 1px solid #7f8c8d;
+      text-align: center;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    td {
+      padding: 7px 6px;
+      border: 1px solid #bdc3c7;
+      text-align: center;
+      white-space: nowrap;
+      background: #ffffff;
+    }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+
+    .status-badge {
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      text-transform: lowercase;
+    }
+    .status-cleared { background: #dcfce7; color: #15803d; }
+    .status-offered { background: #ffedd5; color: #c2410c; }
+
+    /* Remarks Box */
+    .remarks-box {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-left: 4px solid #2C3E50;
+      border-radius: 4px;
+    }
+    .remark-item {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.6;
+      margin-bottom: 4px;
+    }
+
+    /* Footer Info */
+    .footer-info-box {
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1.5px dashed #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #1e293b;
+    }
+
+    /* 🟢 PRINT / PDF FORMATTING (Landscape A4) */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .top-header, .search-card, .btn-print-hide { display: none !important; }
+      #reportDisplayArea { border: none; box-shadow: none; padding: 0; margin: 0; }
+      @page { size: landscape; margin: 8mm; }
+      th { background: #2C3E50 !important; color: #fff !important; -webkit-print-color-adjust: exact; }
+      .status-cleared { background: #dcfce7 !important; color: #15803d !important; -webkit-print-color-adjust: exact; }
+      .status-offered { background: #ffedd5 !important; color: #c2410c !important; -webkit-print-color-adjust: exact; }
+      table { min-width: 100% !important; font-size: 9px !important; }
+      td, th { padding: 4px 3px !important; }
+      .remarks-box { background: #fff !important; border-left: 3px solid #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
+      <h2 style="color:#17365d; font-size:18px; font-weight:800;">📋 SPOOL DETAIL REPORT</h2>
+    </div>
+    <span id="navSubTitle" style="font-size:12.5px; font-weight:bold; color:#64748b;"></span>
+  </div>
+
+  <!-- Search Card -->
+  <div class="card search-card">
+    <div class="search-row">
+      <label style="font-weight:bold; font-size:13px; color:#1e293b;">Spool Unique No:</label>
+      
+      <div class="search-box-wrap">
+        <input type="text" id="spoolInput" placeholder="Enter Spool No (e.g. A-41101)" autocomplete="off" oninput="handleSpoolSearch(this.value)" onkeydown="if(event.key==='Enter') executeViewReport()">
+        <div id="spoolDropdown" class="dropdown-suggest"></div>
+      </div>
+
+      <button type="button" class="btn-action-primary" onclick="executeViewReport()">
+        <span>👁️ View Report</span>
+      </button>
+
+      <!-- Action Buttons (Shown after View) -->
+      <div id="actionButtonGroup" style="display:none; gap:10px; align-items:center;">
+        <button type="button" class="btn-download-pdf btn-print-hide" onclick="window.print()">
+          <span>📄 Download / Print PDF</span>
+        </button>
+        <button type="button" class="btn-download-excel btn-print-hide" onclick="downloadSpoolExcel()">
+          <span>📥 Download Excel</span>
+        </button>
+      </div>
+
+      <span id="lookupStatus" style="font-size:12.5px; font-weight:600; color:#64748b; margin-left:auto;"></span>
+    </div>
+  </div>
+
+  <!-- 🟢 REPORT DISPLAY AREA (FIRST VIEW) -->
+  <div id="reportDisplayArea" style="display:none;">
+    
+    <div class="report-title" id="dispReportTitle">SPOOL DETAIL REPORT - </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ISO No/Drawing No/Line No</th>
+            <th>Joint No.</th>
+            <th>Type of Joint</th>
+            <th>WELD NPD</th>
+            <th>Spool Unique No.</th>
+            <th>Induction bend DPT Lot no</th>
+            <th>FIT UP Date</th>
+            <th>Welder No</th>
+            <th>WELD VISUAL REPORT NO</th>
+            <th>VISUAL Date</th>
+            <th>DPT LOT NO</th>
+            <th>RT REPORT NO</th>
+            <th>XR NO</th>
+            <th>RT LOT NO</th>
+            <th>NDT Status</th>
+          </tr>
+        </thead>
+        <tbody id="spoolReportTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Supporting Remarks -->
+    <div class="remarks-box" id="remarksContainer" style="display:none;">
+      <div style="font-size:12.5px; font-weight:800; color:#2C3E50; margin-bottom:6px;">SUPPORTING NDT REMARKS:</div>
+      <div id="remarksList"></div>
+    </div>
+
+    <!-- Bottom Stage Info -->
+    <div class="footer-info-box">
+      <div>NDT CLEARANCE DATE:- <span id="dispNdtClearance">-</span></div>
+      <div>FD DATE:- <span id="dispFdDate">-</span></div>
+      <div>DC No:- <span id="dispDcNo">-</span></div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let searchTimeout = null;
+    let currentSpoolData = [];
+    let allLhsCache = [];
+    let currentSpoolNo = "";
+    let finalRemarksList = [];
+    let footerInfo = {};
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ આ રિપોર્ટ જોવાની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      document.getElementById('navSubTitle').innerText = `| Admin: ${user.name}`;
+      return true;
+    }
+
+    function cleanVal(x) {
+      if (!x || String(x).trim() === '' || ['na', 'nan', 'none', 'null'].includes(String(x).trim().toLowerCase())) {
+        return "";
+      }
+      const str = String(x).trim();
+      if (str.includes("T")) {
+        const parts = str.split("T")[0].split("-");
+        if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      const parts = str.split("-");
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
+
+    /* 🟢 AUTO-SUGGESTION SPOOL SEARCH (STRICT READ-ONLY) */
+    function handleSpoolSearch(term) {
+      clearTimeout(searchTimeout);
+      const q = String(term || '').trim().toLowerCase();
+      const drop = document.getElementById('spoolDropdown');
+
+      if (!q) { drop.style.display = 'none'; return; }
+
+      searchTimeout = setTimeout(async () => {
+        try {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('spool_no, drawing_no')
+            .ilike('spool_no', `%${q}%`)
+            .limit(30);
+
+          if (error) throw error;
+
+          const uniqueMap = new Map();
+          (data || []).forEach(r => {
+            const sp = String(r.spool_no || '').trim();
+            if (sp && !uniqueMap.has(sp)) uniqueMap.set(sp, r.drawing_no || '');
+          });
+
+          if (uniqueMap.size === 0) {
+            drop.innerHTML = '<div style="padding:10px; color:#64748b; font-size:12px;">કોઈ Spool મળ્યો નથી</div>';
+            drop.style.display = 'block';
+            return;
+          }
+
+          drop.innerHTML = Array.from(uniqueMap.entries()).map(([sp, dwg]) => `
+            <div class="dropdown-item" onclick="selectSpool('${sp}')">
+              <b>${sp}</b>
+              <span style="color:#64748b; font-size:11px;">${dwg}</span>
+            </div>
+          `).join('');
+          drop.style.display = 'block';
+        } catch (err) {
+          console.error(err);
+        }
+      }, 200);
+    }
+
+    function selectSpool(sp) {
+      document.getElementById('spoolInput').value = sp;
+      document.getElementById('spoolDropdown').style.display = 'none';
+      executeViewReport();
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#spoolInput') && !e.target.closest('#spoolDropdown')) {
+        document.getElementById('spoolDropdown').style.display = 'none';
+      }
+    });
+
+    /* 🟢 READ-ONLY LOT & SUPPORTING REPORT CROSS-LOOKUP */
+    function getSupportingNdtInfo(lotNo, lotKey, repKey, dateKey, testType, xrKey = null) {
+      if (!lotNo) return { remark: null, status: "" };
+      const targetLot = cleanVal(lotNo).toUpperCase();
+
+      const match = allLhsCache.find(r => {
+        const lVal = cleanVal(r[lotKey]).toUpperCase();
+        const repVal = cleanVal(r[repKey]);
+        const dtVal = cleanVal(r[dateKey]);
+        return lVal === targetLot && repVal !== "" && dtVal !== "";
+      });
+
+      if (match) {
+        const repNo = cleanVal(match[repKey]);
+        const fmtDate = cleanVal(match[dateKey]);
+        const xrNo = xrKey ? cleanVal(match[xrKey]) : "";
+
+        const isoNo = cleanVal(match.drawing_no);
+        const spNo = cleanVal(match.spool_no);
+        const jNo = cleanVal(match.joint_no);
+
+        const extraParts = [];
+        if (isoNo) extraParts.push(isoNo);
+        if (spNo) extraParts.push(spNo);
+        if (jNo) extraParts.push(jNo);
+        const extraText = extraParts.length ? ` (${extraParts.join(' | ')})` : "";
+
+        let rmk = `For ${testType} LOT No ${targetLot} SUPPORTING Report No is ${repNo}`;
+        if (xrNo) rmk += `, XR No is ${xrNo}`;
+        rmk += extraText;
+        rmk += ` and Date is ${fmtDate}`;
+
+        return { remark: rmk, status: "fully cleared" };
+      }
+
+      return { remark: null, status: "offered" };
+    }
+
+    /* -------------------------------------------------------------
+       🟢 FIRST VIEW: FETCH & GENERATE ON-SCREEN REPORT
+    -------------------------------------------------------------- */
+    async function executeViewReport() {
+      const spool = document.getElementById('spoolInput').value.trim().toUpperCase();
+      if (!spool) return alert("⚠️ કૃપા કરીને Spool Unique No. દાખલ કરો!");
+
+      document.getElementById('spoolDropdown').style.display = 'none';
+      const statusLbl = document.getElementById('lookupStatus');
+      statusLbl.innerText = "⏳ Reading lhs_entries...";
+
+      try {
+        // 1. Fetch joints for this spool
+        const { data: userRows, error: uErr } = await db
+          .from('lhs_entries')
+          .select('*')
+          .eq('spool_no', spool)
+          .order('id', { ascending: true });
+
+        if (uErr) throw uErr;
+        if (!userRows || userRows.length === 0) {
+          statusLbl.innerText = "";
+          return alert(`❌ Spool "${spool}" માટે lhs_entries ટેબલમાં કોઈ ડેટા મળ્યો નથી!`);
+        }
+
+        currentSpoolNo = spool;
+        currentSpoolData = userRows;
+
+        // 2. Fetch all entries for cross-checking supporting lots (Read-only)
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from('lhs_entries')
+            .select('drawing_no, spool_no, joint_no, joint_type, induction_bend_dpt_lot_no, induction_bend_dpt_report_no, induction_bend_dpt_date, dpt_lot_no, dpt_report_no, dpt_date, rt_lot_no, rt_report_no, rt_date, xr_no')
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+        allLhsCache = allRows;
+
+        // 3. Process each joint & calculate NDT status & remarks exactly as Python
+        const finalRemarksSet = new Set();
+        const processedRows = [];
+
+        userRows.forEach(row => {
+          const jType = cleanVal(row.joint_type).toUpperCase();
+          let currentNdtStatus = "";
+          let lotOverride = null;
+
+          if (jType === "EB") {
+            const lotVal = cleanVal(row.induction_bend_dpt_lot_no);
+            const { remark, status } = getSupportingNdtInfo(lotVal, "induction_bend_dpt_lot_no", "induction_bend_dpt_report_no", "induction_bend_dpt_date", "Induction DPT");
+            if (lotVal) {
+              currentNdtStatus = status;
+              if (remark) finalRemarksSet.add(remark);
+            }
+          } else if (["LET", "SOF", "SOB", "SW"].includes(jType)) {
+            const rawPct = String(row.dpt_percentage || '').replace('%', '').trim();
+            const pctVal = parseFloat(rawPct);
+
+            if (pctVal === 100) {
+              lotOverride = "100%";
+              const repNo = cleanVal(row.dpt_report_no);
+              const repDate = cleanVal(row.dpt_date);
+
+              if (repNo && repDate) {
+                currentNdtStatus = "fully cleared";
+                const isoNo = cleanVal(row.drawing_no);
+                const spNo = cleanVal(row.spool_no);
+                const jNo = cleanVal(row.joint_no);
+                const extraParts = [];
+                if (isoNo) extraParts.push(isoNo);
+                if (spNo) extraParts.push(spNo);
+                if (jNo) extraParts.push(jNo);
+                const extraText = extraParts.length ? ` (${extraParts.join(' | ')})` : "";
+                finalRemarksSet.add(`For DPT 100% SUPPORTING Report No is ${repNo}${extraText} and Date is ${repDate}`);
+              } else {
+                currentNdtStatus = "offered";
+              }
+            } else {
+              const lotVal = cleanVal(row.dpt_lot_no);
+              const { remark, status } = getSupportingNdtInfo(lotVal, "dpt_lot_no", "dpt_report_no", "dpt_date", "DPT");
+              if (lotVal) {
+                currentNdtStatus = status;
+                if (remark) finalRemarksSet.add(remark);
+              }
+            }
+          } else if (jType === "BW") {
+            const lotVal = cleanVal(row.rt_lot_no);
+            const { remark, status } = getSupportingNdtInfo(lotVal, "rt_lot_no", "rt_report_no", "rt_date", "RT", "xr_no");
+            if (lotVal) {
+              currentNdtStatus = status;
+              if (remark) finalRemarksSet.add(remark);
+            }
+          }
+
+          processedRows.push({
+            drawingNo: cleanVal(row.drawing_no) || "-",
+            jointNo: cleanVal(row.joint_no) || "-",
+            jointType: jType || "-",
+            weldNpd: cleanVal(row.weld_npd) || "-",
+            spoolNo: cleanVal(row.spool_no) || "-",
+            ebLot: cleanVal(row.induction_bend_dpt_lot_no) || "-",
+            fitupDate: cleanVal(row.fitup_date) || "-",
+            welderNo: cleanVal(row.welder_no) || "-",
+            visualReport: cleanVal(row.weld_visual_report_no) || "-",
+            visualDate: cleanVal(row.visual_date) || "-",
+            dptLot: lotOverride ? lotOverride : (cleanVal(row.dpt_lot_no) || "-"),
+            rtReport: cleanVal(row.rt_report_no) || "-",
+            xrNo: cleanVal(row.xr_no) || "-",
+            rtLot: cleanVal(row.rt_lot_no) || "-",
+            ndtStatus: currentNdtStatus || "-"
+          });
+        });
+
+        // 4. Render Table
+        const tbody = document.getElementById('spoolReportTbody');
+        tbody.innerHTML = processedRows.map(r => {
+          let badgeClass = "status-badge";
+          if (r.ndtStatus.toLowerCase() === "fully cleared") badgeClass += " status-cleared";
+          else if (r.ndtStatus.toLowerCase() === "offered") badgeClass += " status-offered";
+
+          return `
+            <tr>
+              <td>${r.drawingNo}</td>
+              <td style="font-weight:bold;">${r.jointNo}</td>
+              <td>${r.jointType}</td>
+              <td>${r.weldNpd}</td>
+              <td>${r.spoolNo}</td>
+              <td>${r.ebLot}</td>
+              <td>${r.fitupDate}</td>
+              <td>${r.welderNo}</td>
+              <td>${r.visualReport}</td>
+              <td>${r.visualDate}</td>
+              <td>${r.dptLot}</td>
+              <td>${r.rtReport}</td>
+              <td>${r.xrNo}</td>
+              <td>${r.rtLot}</td>
+              <td><span class="${badgeClass}">${r.ndtStatus}</span></td>
+            </tr>
+          `;
+        }).join('');
+
+        // 5. Render Supporting Remarks
+        finalRemarksList = Array.from(finalRemarksSet).sort();
+        const rmkBox = document.getElementById('remarksContainer');
+        const rmkList = document.getElementById('remarksList');
+
+        if (finalRemarksList.length > 0) {
+          rmkList.innerHTML = finalRemarksList.map(rmk => `<div class="remark-item">✔ ${rmk}</div>`).join('');
+          rmkBox.style.display = 'block';
+        } else {
+          rmkBox.style.display = 'none';
+        }
+
+        // 6. Footer Information
+        const firstRow = userRows[0];
+        footerInfo = {
+          ndtClearance: cleanVal(firstRow.ndt_clearance) || "-",
+          fdDate: cleanVal(firstRow.fd_date) || "-",
+          dcNo: cleanVal(firstRow.shift_dc_no) || "-"
+        };
+
+        document.getElementById('dispNdtClearance').innerText = footerInfo.ndtClearance;
+        document.getElementById('dispFdDate').innerText = footerInfo.fdDate;
+        document.getElementById('dispDcNo').innerText = footerInfo.dcNo;
+
+        document.getElementById('dispReportTitle').innerText = `SPOOL DETAIL REPORT - ${spool}`;
+        document.getElementById('reportDisplayArea').style.display = 'block';
+        document.getElementById('actionButtonGroup').style.display = 'flex';
+        statusLbl.innerText = `✅ Found ${processedRows.length} joint(s)`;
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error: " + err.message);
+        statusLbl.innerText = "";
+      }
+    }
+
+    /* -------------------------------------------------------------
+       🟢 DOWNLOAD EXCEL OPTION
+    -------------------------------------------------------------- */
+    async function downloadSpoolExcel() {
+      if (!currentSpoolNo) return;
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Spool Report', { views: [{ showGridLines: true }] });
+
+      worksheet.addRow([`SPOOL DETAIL REPORT - ${currentSpoolNo}`]);
+      worksheet.getCell('A1').font = { size: 14, bold: true, color: { argb: 'FF2C3E50' } };
+      worksheet.addRow([]);
+
+      const headers = [
+        "ISO No/Drawing No/Line No", "Joint No.", "Type of Joint", "WELD NPD", "Spool Unique No.",
+        "Induction bend DPT Lot no", "FIT UP Date", "Welder No", "WELD VISUAL REPORT NO",
+        "VISUAL Date", "DPT LOT NO", "RT REPORT NO", "XR NO", "RT LOT NO", "NDT Status"
+      ];
+
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 26;
+      headerRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+
+      const tableRows = document.querySelectorAll('#spoolReportTbody tr');
+      tableRows.forEach(tr => {
+        const rowVals = Array.from(tr.querySelectorAll('td')).map(td => td.innerText.trim());
+        const dRow = worksheet.addRow(rowVals);
+        dRow.height = 20;
+        dRow.eachCell(c => {
+          c.alignment = { vertical: 'middle', horizontal: 'center' };
+          c.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        });
+      });
+
+      worksheet.addRow([]);
+      if (finalRemarksList.length > 0) {
+        worksheet.addRow(["SUPPORTING NDT REMARKS:"]);
+        worksheet.lastRow.font = { bold: true };
+        finalRemarksList.forEach(rmk => {
+          worksheet.addRow([rmk]);
+          worksheet.lastRow.font = { size: 10, bold: true };
+        });
+        worksheet.addRow([]);
+      }
+
+      worksheet.addRow([`NDT CLEARANCE DATE:- ${footerInfo.ndtClearance}`]);
+      worksheet.lastRow.font = { bold: true };
+      worksheet.addRow([`FD DATE:- ${footerInfo.fdDate}`]);
+      worksheet.lastRow.font = { bold: true };
+      worksheet.addRow([`DC No:- ${footerInfo.dcNo}`]);
+      worksheet.lastRow.font = { bold: true };
+
+      worksheet.columns.forEach(col => { col.width = 18; });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Spool_Report_${currentSpoolNo}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      verifyAdminAccess();
+    });
+  </script>
+</body>
+</html>
