@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PFS Mechanical App</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b1329">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/webp" href="PFS logo.webp">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --teal: #0d9488;
+      --teal-hover: #0f766e;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 24px;
+    }
+
+    /* Mobile Header */
+    .mobile-header {
+      background: #0b1329;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      height: 34px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .brand-text h1 {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-text span {
+      font-size: 10px;
+      color: var(--teal);
+      font-weight: 700;
+      display: block;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: #22c55e;
+      border-radius: 50%;
+    }
+
+    .container {
+      padding: 14px 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Stage Tabs */
+    .stage-scroll-container {
+      overflow-x: auto;
+      white-space: nowrap;
+      margin-bottom: 14px;
+      padding-bottom: 4px;
+      display: flex;
+      gap: 8px;
+      scrollbar-width: none;
+    }
+    .stage-scroll-container::-webkit-scrollbar { display: none; }
+
+    .stage-chip {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .stage-chip.active {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
+    }
+
+    /* Main Entry Card */
+    .app-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      background: #0f172a;
+      border: 1.5px solid var(--card-border);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: var(--teal);
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .suggest-box {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #0b1329;
+      border: 1.5px solid var(--teal);
+      border-radius: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 50;
+      display: none;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .suggest-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+    }
+    .suggest-item:hover, .suggest-item:active {
+      background: rgba(13, 148, 136, 0.15);
+      color: var(--teal);
+    }
+
+    /* Selected Spools Queue List */
+    .queue-box {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 12px;
+    }
+
+    .queue-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--card-bg);
+      margin-bottom: 6px;
+      font-size: 12.5px;
+    }
+
+    .btn-remove {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    .btn-save-mobile {
+      width: 100%;
+      padding: 14px;
+      background: var(--teal);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-save-mobile:active {
+      transform: scale(0.98);
+      background: var(--teal-hover);
+    }
+
+    /* Spool Tracker Results */
+    .tracker-card {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .timeline-step {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      border: 1px solid transparent;
+    }
+    .step-done {
+      background: rgba(34, 197, 94, 0.1);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+    }
+    .step-pending {
+      background: rgba(249, 115, 22, 0.1);
+      border-color: rgba(249, 115, 22, 0.3);
+      color: #fb923c;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Mobile Bar -->
+  <header class="mobile-header">
+    <div class="brand-box">
+      <img src="PFS logo.webp" alt="PFS Logo" class="brand-logo">
+      <div class="brand-text">
+        <h1>PIPEFLOW SYS</h1>
+        <span>MECHANICAL ENTRY</span>
+      </div>
+    </div>
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      <span>Live DB</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Stage Chips Navigation -->
+    <div class="stage-scroll-container">
+      <button class="stage-chip active" onclick="switchStage('bending_issue', this)">01. Issue Bending</button>
+      <button class="stage-chip" onclick="switchStage('bend_entry', this)">02. Bend Done</button>
+      <button class="stage-chip" onclick="switchStage('fitup_entry', this)">03. Fit Up</button>
+      <button class="stage-chip" onclick="switchStage('weld_visual', this)">04. Visual</button>
+      <button class="stage-chip" onclick="switchStage('ndt_clearance', this)">05. NDT Clear</button>
+      <button class="stage-chip" onclick="switchStage('fd', this)">06. Final Dispatch</button>
+      <button class="stage-chip" onclick="switchStage('tracker', this)">🔍 Spool Tracker</button>
+    </div>
+
+    <!-- ENTRY FORM CONTAINER -->
+    <div id="entrySection" class="app-card">
+      <div class="card-title" id="stageHeading">⚙️ Stage Entry</div>
+
+      <!-- Spool Search -->
+      <label>Search & Select Spool:</label>
+      <div class="search-wrap">
+        <input type="text" id="spoolSearchInput" placeholder="Type Spool Unique No..." oninput="handleSearchSpool(this.value)" autocomplete="off">
+        <div id="suggestBox" class="suggest-box"></div>
+      </div>
+
+      <!-- Bend Specific Fields (Only for Stage 2) -->
+      <div id="bendExtraFields" style="display:none; margin-top:8px;">
+        <label>Bend Qty:</label>
+        <input type="number" id="bendQtyInput" placeholder="Enter Bend Qty">
+        <label>Weld ID:</label>
+        <input type="text" id="weldIdInput" placeholder="Enter Weld ID">
+      </div>
+
+      <!-- Stage Specific Inputs (Date / DC No) -->
+      <div id="stageInputsArea" style="margin-top:10px;"></div>
+
+      <!-- Selected Spool Queue -->
+      <div class="queue-box" id="queueContainer" style="display:none;">
+        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">
+          Selected Spools (<span id="queueCount">0</span>):
+        </div>
+        <div id="queueList"></div>
+      </div>
+
+      <button type="button" class="btn-save-mobile" id="btnSubmitMobile" onclick="submitMobileStage()">
+        💾 Save Entry to Database
+      </button>
+    </div>
+
+    <!-- SPOOL TRACKER SECTION -->
+    <div id="trackerSection" class="app-card" style="display:none;">
+      <div class="card-title">🔍 Live Spool Progress Tracker</div>
+      <label>Enter Spool Number:</label>
+      <div class="search-wrap">
+        <input type="text" id="trackSearchInput" placeholder="Search Spool..." oninput="handleTrackSearch(this.value)" autocomplete="off">
+        <div id="trackSuggestBox" class="suggest-box"></div>
+      </div>
+      <div id="trackResultCard" style="display:none; margin-top:14px;">
+        <div class="tracker-card">
+          <div style="font-weight:800; font-size:15px; color:#fff;" id="trkSpoolNo">Spool No</div>
+          <div style="font-size:12px; color:var(--teal); margin-top:2px;" id="trkDwgNo">Drawing No</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" id="trkMeta">Meta Details</div>
+        </div>
+        <div style="margin-top:10px;" id="timelineItems"></div>
+      </div>
+    </div>
+
+    <!-- Balance Counter Card -->
+    <div class="app-card" style="padding:12px 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Current Stage Balance:</span>
+        <span style="font-size:14px; font-weight:800; color:var(--accent);" id="balanceCount">Loading...</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentStage = 'bending_issue';
+    let balanceCache = [];
+    let selectedQueue = [];
+
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+      });
+    }
+
+    function switchStage(stage, elem) {
+      currentStage = stage;
+      document.querySelectorAll('.stage-chip').forEach(b => b.classList.remove('active'));
+      if (elem) elem.classList.add('active');
+
+      selectedQueue = [];
+      renderQueue();
+      document.getElementById('spoolSearchInput').value = '';
+
+      if (stage === 'tracker') {
+        document.getElementById('entrySection').style.display = 'none';
+        document.getElementById('trackerSection').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('entrySection').style.display = 'block';
+      document.getElementById('trackerSection').style.display = 'none';
+      setupStageForm(stage);
+      loadStageBalance(stage);
+    }
+
+    function setupStageForm(stage) {
+      const heading = document.getElementById('stageHeading');
+      const inputArea = document.getElementById('stageInputsArea');
+      const bendBox = document.getElementById('bendExtraFields');
+      const today = new Date().toISOString().split('T')[0];
+
+      bendBox.style.display = stage === 'bend_entry' ? 'block' : 'none';
+
+      if (stage === 'bending_issue') {
+        heading.innerText = '01. Issued for Bending';
+        inputArea.innerHTML = `<label>Bending Issue Date:</label><input type="date" id="stageDate" value="${today}">`;
+      } else if (stage === 'bend_entry') {
+        heading.innerText = '02. Bend Completed';
+        inputArea.innerHTML = `<label>Bend Date:</label><input type="date" id="stageDate" value="${today}">`;
+      } else if (stage === 'fitup_entry') {
+        heading.innerText = '03. Fit Up Completed';
+        inputArea.innerHTML = `<label>Fit-Up Date:</label><input type="date" id="stageDate" value="${today}">`;
+      } else if (stage === 'weld_visual') {
+        heading.innerText = '04. Weld Visual Completed';
+        inputArea.innerHTML = `<label>Visual Date:</label><input type="date" id="stageDate" value="${today}">`;
+      } else if (stage === 'ndt_clearance') {
+        heading.innerText = '05. NDT Clearance';
+        inputArea.innerHTML = `<label>NDT Clearance Date:</label><input type="date" id="stageDate" value="${today}">`;
+      } else if (stage === 'fd') {
+        heading.innerText = '06. Final Dispatch & DC No';
+        inputArea.innerHTML = `
+          <label>DC Number:</label><input type="text" id="stageDcNo" placeholder="Enter Shift DC No" required>
+          <label>Dispatch Date:</label><input type="date" id="stageDate" value="${today}">
+        `;
+      }
+    }
+
+    async function loadStageBalance(stage) {
+      document.getElementById('balanceCount').innerText = 'Updating...';
+      let q = db.from('piping_joints').select('*');
+
+      if (stage === 'bending_issue') q = q.is('Bend_date', null).is('Issued_for_bending', null);
+      else if (stage === 'bend_entry') q = q.is('Bend_date', null).not('Issued_for_bending', 'is', null);
+      else if (stage === 'fitup_entry') q = q.not('Bend_date', 'is', null).is('Fit_up_date', null);
+      else if (stage === 'weld_visual') q = q.not('Fit_up_date', 'is', null).is('Weld_visual_date', null);
+      else if (stage === 'ndt_clearance') q = q.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
+      else if (stage === 'fd') q = q.not('Ndt_clearance', 'is', null).is('Fd_date', null);
+
+      const { data } = await q.order('id', { ascending: true }).limit(2000);
+      balanceCache = data || [];
+      document.getElementById('balanceCount').innerText = `${balanceCache.length} Spools`;
+    }
+
+    function handleSearchSpool(val) {
+      const q = val.trim().toLowerCase();
+      const box = document.getElementById('suggestBox');
+      if (!q) { box.style.display = 'none'; return; }
+
+      const matched = balanceCache.filter(r => String(r.Spool_number || '').toLowerCase().includes(q)).slice(0, 15);
+      if (matched.length === 0) {
+        box.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px;">No Spool in current stage</div>';
+        box.style.display = 'block';
+        return;
+      }
+
+      box.innerHTML = matched.map(r => `
+        <div class="suggest-item" onclick="onPickSpool(${r.id})">
+          <span style="font-weight:bold; color:#fff;">${r.Spool_number}</span>
+          <span style="color:var(--text-muted); font-size:11px;">${r.Drawing_no || ''}</span>
+        </div>
+      `).join('');
+      box.style.display = 'block';
+    }
+
+    function onPickSpool(id) {
+      const item = balanceCache.find(x => x.id === id);
+      if (!item) return;
+
+      document.getElementById('suggestBox').style.display = 'none';
+      document.getElementById('spoolSearchInput').value = '';
+
+      if (currentStage === 'bend_entry') {
+        document.getElementById('bendQtyInput').value = item.Bend_qty || '';
+        document.getElementById('weldIdInput').value = item.Weld_id || '';
+      }
+
+      if (!selectedQueue.some(x => x.id === item.id)) {
+        selectedQueue.push(item);
+        renderQueue();
+      }
+    }
+
+    function renderQueue() {
+      const c = document.getElementById('queueContainer');
+      const l = document.getElementById('queueList');
+      document.getElementById('queueCount').innerText = selectedQueue.length;
+
+      if (selectedQueue.length === 0) {
+        c.style.display = 'none';
+        return;
+      }
+
+      c.style.display = 'block';
+      l.innerHTML = selectedQueue.map((item, idx) => `
+        <div class="queue-item">
+          <div>
+            <b>${item.Spool_number}</b>
+            <span style="color:var(--text-muted); font-size:11px; margin-left:6px;">(${item.Drawing_no || '-'})</span>
+          </div>
+          <button type="button" class="btn-remove" onclick="selectedQueue.splice(${idx},1); renderQueue();">✕</button>
+        </div>
+      `).join('');
+    }
+
+    async function submitMobileStage() {
+      if (selectedQueue.length === 0) return alert('⚠️ કૃપા કરીને ઓછામાં ઓછો ૧ Spool પસંદ કરો.');
+      const dateVal = document.getElementById('stageDate') ? document.getElementById('stageDate').value : null;
+
+      if (!dateVal) return alert('⚠️ કૃપા કરીને તારીખ પસંદ કરો.');
+
+      const btn = document.getElementById('btnSubmitMobile');
+      btn.innerText = '⏳ Saving to Supabase...';
+      btn.disabled = true;
+
+      try {
+        const ids = selectedQueue.map(x => x.id);
+
+        if (currentStage === 'bending_issue') {
+          await db.from('piping_joints').update({ Issued_for_bending: dateVal }).in('id', ids);
+        } else if (currentStage === 'bend_entry') {
+          const bQty = document.getElementById('bendQtyInput').value;
+          const wId = document.getElementById('weldIdInput').value;
+          await db.from('piping_joints').update({ Bend_date: dateVal, Bend_qty: bQty, Weld_id: wId }).in('id', ids);
+        } else if (currentStage === 'fitup_entry') {
+          await db.from('piping_joints').update({ Fit_up_date: dateVal }).in('id', ids);
+        } else if (currentStage === 'weld_visual') {
+          await db.from('piping_joints').update({ Weld_visual_date: dateVal }).in('id', ids);
+        } else if (currentStage === 'ndt_clearance') {
+          await db.from('piping_joints').update({ Ndt_clearance: dateVal }).in('id', ids);
+        } else if (currentStage === 'fd') {
+          const dcNo = document.getElementById('stageDcNo').value.trim();
+          if (!dcNo) {
+            btn.innerText = '💾 Save Entry to Database';
+            btn.disabled = false;
+            return alert('⚠️ કૃપા કરીને DC No દાખલ કરો.');
+          }
+          await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: dateVal }).in('id', ids);
+        }
+
+        alert(`✅ સફળતાપૂર્વક ${ids.length} Spool માટે એન્ટ્રી સેવ થઈ ગઈ!`);
+        selectedQueue = [];
+        renderQueue();
+        loadStageBalance(currentStage);
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      } finally {
+        btn.innerText = '💾 Save Entry to Database';
+        btn.disabled = false;
+      }
+    }
+
+    /* SPOOL TRACKER LOGIC */
+    async function handleTrackSearch(val) {
+      const q = val.trim().toLowerCase();
+      const box = document.getElementById('trackSuggestBox');
+      if (!q) { box.style.display = 'none'; return; }
+
+      const { data } = await db.from('piping_joints').select('*').ilike('Spool_number', `%${q}%`).limit(15);
+      if (!data || data.length === 0) {
+        box.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px;">No Spool Found</div>';
+        box.style.display = 'block';
+        return;
+      }
+
+      box.innerHTML = data.map(r => `
+        <div class="suggest-item" onclick="viewSpoolTimeline(${r.id})">
+          <span style="font-weight:bold; color:#fff;">${r.Spool_number}</span>
+          <span style="color:var(--text-muted); font-size:11px;">${r.Drawing_no || ''}</span>
+        </div>
+      `).join('');
+      box.style.display = 'block';
+    }
+
+    async function viewSpoolTimeline(id) {
+      document.getElementById('trackSuggestBox').style.display = 'none';
+      const { data } = await db.from('piping_joints').select('*').eq('id', id).single();
+      if (!data) return;
+
+      document.getElementById('trkSpoolNo').innerText = `Spool: ${data.Spool_number || '-'}`;
+      document.getElementById('trkDwgNo').innerText = `Drawing: ${data.Drawing_no || '-'}`;
+      document.getElementById('trkMeta').innerText = `Size: ${data.Spool_size || '-'} | Weld ID: ${data.Weld_id || '-'} | Bend Qty: ${data.Bend_qty || '0'}`;
+
+      const stages = [
+        { title: '1. Issued for Bending', done: Boolean(data.Issued_for_bending), date: data.Issued_for_bending },
+        { title: '2. Bend Completed', done: Boolean(data.Bend_date), date: data.Bend_date },
+        { title: '3. Fit Up Completed', done: Boolean(data.Fit_up_date), date: data.Fit_up_date },
+        { title: '4. Weld Visual Completed', done: Boolean(data.Weld_visual_date), date: data.Weld_visual_date },
+        { title: '5. NDT Clearance', done: Boolean(data.Ndt_clearance), date: data.Ndt_clearance },
+        { title: '6. Final Dispatch & DC', done: Boolean(data.Fd_date), date: `${data.Fd_date || ''} (DC: ${data.Shift_dc_no || '-'})` }
+      ];
+
+      document.getElementById('timelineItems').innerHTML = stages.map(s => `
+        <div class="timeline-step ${s.done ? 'step-done' : 'step-pending'}">
+          <span><b>${s.title}</b></span>
+          <span>${s.done ? `✔ ${s.date}` : '⏳ Pending'}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('trackResultCard').style.display = 'block';
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-wrap')) {
+        document.getElementById('suggestBox').style.display = 'none';
+        document.getElementById('trackSuggestBox').style.display = 'none';
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      switchStage('bending_issue');
+    });
+  </script>
+</body>
+</html>
