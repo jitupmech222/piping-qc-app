@@ -34,7 +34,7 @@
       padding-bottom: 24px;
     }
 
-    /* 🟢 INBUILT MOBILE LOGIN SCREEN */
+    /* INBUILT MOBILE LOGIN SCREEN */
     #mobileLoginScreen {
       min-height: 100vh;
       width: 100%;
@@ -139,14 +139,13 @@
       display: none;
     }
 
-    /* 🟢 MAIN APP INTERFACE (HIDDEN BEFORE LOGIN) */
+    /* MAIN APP INTERFACE */
     #mobileAppContent {
       display: none;
       width: 100%;
       flex-direction: column;
     }
 
-    /* Mobile Header */
     .mobile-header {
       background: #0b1329;
       padding: 12px 16px;
@@ -317,7 +316,6 @@
       color: var(--teal);
     }
 
-    /* Queue */
     .queue-box {
       background: #0f172a;
       border: 1px solid var(--card-border);
@@ -372,7 +370,6 @@
       background: var(--teal-hover);
     }
 
-    /* Spool Tracker Results */
     .tracker-card {
       background: #0f172a;
       border: 1px solid var(--card-border);
@@ -405,7 +402,7 @@
 </head>
 <body>
 
-  <!-- 🟢 1. MOBILE INBUILT LOGIN VIEW -->
+  <!-- 1. MOBILE INBUILT LOGIN VIEW -->
   <div id="mobileLoginScreen">
     <div class="login-mobile-box">
       <div class="login-logo-center">
@@ -439,7 +436,7 @@
     </div>
   </div>
 
-  <!-- 🟢 2. MAIN MOBILE APP VIEW -->
+  <!-- 2. MAIN MOBILE APP VIEW -->
   <div id="mobileAppContent">
     <header class="mobile-header">
       <div class="brand-box">
@@ -486,7 +483,7 @@
           <input type="text" id="weldIdInput" placeholder="Enter Weld ID">
         </div>
 
-        <!-- Dynamic Inputs -->
+        <!-- Dynamic Inputs (BLANK BY DEFAULT) -->
         <div id="stageInputsArea" style="margin-top:10px;"></div>
 
         <!-- Queue -->
@@ -550,14 +547,12 @@
     let balanceCache = [];
     let selectedQueue = [];
 
-    // Service Worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
       });
     }
 
-    /* 🟢 LOGIN & AUTHENTICATION */
     function checkMobileAuth() {
       const savedAuth = sessionStorage.getItem('piping_app_auth');
       if (savedAuth) {
@@ -598,7 +593,6 @@
       }
     }
 
-    /* 🟢 STAGE CONTROLLER */
     function switchStage(stage, elem) {
       if (currentUser && !currentUser.allowed.includes("all") && !currentUser.allowed.includes(stage)) {
         alert("⚠️ આ સ્ટેજમાં એન્ટ્રી કરવા માટે તમારી પાસે પરમિશન નથી!");
@@ -632,34 +626,34 @@
       loadStageBalance(stage);
     }
 
+    /* 🟢 SETUP STAGE FORM - DATE BLANK BY DEFAULT */
     function setupStageForm(stage) {
       const heading = document.getElementById('stageHeading');
       const inputArea = document.getElementById('stageInputsArea');
       const bendBox = document.getElementById('bendExtraFields');
-      const today = new Date().toISOString().split('T')[0];
 
       bendBox.style.display = stage === 'bend_entry' ? 'block' : 'none';
 
       if (stage === 'bending_issue') {
         heading.innerText = '01. Issued for Bending';
-        inputArea.innerHTML = `<label>Bending Issue Date:</label><input type="date" id="stageDate" value="${today}">`;
+        inputArea.innerHTML = `<label>Bending Issue Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'bend_entry') {
         heading.innerText = '02. Bend Completed';
-        inputArea.innerHTML = `<label>Bend Date:</label><input type="date" id="stageDate" value="${today}">`;
+        inputArea.innerHTML = `<label>Bend Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'fitup_entry') {
         heading.innerText = '03. Fit Up Completed';
-        inputArea.innerHTML = `<label>Fit-Up Date:</label><input type="date" id="stageDate" value="${today}">`;
+        inputArea.innerHTML = `<label>Fit-Up Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'weld_visual') {
         heading.innerText = '04. Weld Visual Completed';
-        inputArea.innerHTML = `<label>Visual Date:</label><input type="date" id="stageDate" value="${today}">`;
+        inputArea.innerHTML = `<label>Visual Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'ndt_clearance') {
         heading.innerText = '05. NDT Clearance';
-        inputArea.innerHTML = `<label>NDT Clearance Date:</label><input type="date" id="stageDate" value="${today}">`;
+        inputArea.innerHTML = `<label>NDT Clearance Date:</label><input type="date" id="stageDate">`;
       } else if (stage === 'fd') {
         heading.innerText = '06. Final Dispatch & DC No';
         inputArea.innerHTML = `
           <label>DC Number:</label><input type="text" id="stageDcNo" placeholder="Enter Shift DC No" required>
-          <label>Dispatch Date:</label><input type="date" id="stageDate" value="${today}">
+          <label>Dispatch Date:</label><input type="date" id="stageDate">
         `;
       }
     }
@@ -743,7 +737,8 @@
 
     async function submitMobileStage() {
       if (selectedQueue.length === 0) return alert('⚠️ કૃપા કરીને ઓછામાં ઓછો ૧ Spool પસંદ કરો.');
-      const dateVal = document.getElementById('stageDate') ? document.getElementById('stageDate').value : null;
+      const dateEl = document.getElementById('stageDate');
+      const dateVal = dateEl ? dateEl.value : null;
 
       if (!dateVal) return alert('⚠️ કૃપા કરીને તારીખ પસંદ કરો.');
 
@@ -779,6 +774,13 @@
         alert(`✅ સફળતાપૂર્વક ${ids.length} Spool માટે એન્ટ્રી સેવ થઈ ગઈ!`);
         selectedQueue = [];
         renderQueue();
+
+        // Reset input fields to BLANK after save
+        if (dateEl) dateEl.value = '';
+        if (document.getElementById('stageDcNo')) document.getElementById('stageDcNo').value = '';
+        if (document.getElementById('bendQtyInput')) document.getElementById('bendQtyInput').value = '';
+        if (document.getElementById('weldIdInput')) document.getElementById('weldIdInput').value = '';
+
         loadStageBalance(currentStage);
       } catch (err) {
         alert('❌ Error: ' + err.message);
