@@ -1362,6 +1362,8 @@
       const openTab = urlParams.get('tab');
       if (openTab === 'qaqc') {
         openCategoryHub('qaqcHub');
+      } else if (openTab === 'material' || openTab === 'matHub') {
+        openCategoryHub('matHub');
       } else if (openTab) {
         openCategoryHub(openTab);
       }
