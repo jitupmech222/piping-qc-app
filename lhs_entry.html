@@ -674,7 +674,7 @@
 
       const numericSize = parseFloat(weldId) || 0;
       const multiplier = weldMultiplierMap[jointType] || 1.0;
-      const inchDia = parseFloat((numericSize * multiplier).toFixed(2));
+      const inchDia = parseFloat((numericSize * multiplier).toFixed(3));
       const weldThk = weldThkMap[weldId] || 0;
 
       queuedJoints.push({
