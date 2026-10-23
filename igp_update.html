@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Piping Console | Operations Admin</title>
+  <title>IGP Update Console | Piping Operations</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --sidebar-bg: #0b1329;
-      --sidebar-active: #0d9488;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #e2e8f0;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --primary: #0d9488;
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --success: #15803d;
+      --danger: #dc2626;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -22,1245 +23,726 @@
     body {
       background: var(--bg);
       color: var(--text-main);
-      display: flex;
+      padding: 20px 28px;
       min-height: 100vh;
-      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Left Sidebar */
-    .sidebar {
-      width: 250px;
-      background: var(--sidebar-bg);
-      color: #94a3b8;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 20px 14px;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      flex-shrink: 0;
-      z-index: 100;
-      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .sidebar.collapsed {
-      margin-left: -250px;
-      transform: translateX(-100%);
-    }
-
-    .brand-area {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      margin-bottom: 18px;
-    }
-
-    .brand-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-logo {
-      width: 36px;
-      height: 36px;
-      background: #0d9488;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 18px;
-      font-weight: 900;
-    }
-
-    .brand-name { font-size: 14px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
-
-    .btn-toggle-in {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #94a3b8;
-      border-radius: 6px;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-toggle-in:hover { background: rgba(255, 255, 255, 0.15); color: #ffffff; }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 11px 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #94a3b8;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-bottom: 3px;
-    }
-    .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
-    .nav-item.active { background: #0d9488; color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
-
-    .user-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .user-profile { display: flex; align-items: center; gap: 10px; }
-    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1e293b; color: #2dd4bf; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #334155; }
-    .user-details { font-size: 12px; color: #ffffff; font-weight: 600; }
-    .user-details span { display: block; font-size: 10px; color: #64748b; font-weight: normal; }
-    .btn-logout-icon { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
-    .btn-logout-icon:hover { color: #ef4444; }
-
-    /* Main Workspace */
-    .main-workspace {
-      flex: 1;
-      padding: 24px 32px;
-      overflow-y: auto;
-      max-height: 100vh;
-      transition: all 0.3s;
-    }
-
-    .btn-toggle-out {
-      display: none;
+    .top-header {
       background: #ffffff;
-      border: 1.5px solid #cbd5e1;
-      color: #334155;
-      border-radius: 8px;
-      padding: 7px 12px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      margin-right: 12px;
-      align-items: center;
-      gap: 4px;
-    }
-    .btn-toggle-out:hover { background: #f1f5f9; color: #0d9488; border-color: #0d9488; }
-
-    .workspace-top {
+      padding: 14px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
     }
 
-    .global-search-wrapper { position: relative; }
-    .search-input-pill {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 999px;
-      padding: 10px 20px;
-      width: 400px;
+    .btn-back-dash {
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
       font-size: 13px;
-      outline: none;
-      transition: all 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    }
-    .search-input-pill:focus {
-      border-color: #0d9488;
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
-      width: 440px;
-    }
-
-    .search-dropdown-menu {
-      position: absolute;
-      top: 105%;
-      left: 0;
-      width: 440px;
-      max-height: 280px;
-      overflow-y: auto;
-      background: white;
-      border: 1.5px solid #0d9488;
-      border-radius: 12px;
-      z-index: 500;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
-      display: none;
-    }
-
-    .search-dropdown-item {
-      padding: 10px 14px;
-      border-bottom: 1px solid #f1f5f9;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      font-size: 13px;
-    }
-    .search-dropdown-item:hover { background: #f0fdfa; color: #0f766e; }
-
-    .live-status-pill {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #16a34a;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 12px;
       font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-    }
-    .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
-
-    .welcome-hero {
-      background: linear-gradient(135deg, #0d9488 0%, #047857 100%);
-      border-radius: 18px;
-      padding: 24px 28px;
-      color: #ffffff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      box-shadow: 0 8px 20px rgba(13, 148, 136, 0.2);
-    }
-    .welcome-text h2 { font-size: 22px; font-weight: 800; }
-    .btn-hero-action {
-      background: #ffffff;
-      color: #047857;
-      border: none;
-      border-radius: 999px;
-      padding: 10px 22px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-hero-action:hover { background: #f0fdfa; transform: translateY(-1px); }
+    .btn-back-dash:hover { background: #1e293b; transform: translateY(-1px); }
 
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+      padding: 22px 26px;
+      margin-bottom: 20px;
     }
-    .kpi-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 18px 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-    .kpi-title { font-size: 12px; font-weight: 600; color: #64748b; }
-    .kpi-val { font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 6px; letter-spacing: -0.5px; }
-    .kpi-sub { font-size: 11px; font-weight: 700; color: #16a34a; margin-top: 6px; }
 
-    /* Centered Left-Aligned Category Cards */
-    .category-grid {
+    .form-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 18px;
     }
-    .category-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 18px;
-      padding: 22px 28px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      text-align: left;
-      min-height: 140px;
-    }
-    .category-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06); border-color: #cbd5e1; }
-    .cat-body { margin-top: 0; width: 100%; text-align: left; }
-    .cat-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
-    .cat-desc { font-size: 13px; color: #64748b; line-height: 1.4; }
 
-    /* Sub panels & Menus */
-    .sub-panel { display: none; margin-top: 10px; }
-    .sub-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
-    .sub-btn {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 18px;
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 999px;
+    .form-group-full {
+      grid-column: 1 / -1;
+    }
+
+    label {
       font-size: 13px;
       font-weight: 700;
-      color: #1e293b;
-      cursor: pointer;
-      transition: 0.2s;
+      color: #334155;
+      display: block;
+      margin-bottom: 6px;
     }
-    .sub-btn:hover { background: #f0fdfa; border-color: #5eead4; color: #0f766e; }
 
-    .card { background: #ffffff; padding: 18px 22px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 14px rgba(0,0,0,0.03); margin-top: 10px; }
-    label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 8px; display: block; }
-    input, select { width: 100%; padding: 10px 14px; margin-top: 4px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; background: #fff; }
-    .btn-save-action { background: #15803d; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; }
-    .btn-add-queue { background: #0d9488; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-    
-    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #e2e8f0; padding: 9px 12px; white-space: nowrap; }
-    th { background: #0f172a; color: white; font-weight: 700; }
-    tr:nth-child(even) td { background-color: #f8fafc; }
-
-    #spoolTrackerModal {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(5px);
-      z-index: 2000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .tracker-modal-card {
-      background: #ffffff;
+    input[type="text"], input[type="number"], input[type="date"], select {
       width: 100%;
-      max-width: 680px;
-      border-radius: 18px;
-      padding: 24px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-      border: 1px solid #e2e8f0;
-      max-height: 90vh;
+      padding: 10px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13.5px;
+      color: #0f172a;
+      outline: none;
+      background: #ffffff;
+      transition: all 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    /* Option 1: Multi-Select Searchable MIN Box */
+    .min-picker-box {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px;
+      background: #f8fafc;
+      max-height: 200px;
       overflow-y: auto;
     }
-    .tracker-header-box {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 12px;
-      margin-bottom: 16px;
+
+    .min-checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
     }
-    .timeline-container { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-    .timeline-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1px solid #cbd5e1;
+
+    .min-chip {
       background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      cursor: pointer;
+      user-select: none;
     }
-    .timeline-card.status-completed { background: #f0fdf4; border-color: #86efac; }
-    .timeline-card.status-hold { background: #fff7ed; border-color: #fdba74; }
-    .stage-badge-tag { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
-    .tag-completed { background: #15803d; color: #ffffff; }
-    .tag-hold { background: #c2410c; color: #ffffff; }
+    .min-chip:hover { background: #f0fdf4; border-color: #86efac; }
+    .min-chip input[type="checkbox"] { cursor: pointer; }
 
-    #loginOverlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-    .login-box { background: white; width: 380px; padding: 30px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .btn-login { background: #0d9488; color: white; width: 100%; border: none; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 8px; margin-top: 16px; cursor: pointer; }
+    /* Option 2: Searchable SAP Dropdown */
+    .sap-search-wrapper { position: relative; }
+    .sap-dropdown-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #ffffff;
+      border: 1.5px solid var(--primary);
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+      margin-top: 2px;
+    }
+    .sap-dropdown-item {
+      padding: 9px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sap-dropdown-item:hover {
+      background: #f0fdf4;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
 
-    @media (max-width: 1024px) {
-      .kpi-row { grid-template-columns: repeat(2, 1fr); }
-      .category-grid { grid-template-columns: 1fr; }
+    /* Option 3: Balance Display Pill */
+    .balance-kpi-card {
+      background: #ecfdf5;
+      border: 1.5px solid #a7f3d0;
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .balance-num {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--success);
+      letter-spacing: -0.5px;
+    }
+
+    .btn-save-main {
+      padding: 12px 24px;
+      background: var(--success);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(21, 128, 61, 0.25);
+      transition: all 0.2s;
+    }
+    .btn-save-main:hover { background: #166534; transform: translateY(-1px); }
+    .btn-save-main:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    /* Allocation Preview Table */
+    .table-container {
+      overflow-x: auto;
+      max-height: 45vh;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12.5px;
+    }
+    th {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 12px;
+      font-weight: 700;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+    }
+    td {
+      border-bottom: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      padding: 9px 12px;
+      text-align: center;
+      background: #ffffff;
+      white-space: nowrap;
+    }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+    .badge-alloc {
+      background: #fef08a;
+      color: #854d0e;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-<!-- Login Modal -->
-<div id="loginOverlay">
-  <div class="login-box">
-    <div style="text-align: center; margin-bottom: 20px;">
-      <h3 style="margin: 0; font-size: 20px; font-weight: 800;">Login</h3>
+  <!-- Top Bar -->
+  <div class="top-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn-back-dash">⬅️ Back to Dashboard</a>
+      <h2 style="font-size:18px; font-weight:800; color:#0284c7;">📦 IGP UPDATE & SMART FIFO ALLOCATION</h2>
     </div>
-    <div>
-      <label>Select Role:</label>
-      <select id="loginUser">
-        <option value="admin">Admin</option>
-        <option value="bending">Bending</option>
-        <option value="fitup">Fit-up</option>
-        <option value="welding">Welding</option>
-        <option value="qc/dc">QC/DC</option>
-        <option value="viewer">Viewer</option>
-      </select>
-    </div>
-    <div>
-      <label>Password:</label>
-      <input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter') verifyLogin()">
-    </div>
-    <div id="loginError" style="color: #dc2626; font-size: 12px; font-weight: bold; margin-top: 8px; display: none; text-align: center;">⚠️ Invalid Password!</div>
-    <button type="button" class="btn-login" onclick="verifyLogin()">Login ➔</button>
+    <span id="adminNameBadge" style="font-size:12.5px; font-weight:bold; color:#64748b;">Loading Session...</span>
   </div>
-</div>
 
-<!-- Integrated Spool Tracker Modal -->
-<div id="spoolTrackerModal">
-  <div class="tracker-modal-card">
-    <div class="tracker-header-box">
+  <!-- Form Card -->
+  <div class="card">
+    <div class="form-grid">
+
+      <!-- Option 1: Multi-Select Searchable MIN No List -->
+      <div class="form-group-full">
+        <label>Option 1: Search & Select MIN Numbers (Only Pending Balance shown):</label>
+        <div class="min-picker-box">
+          <input type="text" id="minFilterSearch" placeholder="🔍 Type to filter MIN No..." oninput="filterMinCheckboxes(this.value)">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <span style="font-size:11.5px; color:#64748b; font-weight:600;">Available MINs (<span id="minFoundCount">0</span>):</span>
+            <button type="button" style="background:none; border:none; color:#0284c7; font-weight:bold; cursor:pointer; font-size:11.5px;" onclick="clearAllMinSelection()">Clear All Selection</button>
+          </div>
+          <div class="min-checkbox-grid" id="minCheckboxContainer">
+            <span style="color:#94a3b8; font-size:12px;">Loading MTO MIN records...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 2: Searchable & Filterable SAP Code -->
       <div>
-        <h3 style="margin: 0; font-size: 18px; color: #b45309; border: none;">🔍 Spool Live Stage Tracker</h3>
-        <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Real-time progress inspection timeline</p>
+        <label>Option 2: Select Material SAP Code:</label>
+        <div class="sap-search-wrapper">
+          <input type="text" id="sapSearchInput" placeholder="🔍 Select or Search SAP Code..." oninput="handleSapSearch(this.value)" onfocus="showSapDropdown()" autocomplete="off" disabled>
+          <input type="hidden" id="selectedSapCodeVal">
+          <div id="sapDropdownList" class="sap-dropdown-list"></div>
+        </div>
+        <small id="sapDescText" style="color:#64748b; margin-top:4px; display:block; font-size:11.5px;">Description: -</small>
       </div>
-      <button onclick="closeSpoolTrackerModal()" style="background:#f1f5f9; border:none; padding:6px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">✕ Close</button>
-    </div>
-    <div id="modalSpoolInfo" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px; margin-bottom:12px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:16px; font-weight:800; color:#0f172a;" id="modalTrackSpoolNo">Spool No</span>
-        <span style="font-size:13px; font-weight:700; color:#0d9488;" id="modalTrackDwgNo">Drawing No</span>
+
+      <!-- Option 3: Available Balance Issued Qty Display -->
+      <div>
+        <label>Option 3: Total Available Balance Qty:</label>
+        <div class="balance-kpi-card">
+          <div>
+            <span style="font-size:12px; font-weight:700; color:#047857;">Pending to Issue:</span>
+            <div style="font-size:11px; color:#64748b;">(Sum of MIN Qty - Issued Qty)</div>
+          </div>
+          <div class="balance-num" id="availBalanceQty">0.00</div>
+        </div>
       </div>
-      <div style="font-size:12px; color:#475569; margin-top:4px;" id="modalTrackMeta">Meta</div>
+
+      <!-- Option 4: New Issued Qty Input -->
+      <div>
+        <label>Option 4: Enter New Issued Qty to Allocate:</label>
+        <input type="number" id="inputNewIssuedQty" step="any" min="0" placeholder="e.g. 5 or 12.5" oninput="calculateFifoAllocation()" disabled>
+      </div>
+
+      <!-- Option 5: IGP No & IGP Date Inputs -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+        <div>
+          <label>Option 5A: IGP Number:</label>
+          <input type="text" id="inputIgpNo" placeholder="Enter IGP No..." disabled>
+        </div>
+        <div>
+          <label>Option 5B: IGP Date:</label>
+          <input type="date" id="inputIgpDate" disabled>
+        </div>
+      </div>
+
     </div>
-    <div class="timeline-container" id="modalTimelineList"></div>
+
+    <!-- Action Button -->
+    <div style="display:flex; justify-content:flex-end; margin-top:18px;">
+      <button type="button" class="btn-save-main" id="btnSaveIgp" onclick="saveIgpAllocationToDb()" disabled>
+        💾 SAVE IGP UPDATE TO DATABASE
+      </button>
+    </div>
   </div>
-</div>
 
-<!-- Main App Layout -->
-<div id="appContent" style="display: none; width: 100%;">
-
-  <!-- Left Sidebar -->
-  <aside class="sidebar" id="appSidebar">
-    <div>
-      <div class="brand-area">
-        <div class="brand-left">
-          <div class="brand-logo">✦</div>
-          <div>
-            <div class="brand-name">PIPING CONSOLE</div>
-          </div>
-        </div>
-        <button class="btn-toggle-in" title="Close Sidebar" onclick="toggleSidebar(false)">«</button>
-      </div>
-
-      <a class="nav-item active" onclick="backToHubMenu()">
-        <span>📊</span> <span>Dashboard Overview</span>
-      </a>
-      <a class="nav-item" onclick="openCategoryHub('mechHub')">
-        <span>⚙️</span> <span>Mechanical</span>
-      </a>
-      <a class="nav-item" id="navQaqcLink" style="display:none;" onclick="openCategoryHub('qaqcHub')">
-        <span>🛡️</span> <span>QA/QC Module</span>
-      </a>
-      <a class="nav-item" onclick="openCategoryHub('matHub')">
-        <span>📦</span> <span>Material</span>
-      </a>
-      <a class="nav-item" onclick="openCategoryHub('reportHub')">
-        <span>📈</span> <span>Report</span>
-      </a>
-      <a class="nav-item" onclick="openCategoryHub('dataHub')">
-        <span>💾</span> <span>Data</span>
-      </a>
+  <!-- Allocation Preview Table -->
+  <div class="card" id="previewContainerCard" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; font-size:15px; font-weight:800; color:#0f172a;">📋 Live Allocation Preview (FIFO Distribution)</h3>
+      <span style="font-size:12px; font-weight:bold; color:#15803d;" id="previewRowsCount">0 Rows to Update</span>
     </div>
 
-    <div class="user-footer">
-      <div class="user-profile">
-        <div class="avatar" id="userAvatarChar">AD</div>
-        <div class="user-details">
-          <span id="sideUserName" style="color:#ffffff; font-weight:bold; font-size:12.5px;">System Admin</span>
-          <span id="sideUserRole" style="font-size:10.5px; color:#64748b;">admin@piping.org</span>
-        </div>
-      </div>
-      <button class="btn-logout-icon" title="Logout" onclick="userLogout()">🚪</button>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Sr.</th>
+            <th>ID</th>
+            <th>Drawing No</th>
+            <th>Spool No</th>
+            <th>MIN No</th>
+            <th>MIN Qty</th>
+            <th>Old Issued Qty</th>
+            <th>Pending Bal</th>
+            <th>Allocated Now</th>
+            <th>Final Issued Qty</th>
+          </tr>
+        </thead>
+        <tbody id="previewTableBody"></tbody>
+      </table>
     </div>
-  </aside>
+  </div>
 
-  <!-- Right Main Workspace -->
-  <main class="main-workspace" id="mainWorkspace">
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <!-- Top Action Bar -->
-    <div class="workspace-top">
-      <div style="display:flex; align-items:center;">
-        <button class="btn-toggle-out" id="btnSidebarOpen" title="Open Sidebar" onclick="toggleSidebar(true)">»</button>
-        <div class="global-search-wrapper">
-          <input type="text" id="globalSpoolSearchInput" class="search-input-pill" placeholder="🔍 Search across operations..." oninput="handleGlobalSpoolSearch(this.value)" autocomplete="off">
-          <div id="globalSpoolDropdown" class="search-dropdown-menu"></div>
-        </div>
-      </div>
-      <div class="live-status-pill">
-        <span class="live-dot"></span>
-        <span>Live Database Sync</span>
-      </div>
-    </div>
+    let allMtoRows = [];
+    let pendingMinSet = new Set();
+    let selectedMinNumbers = [];
+    let availableSapCodes = [];
+    let selectedSapCode = "";
+    let matchingPendingRows = [];
+    let plannedAllocation = [];
 
-    <!-- MAIN DASHBOARD -->
-    <div id="hubMainMenu">
-      <div class="welcome-hero">
-        <div class="welcome-text">
-          <h2 id="heroWelcomeTitle">Welcome back, Admin!</h2>
-        </div>
-        <button class="btn-hero-action" onclick="openCategoryHub('mechHub')">Open Mechanical Spools ➔</button>
-      </div>
-
-      <div class="kpi-row">
-        <div class="kpi-card">
-          <div>
-            <div class="kpi-title">Total Spools</div>
-            <div class="kpi-val" id="kpiTotalSpool">0</div>
-            <div class="kpi-sub">✓ Fully registered</div>
-          </div>
-        </div>
-
-        <div class="kpi-card">
-          <div>
-            <div class="kpi-title">Total Joints (Weld ID)</div>
-            <div class="kpi-val" id="kpiTotalWeld">0</div>
-            <div class="kpi-sub" style="color:#0284c7;">⚡ In scope</div>
-          </div>
-        </div>
-
-        <div class="kpi-card">
-          <div>
-            <div class="kpi-title">Welding Completion</div>
-            <div class="kpi-val" id="kpiWeldingRate">0%</div>
-            <div class="kpi-sub" style="color:#16a34a;">↗ Progress matrix</div>
-          </div>
-        </div>
-
-        <div class="kpi-card">
-          <div>
-            <div class="kpi-title">Pending NDT</div>
-            <div class="kpi-val" id="kpiPendingNdt">0 items</div>
-            <div class="kpi-sub" style="color:#eab308;">⚠️ Action required</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 5 Category Cards -->
-      <div class="category-grid">
-        <div class="category-card" onclick="openCategoryHub('mechHub')">
-          <div class="cat-body">
-            <div class="cat-title">Mechanical</div>
-            <div class="cat-desc">Bending, Fit-Up, Welding, NDT, FD & Spool Tracking register.</div>
-          </div>
-        </div>
-
-        <div class="category-card" id="cardQaqcHub" style="display:none;" onclick="openCategoryHub('qaqcHub')">
-          <div class="cat-body">
-            <div class="cat-title">QA/QC Module</div>
-            <div class="cat-desc">LHS Entry, Lot Entry, Lot Offer, DPT & RT Status, NDT DC, PWHT.</div>
-         </div>
-      </div>
-
-        <div class="category-card" onclick="openCategoryHub('matHub')">
-          <div class="cat-body">
-            <div class="cat-title">Material</div>
-            <div class="cat-desc">MTO Update, IGP, MIN & MTO Register records.</div>
-          </div>
-        </div>
-
-        <div class="category-card" onclick="openCategoryHub('reportHub')">
-          <div class="cat-body">
-            <div class="cat-title">Reports</div>
-            <div class="cat-desc">Daily Report, Progress & Priority Dashboards.</div>
-          </div>
-        </div>
-
-        <div class="category-card" onclick="openCategoryHub('dataHub')" style="grid-column: 1 / -1;">
-          <div class="cat-body">
-            <div class="cat-title">Data</div>
-            <div class="cat-desc">Line List, SAP Codes, Batch Excel Update & Master Register.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUB-PANEL: Mechanical -->
-    <div id="mechHub" class="sub-panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#0f766e;">Mechanical Workflows</h3>
-        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
-      </div>
-      <div class="sub-menu-grid">
-        <button class="sub-btn" onclick="openStage('bending_issue')"><span>01</span><span>Issued for Bending</span></button>
-        <button class="sub-btn" onclick="openStage('bend_entry')"><span>02</span><span>Bend Completed</span></button>
-        <button class="sub-btn" onclick="openStage('fitup_entry')"><span>03</span><span>Fit Up Completed</span></button>
-        <button class="sub-btn" onclick="openStage('weld_visual')"><span>04</span><span>Weld Visual Completed</span></button>
-        <button class="sub-btn" onclick="openStage('ndt_clearance')"><span>05</span><span>NDT Clearance</span></button>
-        <button class="sub-btn" onclick="openStage('fd')"><span>06</span><span>FD & Dispatch DC No</span></button>
-        <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#fffbeb; color:#b45309;" onclick="window.location.href='spool_tracking.html'"><span>🔍</span><span>Open Spool Tracker Page</span></button>
-      </div>
-    </div>
-
-    <!-- 🛡️ SUB-PANEL: QA/QC Module -->
-    <div id="qaqcHub" class="sub-panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">🛡️ QA/QC Inspection & Tracking</h3>
-        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
-      </div>
-      <div class="sub-menu-grid">
-        <!-- 🟢 1. LHS ENTRY (LIVE WORKING MODULE) -->
-        <button class="sub-btn" onclick="window.location.href='lhs_entry.html'" style="border-left: 4px solid #16a34a; font-weight: bold;">
-          <span>📋</span><span>LHS ENTRY</span>
-        </button>
-
-        
-        <!-- 2. LOT ENTRY (NOW FULLY ACTIVE) -->
-        <button class="sub-btn" onclick="window.location.href='lot_entry.html'" style="border-left: 4px solid #0d6efd; font-weight: bold;">
-          <span>🧾</span><span>LOT ENTRY</span>
-        </button>
-        <!-- 3. LOT OFFER / CLEARED (NOW FULLY ACTIVE) -->
-        <button class="sub-btn" onclick="window.location.href='lot_offer_cleared.html'" style="border-left: 4px solid #d97706; font-weight: bold;">
-          <span>🔍</span><span>LOT OFFER / CLEARED</span>
-        </button>
-        <button class="sub-btn" onclick="futureModuleNotice('LOT GENERATE')"><span>⚙️</span><span>LOT GENERATE</span></button>
-        <button class="sub-btn" onclick="futureModuleNotice('DPT LOT STATUS')"><span>🔬</span><span>DPT LOT STATUS</span></button>
-        <button class="sub-btn" onclick="futureModuleNotice('RT LOT STATUS')"><span>☢️</span><span>RT LOT STATUS</span></button>
-        <button class="sub-btn" onclick="futureModuleNotice('NDT / DC')"><span>📦</span><span>NDT / DC</span></button>
-        <button class="sub-btn" onclick="futureModuleNotice('MTO ENTRY')"><span>📑</span><span>MTO ENTRY</span></button>
-        <button class="sub-btn" onclick="futureModuleNotice('PWHT')"><span>🔥</span><span>PWHT</span></button>
-        <button class="sub-btn" onclick="futureModuleNotice('VIEW RECORD')"><span>📊</span><span>VIEW RECORD</span></button>
-      </div>
-    </div>
-
-    <!-- SUB-PANEL: Material -->
-    <div id="matHub" class="sub-panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#0284c7;">Material Management</h3>
-        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
-      </div>
-      <div class="sub-menu-grid">
-        <button class="sub-btn" id="btnMtoUpdateHub" style="display:none;" onclick="window.location.href='mto_update_entry.html'">
-          <span>📦</span><span>MTO Update</span>
-        </button>
-        <button class="sub-btn" id="btnIgpUpdateHub" style="display:none;" onclick="window.location.href='igp_update.html'">
-          <span>🚚</span><span>IGP Update</span>
-        </button>
-        <button class="sub-btn" id="btnMinUpdateHub" style="display:none;" onclick="window.location.href='min_update.html'">
-          <span>📋</span><span>MIN Update</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='mto_register.html'">
-          <span>📑</span><span>MTO Register</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- SUB-PANEL: Report -->
-    <div id="reportHub" class="sub-panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#4f46e5;">Reports</h3>
-        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
-      </div>
-      <div class="sub-menu-grid">
-        <button class="sub-btn" onclick="window.location.href='daily_report.html'"><span>📅</span><span>Daily Progress Report</span></button>
-        <button class="sub-btn" onclick="window.location.href='progress_dashboard.html'"><span>📈</span><span>Progress Dashboard</span></button>
-        <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center;" onclick="window.location.href='priority_dashboard.html'"><span>🔥</span><span>Priority Spools Dashboard</span></button>
-      </div>
-    </div>
-
-    <!-- SUB-PANEL: Data -->
-    <div id="dataHub" class="sub-panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">Data Registers & Updates</h3>
-        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
-      </div>
-      <div class="sub-menu-grid">
-        <button class="sub-btn" id="btnLineListHub" style="display:none;" onclick="window.location.href='line_list.html'">
-          <span>📋</span><span>Line List Master</span>
-        </button>
-        <button class="sub-btn" id="btnSapCodeHub" style="display:none;" onclick="window.location.href='sap_code.html'">
-          <span>📦</span><span>Material SAP Codes</span>
-        </button>
-        <button class="sub-btn" id="btnDataUpdateHub" style="display:none;" onclick="window.location.href='data_update.html'">
-          <span>🔄</span><span>Batch Excel Update</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='master_register.html'">
-          <span>📊</span><span>Open Master Register Full View</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- STAGE OPERATION SCREEN -->
-    <div id="stageContainer" style="display: none;">
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h3 id="stageTitle" style="margin:0;">Stage Title</h3>
-          <button class="btn-hero-action" style="background:#0f172a; color:#fff; padding:6px 14px;" onclick="openCategoryHub('mechHub')">⬅️ Back to Mechanical</button>
-        </div>
-
-        <label id="spoolSearchLabel" style="margin-top:14px;">Spool Unique Number:</label>
-        <div style="position:relative;">
-          <input type="text" id="spoolSearch" placeholder="Type spool no..." oninput="handleSearchInput()" autocomplete="off">
-          <div id="searchDropdown" style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #0d9488; max-height:200px; overflow-y:auto; z-index:100; display:none;"></div>
-        </div>
-
-        <div id="itemEditForm" style="display:none; background:#f8fafc; border:1px solid #99f6e4; border-radius:10px; padding:14px; margin-top:10px;">
-          <div style="font-weight: bold; color: #0f766e;">📝 Edit Details:</div>
-          <div><label>Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
-          <div><label>Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
-          <div id="dynamicFormFields"></div>
-          <input type="hidden" id="form_item_id">
-          <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Selected List</button>
-        </div>
-
-        <div id="selectedCardArea" style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">Selected Spools (<span id="queueCount">0</span>)</span>
-            <button type="button" class="btn-save-action" id="btnSaveAction" onclick="submitCurrentStage()">💾 <span id="btnSaveLabel">SAVE ENTRY</span></button>
-          </div>
-          <div id="customInputsArea" style="margin-bottom: 12px;"></div>
-          <div style="border: 1px solid #0f172a; border-radius: 8px; overflow-x: auto;">
-            <table style="width:100%; font-size:12px;">
-              <thead id="selectedTableHead"></thead>
-              <tbody id="selectedTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top: 12px;">
-        <h3 style="margin: 0; color: #0f766e;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
-        <div style="overflow-x:auto; margin-top:10px; max-height:45vh;">
-          <table>
-            <thead>
-              <tr style="background:#0f172a; color:white;">
-                <th>Drawing No</th>
-                <th>Spool Unique No</th>
-                <th>Spool Size</th>
-                <th>WELD ID</th>
-                <th>BEND QTY</th>
-              </tr>
-            </thead>
-            <tbody id="stageBalanceTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </main>
-</div>
-
-<script>
-  const USER_ROLES = {
-    "admin": { pass: "ruhi@2018", name: "Admin", allowed: ["all"] },
-    "bending": { pass: "ad@123", name: "Bending Team", allowed: ["bending_issue", "bend_entry"] },
-    "fitup": { pass: "rajan@456", name: "Fit-up Team", allowed: ["fitup_entry"] },
-    "welding": { pass: "jagdish@789", name: "Welding Team", allowed: ["weld_visual"] },
-    "qc/dc": { pass: "qc@6038", name: "QC/DC Team", allowed: ["ndt_clearance", "fd"] },
-    "viewer": { pass: "view@123", name: "Viewer", allowed: [] }
-  };
-
-  let currentUser = null;
-  const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  let allRecordsCache = [];
-  let currentStage = '';
-  let selectedQueue = [];
-  let cumulativeRows = [];
-
-  function formatDateDisplay(val) {
-    if (!val) return '-';
-    const str = String(val).trim();
-    if (str === '' || str.toLowerCase() === 'null') return '-';
-    const dPart = str.includes('T') ? str.split('T')[0] : str;
-    const parts = dPart.split('-');
-    if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    return str;
-  }
-
-  function toggleSidebar(show) {
-    const sidebar = document.getElementById('appSidebar');
-    const openBtn = document.getElementById('btnSidebarOpen');
-    if (show) {
-      sidebar.classList.remove('collapsed');
-      openBtn.style.display = 'none';
-    } else {
-      sidebar.classList.add('collapsed');
-      openBtn.style.display = 'inline-flex';
-    }
-  }
-
-  function checkSessionAuth() {
-    const sessionData = sessionStorage.getItem('piping_app_auth');
-    if (sessionData) {
-      currentUser = JSON.parse(sessionData);
-      document.getElementById('loginOverlay').style.display = 'none';
-      document.getElementById('appContent').style.display = 'flex';
-      
-      document.getElementById('sideUserName').innerText = currentUser.name;
-      document.getElementById('sideUserRole').innerText = `${currentUser.username}@piping.org`;
-      document.getElementById('heroWelcomeTitle').innerText = `Welcome back, ${currentUser.name}!`;
-      document.getElementById('userAvatarChar').innerText = currentUser.name.substring(0,2).toUpperCase();
-
-      updateRoleVisibility();
-      loadTopDashboardMetrics();
-    } else {
-      document.getElementById('loginOverlay').style.display = 'flex';
-      document.getElementById('appContent').style.display = 'none';
-    }
-  }
-
-  const LOCKOUT_MINUTES = 2;
-  const MAX_ATTEMPTS = 2;
-
-  async function verifyLogin() {
-    const u = document.getElementById('loginUser').value.trim().toLowerCase();
-    const p = document.getElementById('loginPass').value.trim();
-    const err = document.getElementById('loginError');
-    const btnLogin = document.querySelector('.btn-login');
-
-    err.style.display = 'none';
-
-    // ૧. Supabase માંથી આ યુઝરનું સેન્ટ્રલ લૉક સ્ટેટસ તપાસો
-    btnLogin.disabled = true;
-    btnLogin.innerText = "⏳ Checking security...";
-
-    try {
-      const { data: userStatus, error: fetchErr } = await db
-        .from('user_auth_status')
-        .select('*')
-        .eq('username', u)
-        .single();
-
-      if (fetchErr && fetchErr.code !== 'PGRST116') {
-        throw fetchErr;
+    // 1. Session & Admin Verification
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
       }
+      const user = JSON.parse(sessionData);
+      if (user.username !== 'admin') {
+        alert("⚠️ Access Denied: માત્ર Admin પાસે જ IGP Update ની પરમિશન છે!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      document.getElementById('adminNameBadge').innerText = `| Admin: ${user.name}`;
+      return true;
+    }
 
-      // જો એકાઉન્ટ લૉક હોય તો સમય તપાસો
-      if (userStatus && userStatus.locked_until) {
-        const lockTime = new Date(userStatus.locked_until).getTime();
-        const now = Date.now();
-        const remainingMs = lockTime - now;
+    // 2. Fetch All MTO Rows (Read-only on load)
+    async function fetchMtoRecords() {
+      try {
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
 
-        if (remainingMs > 0) {
-          const remainingSec = Math.ceil(remainingMs / 1000);
-          const mins = Math.floor(remainingSec / 60);
-          const secs = remainingSec % 60;
+        while (hasMore) {
+          const { data, error } = await db
+            .from('mto')
+            .select('*')
+            .order('id', { ascending: true })
+            .range(from, from + 999);
 
-          err.style.display = 'block';
-          err.innerHTML = `🔒 2 વખત ખોટો પાસવર્ડ દાખલ કર્યો છે.<br>આ એકાઉન્ટ <b>${mins}m ${secs}s</b> માટે તમામ ડિવાઇસ પર લૉક છે!`;
-          btnLogin.disabled = false;
-          btnLogin.innerText = "Login to Portal ➔";
-          return;
-        } else {
-          // ૫ મિનિટ પૂરી થઈ ગઈ - લૉક રીસેટ કરો
-          await db.from('user_auth_status').update({
-            failed_attempts: 0,
-            locked_until: null
-          }).eq('username', u);
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
         }
+
+        allMtoRows = allRows;
+        buildPendingMinList();
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error fetching MTO data: " + err.message);
       }
+    }
 
-      // ૨. પાસવર્ડ ચેક કરો
-      if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
-        // ✅ સાચો પાસવર્ડ: ડેટાબેઝમાં પ્રયાસો 0 કરી દો
-        await db.from('user_auth_status').update({
-          failed_attempts: 0,
-          locked_until: null,
-          last_attempt_at: new Date().toISOString()
-        }).eq('username', u);
+    function parseNum(val) {
+      if (val === null || val === undefined) return 0;
+      const str = String(val).trim().replace(/[^0-9.]/g, '');
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : num;
+    }
 
-        currentUser = { username: u, ...USER_ROLES[u] };
-        sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
-        err.style.display = 'none';
-        checkSessionAuth();
-      } else {
-        // ❌ ખોટો પાસવર્ડ: અસફળ પ્રયાસ ૧ વધારો
-        const currentAttempts = (userStatus ? userStatus.failed_attempts : 0) + 1;
+    // 3. Build Pending MIN Numbers (Option 1)
+    function buildPendingMinList() {
+      const container = document.getElementById('minCheckboxContainer');
+      pendingMinSet.clear();
 
-        if (currentAttempts >= MAX_ATTEMPTS) {
-          // ૨ ખોટા પ્રયાસ -> ૫ મિનિટ માટે લૉક સેટ કરો
-          const lockUntil = new Date(Date.now() + (LOCKOUT_MINUTES * 60 * 1000)).toISOString();
-          
-          await db.from('user_auth_status').upsert({
-            username: u,
-            failed_attempts: currentAttempts,
-            locked_until: lockUntil,
-            last_attempt_at: new Date().toISOString()
-          });
+      allMtoRows.forEach(r => {
+        const minNo = String(r.MIN_No || '').trim();
+        if (!minNo || minNo.toLowerCase() === 'null' || minNo === '-') return;
 
-          err.style.display = 'block';
-          err.innerHTML = `🔒 સતત 2 વખત ખોટો પાસવર્ડ દાખલ કર્યો છે!<br>આ એકાઉન્ટ 5 મિનિટ માટે તમામ ડિવાઇસ પર લૉક થઈ ગયું છે.`;
-        } else {
-          // ૧ અસફળ પ્રયાસ
-          await db.from('user_auth_status').upsert({
-            username: u,
-            failed_attempts: currentAttempts,
-            last_attempt_at: new Date().toISOString()
-          });
+        const minQty = parseNum(r.MIN_qty);
+        const issuedQty = parseNum(r.Issued_qty);
 
-          err.style.display = 'block';
-          err.innerHTML = `⚠️ Invalid Password! (બાકી રહેલ પ્રયાસ: ${MAX_ATTEMPTS - currentAttempts})`;
+        // Filter: Issued_qty is balance (Issued_qty < MIN_qty)
+        if (minQty > issuedQty) {
+          pendingMinSet.add(minNo);
         }
-      }
-    } catch (errCatch) {
-      console.error(errCatch);
-      err.style.display = 'block';
-      err.innerText = "સિક્યોરિટી સર્વર સાથે સંપર્ક થઈ શક્યો નથી: " + errCatch.message;
-    } finally {
-      btnLogin.disabled = false;
-      btnLogin.innerText = "Login to Portal ➔";
-    }
-  }
+      });
 
-  function userLogout() {
-    if (confirm("Logout કરવા માંગો છો?")) {
-      sessionStorage.removeItem('piping_app_auth');
-      currentUser = null;
-      checkSessionAuth();
-    }
-  }
-
-  function updateRoleVisibility() {
-    if (!currentUser) return;
-    const isAdmin = currentUser.username === 'admin';
-
-    // 🛡️ QA/QC Module: Only for Admin
-    const navQaqc = document.getElementById('navQaqcLink');
-    const cardQaqc = document.getElementById('cardQaqcHub');
-    if (navQaqc) navQaqc.style.display = isAdmin ? 'flex' : 'none';
-    if (cardQaqc) cardQaqc.style.display = isAdmin ? 'flex' : 'none';
-
-    // Material Buttons
-    const btnMtoUpdate = document.getElementById('btnMtoUpdateHub');
-    const btnIgp = document.getElementById('btnIgpUpdateHub');
-    const btnMin = document.getElementById('btnMinUpdateHub');
-    if (btnMtoUpdate) btnMtoUpdate.style.display = isAdmin ? 'flex' : 'none';
-    if (btnIgp) btnIgp.style.display = isAdmin ? 'flex' : 'none';
-    if (btnMin) btnMin.style.display = isAdmin ? 'flex' : 'none';
-
-    // Data Buttons
-    const btnDataUpdate = document.getElementById('btnDataUpdateHub');
-    const btnLineList = document.getElementById('btnLineListHub');
-    const btnSapCode = document.getElementById('btnSapCodeHub');
-    if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
-    if (btnLineList) btnLineList.style.display = isAdmin ? 'flex' : 'none';
-    if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
-  }
-
-  async function ensureAllRecordsCached() {
-    if (allRecordsCache.length > 0) return allRecordsCache;
-    let allRows = [];
-    let from = 0;
-    const step = 1000;
-    let hasMore = true;
-
-    while (hasMore) {
-      const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
-      if (error) break;
-      if (data && data.length > 0) {
-        allRows = allRows.concat(data);
-        from += step;
-        if (data.length < step) hasMore = false;
-      } else {
-        hasMore = false;
-      }
-    }
-    allRecordsCache = allRows;
-    return allRecordsCache;
-  }
-
-  async function loadTopDashboardMetrics() {
-    await ensureAllRecordsCached();
-
-    const totalSpools = new Set(allRecordsCache.map(r => r.Spool_number).filter(Boolean)).size;
-    let weldSum = 0;
-    allRecordsCache.forEach(r => {
-      const v = r.Weld_id || r.Joint_no;
-      if (v) { const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); if (!isNaN(n)) weldSum += n; }
-    });
-
-    const weldedRows = allRecordsCache.filter(r => r.Weld_visual_date);
-    const weldPct = totalSpools > 0 ? ((new Set(weldedRows.map(r => r.Spool_number)).size / totalSpools) * 100).toFixed(1) : 0;
-    const pendingNdtRows = allRecordsCache.filter(r => r.Weld_visual_date && !r.Ndt_clearance);
-
-    document.getElementById('kpiTotalSpool').innerText = totalSpools;
-    document.getElementById('kpiTotalWeld').innerText = Number.isInteger(weldSum) ? weldSum : weldSum.toFixed(2);
-    document.getElementById('kpiWeldingRate').innerText = `${weldPct}%`;
-    document.getElementById('kpiPendingNdt').innerText = `${pendingNdtRows.length} items`;
-  }
-
-  function handleGlobalSpoolSearch(term) {
-    const q = term.trim().toLowerCase();
-    const dropdown = document.getElementById('globalSpoolDropdown');
-
-    if (!q) {
-      dropdown.style.display = 'none';
-      return;
+      renderMinCheckboxes(Array.from(pendingMinSet).sort());
     }
 
-    const matched = allRecordsCache.filter(r => {
-      const spl = String(r.Spool_number || '').toLowerCase();
-      const dwg = String(r.Drawing_no || '').toLowerCase();
-      return spl.includes(q) || dwg.includes(q);
-    }).slice(0, 30);
+    function renderMinCheckboxes(minList) {
+      const container = document.getElementById('minCheckboxContainer');
+      document.getElementById('minFoundCount').innerText = minList.length;
 
-    if (matched.length === 0) {
-      dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px; text-align:center;">No matching spools found</div>';
-      dropdown.style.display = 'block';
-      return;
-    }
-
-    dropdown.innerHTML = matched.map(r => `
-      <div class="search-dropdown-item" onclick="openSpoolTrackerModal(${r.id})">
-        <div>
-          <span style="font-weight:bold; color:#0f172a;">${r.Spool_number || 'N/A'}</span>
-          <span style="font-size:11px; color:#0d9488; margin-left:6px;">(Size: ${r.Spool_size || '-'}, Weld: ${r.Weld_id || '-'})</span>
-        </div>
-        <span style="color:#64748b; font-size:11.5px;">${r.Drawing_no || '-'}</span>
-      </div>
-    `).join('');
-    dropdown.style.display = 'block';
-  }
-
-  function openSpoolTrackerModal(id) {
-    const item = allRecordsCache.find(r => r.id === id);
-    if (!item) return;
-
-    document.getElementById('globalSpoolDropdown').style.display = 'none';
-    document.getElementById('globalSpoolSearchInput').value = item.Spool_number || '';
-
-    document.getElementById('modalTrackSpoolNo').innerText = `Spool: ${item.Spool_number || 'N/A'}`;
-    document.getElementById('modalTrackDwgNo').innerText = `Drawing: ${item.Drawing_no || '-'}`;
-    document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend Qty: ${item.Bend_qty || '0'}`;
-
-    const stages = [
-      { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
-      { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
-      { no: '03', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
-      { no: '04', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
-      { no: '05', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
-      { no: '06', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
-    ];
-
-    document.getElementById('modalTimelineList').innerHTML = stages.map(s => `
-      <div class="timeline-card ${s.done ? 'status-completed' : 'status-hold'}">
-        <div>
-          <span style="font-size: 13.5px;"><b>${s.no}. ${s.title}</b></span>
-          <div style="font-size: 12px; margin-top: 3px; color: ${s.done ? '#15803d' : '#9a3412'}; font-weight: 500;">
-            ${s.done ? s.detail : 'Stage Pending / Not Reached'}
-          </div>
-        </div>
-        <span class="stage-badge-tag ${s.done ? 'tag-completed' : 'tag-hold'}">${s.done ? 'COMPLETED' : 'HOLD / PENDING'}</span>
-      </div>
-    `).join('');
-
-    document.getElementById('spoolTrackerModal').style.display = 'flex';
-  }
-
-  function closeSpoolTrackerModal() {
-    document.getElementById('spoolTrackerModal').style.display = 'none';
-  }
-
-  function openCategoryHub(hubId) {
-    // 🛡️ Extra Security Check: Strict Admin block for QA/QC
-    if (hubId === 'qaqcHub') {
-      if (!currentUser || currentUser.username !== 'admin') {
-        alert("⚠️ માત્ર Admin પાસે જ QA/QC Module જોવાની અથવા વાપરવાની પરમિશન છે!");
+      if (minList.length === 0) {
+        container.innerHTML = '<span style="color:#15803d; font-weight:bold; font-size:12px;">🎉 કોઈ પેન્ડિંગ MIN મળ્યો નથી!</span>';
         return;
       }
+
+      container.innerHTML = minList.map(minNo => `
+        <label class="min-chip">
+          <input type="checkbox" value="${minNo}" onchange="onMinSelectionChanged()" ${selectedMinNumbers.includes(minNo) ? 'checked' : ''}>
+          <span><b>${minNo}</b></span>
+        </label>
+      `).join('');
     }
 
-    document.getElementById('hubMainMenu').style.display = 'none';
-    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
-    document.getElementById('stageContainer').style.display = 'none';
-
-    const panel = document.getElementById(hubId);
-    if (panel) panel.style.display = 'block';
-  }
-
-  function backToHubMenu() {
-    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
-    document.getElementById('stageContainer').style.display = 'none';
-    document.getElementById('hubMainMenu').style.display = 'block';
-  }
-
-  /* 👉 Future Program Notice for QA/QC */
-  function futureModuleNotice(name) {
-    alert(`ℹ️ "${name}" module will be added in future.`);
-  }
-
-  /* STAGE OPERATIONS */
-  async function openStage(stage) {
-    currentStage = stage;
-    selectedQueue = [];
-    document.getElementById('hubMainMenu').style.display = 'none';
-    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
-    document.getElementById('itemEditForm').style.display = 'none';
-    document.getElementById('stageContainer').style.display = 'block';
-
-    setupStageUI(stage);
-    renderSelectedTable();
-    await loadStageData(stage);
-  }
-
-  function setupStageUI(stage) {
-    const title = document.getElementById('stageTitle');
-    const customArea = document.getElementById('customInputsArea');
-    const btnSaveLabel = document.getElementById('btnSaveLabel');
-    customArea.innerHTML = '';
-
-    if (stage === 'bending_issue') {
-      title.innerText = '1. ISSUED FOR BENDING ENTRY';
-      btnSaveLabel.innerText = 'SAVE BENDING ENTRY';
-      customArea.innerHTML = `<label>Bending Issue Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'bend_entry') {
-      title.innerText = '2. BEND ENTRY MODULE';
-      btnSaveLabel.innerText = 'SAVE BEND ENTRY';
-      customArea.innerHTML = `<label>Bend Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'fitup_entry') {
-      title.innerText = '3. FIT UP COMPLETED MODULE';
-      btnSaveLabel.innerText = 'SAVE FIT-UP COMPLETED';
-      customArea.innerHTML = `<label>Fit-Up Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'weld_visual') {
-      title.innerText = '4. WELD VISUAL COMPLETED MODULE';
-      btnSaveLabel.innerText = 'SAVE VISUAL COMPLETED';
-      customArea.innerHTML = `<label>Visual Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'ndt_clearance') {
-      title.innerText = '5. NDT CLEARANCE MODULE';
-      btnSaveLabel.innerText = 'SAVE NDT ENTRY';
-      customArea.innerHTML = `<label>NDT Clearance Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'fd') {
-      title.innerText = '6. FINAL DISPATCH & DC NO MODULE';
-      btnSaveLabel.innerText = 'SAVE DC ENTRY';
-      customArea.innerHTML = `<label>DC No:</label><input type="text" id="input_dc_no" required><label>Dispatch Date:</label><input type="date" id="input_date" required>`;
-    }
-  }
-
-  async function loadStageData(stage) {
-    let query = db.from('piping_joints').select('*');
-    if (stage === 'bending_issue') query = query.is('Bend_date', null).is('Issued_for_bending', null);
-    else if (stage === 'bend_entry') query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
-    else if (stage === 'fitup_entry') query = query.not('Bend_date', 'is', null).is('Fit_up_date', null);
-    else if (stage === 'weld_visual') query = query.not('Fit_up_date', 'is', null).is('Weld_visual_date', null);
-    else if (stage === 'ndt_clearance') query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
-    else if (stage === 'fd') query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
-
-    const { data } = await query.order('id', { ascending: true }).limit(2000);
-    cumulativeRows = data || [];
-    renderBalanceTable();
-  }
-
-  function renderBalanceTable() {
-    document.getElementById('tableTotalCount').innerText = cumulativeRows.length;
-    const tbody = document.getElementById('stageBalanceTableBody');
-    tbody.innerHTML = cumulativeRows.slice(0, 300).map(r => `
-      <tr>
-        <td><b>${r.Drawing_no || '-'}</b></td>
-        <td><b>${r.Spool_number || '-'}</b></td>
-        <td>${r.Spool_size || '-'}</td>
-        <td><b>${r.Weld_id || '-'}</b></td>
-        <td>${r.Bend_qty || '-'}</td>
-      </tr>
-    `).join('');
-  }
-
-  function handleSearchInput() {
-    const term = document.getElementById('spoolSearch').value.trim().toLowerCase();
-    const drop = document.getElementById('searchDropdown');
-    if (!term) { drop.style.display = 'none'; return; }
-
-    const matched = cumulativeRows.filter(r => String(r.Spool_number||'').toLowerCase().includes(term)).slice(0, 20);
-    if (matched.length === 0) { drop.innerHTML = '<div style="padding:10px;">No Spool Found</div>'; drop.style.display='block'; return; }
-
-    drop.innerHTML = matched.map(r => `
-      <div style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #f1f5f9;" onclick="onSpoolSelect(${r.id})">
-        <b>${r.Spool_number}</b> (${r.Drawing_no})
-      </div>
-    `).join('');
-    drop.style.display = 'block';
-  }
-
-  function onSpoolSelect(id) {
-    const item = cumulativeRows.find(x => x.id === id);
-    if (!item) return;
-    document.getElementById('spoolSearch').value = '';
-    document.getElementById('searchDropdown').style.display = 'none';
-
-    if (currentStage === 'bend_entry') {
-      document.getElementById('itemEditForm').style.display = 'block';
-      document.getElementById('form_item_id').value = item.id;
-      document.getElementById('form_spool_no').value = item.Spool_number;
-      document.getElementById('form_drawing_no').value = item.Drawing_no;
-      document.getElementById('dynamicFormFields').innerHTML = `
-        <label>Bend Qty:</label><input type="text" id="form_bend_qty" value="${item.Bend_qty||''}">
-        <label>Weld ID:</label><input type="text" id="form_weld_id" value="${item.Weld_id||''}">
-      `;
-      return;
+    function filterMinCheckboxes(query) {
+      const q = query.trim().toLowerCase();
+      const allMins = Array.from(pendingMinSet).sort();
+      const filtered = allMins.filter(m => m.toLowerCase().includes(q));
+      renderMinCheckboxes(filtered);
     }
 
-    selectedQueue.push(item);
-    renderSelectedTable();
-  }
+    function clearAllMinSelection() {
+      selectedMinNumbers = [];
+      const checkboxes = document.querySelectorAll('#minCheckboxContainer input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = false);
+      onMinSelectionChanged();
+    }
 
-  function confirmAddFormToQueue() {
-    const id = parseInt(document.getElementById('form_item_id').value);
-    const item = cumulativeRows.find(x => x.id === id);
-    if (!item) return;
+    // 4. Handle MIN Selection Change -> Update SAP Codes (Option 2)
+    function onMinSelectionChanged() {
+      const checkedBoxes = document.querySelectorAll('#minCheckboxContainer input[type="checkbox"]:checked');
+      selectedMinNumbers = Array.from(checkedBoxes).map(cb => cb.value);
 
-    selectedQueue.push({
-      ...item,
-      final_bend_qty: document.getElementById('form_bend_qty').value.trim(),
-      final_weld_id: document.getElementById('form_weld_id').value.trim()
+      const sapInput = document.getElementById('sapSearchInput');
+      const sapDesc = document.getElementById('sapDescText');
+      document.getElementById('selectedSapCodeVal').value = '';
+      sapInput.value = '';
+      sapDesc.innerText = 'Description: -';
+      selectedSapCode = "";
+
+      if (selectedMinNumbers.length === 0) {
+        sapInput.disabled = true;
+        resetAllocationInputs();
+        return;
+      }
+
+      // Filter SAP Codes present in selected MIN numbers where balance > 0
+      const sapMap = new Map();
+
+      allMtoRows.forEach(r => {
+        const minNo = String(r.MIN_No || '').trim();
+        if (selectedMinNumbers.includes(minNo)) {
+          const sapCode = String(r.MAT_SAP_CODE || '').trim();
+          const minQty = parseNum(r.MIN_qty);
+          const issuedQty = parseNum(r.Issued_qty);
+
+          if (sapCode && minQty > issuedQty) {
+            sapMap.set(sapCode, r.MAT_Description || '-');
+          }
+        }
+      });
+
+      availableSapCodes = Array.from(sapMap.entries()).map(([code, desc]) => ({ code, desc }));
+
+      sapInput.disabled = availableSapCodes.length === 0;
+      sapInput.placeholder = availableSapCodes.length > 0 ? "🔍 Click or Type SAP Code..." : "No balance SAP Code found";
+      resetAllocationInputs();
+    }
+
+    // Searchable SAP Dropdown
+    function showSapDropdown() {
+      const list = document.getElementById('sapDropdownList');
+      if (availableSapCodes.length === 0) { list.style.display = 'none'; return; }
+
+      list.innerHTML = availableSapCodes.map(s => `
+        <div class="sap-dropdown-item" onclick="pickSapCode('${s.code}', '${encodeURIComponent(s.desc)}')">
+          <span style="font-weight:bold;">${s.code}</span>
+          <span style="font-size:11px; color:#64748b; margin-left:8px;">${s.desc}</span>
+        </div>
+      `).join('');
+      list.style.display = 'block';
+    }
+
+    function handleSapSearch(q) {
+      const term = q.trim().toLowerCase();
+      const list = document.getElementById('sapDropdownList');
+      if (!term) { showSapDropdown(); return; }
+
+      const matched = availableSapCodes.filter(s => s.code.toLowerCase().includes(term) || s.desc.toLowerCase().includes(term));
+      if (matched.length === 0) {
+        list.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px;">No matching SAP code</div>';
+        list.style.display = 'block';
+        return;
+      }
+
+      list.innerHTML = matched.map(s => `
+        <div class="sap-dropdown-item" onclick="pickSapCode('${s.code}', '${encodeURIComponent(s.desc)}')">
+          <span style="font-weight:bold;">${s.code}</span>
+          <span style="font-size:11px; color:#64748b; margin-left:8px;">${s.desc}</span>
+        </div>
+      `).join('');
+      list.style.display = 'block';
+    }
+
+    function pickSapCode(code, encDesc) {
+      selectedSapCode = code;
+      const desc = decodeURIComponent(encDesc);
+      document.getElementById('sapSearchInput').value = code;
+      document.getElementById('selectedSapCodeVal').value = code;
+      document.getElementById('sapDescText').innerText = `Description: ${desc}`;
+      document.getElementById('sapDropdownList').style.display = 'none';
+
+      onSapCodeSelected();
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.sap-search-wrapper')) {
+        document.getElementById('sapDropdownList').style.display = 'none';
+      }
     });
 
-    document.getElementById('itemEditForm').style.display = 'none';
-    renderSelectedTable();
-  }
+    // 5. Calculate Balance Issued Qty (Option 3)
+    function onSapCodeSelected() {
+      matchingPendingRows = allMtoRows.filter(r => {
+        const minNo = String(r.MIN_No || '').trim();
+        const sap = String(r.MAT_SAP_CODE || '').trim();
+        const minQty = parseNum(r.MIN_qty);
+        const issuedQty = parseNum(r.Issued_qty);
 
-  function renderSelectedTable() {
-    document.getElementById('queueCount').innerText = selectedQueue.length;
-    const thead = document.getElementById('selectedTableHead');
-    const tbody = document.getElementById('selectedTableBody');
+        return selectedMinNumbers.includes(minNo) && sap === selectedSapCode && minQty > issuedQty;
+      });
 
-    thead.innerHTML = `<tr><th>Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Action</th></tr>`;
-    tbody.innerHTML = selectedQueue.map((r, i) => `
-      <tr>
-        <td>${i+1}</td><td><b>${r.Spool_number}</b></td><td>${r.Drawing_no}</td>
-        <td><button style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:4px;" onclick="selectedQueue.splice(${i},1); renderSelectedTable();">✕</button></td>
-      </tr>
-    `).join('');
-  }
+      // Sort rows by ID (FIFO)
+      matchingPendingRows.sort((a, b) => a.id - b.id);
 
-  async function submitCurrentStage() {
-    if (selectedQueue.length === 0) return alert('ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
-    const date = document.getElementById('input_date') ? document.getElementById('input_date').value : null;
+      let totalBalance = 0;
+      matchingPendingRows.forEach(r => {
+        const bal = parseNum(r.MIN_qty) - parseNum(r.Issued_qty);
+        totalBalance += bal;
+      });
 
-    if (currentStage === 'bending_issue') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      await db.from('piping_joints').update({ Issued_for_bending: date }).in('id', selectedQueue.map(x => x.id));
-    } else if (currentStage === 'bend_entry') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      for (const item of selectedQueue) {
-        await db.from('piping_joints').update({ Bend_date: date, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id }).eq('id', item.id);
+      totalBalance = Math.round(totalBalance * 1000) / 1000;
+      document.getElementById('availBalanceQty').innerText = totalBalance.toFixed(2);
+
+      const hasBal = totalBalance > 0;
+      document.getElementById('inputNewIssuedQty').disabled = !hasBal;
+      document.getElementById('inputIgpNo').disabled = !hasBal;
+      document.getElementById('inputIgpDate').disabled = !hasBal;
+
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('inputIgpDate').value = today;
+
+      calculateFifoAllocation();
+    }
+
+    function resetAllocationInputs() {
+      document.getElementById('availBalanceQty').innerText = '0.00';
+      document.getElementById('inputNewIssuedQty').value = '';
+      document.getElementById('inputNewIssuedQty').disabled = true;
+      document.getElementById('inputIgpNo').value = '';
+      document.getElementById('inputIgpNo').disabled = true;
+      document.getElementById('inputIgpDate').value = '';
+      document.getElementById('inputIgpDate').disabled = true;
+      document.getElementById('btnSaveIgp').disabled = true;
+      document.getElementById('previewContainerCard').style.display = 'none';
+    }
+
+    // 6. FIFO Allocation Logic (Option 4)
+    function calculateFifoAllocation() {
+      const qtyInput = document.getElementById('inputNewIssuedQty');
+      const val = parseFloat(qtyInput.value);
+      const previewCard = document.getElementById('previewContainerCard');
+      const tbody = document.getElementById('previewTableBody');
+
+      if (isNaN(val) || val <= 0 || matchingPendingRows.length === 0) {
+        previewCard.style.display = 'none';
+        document.getElementById('btnSaveIgp').disabled = true;
+        return;
       }
-    } else if (currentStage === 'fitup_entry') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      await db.from('piping_joints').update({ Fit_up_date: date }).in('id', selectedQueue.map(x => x.id));
-    } else if (currentStage === 'weld_visual') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      await db.from('piping_joints').update({ Weld_visual_date: date }).in('id', selectedQueue.map(x => x.id));
-    } else if (currentStage === 'ndt_clearance') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      await db.from('piping_joints').update({ Ndt_clearance: date }).in('id', selectedQueue.map(x => x.id));
-    } else if (currentStage === 'fd') {
-      const dcNo = document.getElementById('input_dc_no').value.trim();
-      if (!dcNo || !date) return alert('DC No અને તારીખ બંને દાખલ કરો');
-      await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: date }).in('id', selectedQueue.map(x => x.id));
+
+      let remainingToAllocate = val;
+      plannedAllocation = [];
+
+      matchingPendingRows.forEach((r, idx) => {
+        if (remainingToAllocate <= 0 && idx < matchingPendingRows.length - 1) return;
+
+        const minQ = parseNum(r.MIN_qty);
+        const oldIssued = parseNum(r.Issued_qty);
+        const pendingBal = Math.round((minQ - oldIssued) * 1000) / 1000;
+
+        let allocNow = 0;
+
+        // If this is the last row, dump all remaining qty even if it exceeds pendingBal!
+        if (idx === matchingPendingRows.length - 1) {
+          allocNow = Math.round(remainingToAllocate * 1000) / 1000;
+          remainingToAllocate = 0;
+        } else {
+          allocNow = Math.min(remainingToAllocate, pendingBal);
+          allocNow = Math.round(allocNow * 1000) / 1000;
+          remainingToAllocate = Math.round((remainingToAllocate - allocNow) * 1000) / 1000;
+        }
+
+        const finalIssued = Math.round((oldIssued + allocNow) * 1000) / 1000;
+
+        plannedAllocation.push({
+          id: r.id,
+          drawingNo: r.Drawing_no || '-',
+          spoolNo: r.Spool_number || '-',
+          minNo: r.MIN_No || '-',
+          minQty: minQ,
+          oldIssued: oldIssued,
+          pendingBal: pendingBal,
+          allocNow: allocNow,
+          finalIssued: finalIssued
+        });
+      });
+
+      // Filter out rows where allocated is 0
+      plannedAllocation = plannedAllocation.filter(p => p.allocNow > 0);
+
+      // Render Table
+      tbody.innerHTML = plannedAllocation.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><b>#${p.id}</b></td>
+          <td>${p.drawingNo}</td>
+          <td><b>${p.spoolNo}</b></td>
+          <td>${p.minNo}</td>
+          <td>${p.minQty}</td>
+          <td>${p.oldIssued}</td>
+          <td style="color:#c2410c; font-weight:bold;">${p.pendingBal}</td>
+          <td><span class="badge-alloc">+${p.allocNow}</span></td>
+          <td style="color:#15803d; font-weight:bold;">${p.finalIssued}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('previewRowsCount').innerText = `${plannedAllocation.length} Row(s) to Update`;
+      previewCard.style.display = 'block';
+      document.getElementById('btnSaveIgp').disabled = plannedAllocation.length === 0;
     }
 
-    alert('સફળતાપૂર્વક સાચવવામાં આવ્યું!');
-    selectedQueue = [];
-    renderSelectedTable();
-    loadStageData(currentStage);
-  }
+    // 7. Save to Supabase (Option 5)
+    async function saveIgpAllocationToDb() {
+      const igpNo = document.getElementById('inputIgpNo').value.trim();
+      const igpDate = document.getElementById('inputIgpDate').value;
 
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.global-search-wrapper')) {
-      const drop = document.getElementById('globalSpoolDropdown');
-      if (drop) drop.style.display = 'none';
+      if (!igpNo) return alert('⚠️ કૃપા કરીને Option 5A માં IGP Number દાખલ કરો!');
+      if (!igpDate) return alert('⚠️ કૃપા કરીને Option 5B માં IGP Date પસંદ કરો!');
+      if (plannedAllocation.length === 0) return alert('⚠️ ફાળવવા માટે કોઈ જથ્થો મળ્યો નથી!');
+
+      if (!confirm(`શું તમે ${plannedAllocation.length} રેકોર્ડ્સ માટે IGP Number: "${igpNo}" સેવ કરવા માંગો છો?`)) return;
+
+      const btn = document.getElementById('btnSaveIgp');
+      btn.innerText = '⏳ Saving to Supabase...';
+      btn.disabled = true;
+
+      try {
+        for (const item of plannedAllocation) {
+          const { error } = await db
+            .from('mto')
+            .update({
+              Issued_qty: item.finalIssued,
+              IGP_No: igpNo,
+              IGP_Date: igpDate
+            })
+            .eq('id', item.id);
+
+          if (error) throw error;
+        }
+
+        alert(`✅ સફળતાપૂર્વક ${plannedAllocation.length} રેકોર્ડ્સમાં IGP અપડેટ થઈ ગયું!`);
+
+        // Refresh Data
+        await fetchMtoRecords();
+        resetAllocationInputs();
+        document.getElementById('sapSearchInput').value = '';
+        selectedMinNumbers = [];
+        const checkboxes = document.querySelectorAll('#minCheckboxContainer input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error saving to database: ' + err.message);
+      } finally {
+        btn.innerText = '💾 SAVE IGP UPDATE TO DATABASE';
+        btn.disabled = false;
+      }
     }
-  });
 
-  window.addEventListener('DOMContentLoaded', checkSessionAuth);
-</script>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifyAdminAccess()) {
+        fetchMtoRecords();
+      }
+    });
+  </script>
 </body>
 </html>
