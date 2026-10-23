@@ -3,49 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IGP Update Console | Piping Operations</title>
+  <title>IGP Issue & Allocation Console</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg: #f8fafc;
+      --bg: #0f172a;
+      --navy: #0b1329;
       --card-bg: #ffffff;
       --border: #e2e8f0;
+      --teal: #0d9488;
+      --teal-hover: #0f766e;
+      --mint-bg: #e6f9f3;
+      --mint-border: #a7f3d0;
+      --mint-text: #065f46;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --primary: #0284c7;
-      --primary-dark: #0369a1;
-      --success: #15803d;
-      --danger: #dc2626;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
     body {
-      background: var(--bg);
+      background: #f1f5f9;
       color: var(--text-main);
-      padding: 20px 28px;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       -webkit-font-smoothing: antialiased;
     }
 
-    .top-header {
-      background: #ffffff;
-      padding: 14px 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    /* 🟢 1. FULL WIDTH TOP NAVBAR (MATCHING MIN PHOTO) */
+    .top-navbar {
+      background: var(--navy);
+      color: #ffffff;
+      padding: 14px 28px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .top-navbar-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .btn-back-dash {
-      background: #0f172a;
-      color: #ffffff;
-      border: none;
-      padding: 8px 16px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
+      padding: 7px 16px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
@@ -53,27 +68,43 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
-    .btn-back-dash:hover { background: #1e293b; transform: translateY(-1px); }
+    .btn-back-dash:hover { background: #f8fafc; color: var(--teal); }
 
-    .card {
+    /* 🟢 2. FULL DISPLAY WORKSPACE */
+    .full-workspace {
+      flex: 1;
+      width: 100%;
+      padding: 24px 32px;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+
+    .main-alloc-card {
       background: var(--card-bg);
       border-radius: 14px;
       border: 1px solid var(--border);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.03);
-      padding: 22px 26px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+      padding: 24px 28px;
+      width: 100%;
+    }
+
+    .card-heading {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 1.5px solid #f1f5f9;
+      padding-bottom: 12px;
       margin-bottom: 20px;
     }
 
-    .form-grid {
+    /* 🟢 3. TOP 2-COLUMN SELECTOR GRID */
+    .selector-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
-    }
-
-    .form-group-full {
-      grid-column: 1 / -1;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 20px;
     }
 
     label {
@@ -84,66 +115,64 @@
       margin-bottom: 6px;
     }
 
-    input[type="text"], input[type="number"], input[type="date"], select {
+    .search-input {
       width: 100%;
-      padding: 10px 14px;
+      padding: 9px 14px;
       border: 1.5px solid #cbd5e1;
       border-radius: 8px;
-      font-size: 13.5px;
-      color: #0f172a;
+      font-size: 13px;
       outline: none;
       background: #ffffff;
-      transition: all 0.2s;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
     }
 
-    input:focus, select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-    }
-
-    /* Option 1: Multi-Select Searchable MIN Box */
-    .min-picker-box {
+    /* MIN Selection Vertical Scrollbox */
+    .scrollable-select-box {
       border: 1.5px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 12px;
-      background: #f8fafc;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-
-    .min-checkbox-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 8px;
+      border-radius: 8px;
       margin-top: 8px;
+      height: 160px;
+      overflow-y: auto;
+      background: #ffffff;
+      padding: 6px 10px;
     }
 
-    .min-chip {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 6px 10px;
+    .checkbox-item {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      padding: 6px 4px;
       font-size: 12.5px;
+      border-bottom: 1px solid #f8fafc;
       cursor: pointer;
       user-select: none;
     }
-    .min-chip:hover { background: #f0fdf4; border-color: #86efac; }
-    .min-chip input[type="checkbox"] { cursor: pointer; }
+    .checkbox-item:hover { background: #f0fdf4; border-radius: 4px; }
+    .checkbox-item input[type="checkbox"] { cursor: pointer; accent-color: var(--teal); width: 14px; height: 14px; }
+    .item-bal-text { font-size: 11.5px; color: var(--teal); font-weight: 600; margin-left: 4px; }
 
-    /* Option 2: Searchable SAP Dropdown */
-    .sap-search-wrapper { position: relative; }
+    .selected-summary-text {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--teal);
+      margin-top: 8px;
+    }
+
+    /* Searchable SAP Dropdown Box */
+    .sap-search-wrap { position: relative; }
     .sap-dropdown-list {
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
-      max-height: 220px;
+      max-height: 200px;
       overflow-y: auto;
       background: #ffffff;
-      border: 1.5px solid var(--primary);
+      border: 1.5px solid var(--teal);
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
       z-index: 1000;
@@ -152,207 +181,195 @@
     }
     .sap-dropdown-item {
       padding: 9px 12px;
-      font-size: 13px;
+      font-size: 12.5px;
       cursor: pointer;
       border-bottom: 1px solid #f1f5f9;
       display: flex;
       justify-content: space-between;
-      align-items: center;
     }
-    .sap-dropdown-item:hover {
-      background: #f0fdf4;
-      color: var(--primary-dark);
-      font-weight: 600;
-    }
+    .sap-dropdown-item:hover { background: #f0fdfa; color: var(--teal-hover); font-weight: bold; }
 
-    /* Option 3: Balance Display Pill */
-    .balance-kpi-card {
-      background: #ecfdf5;
-      border: 1.5px solid #a7f3d0;
+    /* 🟢 4. FULL WIDTH MINT BANNER (TOTAL BALANCE) */
+    .mint-balance-banner {
+      background: var(--mint-bg);
+      border: 1.5px solid var(--mint-border);
       border-radius: 10px;
-      padding: 14px 18px;
+      padding: 16px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 22px;
     }
 
-    .balance-num {
-      font-size: 24px;
+    .mint-label {
+      font-size: 13.5px;
       font-weight: 800;
-      color: var(--success);
+      color: var(--mint-text);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .mint-val {
+      font-size: 26px;
+      font-weight: 900;
+      color: #047857;
       letter-spacing: -0.5px;
     }
 
-    .btn-save-main {
-      padding: 12px 24px;
-      background: var(--success);
+    /* 🟢 5. 3-COLUMN BOTTOM INPUTS */
+    .bottom-inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    /* 🟢 6. FULL WIDTH SAVE BUTTON (MIN STYLE) */
+    .btn-save-full {
+      width: 100%;
+      padding: 13px;
+      background: var(--teal);
       color: #ffffff;
       border: none;
       border-radius: 8px;
-      font-size: 14.5px;
+      font-size: 15px;
       font-weight: 800;
       cursor: pointer;
-      display: inline-flex;
+      display: flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(21, 128, 61, 0.25);
-      transition: all 0.2s;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+      transition: all 0.2s ease;
     }
-    .btn-save-main:hover { background: #166534; transform: translateY(-1px); }
-    .btn-save-main:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+    .btn-save-full:hover { background: var(--teal-hover); transform: translateY(-1px); }
+    .btn-save-full:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    /* Allocation Preview Table */
+    /* 🟢 7. FIFO ALLOCATION PREVIEW TABLE */
+    .preview-card {
+      margin-top: 24px;
+      border-top: 1.5px dashed var(--border);
+      padding-top: 18px;
+      display: none;
+    }
+
     .table-container {
       overflow-x: auto;
-      max-height: 45vh;
+      max-height: 40vh;
       border: 1px solid #cbd5e1;
-      border-radius: 10px;
+      border-radius: 8px;
       margin-top: 10px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      font-size: 12.5px;
-    }
-    th {
-      background: #0f172a;
-      color: #ffffff;
-      padding: 10px 12px;
-      font-weight: 700;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      white-space: nowrap;
-    }
-    td {
-      border-bottom: 1px solid #e2e8f0;
-      border-right: 1px solid #e2e8f0;
-      padding: 9px 12px;
-      text-align: center;
-      background: #ffffff;
-      white-space: nowrap;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th { background: #0f172a; color: #ffffff; padding: 10px; font-weight: 700; text-align: center; position: sticky; top: 0; }
+    td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: center; }
     tr:nth-child(even) td { background-color: #f8fafc; }
-    .badge-alloc {
-      background: #fef08a;
-      color: #854d0e;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-weight: bold;
-    }
+    .badge-alloc { background: #fef08a; color: #854d0e; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <!-- Top Bar -->
-  <div class="top-header">
-    <div style="display:flex; align-items:center; gap:12px;">
+  <!-- Full Width Top Navigation Bar -->
+  <header class="top-navbar">
+    <div class="top-navbar-title">
+      <span>📦</span>
+      <span>IGP ISSUE & ALLOCATION CONSOLE</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span id="adminSessionTag" style="font-size:12px; color:#94a3b8; font-weight:600;"></span>
       <a href="index.html" class="btn-back-dash">⬅️ Back to Dashboard</a>
-      <h2 style="font-size:18px; font-weight:800; color:#0284c7;">📦 IGP UPDATE & SMART FIFO ALLOCATION</h2>
     </div>
-    <span id="adminNameBadge" style="font-size:12.5px; font-weight:bold; color:#64748b;">Loading Session...</span>
-  </div>
+  </header>
 
-  <!-- Form Card -->
-  <div class="card">
-    <div class="form-grid">
+  <!-- Full Display Workspace -->
+  <main class="full-workspace">
+    <div class="main-alloc-card">
+      <div class="card-heading">IGP Allocation</div>
 
-      <!-- Option 1: Multi-Select Searchable MIN No List -->
-      <div class="form-group-full">
-        <label>Option 1: Search & Select MIN Numbers (Only Pending Balance shown):</label>
-        <div class="min-picker-box">
-          <input type="text" id="minFilterSearch" placeholder="🔍 Type to filter MIN No..." oninput="filterMinCheckboxes(this.value)">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-            <span style="font-size:11.5px; color:#64748b; font-weight:600;">Available MINs (<span id="minFoundCount">0</span>):</span>
-            <button type="button" style="background:none; border:none; color:#0284c7; font-weight:bold; cursor:pointer; font-size:11.5px;" onclick="clearAllMinSelection()">Clear All Selection</button>
-          </div>
-          <div class="min-checkbox-grid" id="minCheckboxContainer">
-            <span style="color:#94a3b8; font-size:12px;">Loading MTO MIN records...</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Option 2: Searchable & Filterable SAP Code -->
-      <div>
-        <label>Option 2: Select Material SAP Code:</label>
-        <div class="sap-search-wrapper">
-          <input type="text" id="sapSearchInput" placeholder="🔍 Select or Search SAP Code..." oninput="handleSapSearch(this.value)" onfocus="showSapDropdown()" autocomplete="off" disabled>
-          <input type="hidden" id="selectedSapCodeVal">
-          <div id="sapDropdownList" class="sap-dropdown-list"></div>
-        </div>
-        <small id="sapDescText" style="color:#64748b; margin-top:4px; display:block; font-size:11.5px;">Description: -</small>
-      </div>
-
-      <!-- Option 3: Available Balance Issued Qty Display -->
-      <div>
-        <label>Option 3: Total Available Balance Qty:</label>
-        <div class="balance-kpi-card">
-          <div>
-            <span style="font-size:12px; font-weight:700; color:#047857;">Pending to Issue:</span>
-            <div style="font-size:11px; color:#64748b;">(Sum of MIN Qty - Issued Qty)</div>
-          </div>
-          <div class="balance-num" id="availBalanceQty">0.00</div>
-        </div>
-      </div>
-
-      <!-- Option 4: New Issued Qty Input -->
-      <div>
-        <label>Option 4: Enter New Issued Qty to Allocate:</label>
-        <input type="number" id="inputNewIssuedQty" step="any" min="0" placeholder="e.g. 5 or 12.5" oninput="calculateFifoAllocation()" disabled>
-      </div>
-
-      <!-- Option 5: IGP No & IGP Date Inputs -->
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+      <!-- Top 2-Column Selectors -->
+      <div class="selector-grid">
+        
+        <!-- Column 1: Select MIN No with live balance -->
         <div>
-          <label>Option 5A: IGP Number:</label>
-          <input type="text" id="inputIgpNo" placeholder="Enter IGP No..." disabled>
+          <label>Select MIN No:</label>
+          <input type="text" id="minFilterInput" class="search-input" placeholder="🔍 Search MIN No..." oninput="handleMinSearch(this.value)">
+          <div class="scrollable-select-box" id="minCheckboxContainer">
+            <div style="padding:10px; color:#94a3b8; font-size:12px;">Loading MIN records...</div>
+          </div>
+          <div class="selected-summary-text" id="selectedMinDisplay">Selected: None</div>
+        </div>
+
+        <!-- Column 2: Select Material SAP Code -->
+        <div>
+          <label>Select Material SAP Code:</label>
+          <div class="sap-search-wrap">
+            <input type="text" id="sapSearchInput" class="search-input" placeholder="🔍 Type SAP Code or Description..." oninput="handleSapSearch(this.value)" onfocus="showSapDropdown()" autocomplete="off" disabled>
+            <input type="hidden" id="selectedSapCodeVal">
+            <div id="sapDropdownList" class="sap-dropdown-list"></div>
+          </div>
+          <small id="sapDescText" style="color:var(--text-muted); margin-top:8px; display:block; font-size:12px;">Description: -</small>
+        </div>
+
+      </div>
+
+      <!-- Full Width Mint Balance Banner -->
+      <div class="mint-balance-banner">
+        <span class="mint-label">TOTAL BALANCE MIN QTY</span>
+        <span class="mint-val" id="dispTotalBalance">0.000</span>
+      </div>
+
+      <!-- 3-Column Inputs Row -->
+      <div class="bottom-inputs-grid">
+        <div>
+          <label>Enter IGP No:</label>
+          <input type="text" id="inputIgpNo" class="search-input" placeholder="e.g. IGP-1025" disabled>
         </div>
         <div>
-          <label>Option 5B: IGP Date:</label>
-          <input type="date" id="inputIgpDate" disabled>
+          <label>Enter Total Issued Qty to Allocate:</label>
+          <input type="number" id="inputIssuedQty" class="search-input" step="any" min="0" placeholder="e.g. 8" oninput="calculateFifoAllocation()" disabled>
+        </div>
+        <div>
+          <label>Enter IGP Date:</label>
+          <input type="date" id="inputIgpDate" class="search-input" disabled>
         </div>
       </div>
 
-    </div>
-
-    <!-- Action Button -->
-    <div style="display:flex; justify-content:flex-end; margin-top:18px;">
-      <button type="button" class="btn-save-main" id="btnSaveIgp" onclick="saveIgpAllocationToDb()" disabled>
-        💾 SAVE IGP UPDATE TO DATABASE
+      <!-- Full Width Save Button -->
+      <button type="button" class="btn-save-full" id="btnSaveIgp" onclick="executeSaveIgp()" disabled>
+        💾 SAVE
       </button>
-    </div>
-  </div>
 
-  <!-- Allocation Preview Table -->
-  <div class="card" id="previewContainerCard" style="display:none;">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3 style="margin:0; font-size:15px; font-weight:800; color:#0f172a;">📋 Live Allocation Preview (FIFO Distribution)</h3>
-      <span style="font-size:12px; font-weight:bold; color:#15803d;" id="previewRowsCount">0 Rows to Update</span>
-    </div>
+      <!-- FIFO Allocation Preview Section -->
+      <div class="preview-card" id="previewContainerCard">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h4 style="margin:0; font-size:14px; color:#0f172a;">📋 Allocation Distribution Preview (FIFO Order)</h4>
+          <span style="font-size:12px; font-weight:bold; color:var(--teal);" id="previewRowsCount">0 Row(s)</span>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Sr.</th>
+                <th>ID</th>
+                <th>Drawing No</th>
+                <th>Spool No</th>
+                <th>MIN No</th>
+                <th>MIN Qty</th>
+                <th>Old Issued</th>
+                <th>Pending Bal</th>
+                <th>Allocated Now</th>
+                <th>Final Issued Qty</th>
+              </tr>
+            </thead>
+            <tbody id="previewTableBody"></tbody>
+          </table>
+        </div>
+      </div>
 
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Sr.</th>
-            <th>ID</th>
-            <th>Drawing No</th>
-            <th>Spool No</th>
-            <th>MIN No</th>
-            <th>MIN Qty</th>
-            <th>Old Issued Qty</th>
-            <th>Pending Bal</th>
-            <th>Allocated Now</th>
-            <th>Final Issued Qty</th>
-          </tr>
-        </thead>
-        <tbody id="previewTableBody"></tbody>
-      </table>
     </div>
-  </div>
+  </main>
 
   <script>
     const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
@@ -360,14 +377,13 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allMtoRows = [];
-    let pendingMinSet = new Set();
+    let pendingMinMap = new Map(); // minNo -> totalPending
     let selectedMinNumbers = [];
     let availableSapCodes = [];
     let selectedSapCode = "";
     let matchingPendingRows = [];
     let plannedAllocation = [];
 
-    // 1. Session & Admin Verification
     function verifyAdminAccess() {
       const sessionData = sessionStorage.getItem('piping_app_auth');
       if (!sessionData) {
@@ -377,16 +393,23 @@
       }
       const user = JSON.parse(sessionData);
       if (user.username !== 'admin') {
-        alert("⚠️ Access Denied: માત્ર Admin પાસે જ IGP Update ની પરમિશન છે!");
+        alert("⚠️ માત્ર Admin પાસે જ આ પેજ વાપરવાની પરમિશન છે!");
         window.location.href = 'index.html';
         return false;
       }
-      document.getElementById('adminNameBadge').innerText = `| Admin: ${user.name}`;
+      document.getElementById('adminSessionTag').innerText = `Admin: ${user.name}`;
       return true;
     }
 
-    // 2. Fetch All MTO Rows (Read-only on load)
-    async function fetchMtoRecords() {
+    function parseNum(val) {
+      if (val === null || val === undefined) return 0;
+      const str = String(val).trim().replace(/[^0-9.]/g, '');
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : num;
+    }
+
+    // 1. Fetch All MTO Rows (Batch read)
+    async function loadMtoData() {
       try {
         let allRows = [];
         let from = 0;
@@ -410,103 +433,92 @@
         }
 
         allMtoRows = allRows;
-        buildPendingMinList();
+        buildMinCheckboxList();
 
       } catch (err) {
         console.error(err);
-        alert("❌ Error fetching MTO data: " + err.message);
+        alert("❌ Error fetching MTO records: " + err.message);
       }
     }
 
-    function parseNum(val) {
-      if (val === null || val === undefined) return 0;
-      const str = String(val).trim().replace(/[^0-9.]/g, '');
-      const num = parseFloat(str);
-      return isNaN(num) ? 0 : num;
-    }
-
-    // 3. Build Pending MIN Numbers (Option 1)
-    function buildPendingMinList() {
-      const container = document.getElementById('minCheckboxContainer');
-      pendingMinSet.clear();
+    // 2. Build MIN List with pending balance shown exactly like photo
+    function buildMinCheckboxList() {
+      pendingMinMap.clear();
 
       allMtoRows.forEach(r => {
         const minNo = String(r.MIN_No || '').trim();
         if (!minNo || minNo.toLowerCase() === 'null' || minNo === '-') return;
 
-        const minQty = parseNum(r.MIN_qty);
-        const issuedQty = parseNum(r.Issued_qty);
+        const minQ = parseNum(r.MIN_qty);
+        const issuedQ = parseNum(r.Issued_qty);
+        const bal = minQ - issuedQ;
 
-        // Filter: Issued_qty is balance (Issued_qty < MIN_qty)
-        if (minQty > issuedQty) {
-          pendingMinSet.add(minNo);
+        if (bal > 0) {
+          pendingMinMap.set(minNo, (pendingMinMap.get(minNo) || 0) + bal);
         }
       });
 
-      renderMinCheckboxes(Array.from(pendingMinSet).sort());
+      renderMinList(Array.from(pendingMinMap.keys()).sort());
     }
 
-    function renderMinCheckboxes(minList) {
-      const container = document.getElementById('minCheckboxContainer');
-      document.getElementById('minFoundCount').innerText = minList.length;
-
-      if (minList.length === 0) {
-        container.innerHTML = '<span style="color:#15803d; font-weight:bold; font-size:12px;">🎉 કોઈ પેન્ડિંગ MIN મળ્યો નથી!</span>';
+    function renderMinList(minKeys) {
+      const box = document.getElementById('minCheckboxContainer');
+      if (minKeys.length === 0) {
+        box.innerHTML = '<div style="padding:10px; color:#15803d; font-size:12px;">🎉 કોઈ પેન્ડિંગ MIN બાકી નથી!</div>';
         return;
       }
 
-      container.innerHTML = minList.map(minNo => `
-        <label class="min-chip">
-          <input type="checkbox" value="${minNo}" onchange="onMinSelectionChanged()" ${selectedMinNumbers.includes(minNo) ? 'checked' : ''}>
-          <span><b>${minNo}</b></span>
-        </label>
-      `).join('');
+      box.innerHTML = minKeys.map(minNo => {
+        const balVal = (pendingMinMap.get(minNo) || 0).toFixed(3);
+        const isChecked = selectedMinNumbers.includes(minNo);
+        return `
+          <label class="checkbox-item">
+            <input type="checkbox" value="${minNo}" onchange="onMinCheckChanged()" ${isChecked ? 'checked' : ''}>
+            <span><b>${minNo}</b></span>
+            <span class="item-bal-text">(Bal: ${balVal})</span>
+          </label>
+        `;
+      }).join('');
     }
 
-    function filterMinCheckboxes(query) {
-      const q = query.trim().toLowerCase();
-      const allMins = Array.from(pendingMinSet).sort();
+    function handleMinSearch(term) {
+      const q = term.trim().toLowerCase();
+      const allMins = Array.from(pendingMinMap.keys()).sort();
       const filtered = allMins.filter(m => m.toLowerCase().includes(q));
-      renderMinCheckboxes(filtered);
+      renderMinList(filtered);
     }
 
-    function clearAllMinSelection() {
-      selectedMinNumbers = [];
-      const checkboxes = document.querySelectorAll('#minCheckboxContainer input[type="checkbox"]');
-      checkboxes.forEach(cb => cb.checked = false);
-      onMinSelectionChanged();
-    }
+    // 3. Selection Changed -> Update Available SAP Codes
+    function onMinCheckChanged() {
+      const checks = document.querySelectorAll('#minCheckboxContainer input[type="checkbox"]:checked');
+      selectedMinNumbers = Array.from(checks).map(c => c.value);
 
-    // 4. Handle MIN Selection Change -> Update SAP Codes (Option 2)
-    function onMinSelectionChanged() {
-      const checkedBoxes = document.querySelectorAll('#minCheckboxContainer input[type="checkbox"]:checked');
-      selectedMinNumbers = Array.from(checkedBoxes).map(cb => cb.value);
+      const summaryText = document.getElementById('selectedMinDisplay');
+      summaryText.innerText = selectedMinNumbers.length ? `Selected: ${selectedMinNumbers.join(', ')}` : 'Selected: None';
 
       const sapInput = document.getElementById('sapSearchInput');
-      const sapDesc = document.getElementById('sapDescText');
-      document.getElementById('selectedSapCodeVal').value = '';
       sapInput.value = '';
-      sapDesc.innerText = 'Description: -';
+      document.getElementById('selectedSapCodeVal').value = '';
+      document.getElementById('sapDescText').innerText = 'Description: -';
       selectedSapCode = "";
 
       if (selectedMinNumbers.length === 0) {
         sapInput.disabled = true;
-        resetAllocationInputs();
+        resetInputs();
         return;
       }
 
-      // Filter SAP Codes present in selected MIN numbers where balance > 0
+      // Filter unique SAP Codes under selected MINs
       const sapMap = new Map();
-
       allMtoRows.forEach(r => {
         const minNo = String(r.MIN_No || '').trim();
         if (selectedMinNumbers.includes(minNo)) {
-          const sapCode = String(r.MAT_SAP_CODE || '').trim();
-          const minQty = parseNum(r.MIN_qty);
-          const issuedQty = parseNum(r.Issued_qty);
+          const sap = String(r.MAT_SAP_CODE || '').trim();
+          const minQ = parseNum(r.MIN_qty);
+          const issuedQ = parseNum(r.Issued_qty);
 
-          if (sapCode && minQty > issuedQty) {
-            sapMap.set(sapCode, r.MAT_Description || '-');
+          if (sap && minQ > issuedQ) {
+            sapMap.set(sap, r.MAT_Description || '-');
           }
         }
       });
@@ -514,8 +526,8 @@
       availableSapCodes = Array.from(sapMap.entries()).map(([code, desc]) => ({ code, desc }));
 
       sapInput.disabled = availableSapCodes.length === 0;
-      sapInput.placeholder = availableSapCodes.length > 0 ? "🔍 Click or Type SAP Code..." : "No balance SAP Code found";
-      resetAllocationInputs();
+      sapInput.placeholder = availableSapCodes.length ? "🔍 Type SAP Code or Description..." : "No pending SAP code found";
+      resetInputs();
     }
 
     // Searchable SAP Dropdown
@@ -524,7 +536,7 @@
       if (availableSapCodes.length === 0) { list.style.display = 'none'; return; }
 
       list.innerHTML = availableSapCodes.map(s => `
-        <div class="sap-dropdown-item" onclick="pickSapCode('${s.code}', '${encodeURIComponent(s.desc)}')">
+        <div class="sap-dropdown-item" onclick="onPickSap('${s.code}', '${encodeURIComponent(s.desc)}')">
           <span style="font-weight:bold;">${s.code}</span>
           <span style="font-size:11px; color:#64748b; margin-left:8px;">${s.desc}</span>
         </div>
@@ -532,12 +544,12 @@
       list.style.display = 'block';
     }
 
-    function handleSapSearch(q) {
-      const term = q.trim().toLowerCase();
+    function handleSapSearch(val) {
+      const q = val.trim().toLowerCase();
       const list = document.getElementById('sapDropdownList');
-      if (!term) { showSapDropdown(); return; }
+      if (!q) { showSapDropdown(); return; }
 
-      const matched = availableSapCodes.filter(s => s.code.toLowerCase().includes(term) || s.desc.toLowerCase().includes(term));
+      const matched = availableSapCodes.filter(s => s.code.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q));
       if (matched.length === 0) {
         list.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px;">No matching SAP code</div>';
         list.style.display = 'block';
@@ -545,7 +557,7 @@
       }
 
       list.innerHTML = matched.map(s => `
-        <div class="sap-dropdown-item" onclick="pickSapCode('${s.code}', '${encodeURIComponent(s.desc)}')">
+        <div class="sap-dropdown-item" onclick="onPickSap('${s.code}', '${encodeURIComponent(s.desc)}')">
           <span style="font-weight:bold;">${s.code}</span>
           <span style="font-size:11px; color:#64748b; margin-left:8px;">${s.desc}</span>
         </div>
@@ -553,7 +565,7 @@
       list.style.display = 'block';
     }
 
-    function pickSapCode(code, encDesc) {
+    function onPickSap(code, encDesc) {
       selectedSapCode = code;
       const desc = decodeURIComponent(encDesc);
       document.getElementById('sapSearchInput').value = code;
@@ -561,64 +573,60 @@
       document.getElementById('sapDescText').innerText = `Description: ${desc}`;
       document.getElementById('sapDropdownList').style.display = 'none';
 
-      onSapCodeSelected();
+      calculateAvailableBalance();
     }
 
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.sap-search-wrapper')) {
+      if (!e.target.closest('.sap-search-wrap')) {
         document.getElementById('sapDropdownList').style.display = 'none';
       }
     });
 
-    // 5. Calculate Balance Issued Qty (Option 3)
-    function onSapCodeSelected() {
+    // 4. Calculate Available Balance for Selected MIN + SAP
+    function calculateAvailableBalance() {
       matchingPendingRows = allMtoRows.filter(r => {
         const minNo = String(r.MIN_No || '').trim();
         const sap = String(r.MAT_SAP_CODE || '').trim();
-        const minQty = parseNum(r.MIN_qty);
-        const issuedQty = parseNum(r.Issued_qty);
+        const minQ = parseNum(r.MIN_qty);
+        const issuedQ = parseNum(r.Issued_qty);
 
-        return selectedMinNumbers.includes(minNo) && sap === selectedSapCode && minQty > issuedQty;
+        return selectedMinNumbers.includes(minNo) && sap === selectedSapCode && minQ > issuedQ;
       });
 
-      // Sort rows by ID (FIFO)
       matchingPendingRows.sort((a, b) => a.id - b.id);
 
-      let totalBalance = 0;
+      let totalBal = 0;
       matchingPendingRows.forEach(r => {
-        const bal = parseNum(r.MIN_qty) - parseNum(r.Issued_qty);
-        totalBalance += bal;
+        totalBal += (parseNum(r.MIN_qty) - parseNum(r.Issued_qty));
       });
 
-      totalBalance = Math.round(totalBalance * 1000) / 1000;
-      document.getElementById('availBalanceQty').innerText = totalBalance.toFixed(2);
+      totalBal = Math.round(totalBal * 1000) / 1000;
+      document.getElementById('dispTotalBalance').innerText = totalBal.toFixed(3);
 
-      const hasBal = totalBalance > 0;
-      document.getElementById('inputNewIssuedQty').disabled = !hasBal;
+      const hasBal = totalBal > 0;
       document.getElementById('inputIgpNo').disabled = !hasBal;
+      document.getElementById('inputIssuedQty').disabled = !hasBal;
       document.getElementById('inputIgpDate').disabled = !hasBal;
 
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('inputIgpDate').value = today;
-
+      document.getElementById('inputIgpDate').value = new Date().toISOString().split('T')[0];
       calculateFifoAllocation();
     }
 
-    function resetAllocationInputs() {
-      document.getElementById('availBalanceQty').innerText = '0.00';
-      document.getElementById('inputNewIssuedQty').value = '';
-      document.getElementById('inputNewIssuedQty').disabled = true;
+    function resetInputs() {
+      document.getElementById('dispTotalBalance').innerText = '0.000';
       document.getElementById('inputIgpNo').value = '';
       document.getElementById('inputIgpNo').disabled = true;
+      document.getElementById('inputIssuedQty').value = '';
+      document.getElementById('inputIssuedQty').disabled = true;
       document.getElementById('inputIgpDate').value = '';
       document.getElementById('inputIgpDate').disabled = true;
       document.getElementById('btnSaveIgp').disabled = true;
       document.getElementById('previewContainerCard').style.display = 'none';
     }
 
-    // 6. FIFO Allocation Logic (Option 4)
+    // 5. Calculate FIFO Allocation
     function calculateFifoAllocation() {
-      const qtyInput = document.getElementById('inputNewIssuedQty');
+      const qtyInput = document.getElementById('inputIssuedQty');
       const val = parseFloat(qtyInput.value);
       const previewCard = document.getElementById('previewContainerCard');
       const tbody = document.getElementById('previewTableBody');
@@ -641,7 +649,6 @@
 
         let allocNow = 0;
 
-        // If this is the last row, dump all remaining qty even if it exceeds pendingBal!
         if (idx === matchingPendingRows.length - 1) {
           allocNow = Math.round(remainingToAllocate * 1000) / 1000;
           remainingToAllocate = 0;
@@ -666,10 +673,8 @@
         });
       });
 
-      // Filter out rows where allocated is 0
       plannedAllocation = plannedAllocation.filter(p => p.allocNow > 0);
 
-      // Render Table
       tbody.innerHTML = plannedAllocation.map((p, i) => `
         <tr>
           <td>${i + 1}</td>
@@ -685,24 +690,24 @@
         </tr>
       `).join('');
 
-      document.getElementById('previewRowsCount').innerText = `${plannedAllocation.length} Row(s) to Update`;
+      document.getElementById('previewRowsCount').innerText = `${plannedAllocation.length} Row(s)`;
       previewCard.style.display = 'block';
       document.getElementById('btnSaveIgp').disabled = plannedAllocation.length === 0;
     }
 
-    // 7. Save to Supabase (Option 5)
-    async function saveIgpAllocationToDb() {
+    // 6. Execute Save to Supabase (Safe & Exact)
+    async function executeSaveIgp() {
       const igpNo = document.getElementById('inputIgpNo').value.trim();
       const igpDate = document.getElementById('inputIgpDate').value;
 
-      if (!igpNo) return alert('⚠️ કૃપા કરીને Option 5A માં IGP Number દાખલ કરો!');
-      if (!igpDate) return alert('⚠️ કૃપા કરીને Option 5B માં IGP Date પસંદ કરો!');
-      if (plannedAllocation.length === 0) return alert('⚠️ ફાળવવા માટે કોઈ જથ્થો મળ્યો નથી!');
+      if (!igpNo) return alert('⚠️ કૃપા કરીને IGP No દાખલ કરો!');
+      if (!igpDate) return alert('⚠️ કૃપા કરીને IGP Date પસંદ કરો!');
+      if (plannedAllocation.length === 0) return alert('⚠️ કોઈ જથ્થો ફાળવાયેલ નથી!');
 
-      if (!confirm(`શું તમે ${plannedAllocation.length} રેકોર્ડ્સ માટે IGP Number: "${igpNo}" સેવ કરવા માંગો છો?`)) return;
+      if (!confirm(`શું તમે ${plannedAllocation.length} રેકોર્ડ્સ માટે IGP No: "${igpNo}" સેવ કરવા માંગો છો?`)) return;
 
       const btn = document.getElementById('btnSaveIgp');
-      btn.innerText = '⏳ Saving to Supabase...';
+      btn.innerText = '⏳ Saving to Database...';
       btn.disabled = true;
 
       try {
@@ -719,28 +724,28 @@
           if (error) throw error;
         }
 
-        alert(`✅ સફળતાપૂર્વક ${plannedAllocation.length} રેકોર્ડ્સમાં IGP અપડેટ થઈ ગયું!`);
+        alert(`✅ સફળતાપૂર્વક ${plannedAllocation.length} રો માં IGP સેવ થઈ ગયું!`);
 
-        // Refresh Data
-        await fetchMtoRecords();
-        resetAllocationInputs();
+        await loadMtoData();
+        resetInputs();
         document.getElementById('sapSearchInput').value = '';
         selectedMinNumbers = [];
-        const checkboxes = document.querySelectorAll('#minCheckboxContainer input[type="checkbox"]');
-        checkboxes.forEach(cb => cb.checked = false);
+        const checks = document.querySelectorAll('#minCheckboxContainer input[type="checkbox"]');
+        checks.forEach(c => c.checked = false);
+        document.getElementById('selectedMinDisplay').innerText = 'Selected: None';
 
       } catch (err) {
         console.error(err);
-        alert('❌ Error saving to database: ' + err.message);
+        alert('❌ Error: ' + err.message);
       } finally {
-        btn.innerText = '💾 SAVE IGP UPDATE TO DATABASE';
+        btn.innerText = '💾 SAVE';
         btn.disabled = false;
       }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       if (verifyAdminAccess()) {
-        fetchMtoRecords();
+        loadMtoData();
       }
     });
   </script>
