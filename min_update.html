@@ -9,35 +9,51 @@
     :root {
       --primary: #0d9488;
       --primary-dark: #0f766e;
-      --navy: #0f172a;
+      --navy: #0b1329;
       --card-bg: #ffffff;
-      --bg: #f8fafc;
+      --bg: #f1f5f9;
       --border: #e2e8f0;
       --text-main: #0f172a;
       --text-muted: #64748b;
+      --mint-bg: #e6f9f3;
+      --mint-border: #a7f3d0;
+      --mint-text: #065f46;
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text-main);
-      margin: 0;
-      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       -webkit-font-smoothing: antialiased;
     }
 
+    /* 🟢 1. FULL WIDTH TOP NAVBAR */
     .top-navbar {
-      background: rgba(15, 23, 42, 0.94);
-      backdrop-filter: blur(10px);
+      background: var(--navy);
       color: white;
-      padding: 12px 20px;
+      padding: 14px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       position: sticky;
       top: 0;
       z-index: 100;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .top-navbar-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .btn-back {
@@ -45,7 +61,7 @@
       color: var(--navy);
       border: 1px solid #cbd5e1;
       border-radius: 8px;
-      padding: 6px 14px;
+      padding: 7px 16px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
@@ -53,60 +69,79 @@
       align-items: center;
       gap: 6px;
       text-decoration: none;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
-    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+    .btn-back:hover { background: #f8fafc; color: var(--primary); }
 
-    .container {
+    /* 🟢 2. 100% FULL DISPLAY WORKSPACE */
+    .full-workspace {
+      flex: 1;
       width: 100%;
-      max-width: 1100px;
-      margin: 16px auto;
-      padding: 0 16px;
+      padding: 24px 32px;
+      margin: 0 auto;
       box-sizing: border-box;
     }
 
     .card {
       background: var(--card-bg);
-      padding: 20px;
-      border-radius: 12px;
+      padding: 24px 28px;
+      border-radius: 14px;
       border: 1px solid var(--border);
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
-      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+      width: 100%;
+      margin-bottom: 20px;
     }
 
     h3 {
-      margin-top: 0;
-      color: var(--navy);
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 10px;
-      font-size: 16px;
-      font-weight: 700;
+      margin: 0;
+      color: #0f172a;
+      border-bottom: 1.5px solid #f1f5f9;
+      padding-bottom: 12px;
+      font-size: 17px;
+      font-weight: 800;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    label { font-size: 12.5px; font-weight: 700; color: #334155; margin-top: 10px; display: block; }
+    label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 10px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
     input, select {
       width: 100%;
-      padding: 9px 12px;
-      margin-top: 4px;
+      padding: 10px 14px;
       border: 1.5px solid #cbd5e1;
       border-radius: 8px;
-      box-sizing: border-box;
       font-size: 13px;
-      background: #fff;
+      outline: none;
+      background: #ffffff;
+      transition: border-color 0.2s;
     }
     input:focus, select:focus {
-      outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
     }
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 14px;
+      margin-bottom: 20px;
+    }
+
+    .inputs-3col-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 14px;
+      margin-bottom: 22px;
     }
 
     /* Multi-Select Box */
@@ -114,7 +149,7 @@
       border: 1.5px solid #cbd5e1;
       border-radius: 8px;
       padding: 10px;
-      background: #fff;
+      background: #ffffff;
       margin-top: 4px;
     }
     .lot-options-list {
@@ -124,27 +159,28 @@
       border-radius: 6px;
       padding: 6px;
       margin-top: 6px;
-      background: #fafafa;
+      background: #ffffff;
     }
     .lot-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 4px 6px;
+      gap: 10px;
+      padding: 6px 4px;
       font-size: 12.5px;
       cursor: pointer;
+      border-bottom: 1px solid #f8fafc;
     }
-    .lot-item:hover { background: #f0fdf4; }
-    .lot-item input[type="checkbox"] { width: 15px; height: 15px; margin: 0; cursor: pointer; }
+    .lot-item:hover { background: #f0fdf4; border-radius: 4px; }
+    .lot-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; accent-color: var(--primary); }
 
     /* Searchable SAP Dropdown */
-    .sap-search-wrapper { position: relative; }
+    .sap-search-wrapper { position: relative; margin-top: 4px; }
     .sap-dropdown-list {
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
-      max-height: 220px;
+      max-height: 200px;
       overflow-y: auto;
       background: #ffffff;
       border: 1.5px solid var(--primary);
@@ -155,7 +191,7 @@
       margin-top: 2px;
     }
     .sap-dropdown-item {
-      padding: 8px 12px;
+      padding: 9px 12px;
       font-size: 12.5px;
       cursor: pointer;
       border-bottom: 1px solid #f1f5f9;
@@ -164,88 +200,106 @@
       align-items: center;
     }
     .sap-dropdown-item:hover {
-      background: #f0fdf4;
+      background: #f0fdfa;
       color: var(--primary-dark);
       font-weight: 600;
     }
 
-    /* Summary Metric Banner */
+    /* 🟢 3. FULL WIDTH MINT BANNER */
     .balance-banner {
-      background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
-      border: 1.5px solid #5eead4;
+      background: var(--mint-bg);
+      border: 1.5px solid var(--mint-border);
       border-radius: 10px;
-      padding: 14px 18px;
-      margin-top: 14px;
+      padding: 16px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .balance-banner-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--mint-text);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
     .balance-banner-val {
-      font-size: 24px;
-      font-weight: 800;
-      color: #0f766e;
+      font-size: 26px;
+      font-weight: 900;
+      color: #047857;
+      letter-spacing: -0.5px;
     }
 
-    /* Action Buttons */
+    /* 🟢 4. FULL WIDTH ACTION BUTTON */
     .btn-action-save {
-      background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 8px;
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: 700;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 800;
       cursor: pointer;
       width: 100%;
-      margin-top: 16px;
-      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
-      transition: all 0.2s;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+      transition: all 0.2s ease;
     }
-    .btn-action-save:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(13, 148, 136, 0.35); }
+    .btn-action-save:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-action-save:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
 
     /* Table Grid */
     .table-container {
       overflow-x: auto;
+      max-height: 45vh;
       margin-top: 14px;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
     }
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #e2e8f0; padding: 8px 10px; white-space: nowrap; }
-    th { background: #0f766e; color: white; font-weight: 700; }
+    th, td { border: 1px solid #e2e8f0; padding: 9px 12px; white-space: nowrap; }
+    th { background: #0f172a; color: white; font-weight: 700; position: sticky; top: 0; z-index: 10; text-align: center; }
     tr:nth-child(even) td { background: #f8fafc; }
 
     /* Allocation Status Badges */
     .badge-allocated { background: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; }
     .badge-skipped { background: #fee2e2; color: #dc2626; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; }
     .badge-partial { background: #fef3c7; color: #b45309; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; }
+
+    @media (max-width: 900px) {
+      .full-workspace { padding: 14px; }
+      .form-grid { grid-template-columns: 1fr; gap: 14px; }
+      .inputs-3col-grid { grid-template-columns: 1fr; gap: 12px; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Top Navbar -->
-  <div class="top-navbar">
-    <div style="font-size: 16px; font-weight: 700; display:flex; align-items:center; gap:8px;">
-      <span>📋 MIN ISSUE & ALLOCATION CONSOLE</span>
+  <!-- 🟢 Top Navbar (Full Width) -->
+  <header class="top-navbar">
+    <div class="top-navbar-title">
+      <span>📋</span>
+      <span>MIN ISSUE & ALLOCATION CONSOLE</span>
     </div>
     <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
-  </div>
+  </header>
 
-  <div class="container">
+  <!-- 🟢 Main Full Workspace -->
+  <main class="full-workspace">
     <div class="card">
-      <h3> MIN Allocation</h3>
+      <h3>MIN Allocation</h3>
       
       <div class="form-grid">
         <!-- Option 1: Multi-Select Lot No -->
         <div>
           <label>Select Lot No:</label>
           <div class="lot-select-box">
-            <input type="text" id="lotSearchInput" placeholder="🔍 Search Lot No..." oninput="filterLotCheckboxList(this.value)" style="margin-top:0; padding:6px 8px; font-size:12px;">
+            <input type="text" id="lotSearchInput" placeholder="🔍 Search Lot No..." oninput="filterLotCheckboxList(this.value)" style="margin-top:0; padding:8px 10px; font-size:12.5px;">
             <div id="lotCheckboxList" class="lot-options-list">
               <div style="padding:10px; text-align:center; color:#64748b;">⏳ Loading Lot Numbers...</div>
             </div>
           </div>
-          <small id="selectedLotDisplay" style="color:#0d9488; font-weight:600; margin-top:4px; display:block;">Selected: None</small>
+          <small id="selectedLotDisplay" style="color:var(--primary); font-weight:700; margin-top:8px; display:block;">Selected: None</small>
         </div>
 
         <!-- Option 2: Searchable SAP Code -->
@@ -256,21 +310,18 @@
             <input type="hidden" id="selectedSapCodeVal">
             <div id="sapDropdownList" class="sap-dropdown-list"></div>
           </div>
-          <small id="sapDescDisplay" style="color:#64748b; margin-top:4px; display:block;">Description: -</small>
+          <small id="sapDescDisplay" style="color:var(--text-muted); margin-top:8px; display:block; font-size:12px;">Description: -</small>
         </div>
       </div>
 
-      <!-- Option 3: Display Total Balance Available -->
+      <!-- Option 3: Display Total Balance Available (Mint Banner) -->
       <div class="balance-banner">
-        <div>
-          <div style="font-size:12px; font-weight:700; color:#0f766e; text-transform:uppercase;">Total Balance MIN Qty</div>
-          <div style="font-size:12.5px; color:#475569; margin-top:2px;"></div>
-        </div>
-        <div class="balance-banner-val" id="totalBalanceVal">0.000</div>
+        <span class="balance-banner-title">Total Balance MIN Qty</span>
+        <span class="balance-banner-val" id="totalBalanceVal">0.000</span>
       </div>
 
-      <!-- Options 4, 5 & 6: Inputs -->
-      <div class="form-grid" style="margin-top: 14px;">
+      <!-- Options 4, 5 & 6: 3-Column Inputs -->
+      <div class="inputs-3col-grid">
         <div>
           <label>Enter MIN No:</label>
           <input type="text" id="inputMinNo" placeholder="e.g. 11035" disabled>
@@ -294,7 +345,7 @@
         <h3 style="margin:0; border:none; color:#0f766e;">🔍 Allocation Live Preview (<span id="previewRowCount">0</span> Rows)</h3>
         <span id="allocationStatusTag" style="font-size:12px; font-weight:bold;"></span>
       </div>
-      <p style="font-size:12.5px; color:#475569; margin-top:6px;">તમારા દાખલ કરેલા જથ્થા મુજબ સિસ્ટમે સચોટ કોમ્બિનેશન શોધીને રો ફાળવી છે. મિસમેચ હશે તો સેવ કરતાં પહેલાં કન્ફર્મેશન પૂછવામાં આવશે.</p>
+      <p style="font-size:12.5px; color:#475569; margin-top:8px;">તમારા દાખલ કરેલા જથ્થા મુજબ સિસ્ટમે સચોટ કોમ્બિનેશન શોધીને રો ફાળવી છે. મિસમેચ હશે તો સેવ કરતાં પહેલાં કન્ફર્મેશન પૂછવામાં આવશે.</p>
       
       <div class="table-container">
         <table>
@@ -314,7 +365,7 @@
         </table>
       </div>
     </div>
-  </div>
+  </main>
 
   <script>
     const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
@@ -383,7 +434,6 @@
         const lot = String(r.lot_no).trim();
         const minNo = r.MIN_No ? String(r.MIN_No).trim() : '';
 
-        // ફક્ત જ્યાં MIN_No ખાલી હોય
         if (minNo === '' || minNo === '-' || minNo.toLowerCase() === 'null') {
           const qty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
           lotMap.set(lot, (lotMap.get(lot) || 0) + qty);
@@ -511,7 +561,6 @@
       document.getElementById('sapDescDisplay').innerText = `Description: ${desc}`;
       document.getElementById('sapDropdownList').style.display = 'none';
 
-      // ૫. પસંદ કરેલા Lot & SAP માટે રો ફિલ્ટર કરવી
       currentFilteredRows = mtoRecords.filter(r => {
         const lot = String(r.lot_no || '').trim();
         const rowSap = String(r.MAT_SAP_CODE || '').trim();
@@ -520,7 +569,6 @@
         return selectedLotSet.has(lot) && rowSap === sap && (minNo === '' || minNo === '-' || minNo.toLowerCase() === 'null');
       });
 
-      // કુલ સરવાળો (Option 3)
       let totalBal = 0;
       currentFilteredRows.forEach(r => {
         const qty = parseFloat(String(r.MIN_qty || '0').replace(/[^0-9.]/g, '')) || 0;
@@ -537,17 +585,14 @@
       calculateSmartAllocationPreview();
     }
 
-// ૬. Ultra-Fast Subset-Sum Finder (Never Freezes / DP Approach)
+    // ૫. Fast Subset-Sum Finder
     function findExactSubsetCombination(rows, target) {
       const targetClean = Math.round(target * 1000);
       if (targetClean <= 0) return null;
 
-      // ૧. રો વધારે હોય (30+) ત્યારે બ્રાઉઝર ક્રેશ ન થાય તે માટે DP Map નો ઉપયોગ
-      // dp[sum] = એ સમ બનાવવા માટે પસંદ કરેલા row indices નો એરે
       const dp = new Map();
       dp.set(0, []);
 
-      // સમય મર્યાદા (Loop Safety)
       let operations = 0;
       const maxOps = 150000;
 
@@ -555,15 +600,14 @@
         const val = Math.round((parseFloat(rows[i].MIN_qty) || 0) * 1000);
         if (val <= 0 || val > targetClean) continue;
 
-        // હાલના બનેલા સરવાળાઓ તપાસો
         const currentEntries = Array.from(dp.entries());
         for (const [sum, indices] of currentEntries) {
           operations++;
-          if (operations > maxOps) break; // સેફ્ટી લિમિટ જેથી ક્યારેય હેંગ ન થાય
+          if (operations > maxOps) break;
 
           const newSum = sum + val;
           if (newSum === targetClean) {
-            return [...indices, i]; // પરફેક્ટ મેચ મળી ગયું!
+            return [...indices, i];
           }
 
           if (newSum < targetClean && !dp.has(newSum)) {
@@ -573,10 +617,10 @@
         if (operations > maxOps) break;
       }
 
-      return null; // જો એક્ઝેક્ટ મેચ ન મળે તો
+      return null;
     }
 
-    // ૭. Option 4 & 5: સ્માર્ટ એલોકેશન અને લાઈવ પ્રિવ્યૂ
+    // ૬. Smart Allocation Preview
     function calculateSmartAllocationPreview() {
       const minNoVal = document.getElementById('inputMinNo').value.trim() || 'PENDING';
       const inputVal = parseFloat(document.getElementById('inputIssuedMinQty').value) || 0;
@@ -593,11 +637,9 @@
       allocatedBatchUpdates = [];
       const previewRowsHtml = [];
 
-      // ૧. શું કોઈ પરફેક્ટ કોમ્બિનેશન મેચ થાય છે? (Exact Match Check)
       const exactIndices = findExactSubsetCombination(currentFilteredRows, inputVal);
 
       if (exactIndices !== null) {
-        // ✅ EXACT MATCH FOUND! (જેમ કે Row 1=3 અને Row 3=5 -> Target=8, Row 2 સ્કીપ થશે)
         isMismatchDetected = false;
         statusTag.innerHTML = `<span class="badge-allocated">✅ Exact Smart Fit Matched (100% Fit)</span>`;
 
@@ -630,7 +672,6 @@
         });
 
       } else {
-        // ⚠️ MISMATCH DETECTED: કોઈ એક્ઝેક્ટ મેચ નથી
         isMismatchDetected = true;
         statusTag.innerHTML = `<span class="badge-partial">⚠️ Allocation Mismatch (Partial / FIFO Order)</span>`;
 
@@ -670,7 +711,7 @@
       previewArea.style.display = 'block';
     }
 
-    // ૮. Option 6: બેચ સેવ લોજિક (કન્ફર્મેશન સાથે)
+    // ૭. Execute Batch Save to Database
     async function executeBatchMinSave() {
       const minNo = document.getElementById('inputMinNo').value.trim();
       const minDate = document.getElementById('inputMinDate').value;
@@ -683,7 +724,6 @@
         return alert("⚠️ ફાળવણી કરવા માટે યોગ્ય Issued Qty દાખલ કરો!");
       }
 
-      // જો મિસમેચ હોય તો સ્પષ્ટપણે પૂછવું:
       if (isMismatchDetected) {
         const proceed = confirm(`⚠️ Allocation is mismatch!\n\nદાખલ કરેલ જથ્થો (${inputVal}) ઉપલબ્ધ રો ના સચોટ માપ સાથે મેળ ખાતો નથી.\n\nશું તમે standard allocation સાથે આગળ વધવા માંગો છો?\n(Yes = Proceed, Cancel = Skip/Cancel)`);
         if (!proceed) return;
@@ -715,7 +755,7 @@
         console.error(err);
         alert("સેવ કરવામાં ભૂલ આવી: " + err.message);
         saveBtn.disabled = false;
-        saveBtn.innerText = "💾 EXECUTE & SAVE MIN UPDATE TO DATABASE";
+        saveBtn.innerText = "💾 SAVE";
       }
     }
 
