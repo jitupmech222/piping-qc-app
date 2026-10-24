@@ -23,8 +23,17 @@
       flex-shrink: 0;
     }
     .toolbar-left { display: flex; align-items: center; gap: 12px; }
-    .toolbar-title h2 { margin: 0; font-size: 16px; color: #0f172a; }
-    .toolbar-title span { font-size: 11px; color: #16a34a; font-weight: bold; }
+    .toolbar-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .toolbar-title h2 { margin: 0; font-size: 15px; color: #0f172a; }
+    .sum-badge {
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #bae6fd;
+    }
 
     .btn-back {
       padding: 5px 12px;
@@ -156,7 +165,6 @@
     }
     table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 3200px; font-size: 12px; }
     
-    /* 🟢 100% FIXED / FREEZE TABLE HEADER */
     thead {
       position: sticky;
       top: 0;
@@ -197,12 +205,11 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s;
     }
     .filter-btn-icon:hover { background: #0369a1; }
     .filter-btn-icon.active { background: #ffd54f; color: #0f172a; font-weight: bold; }
 
-    /* Filter Popover Modal Box */
+    /* Filter Popover */
     .filter-popover {
       position: absolute;
       top: 100%;
@@ -306,19 +313,19 @@
       <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
       <div class="toolbar-title">
         <h2>📊 LHS (<span id="recordCount">0</span> Rows)</h2>
-        <span></span>
+        <span class="sum-badge" id="sumBadgeInchDia">Inch Dia Sum: 0.000</span>
       </div>
     </div>
 
     <div class="toolbar-right">
-      <button type="button" id="btnModeView" class="btn-mode active-view" onclick="setMode(false)"> View</button>
-      <button type="button" id="btnModeEdit" class="btn-mode" onclick="setMode(true)"> Edit</button>
-      <button type="button" id="btnSave" class="btn-save" style="display: none;" onclick="saveChanges()"> Save</button>
+      <button type="button" id="btnModeView" class="btn-mode active-view" onclick="setMode(false)">View</button>
+      <button type="button" id="btnModeEdit" class="btn-mode" onclick="setMode(true)">Edit</button>
+      <button type="button" id="btnSave" class="btn-save" style="display: none;" onclick="saveChanges()">Save</button>
       <button type="button" id="btnClearFilters" class="btn-clear" onclick="clearAllFilters()">✖ Clear Filters</button>
-      <button type="button" class="btn-export" onclick="exportToExcel()"> Export View</button>
+      <button type="button" class="btn-export" onclick="exportToExcel()">Export View</button>
 
-      <button type="button" class="btn-download-raw" onclick="downloadRawData()"> Download Data</button>
-      <button type="button" class="btn-update-raw" onclick="triggerUpdateData()"> Update Data</button>
+      <button type="button" class="btn-download-raw" onclick="downloadRawData()">Download Data</button>
+      <button type="button" class="btn-update-raw" onclick="triggerUpdateData()">Update Data</button>
       <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="handleExcelUpload(event)">
     </div>
   </div>
@@ -361,14 +368,14 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 🟢 46 COLUMNS DEFINITION
+    // 46 COLUMNS DEFINITION
     const COLUMNS = [
       { key: "cwp", title: "CWP" },
       { key: "system_ug_ag", title: "System(UG-AG)" },
       { key: "unit_wbs", title: "Unit-WBS" },
       { key: "unit", title: "UNIT" },
       { key: "service", title: "Service" },
-      { key: "drawing_no", title: "ISO No/Drawing No/Line No", width: 230, align: "left" },
+      { key: "drawing_no", title: "ISO No/Drawing No/Line No", width: 240, align: "left" },
       { key: "spool_no", title: "Spool Unique No.", width: 140 },
       { key: "joint_no", title: "Joint No." },
       { key: "spool_size", title: "Spool Size" },
@@ -414,8 +421,6 @@
     let allRows = [];
     let isEditMode = false;
     let editedRows = new Map();
-
-    // Active filters: { colKey: Set(['val1', 'val2']) }
     let columnFilters = {};
     let openPopoverColKey = null;
 
@@ -438,17 +443,53 @@
       return true;
     }
 
+    // SAFE DATE FORMATTERS (Never splits text words containing 'T')
+    function formatIsoLocalDate(d) {
+      if (!(d instanceof Date) || isNaN(d.getTime())) return null;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
     function formatDateDisplay(val) {
       if (!val) return '-';
+      if (val instanceof Date) return formatIsoLocalDate(val) || '-';
       const str = String(val).trim();
-      if (!str || str.toLowerCase() === 'null') return '-';
-      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      if (!str || str.toLowerCase() === 'null' || str === '-') return '-';
+      
+      const dPart = /^\d{4}-\d{2}-\d{2}T/.test(str) ? str.split('T')[0] : str;
       const parts = dPart.split('-');
-      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
       return str;
     }
 
-    // 1. FETCH RECORDS DIRECTLY FROM lhs_entries
+    function parseAnyDateToIso(val) {
+      if (!val) return null;
+      if (val instanceof Date) return formatIsoLocalDate(val);
+      const s = String(val).trim();
+      if (!s || s.toLowerCase() === 'null' || s === '-') return null;
+
+      // Matches ISO YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        return s.substring(0, 10);
+      }
+      // Matches DD-MM-YYYY, DD/MM/YYYY, DD.MM.YYYY
+      const parts = s.split(/[-/.]/);
+      if (parts.length === 3) {
+        if (parts[2].length === 4) {
+          return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+        if (parts[0].length === 4) {
+          return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        }
+      }
+      return s;
+    }
+
+    // 1. FETCH RECORDS
     async function loadRecords() {
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = `<tr><td colspan="50" style="padding: 40px; text-align: center; color: #64748b;">⏳ Loading LHS Records...</td></tr>`;
@@ -476,7 +517,6 @@
         }
 
         allRows = rows;
-        document.getElementById('recordCount').innerText = allRows.length;
         renderHeader();
         applyFiltersAndRender();
 
@@ -486,7 +526,7 @@
       }
     }
 
-    // 🟢 2. FIXED HEADER BUILDER (Removed 'position: relative;' to allow freeze header)
+    // 2. FIXED HEADER BUILDER
     function renderHeader() {
       const tr = document.getElementById('headerRow');
       tr.innerHTML = `
@@ -507,7 +547,7 @@
       `;
     }
 
-    // 3. CASCADING FILTER LOGIC
+    // 3. CASCADING FILTER
     function getFilteredRows(excludeColKey = null) {
       return allRows.filter(r => {
         for (const [key, allowedSet] of Object.entries(columnFilters)) {
@@ -533,7 +573,7 @@
       });
     }
 
-    // 4. FILTER POPOVER WITH CASCADED VALUES
+    // 4. FILTER POPOVER
     function toggleFilter(e, key) {
       e.stopPropagation();
       const pop = document.getElementById(`popover_${key}`);
@@ -705,7 +745,7 @@
       }
     });
 
-    // 5. TABLE RENDERING & PAGINATION
+    // 5. TABLE RENDERING, ACCURATE SUM & PAGINATION
     function applyFiltersAndRender() {
       const filtered = getFilteredRows();
       const totalRows = filtered.length;
@@ -713,6 +753,22 @@
 
       if (currentPage > totalPages) currentPage = totalPages;
       if (currentPage < 1) currentPage = 1;
+
+      // 🟢 ACCURATE INCH DIA SUM (3 DECIMALS)
+      let sumInchDia = 0;
+      filtered.forEach(r => {
+        const val = editedRows.has(r.id) && editedRows.get(r.id)['weld_inch_dia'] !== undefined 
+          ? editedRows.get(r.id)['weld_inch_dia'] 
+          : r.weld_inch_dia;
+        const n = parseFloat(val);
+        if (!isNaN(n)) sumInchDia += n;
+      });
+      sumInchDia = Math.round(sumInchDia * 1000) / 1000;
+
+      document.getElementById('recordCount').innerText = filtered.length === allRows.length 
+        ? `${allRows.length}` 
+        : `${filtered.length} of ${allRows.length}`;
+      document.getElementById('sumBadgeInchDia').innerText = `Inch Dia Sum: ${Number.isInteger(sumInchDia) ? sumInchDia : sumInchDia.toFixed(3)}`;
 
       const start = (currentPage - 1) * pageSize;
       const pageRows = filtered.slice(start, start + pageSize);
@@ -754,7 +810,7 @@
                 `;
               } else {
                 const alignStyle = c.align ? `text-align: ${c.align}; padding-left: 8px; font-weight: 500;` : '';
-                return `<td style="${alignStyle}">${displayVal || '-'}</td>`;
+                return `<td style="${alignStyle}">${displayVal === null || displayVal === undefined || displayVal === '' ? '-' : displayVal}</td>`;
               }
             }).join('')}
           </tr>
@@ -762,7 +818,6 @@
       }).join('');
     }
 
-    // PAGINATION CONTROLS
     function changePageSize(val) {
       pageSize = Number(val);
       currentPage = 1;
@@ -789,10 +844,23 @@
 
     function handleCellChange(rowId, colKey, newVal) {
       if (!editedRows.has(rowId)) editedRows.set(rowId, {});
-      editedRows.get(rowId)[colKey] = newVal.trim() === '' ? null : newVal.trim();
-      
+      const colDef = COLUMNS.find(c => c.key === colKey);
+      let cleanVal = newVal.trim() === '' ? null : newVal.trim();
+
+      // Convert DD-MM-YYYY to ISO YYYY-MM-DD for database update
+      if (cleanVal && colDef && colDef.isDate) {
+        cleanVal = parseAnyDateToIso(cleanVal);
+      }
+      if (cleanVal && (colKey === 'weld_inch_dia' || colKey === 'weld_npd')) {
+        const parsed = parseFloat(cleanVal);
+        if (!isNaN(parsed)) cleanVal = parsed;
+      }
+
+      editedRows.get(rowId)[colKey] = cleanVal;
       const target = allRows.find(x => x.id === rowId);
-      if (target) target[colKey] = newVal.trim() === '' ? null : newVal.trim();
+      if (target) target[colKey] = cleanVal;
+
+      applyFiltersAndRender();
     }
 
     async function deleteRow(rowId) {
@@ -804,7 +872,6 @@
 
         allRows = allRows.filter(r => r.id !== rowId);
         editedRows.delete(rowId);
-        document.getElementById('recordCount').innerText = allRows.length;
         applyFiltersAndRender();
         alert("✅ રેકોર્ડ સફળતાપૂર્વક ડિલીટ થઈ ગયો!");
       } catch (err) {
@@ -834,25 +901,26 @@
         alert("❌ સેવ કરવામાં ભૂલ આવી: " + err.message);
       } finally {
         btnSave.disabled = false;
-        btnSave.innerText = "💾 Save Changes";
+        btnSave.innerText = "💾 Save";
       }
     }
 
-    // 7. EXPORT TO EXCEL
+    // 🟢 7. EXPORT VIEW (Full width, no cut, 100% formatted)
     async function exportToExcel() {
       const filtered = getFilteredRows();
       if (filtered.length === 0) return alert("⚠️ હાલ ડાઉનલોડ કરવા માટે કોઈ ડેટા નથી!");
 
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('LHS_Entries', { views: [{ state: 'frozen', ySplit: 1, showGridLines: true }] });
+      const worksheet = workbook.addWorksheet('LHS_View', { views: [{ state: 'frozen', ySplit: 1, showGridLines: true }] });
 
       const headers = ["Sr", ...COLUMNS.map(c => c.title)];
       const headerRow = worksheet.addRow(headers);
-      headerRow.height = 24;
+      headerRow.height = 25;
       headerRow.eachCell((cell) => {
         cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF17365D' } };
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
 
       filtered.forEach((r, idx) => {
@@ -863,25 +931,47 @@
             return c.isDate ? formatDateDisplay(v) : v;
           })
         ];
-        worksheet.addRow(rowVals);
+        const row = worksheet.addRow(rowVals);
+        row.height = 20;
+        row.eachCell((cell, colIndex) => {
+          cell.font = { name: 'Calibri', size: 10.5 };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+          };
+          if (colIndex === 7) { // Drawing No / Line No
+            cell.alignment = { vertical: 'middle', horizontal: 'left' };
+          } else {
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          }
+        });
       });
 
+      // Auto-fit Column Widths dynamically based on content length
       worksheet.columns.forEach((col, i) => {
-        col.width = Math.max(headers[i].length + 4, 14);
+        let maxLen = headers[i] ? headers[i].length : 10;
+        filtered.slice(0, 200).forEach(r => {
+          let v = i === 0 ? String(filtered.length) : String(r[COLUMNS[i - 1].key] ?? '');
+          if (COLUMNS[i - 1] && COLUMNS[i - 1].isDate) v = formatDateDisplay(v);
+          if (v && v.length > maxLen) maxLen = v.length;
+        });
+        col.width = Math.min(Math.max(maxLen + 4, 12), 48);
       });
 
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const link = document.createElement('a');
-      const today = new Date().toISOString().split('T')[0];
+      const today = formatIsoLocalDate(new Date());
       link.href = URL.createObjectURL(blob);
-      link.download = `LHS_Entries_Export_${today}.xlsx`;
+      link.download = `LHS_View_Export_${today}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
 
-    // 8. DOWNLOAD DATA (EXACT SUPABASE COLUMN NAMES)
+    // 🟢 8. DOWNLOAD DATA (EXACT VALUES PRESERVED - BUG FIXED)
     async function downloadRawData() {
       const btn = document.querySelector('.btn-download-raw');
       if (btn) {
@@ -922,6 +1012,8 @@
         });
 
         const rawKeys = COLUMNS.map(c => c.key);
+        const dateKeysSet = new Set(COLUMNS.filter(c => c.isDate).map(c => c.key));
+
         const headerRow = worksheet.addRow(rawKeys);
         headerRow.height = 24;
         headerRow.eachCell((cell) => {
@@ -932,10 +1024,15 @@
 
         allData.forEach(r => {
           const rowVals = rawKeys.map(k => {
-            const val = r[k];
+            let val = r[k];
             if (val === null || val === undefined) return '';
-            if (typeof val === 'string' && val.includes('T')) {
-              return val.split('T')[0];
+
+            // 🟢 ONLY FORMAT DATES - NEVER TOUCH WORDS LIKE "LET" OR LINE NUMBERS CONTAINING 'T'!
+            if (dateKeysSet.has(k)) {
+              if (val instanceof Date) return formatIsoLocalDate(val);
+              if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(val)) {
+                return val.split('T')[0];
+              }
             }
             return val;
           });
@@ -943,13 +1040,13 @@
         });
 
         worksheet.columns.forEach((col, i) => {
-          col.width = Math.max(rawKeys[i].length + 4, 15);
+          col.width = Math.max(rawKeys[i].length + 4, 16);
         });
 
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const link = document.createElement('a');
-        const today = new Date().toISOString().split('T')[0];
+        const today = formatIsoLocalDate(new Date());
         link.href = URL.createObjectURL(blob);
         link.download = `lhs_entries_raw_backup_${today}.xlsx`;
         document.body.appendChild(link);
@@ -962,12 +1059,12 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = "📥 Download Data";
+          btn.innerText = "Download Data";
         }
       }
     }
 
-    // 9. UPDATE DATA (CLEAR & BULK INSERT FROM EXCEL)
+    // 🟢 9. UPDATE DATA (BULK INSERT WITH TITLE/KEY COMPATIBILITY & DATE FIX)
     function triggerUpdateData() {
       document.getElementById('excelFileInput').value = '';
       document.getElementById('excelFileInput').click();
@@ -999,14 +1096,24 @@
           throw new Error("એક્સેલ ફાઇલમાં ડેટા મળ્યો નથી!");
         }
 
+        // Map both raw keys and human titles for 100% upload compatibility
+        const headerToKeyMap = new Map();
+        COLUMNS.forEach(c => {
+          headerToKeyMap.set(c.key.toLowerCase().trim(), c.key);
+          headerToKeyMap.set(c.title.toLowerCase().trim(), c.key);
+          headerToKeyMap.set(c.key.toLowerCase().replace(/[^a-z0-9]/g, ''), c.key);
+          headerToKeyMap.set(c.title.toLowerCase().replace(/[^a-z0-9]/g, ''), c.key);
+        });
+
         const headerRow = worksheet.getRow(1);
         const fileHeaders = [];
         headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-          fileHeaders[colNumber] = String(cell.value || '').trim().toLowerCase();
+          const rawHeader = String(cell.value || '').trim().toLowerCase();
+          const matchedKey = headerToKeyMap.get(rawHeader) || headerToKeyMap.get(rawHeader.replace(/[^a-z0-9]/g, ''));
+          if (matchedKey) {
+            fileHeaders[colNumber] = matchedKey;
+          }
         });
-
-        const validKeys = COLUMNS.map(c => c.key.toLowerCase());
-        const dateKeys = COLUMNS.filter(c => c.isDate).map(c => c.key.toLowerCase());
 
         const parsedRows = [];
         for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
@@ -1015,32 +1122,33 @@
           const rowObj = {};
 
           fileHeaders.forEach((key, colIndex) => {
-            if (!key || !validKeys.includes(key)) return;
+            if (!key) return;
+            const colDef = COLUMNS.find(c => c.key === key);
             const cell = row.getCell(colIndex);
             let val = cell.value;
 
+            // Handle ExcelJS cell object representations
             if (val && typeof val === 'object') {
-              if (val.result !== undefined) val = val.result;
-              else if (val.text !== undefined) val = val.text;
-              else if (val instanceof Date) {
-                val = val.toISOString().split('T')[0];
+              if (val instanceof Date) {
+                val = formatIsoLocalDate(val);
+              } else if (val.result !== undefined) {
+                val = val.result;
+              } else if (val.text !== undefined) {
+                val = val.text;
+              } else if (Array.isArray(val.richText)) {
+                val = val.richText.map(t => t.text || '').join('');
               }
             }
 
             if (val !== null && val !== undefined && String(val).trim() !== '' && String(val).trim().toUpperCase() !== 'NULL') {
               hasVal = true;
-              if (dateKeys.includes(key)) {
-                if (val instanceof Date) {
-                  val = val.toISOString().split('T')[0];
-                } else {
-                  const s = String(val).trim();
-                  const parts = s.split(/[-/]/);
-                  if (parts.length === 3 && parts[2].length === 4) {
-                    val = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                  } else if (parts.length === 3 && parts[0].length === 4) {
-                    val = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-                  }
-                }
+              if (colDef && colDef.isDate) {
+                val = parseAnyDateToIso(val);
+              } else if (key === 'weld_inch_dia' || key === 'weld_npd' || key === 'thk') {
+                const parsedNum = parseFloat(val);
+                if (!isNaN(parsedNum)) val = parsedNum;
+              } else {
+                val = String(val).trim();
               }
               rowObj[key] = val;
             } else {
@@ -1089,7 +1197,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = "🔄 Update Data";
+          btn.innerText = "Update Data";
         }
       }
     }
