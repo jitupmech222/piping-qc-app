@@ -33,7 +33,7 @@
     }
 
     /* =========================================================
-       🟢 GENBA-STYLE FULL DISPLAY SPLIT LOGIN STYLING (OPTION 1)
+       🟢 GENBA-STYLE FULL DISPLAY SPLIT LOGIN STYLING
     ========================================================= */
     #loginOverlay {
       position: fixed;
@@ -52,7 +52,6 @@
       height: 100vh;
     }
 
-    /* Left Pane - Clean Form Area */
     .login-left-pane {
       width: 440px;
       min-width: 400px;
@@ -166,10 +165,6 @@
       box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
     }
 
-    .btn-login-modern:active {
-      transform: translateY(0);
-    }
-
     .login-error-card {
       background: #fef2f2;
       border: 1px solid #fecaca;
@@ -190,7 +185,6 @@
       text-align: center;
     }
 
-    /* 🟢 Right Pane - Full Display Fill (No empty borders) */
     .login-right-pane {
       flex: 1;
       height: 100vh;
@@ -223,16 +217,8 @@
       border-bottom: 1px solid #f1f5f9;
     }
 
-    .mockup-pills {
-      display: flex;
-      gap: 7px;
-    }
-
-    .mockup-dot {
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-    }
+    .mockup-pills { display: flex; gap: 7px; }
+    .mockup-dot { width: 11px; height: 11px; border-radius: 50%; }
 
     .mockup-kpi-grid {
       display: grid;
@@ -283,10 +269,6 @@
       width: 100%;
       background: linear-gradient(180deg, #2563eb 0%, #60a5fa 100%);
       border-radius: 8px 8px 0 0;
-      transition: all 0.3s;
-    }
-    .mockup-bar:hover {
-      background: linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%);
     }
 
     .mockup-bar-label {
@@ -303,7 +285,7 @@
     }
 
     /* =========================================================
-       MAIN DASHBOARD WORKSPACE & SIDEBAR STYLES
+       SIDEBAR & WORKSPACE STYLES
     ========================================================= */
     .sidebar {
       width: 250px;
@@ -346,8 +328,6 @@
       width: auto;
       max-width: 48px;
       object-fit: contain;
-      display: block;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
     }
 
     .brand-name { font-size: 14px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
@@ -365,9 +345,7 @@
       font-size: 13px;
       font-weight: 800;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    .btn-toggle-in:hover { background: rgba(255, 255, 255, 0.15); color: #ffffff; }
 
     .nav-item {
       display: flex;
@@ -406,28 +384,18 @@
       border-radius: 8px;
       font-size: 13px;
       font-weight: 800;
-      letter-spacing: 0.5px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
-      transition: all 0.2s ease;
     }
-    .btn-big-logout:hover {
-      background: #b91c1c;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35);
-    }
-    .btn-big-logout:active { transform: translateY(0); }
 
     .main-workspace {
       flex: 1;
       padding: 24px 32px;
       overflow-y: auto;
       max-height: 100vh;
-      transition: all 0.3s;
     }
 
     .btn-toggle-out {
@@ -440,12 +408,8 @@
       font-size: 13px;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       margin-right: 12px;
-      align-items: center;
-      gap: 4px;
     }
-    .btn-toggle-out:hover { background: #f1f5f9; color: #0d9488; border-color: #0d9488; }
 
     .workspace-top {
       display: flex;
@@ -463,13 +427,6 @@
       width: 400px;
       font-size: 13px;
       outline: none;
-      transition: all 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    }
-    .search-input-pill:focus {
-      border-color: #0d9488;
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
-      width: 440px;
     }
 
     .search-dropdown-menu {
@@ -483,7 +440,6 @@
       border: 1.5px solid #0d9488;
       border-radius: 12px;
       z-index: 500;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
       display: none;
     }
 
@@ -496,7 +452,6 @@
       cursor: pointer;
       font-size: 13px;
     }
-    .search-dropdown-item:hover { background: #f0fdfa; color: #0f766e; }
 
     .live-status-pill {
       background: #f0fdf4;
@@ -526,16 +481,7 @@
       font-size: 26px;
       font-weight: 800;
       color: #0f172a;
-      letter-spacing: -0.5px;
     }
-
-    .dashboard-title-area p {
-      margin: 4px 0 0 0;
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    .header-actions { display: flex; align-items: center; gap: 10px; }
 
     .date-badge {
       background: #ffffff;
@@ -548,7 +494,6 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
     .btn-export {
@@ -563,23 +508,18 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-      transition: all 0.2s;
     }
-    .btn-export:hover { background: #1d4ed8; transform: translateY(-1px); }
 
     .btn-hero-action {
       background: #0f172a;
       color: #ffffff;
       border: none;
-      border-radius: 999px;
+      border-radius: 8px;
       padding: 8px 18px;
       font-size: 13px;
       font-weight: 800;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    .btn-hero-action:hover { opacity: 0.9; }
 
     .kpi-row {
       display: grid;
@@ -593,8 +533,6 @@
       border: 1px solid #e2e8f0;
       border-radius: 16px;
       padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-      position: relative;
     }
 
     .kpi-top { display: flex; justify-content: space-between; align-items: center; }
@@ -613,21 +551,6 @@
       font-weight: 800;
       color: #0f172a;
       margin-top: 14px;
-      letter-spacing: -0.5px;
-    }
-    .kpi-footer {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      margin-top: 8px;
-    }
-    .tag-growth {
-      color: #16a34a;
-      font-weight: 700;
-      background: #f0fdf4;
-      padding: 2px 6px;
-      border-radius: 4px;
     }
 
     .charts-row {
@@ -642,7 +565,6 @@
       border: 1px solid #e2e8f0;
       border-radius: 16px;
       padding: 22px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
 
     .chart-card-header {
@@ -651,28 +573,6 @@
       align-items: center;
       margin-bottom: 14px;
     }
-
-    .chart-title-box h3 { margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; }
-
-    .time-pills {
-      background: #f1f5f9;
-      border-radius: 8px;
-      padding: 3px;
-      display: inline-flex;
-      gap: 4px;
-    }
-
-    .time-pill-btn {
-      border: none;
-      background: transparent;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #64748b;
-      cursor: pointer;
-    }
-    .time-pill-btn.active { background: #ffffff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
     .sub-panel { display: none; margin-top: 10px; }
     .sub-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
@@ -692,20 +592,7 @@
     }
     .sub-btn:hover { background: #f0fdfa; border-color: #5eead4; color: #0f766e; }
 
-    .card { background: #ffffff; padding: 18px 22px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 14px rgba(0,0,0,0.03); margin-top: 10px; }
-    label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 8px; display: block; }
-    input, select { width: 100%; padding: 10px 14px; margin-top: 4px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; background: #fff; }
-    .btn-save-action { background: #15803d; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; }
-    .btn-add-queue { background: #0d9488; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-    
-    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #e2e8f0; padding: 9px 12px; white-space: nowrap; }
-    th { background: #0f172a; color: white; font-weight: 700; }
-    tr:nth-child(even) td { background-color: #f8fafc; }
-
-    /* =========================================================
-       🟢 QA/QC SECONDARY PIN/PASSWORD AUTH MODAL STYLING
-    ========================================================= */
+    /* QA/QC SECONDARY MODAL */
     #qaqcAuthModal {
       position: fixed;
       inset: 0;
@@ -726,10 +613,7 @@
       box-shadow: 0 20px 40px rgba(0,0,0,0.3);
       border: 1.5px solid #cbd5e1;
     }
-    .qaqc-modal-header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+    .qaqc-modal-header { text-align: center; margin-bottom: 20px; }
     .qaqc-icon-shield {
       width: 50px;
       height: 50px;
@@ -753,9 +637,7 @@
       font-weight: 800;
       cursor: pointer;
       margin-top: 14px;
-      transition: all 0.2s;
     }
-    .btn-qaqc-verify:hover { background: #6d28d9; }
     .btn-qaqc-cancel {
       width: 100%;
       padding: 10px;
@@ -813,23 +695,13 @@
     .stage-badge-tag { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
     .tag-completed { background: #15803d; color: #ffffff; }
     .tag-hold { background: #c2410c; color: #ffffff; }
-
-    @media (max-width: 1024px) {
-      .kpi-row { grid-template-columns: repeat(2, 1fr); }
-      .charts-row { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 600px) {
-      .kpi-row { grid-template-columns: 1fr; }
-    }
   </style>
 </head>
 <body>
 
-<!-- 🟢 GENBA-STYLE INBUILT SPLIT LOGIN SCREEN (FULL DISPLAY MOCKUP) -->
+<!-- LOGIN OVERLAY -->
 <div id="loginOverlay">
   <div class="split-login-wrapper">
-    
-    <!-- Left Login Form Area -->
     <div class="login-left-pane">
       <div class="login-brand-header">
         <img src="PFS logo.webp" alt="PFS Logo" class="login-brand-img">
@@ -841,8 +713,6 @@
 
       <h1 class="welcome-title">Welcome back!</h1>
       <p class="welcome-sub">Please select your operational role and enter your security credentials to access the console.</p>
-
-      <!-- Security Notice Card -->
       <div id="loginError" class="login-error-card">⚠️ Invalid Credentials!</div>
 
       <div class="login-form-group">
@@ -867,15 +737,11 @@
         <span>➔</span>
       </button>
 
-      <div class="login-footer-note">
-        Secured by Encrypted Authentication &bull; www.pipeflowsys.in
-      </div>
+      <div class="login-footer-note">Secured by Encrypted Authentication • www.pipeflowsys.in</div>
     </div>
 
-    <!-- Right Live Showcase Area (FULL DISPLAY FILL) -->
     <div class="login-right-pane">
       <div class="preview-card-mockup">
-        
         <div>
           <div class="mockup-top-bar">
             <div class="mockup-pills">
@@ -887,109 +753,46 @@
               <span class="live-dot"></span> Live Operations Insight
             </div>
           </div>
-
           <div style="margin-top:16px;">
             <h3 style="margin:0; font-size:20px; font-weight:800; color:#0f172a;">Overall Fabrication Status</h3>
             <span style="font-size:13px; color:#64748b;">Glimpse of active spools, welded joints & dispatch metrics</span>
           </div>
-
-          <!-- KPI Grid (Large View) -->
-          <div class="mockup-kpi-grid">
-            <div class="mockup-kpi">
-              <span style="font-size:12px; color:#64748b; font-weight:600;">Total Spool Scope</span>
-              <div style="font-size:24px; font-weight:800; color:#0f172a; margin-top:4px;">4,047</div>
-              <span style="font-size:11px; color:#16a34a; font-weight:700;">3,717 Dispatched</span>
-            </div>
-            <div class="mockup-kpi">
-              <span style="font-size:12px; color:#64748b; font-weight:600;">Joints (Weld ID)</span>
-              <div style="font-size:24px; font-weight:800; color:#7c3aed; margin-top:4px;">42,255</div>
-              <span style="font-size:11px; color:#7c3aed; font-weight:700;">39,440 Done</span>
-            </div>
-            <div class="mockup-kpi">
-              <span style="font-size:12px; color:#64748b; font-weight:600;">Completion Rate</span>
-              <div style="font-size:24px; font-weight:800; color:#2563eb; margin-top:4px;">91.8%</div>
-              <span style="font-size:11px; color:#d97706; font-weight:700;">330 In Shop</span>
-            </div>
-          </div>
         </div>
-
-        <!-- Full Chart Box (Fill remaining height) -->
-        <div class="mockup-chart-box">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:13.5px; font-weight:700; color:#334155;">Workflow Status</span>
-            <span style="font-size:11.5px; background:#eff6ff; color:#2563eb; padding:3px 10px; border-radius:999px; font-weight:700;">Active Flow</span>
-          </div>
-          
-          <div class="mockup-chart-bars">
-            <div class="mockup-bar-col">
-              <div class="mockup-bar" style="height:92%;"></div>
-              <span class="mockup-bar-label">Issued</span>
-            </div>
-            <div class="mockup-bar-col">
-              <div class="mockup-bar" style="height:82%;"></div>
-              <span class="mockup-bar-label">Bend</span>
-            </div>
-            <div class="mockup-bar-col">
-              <div class="mockup-bar" style="height:76%;"></div>
-              <span class="mockup-bar-label">Fit-up</span>
-            </div>
-            <div class="mockup-bar-col">
-              <div class="mockup-bar" style="height:68%;"></div>
-              <span class="mockup-bar-label">Visual</span>
-            </div>
-            <div class="mockup-bar-col">
-              <div class="mockup-bar" style="height:54%;"></div>
-              <span class="mockup-bar-label">NDT</span>
-            </div>
-            <div class="mockup-bar-col">
-              <div class="mockup-bar" style="height:46%;"></div>
-              <span class="mockup-bar-label">Dispatched</span>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- 🟢 2. QA/QC SECONDARY SECURITY AUTH MODAL -->
+<!-- QA/QC SECONDARY PIN/PASSWORD AUTH MODAL -->
 <div id="qaqcAuthModal">
   <div class="qaqc-modal-card">
     <div class="qaqc-modal-header">
       <div class="qaqc-icon-shield">🛡️</div>
-      <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed; border:none; padding:0; justify-content:center;">QA/QC Security Access</h3>
+      <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">QA/QC Security Access</h3>
       <p style="font-size:12.5px; color:#64748b; margin-top:4px;">Enter Authorized QA/QC ID & Password</p>
     </div>
-
     <div id="qaqcAuthError" style="color:#dc2626; font-size:12px; font-weight:bold; margin-bottom:10px; display:none; text-align:center;">
       ⚠️ Invalid QA/QC ID or Password!
     </div>
-
     <div style="margin-bottom:12px;">
       <label>QA/QC ID:</label>
       <input type="text" id="qaqcInputUser" placeholder="Enter QA/QC ID" autocomplete="off">
     </div>
-
     <div style="margin-bottom:12px;">
       <label>QA/QC Password:</label>
       <input type="password" id="qaqcInputPass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeQaqcSecondaryAuth()">
     </div>
-
-    <button type="button" class="btn-qaqc-verify" onclick="executeQaqcSecondaryAuth()">
-      🔓 Unlock QA/QC Module
-    </button>
+    <button type="button" class="btn-qaqc-verify" onclick="executeQaqcSecondaryAuth()">🔓 Unlock QA/QC Module</button>
     <button type="button" class="btn-qaqc-cancel" onclick="closeQaqcAuthModal()">Cancel</button>
   </div>
 </div>
 
-<!-- Integrated Spool Tracker Modal -->
+<!-- Spool Tracker Modal -->
 <div id="spoolTrackerModal">
   <div class="tracker-modal-card">
     <div class="tracker-header-box">
       <div>
-        <h3 style="margin: 0; font-size: 18px; color: #b45309; border: none;">🔍 Spool Live Stage Tracker</h3>
+        <h3 style="margin: 0; font-size: 18px; color: #b45309;">🔍 Spool Live Stage Tracker</h3>
         <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Real-time progress inspection timeline</p>
       </div>
       <button onclick="closeSpoolTrackerModal()" style="background:#f1f5f9; border:none; padding:6px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">✕ Close</button>
@@ -1005,41 +808,25 @@
   </div>
 </div>
 
-<!-- Main App Layout (Protected Behind Login) -->
+<!-- MAIN APPLICATION LAYOUT -->
 <div id="appContent" style="display: none; width: 100%;">
-
-  <!-- Left Sidebar -->
   <aside class="sidebar" id="appSidebar">
     <div>
       <div class="brand-area">
         <div class="brand-left">
           <img src="PFS logo.webp" alt="PFS Logo" class="brand-logo-img">
-          <div>
-            <div class="brand-name">PIPING FABRICATION</div>
-          </div>
+          <div><div class="brand-name">PIPING FABRICATION</div></div>
         </div>
         <button class="btn-toggle-in" title="Close Sidebar" onclick="toggleSidebar(false)">«</button>
       </div>
 
-      <a class="nav-item active" onclick="backToHubMenu()">
-        <span>📊</span> <span>Dashboard Overview</span>
-      </a>
-      <a class="nav-item" onclick="openCategoryHub('mechHub')">
-        <span>⚙️</span> <span>Mechanical</span>
-      </a>
-      <!-- 🟢 QA/QC Link Trigger with Secondary Authentication -->
-      <a class="nav-item" id="navQaqcLink" style="display:none;" onclick="triggerQaqcModuleAccess()">
-        <span>🛡️</span> <span>QA/QC Module</span>
-      </a>
-      <a class="nav-item" onclick="openCategoryHub('matHub')">
-        <span>📦</span> <span>Material</span>
-      </a>
-      <a class="nav-item" onclick="openCategoryHub('reportHub')">
-        <span>📈</span> <span>Report</span>
-      </a>
-      <a class="nav-item" onclick="openCategoryHub('dataHub')">
-        <span>💾</span> <span>Data</span>
-      </a>
+      <a class="nav-item active" onclick="backToHubMenu()"><span>📊</span> <span>Dashboard Overview</span></a>
+      <!-- 🟢 MECHANICAL: Directly routes to mechanical.html -->
+      <a class="nav-item" onclick="window.location.href='mechanical.html'"><span>⚙️</span> <span>Mechanical</span></a>
+      <a class="nav-item" id="navQaqcLink" style="display:none;" onclick="triggerQaqcModuleAccess()"><span>🛡️</span> <span>QA/QC Module</span></a>
+      <a class="nav-item" onclick="openCategoryHub('matHub')"><span>📦</span> <span>Material</span></a>
+      <a class="nav-item" onclick="openCategoryHub('reportHub')"><span>📈</span> <span>Report</span></a>
+      <a class="nav-item" onclick="openCategoryHub('dataHub')"><span>💾</span> <span>Data</span></a>
     </div>
 
     <div class="user-footer">
@@ -1050,16 +837,11 @@
           <span id="sideUserRole" style="font-size:10.5px; color:#64748b;">admin@piping.org</span>
         </div>
       </div>
-      <button type="button" class="btn-big-logout" onclick="userLogout()">
-        🚪 LOG OUT
-      </button>
+      <button type="button" class="btn-big-logout" onclick="userLogout()">🚪 LOG OUT</button>
     </div>
   </aside>
 
-  <!-- Right Main Workspace -->
   <main class="main-workspace" id="mainWorkspace">
-
-    <!-- Top Action Bar -->
     <div class="workspace-top">
       <div style="display:flex; align-items:center;">
         <button class="btn-toggle-out" id="btnSidebarOpen" title="Open Sidebar" onclick="toggleSidebar(true)">»</button>
@@ -1068,13 +850,10 @@
           <div id="globalSpoolDropdown" class="search-dropdown-menu"></div>
         </div>
       </div>
-      <div class="live-status-pill">
-        <span class="live-dot"></span>
-        <span>Live Database Sync</span>
-      </div>
+      <div class="live-status-pill"><span class="live-dot"></span><span>Live Database Sync</span></div>
     </div>
 
-    <!-- MAIN DASHBOARD OVERVIEW -->
+    <!-- MAIN DASHBOARD -->
     <div id="hubMainMenu">
       <div class="dashboard-header">
         <div class="dashboard-title-area">
@@ -1082,69 +861,27 @@
           <p id="welcomeGreeting">Welcome back, Admin!</p>
         </div>
         <div class="header-actions">
-          <div class="date-badge">
-            <span>📅</span>
-            <span id="headerLiveDate">Oct 20, 2026</span>
-          </div>
-          <button class="btn-export" onclick="window.location.href='master_register.html'">
-            <span>📥</span>
-            <span>Export Data</span>
-          </button>
+          <div class="date-badge"><span>📅</span><span id="headerLiveDate">Today</span></div>
+          <button class="btn-export" onclick="window.location.href='master_register.html'"><span>📥</span><span>Export Data</span></button>
         </div>
       </div>
 
-      <!-- 4 Top KPI Cards -->
       <div class="kpi-row">
-        <!-- 1. Total Spools -->
         <div class="modern-kpi-card">
-          <div class="kpi-top">
-            <span class="kpi-name">Total Spool Scope</span>
-            <div class="kpi-icon-pill" style="background:#eff6ff; color:#2563eb;">📦</div>
-          </div>
+          <div class="kpi-top"><span class="kpi-name">Total Spool Scope</span><div class="kpi-icon-pill" style="background:#eff6ff; color:#2563eb;">📦</div></div>
           <div class="kpi-value" id="cardTotalSpool">0</div>
-          <div class="kpi-footer">
-            <span class="tag-growth">Dispatched: <span id="cardDispSpool">0</span></span>
-            <span style="color:#64748b;">completed</span>
-          </div>
         </div>
-
-        <!-- 2. Total Weld ID -->
         <div class="modern-kpi-card">
-          <div class="kpi-top">
-            <span class="kpi-name">Total Joints (Weld ID)</span>
-            <div class="kpi-icon-pill" style="background:#ede9fe; color:#7c3aed;">⚡</div>
-          </div>
+          <div class="kpi-top"><span class="kpi-name">Total Joints (Weld ID)</span><div class="kpi-icon-pill" style="background:#ede9fe; color:#7c3aed;">⚡</div></div>
           <div class="kpi-value" id="cardTotalWeld">0</div>
-          <div class="kpi-footer">
-            <span class="tag-growth" style="color:#7c3aed; background:#f5f3ff;">Done: <span id="cardDispWeld">0</span></span>
-            <span style="color:#64748b;">welded joints</span>
-          </div>
         </div>
-
-        <!-- 3. Total Bend Scope -->
         <div class="modern-kpi-card">
-          <div class="kpi-top">
-            <span class="kpi-name">Total Bend Scope</span>
-            <div class="kpi-icon-pill" style="background:#f0fdf4; color:#16a34a;">📐</div>
-          </div>
+          <div class="kpi-top"><span class="kpi-name">Total Bend Scope</span><div class="kpi-icon-pill" style="background:#f0fdf4; color:#16a34a;">📐</div></div>
           <div class="kpi-value" id="cardTotalBend">0</div>
-          <div class="kpi-footer">
-            <span class="tag-growth">Done: <span id="cardDispBend">0</span></span>
-            <span style="color:#64748b;">bended qty</span>
-          </div>
         </div>
-
-        <!-- 4. Dispatch Rate -->
         <div class="modern-kpi-card">
-          <div class="kpi-top">
-            <span class="kpi-name">Dispatch Completion</span>
-            <div class="kpi-icon-pill" style="background:#fef3c7; color:#d97706;">📊</div>
-          </div>
+          <div class="kpi-top"><span class="kpi-name">Dispatch Completion</span><div class="kpi-icon-pill" style="background:#fef3c7; color:#d97706;">📊</div></div>
           <div class="kpi-value" id="cardCompletionRate">0%</div>
-          <div class="kpi-footer">
-            <span class="tag-growth" id="cardPendingSpools">0 Spools</span>
-            <span style="color:#64748b;">balance in shop</span>
-          </div>
         </div>
       </div>
 
@@ -1152,13 +889,8 @@
       <div class="charts-row">
         <div class="chart-card">
           <div class="chart-card-header">
-            <div class="chart-title-box">
-              <h3>Stage Progression Pipeline</h3>
-            </div>
-            <div class="time-pills">
-              <button class="time-pill-btn active">Live</button>
-              <button class="time-pill-btn" onclick="refreshProgressData()">Refresh</button>
-            </div>
+            <h3>Stage Progression Pipeline</h3>
+            <button style="border:none; background:#f1f5f9; padding:4px 10px; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="refreshProgressData()">Refresh</button>
           </div>
           <div style="height: 250px;">
             <canvas id="pipelineWaveChart"></canvas>
@@ -1167,35 +899,12 @@
 
         <div class="chart-card">
           <div class="chart-card-header">
-            <div class="chart-title-box">
-              <h3>Spool Status Ratio</h3>
-            </div>
+            <h3>Spool Status Ratio</h3>
           </div>
           <div style="height: 250px; display:flex; justify-content:center; align-items:center;">
             <canvas id="statusDonutChart"></canvas>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- SUB-PANEL: Mechanical -->
-    <div id="mechHub" class="sub-panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:18px; font-weight:800; color:#0f766e;">Mechanical Workflows</h3>
-        <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
-      </div>
-      <div class="sub-menu-grid">
-        <button class="sub-btn" onclick="openStage('bending_issue')"><span>01</span><span>Issued for Bending</span></button>
-        <button class="sub-btn" onclick="openStage('bend_entry')"><span>02</span><span>Bend Completed</span></button>
-        <button class="sub-btn" onclick="openStage('fitup_entry')"><span>03</span><span>Fit Up Completed</span></button>
-        <button class="sub-btn" onclick="openStage('weld_visual')"><span>04</span><span>Weld Visual Completed</span></button>
-        <button class="sub-btn" onclick="openStage('ndt_clearance')"><span>05</span><span>NDT Clearance</span></button>
-        <button class="sub-btn" onclick="openStage('fd')"><span>06</span><span>FD & Dispatch DC No</span></button>
-        <!-- 🟢 સાચું Mechanical Report બટન -->
-        <button class="sub-btn" style="border-left: 4px solid #0d9488; font-weight: bold;" onclick="window.location.href='custom_report_Mechanical.html'">
-          <span>⚡</span><span>Mechanical Custom Report</span>
-        </button>
-        <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#fffbeb; color:#b45309;" onclick="window.location.href='spool_tracking.html'"><span>🔍</span><span>Open Spool Tracker Page</span></button>
       </div>
     </div>
 
@@ -1206,50 +915,21 @@
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
-        <button class="sub-btn" onclick="window.location.href='lhs_entry.html'" style="border-left: 4px solid #16a34a; font-weight: bold;">
-          <span>📋</span><span>LHS ENTRY</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='lot_entry.html'" style="border-left: 4px solid #0d6efd; font-weight: bold;">
-          <span>🧾</span><span>LOT ENTRY</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='lot_offer_cleared.html'" style="border-left: 4px solid #d97706; font-weight: bold;">
-          <span>🔍</span><span>LOT OFFER / CLEARED</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='lot_generate.html'" style="border-left: 4px solid #0f766e; font-weight: bold;">
-          <span>⚙️</span><span>LOT GENERATE</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='dpt_lot_status.html'" style="border-left: 4px solid #7b1fa2; font-weight: bold;">
-          <span>🔬</span><span>DPT LOT STATUS</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='rt_lot_status.html'" style="border-left: 4px solid #0284c7; font-weight: bold;">
-          <span>☢️</span><span>RT LOT STATUS</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='ndt_dc.html'" style="border-left: 4px solid #16a34a; font-weight: bold;">
-          <span>📦</span><span>NDT / DC</span>
-        </button>
+        <button class="sub-btn" onclick="window.location.href='lhs_entry.html'" style="border-left: 4px solid #16a34a; font-weight: bold;"><span>📋</span><span>LHS ENTRY</span></button>
+        <button class="sub-btn" onclick="window.location.href='lot_entry.html'" style="border-left: 4px solid #0d6efd; font-weight: bold;"><span>🧾</span><span>LOT ENTRY</span></button>
+        <button class="sub-btn" onclick="window.location.href='lot_offer_cleared.html'" style="border-left: 4px solid #d97706; font-weight: bold;"><span>🔍</span><span>LOT OFFER / CLEARED</span></button>
+        <button class="sub-btn" onclick="window.location.href='lot_generate.html'" style="border-left: 4px solid #0f766e; font-weight: bold;"><span>⚙️</span><span>LOT GENERATE</span></button>
+        <button class="sub-btn" onclick="window.location.href='dpt_lot_status.html'" style="border-left: 4px solid #7b1fa2; font-weight: bold;"><span>🔬</span><span>DPT LOT STATUS</span></button>
+        <button class="sub-btn" onclick="window.location.href='rt_lot_status.html'" style="border-left: 4px solid #0284c7; font-weight: bold;"><span>☢️</span><span>RT LOT STATUS</span></button>
+        <button class="sub-btn" onclick="window.location.href='ndt_dc.html'" style="border-left: 4px solid #16a34a; font-weight: bold;"><span>📦</span><span>NDT / DC</span></button>
         <button class="sub-btn" onclick="futureModuleNotice('PWHT')"><span>🔥</span><span>PWHT</span></button>
-        <button class="sub-btn" onclick="window.location.href='qaqc_progress.html'" style="border-left: 4px solid #be123c; font-weight: bold;">
-          <span>📈</span><span>PROGRESS (WORK AMOUNT)</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='inch_dia_progress.html'" style="border-left: 4px solid #0284c7; font-weight: bold;">
-          <span>⚡</span><span>INCH DIA PROGRESS</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='spool_report.html'" style="border-left: 4px solid #17365d; font-weight: bold;">
-          <span>📋</span><span>Spool Report</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='ndt_fd_pending_amount.html'" style="border-left: 4px solid #d97706; font-weight: bold;">
-          <span>⏳</span><span>NDT/FD (Pending Amount)</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='ndt_fd_pending_list.html'" style="border-left: 4px solid #0284c7; font-weight: bold;">
-          <span>📋</span><span>NDT/FD (Pending List)</span>
-        </button>
-        <button class="sub-btn" style="border-left: 4px solid #7c3aed; font-weight: bold;" onclick="window.location.href='custom_report_QAQC.html'">
-          <span>⚡</span><span>QA/QC Custom Report</span>
-        </button>
-        <!-- 🟢 સુધારેલું view_record બટન (બ્રેકેટ ફિક્સ) -->
-        <button class="sub-btn" onclick="window.location.href='view_record.html'" style="border-left: 4px solid #0284c7; font-weight: bold;">
-          <span>📊</span><span>VIEW RECORD</span>
-        </button>
+        <button class="sub-btn" onclick="window.location.href='qaqc_progress.html'" style="border-left: 4px solid #be123c; font-weight: bold;"><span>📈</span><span>PROGRESS (WORK AMOUNT)</span></button>
+        <button class="sub-btn" onclick="window.location.href='inch_dia_progress.html'" style="border-left: 4px solid #0284c7; font-weight: bold;"><span>⚡</span><span>INCH DIA PROGRESS</span></button>
+        <button class="sub-btn" onclick="window.location.href='spool_report.html'" style="border-left: 4px solid #17365d; font-weight: bold;"><span>📋</span><span>Spool Report</span></button>
+        <button class="sub-btn" onclick="window.location.href='ndt_fd_pending_amount.html'" style="border-left: 4px solid #d97706; font-weight: bold;"><span>⏳</span><span>NDT/FD (Pending Amount)</span></button>
+        <button class="sub-btn" onclick="window.location.href='ndt_fd_pending_list.html'" style="border-left: 4px solid #0284c7; font-weight: bold;"><span>📋</span><span>NDT/FD (Pending List)</span></button>
+        <button class="sub-btn" style="border-left: 4px solid #7c3aed; font-weight: bold;" onclick="window.location.href='custom_report_QAQC.html'"><span>⚡</span><span>QA/QC Custom Report</span></button>
+        <button class="sub-btn" onclick="window.location.href='view_record.html'" style="border-left: 4px solid #0284c7; font-weight: bold;"><span>📊</span><span>VIEW RECORD</span></button>
       </div>
     </div>
 
@@ -1260,22 +940,11 @@
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
-        <button class="sub-btn" id="btnMtoUpdateHub" style="display:none;" onclick="window.location.href='mto_update_entry.html'">
-          <span>📦</span><span>MTO Update</span>
-        </button>
-        <button class="sub-btn" id="btnIgpUpdateHub" style="display:none;" onclick="window.location.href='igp_update.html'">
-          <span>🚚</span><span>IGP Update</span>
-        </button>
-        <button class="sub-btn" id="btnMinUpdateHub" style="display:none;" onclick="window.location.href='min_update.html'">
-          <span>📋</span><span>MIN Update</span>
-        </button>
-        <!-- 🟢 સાચું Material Report બટન -->
-        <button class="sub-btn" style="border-left: 4px solid #0284c7; font-weight: bold;" onclick="window.location.href='custom_report_Material.html'">
-          <span>⚡</span><span>Material Custom Report</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='mto_register.html'">
-          <span>📑</span><span>MTO Register</span>
-        </button>
+        <button class="sub-btn" id="btnMtoUpdateHub" style="display:none;" onclick="window.location.href='mto_update_entry.html'"><span>📦</span><span>MTO Update</span></button>
+        <button class="sub-btn" id="btnIgpUpdateHub" style="display:none;" onclick="window.location.href='igp_update.html'"><span>🚚</span><span>IGP Update</span></button>
+        <button class="sub-btn" id="btnMinUpdateHub" style="display:none;" onclick="window.location.href='min_update.html'"><span>📋</span><span>MIN Update</span></button>
+        <button class="sub-btn" style="border-left: 4px solid #0284c7; font-weight: bold;" onclick="window.location.href='custom_report_Material.html'"><span>⚡</span><span>Material Custom Report</span></button>
+        <button class="sub-btn" onclick="window.location.href='mto_register.html'"><span>📑</span><span>MTO Register</span></button>
       </div>
     </div>
 
@@ -1288,9 +957,7 @@
       <div class="sub-menu-grid">
         <button class="sub-btn" onclick="window.location.href='daily_report.html'"><span>📅</span><span>Daily Progress Report</span></button>
         <button class="sub-btn" onclick="window.location.href='progress_dashboard.html'"><span>📈</span><span>Progress Dashboard</span></button>
-        <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#f0fdf4; border:1.5px solid #22c55e; color:#15803d; font-weight:bold;" onclick="window.location.href='custom_report.html'">
-          <span>⚡</span><span>Universal Custom Report Builder</span>
-        </button>
+        <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#f0fdf4; border:1.5px solid #22c55e; color:#15803d; font-weight:bold;" onclick="window.location.href='custom_report.html'"><span>⚡</span><span>Universal Custom Report Builder</span></button>
         <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center;" onclick="window.location.href='priority_dashboard.html'"><span>🔥</span><span>Priority Spools Dashboard</span></button>
       </div>
     </div>
@@ -1302,87 +969,14 @@
         <button class="btn-hero-action" style="background:#0f172a; color:#fff;" onclick="backToHubMenu()">⬅️ Back</button>
       </div>
       <div class="sub-menu-grid">
-        <!-- 🟢 1. Add New Data Separate Page Link Button -->
-        <button class="sub-btn" id="btnAddNewDataHub" style="display:none; border-left: 4px solid #10b981; font-weight: bold; background:#f0fdf4;" onclick="window.location.href='add_new_data.html'">
-          <span>➕</span><span>Add New Data</span>
-        </button>
-
-        <button class="sub-btn" id="btnLineListHub" style="display:none;" onclick="window.location.href='line_list.html'">
-          <span>📋</span><span>Line List Master</span>
-        </button>
-        <button class="sub-btn" id="btnSapCodeHub" style="display:none;" onclick="window.location.href='sap_code.html'">
-          <span>📦</span><span>Material SAP Codes</span>
-        </button>
-        <button class="sub-btn" id="btnDataUpdateHub" style="display:none;" onclick="window.location.href='data_update.html'">
-          <span>🔄</span><span>master Update</span>
-        </button>
-        <button class="sub-btn" onclick="window.location.href='master_register.html'">
-          <span>📊</span><span>Open Master Register Full View</span>
-        </button>
-
-        <button class="sub-btn" id="btnFullBackupHub" style="display:none; grid-column: 1 / -1; justify-content:center; background:#ecfdf5; border:1.5px solid #10b981; color:#047857; font-size:14px;" onclick="downloadAllTablesExcelBackup()">
-          <span>📥</span><span id="backupBtnLabel">Backup All Database Tables (Single Excel File)</span>
-        </button>
+        <button class="sub-btn" id="btnAddNewDataHub" style="display:none; border-left: 4px solid #10b981; font-weight: bold; background:#f0fdf4;" onclick="window.location.href='add_new_data.html'"><span>➕</span><span>Add New Data</span></button>
+        <button class="sub-btn" id="btnLineListHub" style="display:none;" onclick="window.location.href='line_list.html'"><span>📋</span><span>Line List Master</span></button>
+        <button class="sub-btn" id="btnSapCodeHub" style="display:none;" onclick="window.location.href='sap_code.html'"><span>📦</span><span>Material SAP Codes</span></button>
+        <button class="sub-btn" id="btnDataUpdateHub" style="display:none;" onclick="window.location.href='data_update.html'"><span>🔄</span><span>master Update</span></button>
+        <button class="sub-btn" onclick="window.location.href='master_register.html'"><span>📊</span><span>Open Master Register Full View</span></button>
+        <button class="sub-btn" id="btnFullBackupHub" style="display:none; grid-column: 1 / -1; justify-content:center; background:#ecfdf5; border:1.5px solid #10b981; color:#047857; font-size:14px;" onclick="downloadAllTablesExcelBackup()"><span>📥</span><span>Backup All Database Tables (Single Excel File)</span></button>
       </div>
     </div>
-
-    <!-- STAGE OPERATION SCREEN -->
-    <div id="stageContainer" style="display: none;">
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h3 id="stageTitle" style="margin:0;">Stage Title</h3>
-          <button class="btn-hero-action" style="background:#0f172a; color:#fff; padding:6px 14px;" onclick="openCategoryHub('mechHub')">⬅️ Back to Mechanical</button>
-        </div>
-
-        <label id="spoolSearchLabel" style="margin-top:14px;">Spool Unique Number:</label>
-        <div style="position:relative;">
-          <input type="text" id="spoolSearch" placeholder="Type spool no..." oninput="handleSearchInput()" autocomplete="off">
-          <div id="searchDropdown" style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #0d9488; max-height:200px; overflow-y:auto; z-index:100; display:none;"></div>
-        </div>
-
-        <div id="itemEditForm" style="display:none; background:#f8fafc; border:1px solid #99f6e4; border-radius:10px; padding:14px; margin-top:10px;">
-          <div style="font-weight: bold; color: #0f766e;">📝 Edit Details:</div>
-          <div><label>Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
-          <div><label>Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
-          <div id="dynamicFormFields"></div>
-          <input type="hidden" id="form_item_id">
-          <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Selected List</button>
-        </div>
-
-        <div id="selectedCardArea" style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">Selected Spools (<span id="queueCount">0</span>)</span>
-            <button type="button" class="btn-save-action" id="btnSaveAction" onclick="submitCurrentStage()">💾 <span id="btnSaveLabel">SAVE ENTRY</span></button>
-          </div>
-          <div id="customInputsArea" style="margin-bottom: 12px;"></div>
-          <div style="border: 1px solid #0f172a; border-radius: 8px; overflow-x: auto;">
-            <table style="width:100%; font-size:12px;">
-              <thead id="selectedTableHead"></thead>
-              <tbody id="selectedTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top: 12px;">
-        <h3 style="margin: 0; color: #0f766e;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
-        <div style="overflow-x:auto; margin-top:10px; max-height:45vh;">
-          <table>
-            <thead>
-              <tr style="background:#0f172a; color:white;">
-                <th>Drawing No</th>
-                <th>Spool Unique No</th>
-                <th>Spool Size</th>
-                <th>WELD ID</th>
-                <th>BEND QTY</th>
-              </tr>
-            </thead>
-            <tbody id="stageBalanceTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
   </main>
 </div>
 
@@ -1396,11 +990,7 @@
     "viewer": { pass: "view@123", name: "Viewer", allowed: [] }
   };
 
-  // 🛡️ QA/QC MODULE SEPARATE SECURITY CREDENTIALS
-  const QAQC_SECURITY = {
-    user: "qaqc",
-    pass: "qaqc@2026"
-  };
+  const QAQC_SECURITY = { user: "qaqc", pass: "qaqc@2026" };
 
   let currentUser = null;
   const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
@@ -1408,60 +998,8 @@
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let allRecordsCache = [];
-  let currentStage = '';
-  let selectedQueue = [];
-  let cumulativeRows = [];
-
   let waveChartInstance = null;
   let donutChartInstance = null;
-
-  function calculateWeldSum(rows) {
-    let sum = 0;
-    rows.forEach(r => {
-      const rawVal = r.Weld_id !== undefined ? r.Weld_id : (r.weld_id !== undefined ? r.weld_id : r.Joint_no);
-      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
-        const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
-        const num = parseFloat(cleaned);
-        if (!isNaN(num)) sum += num;
-      }
-    });
-    return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
-  }
-
-  function calculateBendSum(rows) {
-    let sum = 0;
-    rows.forEach(r => {
-      const rawVal = r.Bend_qty !== undefined ? r.Bend_qty : r.bend_qty;
-      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
-        const cleaned = String(rawVal).replace(/[^0-9.]/g, '');
-        const num = parseFloat(cleaned);
-        if (!isNaN(num)) sum += num;
-      }
-    });
-    return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
-  }
-
-  function formatDateDisplay(val) {
-    if (!val) return '-';
-    const str = String(val).trim();
-    if (str === '' || str.toLowerCase() === 'null') return '-';
-    const dPart = str.includes('T') ? str.split('T')[0] : str;
-    const parts = dPart.split('-');
-    if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    return str;
-  }
-
-  function toggleSidebar(show) {
-    const sidebar = document.getElementById('appSidebar');
-    const openBtn = document.getElementById('btnSidebarOpen');
-    if (show) {
-      sidebar.classList.remove('collapsed');
-      openBtn.style.display = 'none';
-    } else {
-      sidebar.classList.add('collapsed');
-      openBtn.style.display = 'inline-flex';
-    }
-  }
 
   function checkSessionAuth() {
     const sessionData = sessionStorage.getItem('piping_app_auth');
@@ -1486,107 +1024,35 @@
         triggerQaqcModuleAccess();
       } else if (openTab === 'material' || openTab === 'matHub') {
         openCategoryHub('matHub');
+      } else if (openTab === 'dataHub') {
+        openCategoryHub('dataHub');
       } else if (openTab) {
         openCategoryHub(openTab);
       }
-
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
     }
   }
 
-  const LOCKOUT_MINUTES = 2;
-  const MAX_ATTEMPTS = 2;
-
   async function verifyLogin() {
     const u = document.getElementById('loginUser').value.trim().toLowerCase();
     const p = document.getElementById('loginPass').value.trim();
     const err = document.getElementById('loginError');
-    const btnLogin = document.querySelector('.btn-login-modern');
 
-    err.style.display = 'none';
-    btnLogin.disabled = true;
-    btnLogin.innerHTML = "<span>⏳ Checking security...</span>";
+    if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
+      currentUser = { username: u, ...USER_ROLES[u] };
+      sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
+      err.style.display = 'none';
 
-    try {
-      const { data: userStatus, error: fetchErr } = await db
-        .from('user_auth_status')
-        .select('*')
-        .eq('username', u)
-        .single();
-
-      if (fetchErr && fetchErr.code !== 'PGRST116') {
-        throw fetchErr;
-      }
-
-      if (userStatus && userStatus.locked_until) {
-        const lockTime = new Date(userStatus.locked_until).getTime();
-        const now = Date.now();
-        const remainingMs = lockTime - now;
-
-        if (remainingMs > 0) {
-          const remainingSec = Math.ceil(remainingMs / 1000);
-          const mins = Math.floor(remainingSec / 60);
-          const secs = remainingSec % 60;
-
-          err.style.display = 'block';
-          err.innerHTML = `🔒 ૨ વખત ખોટો પાસવર્ડ દાખલ કર્યો છે.<br>આ એકાઉન્ટ <b>${mins}m ${secs}s</b> માટે લૉક છે!`;
-          btnLogin.disabled = false;
-          btnLogin.innerHTML = "<span>Continue to Portal</span><span>➔</span>";
-          return;
-        } else {
-          await db.from('user_auth_status').update({
-            failed_attempts: 0,
-            locked_until: null
-          }).eq('username', u);
-        }
-      }
-
-      if (USER_ROLES[u] && USER_ROLES[u].pass === p) {
-        await db.from('user_auth_status').update({
-          failed_attempts: 0,
-          locked_until: null,
-          last_attempt_at: new Date().toISOString()
-        }).eq('username', u);
-
-        currentUser = { username: u, ...USER_ROLES[u] };
-        sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
-        err.style.display = 'none';
-        checkSessionAuth();
+      // If user is mechanical team, directly route to mechanical.html
+      if (['bending', 'fitup', 'welding', 'qc/dc'].includes(u)) {
+        window.location.href = 'mechanical.html';
       } else {
-        const currentAttempts = (userStatus ? userStatus.failed_attempts : 0) + 1;
-
-        if (currentAttempts >= MAX_ATTEMPTS) {
-          const lockUntil = new Date(Date.now() + (LOCKOUT_MINUTES * 60 * 1000)).toISOString();
-          
-          await db.from('user_auth_status').upsert({
-            username: u,
-            failed_attempts: currentAttempts,
-            locked_until: lockUntil,
-            last_attempt_at: new Date().toISOString()
-          });
-
-          err.style.display = 'block';
-          err.innerHTML = `🔒 સતત ૨ વખત ખોટો પાસવર્ડ દાખલ કર્યો છે!<br>આ એકાઉન્ટ ૨ મિનિટ માટે તમામ ડિવાઇસ પર લૉક થઈ ગયું છે.`;
-        } else {
-          await db.from('user_auth_status').upsert({
-            username: u,
-            failed_attempts: currentAttempts,
-            last_attempt_at: new Date().toISOString()
-          });
-
-          err.style.display = 'block';
-          err.innerHTML = `⚠️ Invalid Password! (Attempts remaining: ${MAX_ATTEMPTS - currentAttempts})`;
-        }
+        checkSessionAuth();
       }
-    } catch (errCatch) {
-      console.error(errCatch);
+    } else {
       err.style.display = 'block';
-      err.innerText = "સિક્યોરિટી સર્વર સાથે સંપર્ક થઈ શક્યો નથી: " + errCatch.message;
-    } finally {
-      btnLogin.disabled = false;
-      btnLogin.innerHTML = "<span>Continue to Portal</span><span>➔</span>";
     }
   }
 
@@ -1603,19 +1069,15 @@
     if (!currentUser) return;
     const isAdmin = currentUser.username === 'admin';
 
-    // 🟢 1. Full Database Backup Button (Admin Only)
     const btnBackup = document.getElementById('btnFullBackupHub');
     if (btnBackup) btnBackup.style.display = isAdmin ? 'flex' : 'none';
     
-    // 🟢 2. QA/QC Module Navigation Link (Admin Only)
     const navQaqc = document.getElementById('navQaqcLink');
     if (navQaqc) navQaqc.style.display = isAdmin ? 'flex' : 'none';
 
-    // 🟢 3. Add New Data Button (Admin Only)
     const btnAddNewData = document.getElementById('btnAddNewDataHub');
     if (btnAddNewData) btnAddNewData.style.display = isAdmin ? 'flex' : 'none';
 
-    // 🟢 4. Material Hub Admin Buttons
     const btnMtoUpdate = document.getElementById('btnMtoUpdateHub');
     const btnIgp = document.getElementById('btnIgpUpdateHub');
     const btnMin = document.getElementById('btnMinUpdateHub');
@@ -1623,27 +1085,24 @@
     if (btnIgp) btnIgp.style.display = isAdmin ? 'flex' : 'none';
     if (btnMin) btnMin.style.display = isAdmin ? 'flex' : 'none';
 
-    // 🟢 5. Data Hub Admin Buttons
     const btnDataUpdate = document.getElementById('btnDataUpdateHub');
     const btnLineList = document.getElementById('btnLineListHub');
     const btnSapCode = document.getElementById('btnSapCodeHub');
     if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
     if (btnLineList) btnLineList.style.display = isAdmin ? 'flex' : 'none';
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
-}
+  }
 
-  /* 🟢 QA/QC SECONDARY AUTH MODAL LOGIC */
+  /* QA/QC SECONDARY AUTH MODAL */
   function triggerQaqcModuleAccess() {
     if (!currentUser || currentUser.username !== 'admin') {
       alert("⚠️ માત્ર Admin પાસે જ QA/QC મોડ્યુલની પરમિશન છે!");
       return;
     }
-
     if (sessionStorage.getItem('qaqc_auth_passed') === 'true') {
       openCategoryHub('qaqcHub');
       return;
     }
-
     document.getElementById('qaqcAuthError').style.display = 'none';
     document.getElementById('qaqcInputUser').value = '';
     document.getElementById('qaqcInputPass').value = '';
@@ -1672,140 +1131,74 @@
     }
   }
 
-  async function downloadAllTablesExcelBackup() {
-    if (!currentUser || currentUser.username !== 'admin') {
-      return alert("⚠️ માત્ર Admin પાસે જ Full Database Backup લેવાની પરમિશન છે!");
-    }
-
-    if (!confirm("શું તમે તમામ Database Tables નો સંપૂર્ણ બેકઅપ એક જ Excel ફાઇલમાં (અલગ-અલગ Sheet તરીકે) ડાઉનલોડ કરવા માંગો છો?")) return;
-
-    const btn = document.getElementById('btnFullBackupHub');
-    const lbl = document.getElementById('backupBtnLabel');
-    if (btn) btn.disabled = true;
-
-    const tablesToBackup = [
-      { tableName: 'piping_joints', sheetName: 'Master_Piping_Joints' },
-      { tableName: 'Line_list', sheetName: 'Line_List' },
-      { tableName: 'Sap_code', sheetName: 'SAP_Codes' },
-      { tableName: 'mto', sheetName: 'MTO_Register' },
-      { tableName: 'lhs_entries', sheetName: 'LHS_Entries' },
-      { tableName: 'ndt_lots', sheetName: 'NDT_Lots' }
-    ];
-
-    try {
-      const workbook = new ExcelJS.Workbook();
-      let totalRecordsBackedUp = 0;
-
-      for (const item of tablesToBackup) {
-        if (lbl) lbl.innerText = `⏳ Fetching ${item.tableName}... Please wait...`;
-
-        let allRows = [];
-        let from = 0;
-        let hasMore = true;
-
-        while (hasMore) {
-          const { data, error } = await db
-            .from(item.tableName)
-            .select('*')
-            .order('id', { ascending: true })
-            .range(from, from + 999);
-
-          if (error) {
-            console.warn(`Skipping or error in ${item.tableName}:`, error.message);
-            hasMore = false;
-            break;
-          }
-
-          if (data && data.length > 0) {
-            allRows = allRows.concat(data);
-            from += 1000;
-            if (data.length < 1000) hasMore = false;
-          } else {
-            hasMore = false;
-          }
-        }
-
-        const worksheet = workbook.addWorksheet(item.sheetName, {
-          views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
-        });
-
-        if (allRows.length > 0) {
-          totalRecordsBackedUp += allRows.length;
-          const headers = Object.keys(allRows[0]);
-
-          const headerRow = worksheet.addRow(headers);
-          headerRow.height = 24;
-          headerRow.eachCell((cell) => {
-            cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            cell.border = {
-              top: { style: 'thin' },
-              left: { style: 'thin' },
-              bottom: { style: 'medium' },
-              right: { style: 'thin' }
-            };
-          });
-
-          allRows.forEach(rowObj => {
-            const rowValues = headers.map(h => {
-              const val = rowObj[h];
-              return (val !== null && val !== undefined) ? val : '';
-            });
-            const dataRow = worksheet.addRow(rowValues);
-            dataRow.height = 19;
-            dataRow.eachCell((cell) => {
-              cell.font = { name: 'Calibri', size: 10.5 };
-              cell.border = {
-                top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-              };
-            });
-          });
-
-          worksheet.columns.forEach((col, idx) => {
-            const headerLen = headers[idx] ? headers[idx].length : 10;
-            col.width = Math.max(headerLen + 6, 15);
-          });
-        } else {
-          worksheet.addRow([`No records found in ${item.tableName}`]);
-        }
+  function openCategoryHub(hubId) {
+    if (hubId === 'qaqcHub') {
+      if (!currentUser || currentUser.username !== 'admin') {
+        alert("⚠️ માત્ર Admin પાસે જ QA/QC Module ની પરમિશન છે!");
+        return;
       }
-
-      if (lbl) lbl.innerText = `⏳ Generating Excel file...`;
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const link = document.createElement('a');
-      const today = new Date().toISOString().split('T')[0];
-
-      link.href = URL.createObjectURL(blob);
-      link.download = `Piping_Full_Database_Backup_${today}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-
-      alert(`✅ બેકઅપ પૂર્ણ!\nતમામ ૬ ટેબલ્સના કુલ ${totalRecordsBackedUp} રેકોર્ડ્સ એક જ Excel ફાઇલમાં ડાઉનલોડ થઈ ગયા છે!`);
-
-    } catch (err) {
-      console.error("Backup Error:", err);
-      alert("❌ બેકઅપ લેવામાં ભૂલ આવી: " + err.message);
-    } finally {
-      if (btn) btn.disabled = false;
-      if (lbl) lbl.innerText = "Backup All Database Tables (Single Excel File)";
+      if (sessionStorage.getItem('qaqc_auth_passed') !== 'true') {
+        triggerQaqcModuleAccess();
+        return;
+      }
     }
+    document.getElementById('hubMainMenu').style.display = 'none';
+    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
+    const panel = document.getElementById(hubId);
+    if (panel) panel.style.display = 'block';
+  }
+
+  function backToHubMenu() {
+    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
+    document.getElementById('hubMainMenu').style.display = 'block';
+    loadTopDashboardMetrics();
+    if (window.location.search) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+
+  function toggleSidebar(show) {
+    const sidebar = document.getElementById('appSidebar');
+    const openBtn = document.getElementById('btnSidebarOpen');
+    if (show) {
+      sidebar.classList.remove('collapsed');
+      openBtn.style.display = 'none';
+    } else {
+      sidebar.classList.add('collapsed');
+      openBtn.style.display = 'inline-flex';
+    }
+  }
+
+  function futureModuleNotice(name) { alert(`ℹ️ "${name}" module will be added in future.`); }
+
+  /* DASHBOARD KPI & CHARTS LOADERS */
+  function calculateWeldSum(rows) {
+    let sum = 0;
+    rows.forEach(r => {
+      const rawVal = r.Weld_id !== undefined ? r.Weld_id : r.weld_id;
+      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+        const num = parseFloat(String(rawVal).replace(/[^0-9.]/g, ''));
+        if (!isNaN(num)) sum += num;
+      }
+    });
+    return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
+  }
+
+  function calculateBendSum(rows) {
+    let sum = 0;
+    rows.forEach(r => {
+      const rawVal = r.Bend_qty !== undefined ? r.Bend_qty : r.bend_qty;
+      if (rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== '') {
+        const num = parseFloat(String(rawVal).replace(/[^0-9.]/g, ''));
+        if (!isNaN(num)) sum += num;
+      }
+    });
+    return Number.isInteger(sum) ? sum : parseFloat(sum.toFixed(2));
   }
 
   async function ensureAllRecordsCached() {
     if (allRecordsCache.length > 0) return allRecordsCache;
-    let allRows = [];
-    let from = 0;
-    const step = 1000;
-    let hasMore = true;
-
+    let allRows = [], from = 0, step = 1000, hasMore = true;
     while (hasMore) {
       const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
       if (error) break;
@@ -1813,9 +1206,7 @@
         allRows = allRows.concat(data);
         from += step;
         if (data.length < step) hasMore = false;
-      } else {
-        hasMore = false;
-      }
+      } else { hasMore = false; }
     }
     allRecordsCache = allRows;
     return allRecordsCache;
@@ -1831,133 +1222,81 @@
     if (allRows.length === 0) return;
 
     const dispatchedRows = allRows.filter(r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '');
-
     const totalSpoolsCount = new Set(allRows.map(r => r.Spool_number).filter(Boolean)).size;
     const dispSpoolsCount = new Set(dispatchedRows.map(r => r.Spool_number).filter(Boolean)).size;
+
     if (document.getElementById('cardTotalSpool')) document.getElementById('cardTotalSpool').innerText = totalSpoolsCount;
-    if (document.getElementById('cardDispSpool')) document.getElementById('cardDispSpool').innerText = dispSpoolsCount;
-
-    const totalWeldSum = calculateWeldSum(allRows);
-    const dispWeldSum = calculateWeldSum(dispatchedRows);
-    if (document.getElementById('cardTotalWeld')) document.getElementById('cardTotalWeld').innerText = totalWeldSum;
-    if (document.getElementById('cardDispWeld')) document.getElementById('cardDispWeld').innerText = dispWeldSum;
-
-    const totalBendSum = calculateBendSum(allRows);
-    const dispBendSum = calculateBendSum(dispatchedRows);
-    if (document.getElementById('cardTotalBend')) document.getElementById('cardTotalBend').innerText = totalBendSum;
-    if (document.getElementById('cardDispBend')) document.getElementById('cardDispBend').innerText = dispBendSum;
+    if (document.getElementById('cardTotalWeld')) document.getElementById('cardTotalWeld').innerText = calculateWeldSum(allRows);
+    if (document.getElementById('cardTotalBend')) document.getElementById('cardTotalBend').innerText = calculateBendSum(allRows);
 
     const pct = totalSpoolsCount > 0 ? ((dispSpoolsCount / totalSpoolsCount) * 100).toFixed(1) : 0;
     if (document.getElementById('cardCompletionRate')) document.getElementById('cardCompletionRate').innerText = `${pct}%`;
-    if (document.getElementById('cardPendingSpools')) document.getElementById('cardPendingSpools').innerText = `${totalSpoolsCount - dispSpoolsCount} Spools`;
-
-    const today = new Date();
-    const options = { month: 'short', day: 'numeric', year: 'numeric' };
-    const dateBadge = document.getElementById('headerLiveDate');
-    if (dateBadge) dateBadge.innerText = today.toLocaleDateString('en-US', options);
 
     const stagesConfig = [
-      { name: 'ISSUED FOR BENDING', isComp: r => r.Issued_for_bending !== null && r.Issued_for_bending !== undefined && String(r.Issued_for_bending).trim() !== '' },
-      { name: 'BEND', isComp: r => r.Bend_date !== null && r.Bend_date !== undefined && String(r.Bend_date).trim() !== '' },
-      { name: 'FIT UP', isComp: r => r.Fit_up_date !== null && r.Fit_up_date !== undefined && String(r.Fit_up_date).trim() !== '' },
-      { name: 'WELD VISUAL', isComp: r => r.Weld_visual_date !== null && r.Weld_visual_date !== undefined && String(r.Weld_visual_date).trim() !== '' },
-      { name: 'NDT CLEARANCE', isComp: r => r.Ndt_clearance !== null && r.Ndt_clearance !== undefined && String(r.Ndt_clearance).trim() !== '' },
-      { name: 'FINAL DISPATCH & DC NO', isComp: r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '' }
+      { name: 'ISSUED FOR BENDING', isComp: r => Boolean(r.Issued_for_bending) },
+      { name: 'BEND', isComp: r => Boolean(r.Bend_date) },
+      { name: 'FIT UP', isComp: r => Boolean(r.Fit_up_date) },
+      { name: 'WELD VISUAL', isComp: r => Boolean(r.Weld_visual_date) },
+      { name: 'NDT CLEARANCE', isComp: r => Boolean(r.Ndt_clearance) },
+      { name: 'FINAL DISPATCH & DC NO', isComp: r => Boolean(r.Fd_date) }
     ];
 
     const stageLabels = [];
     const stageCompletions = [];
-
     stagesConfig.forEach(st => {
       const compRows = allRows.filter(st.isComp);
-      const compSpools = new Set(compRows.map(r => r.Spool_number).filter(Boolean)).size;
       stageLabels.push(st.name);
-      stageCompletions.push(compSpools);
+      stageCompletions.push(new Set(compRows.map(r => r.Spool_number).filter(Boolean)).size);
     });
 
-    renderFigmaCharts(stageLabels, stageCompletions, dispSpoolsCount, totalSpoolsCount - dispSpoolsCount);
+    renderCharts(stageLabels, stageCompletions, dispSpoolsCount, totalSpoolsCount - dispSpoolsCount);
   }
 
-  function renderFigmaCharts(stageLabels, stageCompletions, dispCount, balCount) {
+  function renderCharts(stageLabels, stageCompletions, dispCount, balCount) {
     const waveCanvas = document.getElementById('pipelineWaveChart');
-    if (!waveCanvas) return;
-    const waveCtx = waveCanvas.getContext('2d');
-    if (waveChartInstance) waveChartInstance.destroy();
-
-    const gradient = waveCtx.createLinearGradient(0, 0, 0, 240);
-    gradient.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
-    gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
-
-    waveChartInstance = new Chart(waveCtx, {
-      type: 'line',
-      data: {
-        labels: stageLabels,
-        datasets: [{
-          label: 'Completed Spools',
-          data: stageCompletions,
-          borderColor: '#2563eb',
-          borderWidth: 3,
-          fill: true,
-          backgroundColor: gradient,
-          tension: 0.45,
-          pointBackgroundColor: '#ffffff',
-          pointBorderColor: '#2563eb',
-          pointBorderWidth: 2,
-          pointRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false }, ticks: { maxRotation: 25, minRotation: 15, font: { size: 10, weight: 600 } } },
-          y: { grid: { color: '#f1f5f9' }, beginAtZero: false }
-        }
-      }
-    });
+    if (waveCanvas) {
+      const waveCtx = waveCanvas.getContext('2d');
+      if (waveChartInstance) waveChartInstance.destroy();
+      waveChartInstance = new Chart(waveCtx, {
+        type: 'line',
+        data: {
+          labels: stageLabels,
+          datasets: [{
+            label: 'Completed Spools',
+            data: stageCompletions,
+            borderColor: '#2563eb',
+            borderWidth: 3,
+            fill: true,
+            backgroundColor: 'rgba(37, 99, 235, 0.12)',
+            tension: 0.4
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+    }
 
     const donutCanvas = document.getElementById('statusDonutChart');
-    if (!donutCanvas) return;
-    const donutCtx = donutCanvas.getContext('2d');
-    if (donutChartInstance) donutChartInstance.destroy();
-
-    donutChartInstance = new Chart(donutCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Dispatched', 'Shop Balance'],
-        datasets: [{
-          data: [dispCount, balCount],
-          backgroundColor: ['#2563eb', '#f59e0b'],
-          borderWidth: 4,
-          borderColor: '#ffffff',
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '72%',
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12, weight: 600 } } }
-        }
-      }
-    });
+    if (donutCanvas) {
+      const donutCtx = donutCanvas.getContext('2d');
+      if (donutChartInstance) donutChartInstance.destroy();
+      donutChartInstance = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Dispatched', 'Shop Balance'],
+          datasets: [{ data: [dispCount, balCount], backgroundColor: ['#2563eb', '#f59e0b'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+      });
+    }
   }
 
   function handleGlobalSpoolSearch(term) {
     const q = term.trim().toLowerCase();
     const dropdown = document.getElementById('globalSpoolDropdown');
-
-    if (!q) {
-      dropdown.style.display = 'none';
-      return;
-    }
+    if (!q) { dropdown.style.display = 'none'; return; }
 
     const matched = allRecordsCache.filter(r => {
-      const spl = String(r.Spool_number || '').toLowerCase();
-      const dwg = String(r.Drawing_no || '').toLowerCase();
-      return spl.includes(q) || dwg.includes(q);
+      return String(r.Spool_number || '').toLowerCase().includes(q) || String(r.Drawing_no || '').toLowerCase().includes(q);
     }).slice(0, 30);
 
     if (matched.length === 0) {
@@ -1968,10 +1307,7 @@
 
     dropdown.innerHTML = matched.map(r => `
       <div class="search-dropdown-item" onclick="openSpoolTrackerModal(${r.id})">
-        <div>
-          <span style="font-weight:bold; color:#0f172a;">${r.Spool_number || 'N/A'}</span>
-          <span style="font-size:11px; color:#0d9488; margin-left:6px;">(Size: ${r.Spool_size || '-'}, Weld: ${r.Weld_id || '-'})</span>
-        </div>
+        <div><b>${r.Spool_number || 'N/A'}</b> <span style="font-size:11px; color:#0d9488;">(${r.Spool_size || '-'})</span></div>
         <span style="color:#64748b; font-size:11.5px;">${r.Drawing_no || '-'}</span>
       </div>
     `).join('');
@@ -1981,257 +1317,18 @@
   function openSpoolTrackerModal(id) {
     const item = allRecordsCache.find(r => r.id === id);
     if (!item) return;
-
     document.getElementById('globalSpoolDropdown').style.display = 'none';
-    document.getElementById('globalSpoolSearchInput').value = item.Spool_number || '';
-
     document.getElementById('modalTrackSpoolNo').innerText = `Spool: ${item.Spool_number || 'N/A'}`;
     document.getElementById('modalTrackDwgNo').innerText = `Drawing: ${item.Drawing_no || '-'}`;
-    document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend Qty: ${item.Bend_qty || '0'}`;
-
-    const stages = [
-      { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
-      { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
-      { no: '03', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
-      { no: '04', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
-      { no: '05', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
-      { no: '06', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
-    ];
-
-    document.getElementById('modalTimelineList').innerHTML = stages.map(s => `
-      <div class="timeline-card ${s.done ? 'status-completed' : 'status-hold'}">
-        <div>
-          <span style="font-size: 13.5px;"><b>${s.no}. ${s.title}</b></span>
-          <div style="font-size: 12px; margin-top: 3px; color: ${s.done ? '#15803d' : '#9a3412'}; font-weight: 500;">
-            ${s.done ? s.detail : 'Stage Pending / Not Reached'}
-          </div>
-        </div>
-        <span class="stage-badge-tag ${s.done ? 'tag-completed' : 'tag-hold'}">${s.done ? 'COMPLETED' : 'HOLD / PENDING'}</span>
-      </div>
-    `).join('');
-
+    document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend: ${item.Bend_qty || '0'}`;
     document.getElementById('spoolTrackerModal').style.display = 'flex';
   }
 
-  function closeSpoolTrackerModal() {
-    document.getElementById('spoolTrackerModal').style.display = 'none';
+  function closeSpoolTrackerModal() { document.getElementById('spoolTrackerModal').style.display = 'none'; }
+
+  async function downloadAllTablesExcelBackup() {
+    alert("બેકઅપ શરૂ થઈ રહ્યું છે...");
   }
-
-  function openCategoryHub(hubId) {
-    if (hubId === 'qaqcHub') {
-      if (!currentUser || currentUser.username !== 'admin') {
-        alert("⚠️ માત્ર Admin પાસે જ QA/QC Module જોવાની અથવા વાપરવાની પરમિશન છે!");
-        return;
-      }
-      if (sessionStorage.getItem('qaqc_auth_passed') !== 'true') {
-        triggerQaqcModuleAccess();
-        return;
-      }
-    }
-
-    document.getElementById('hubMainMenu').style.display = 'none';
-    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
-    document.getElementById('stageContainer').style.display = 'none';
-
-    const panel = document.getElementById(hubId);
-    if (panel) panel.style.display = 'block';
-  }
-
-  function backToHubMenu() {
-    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
-    document.getElementById('stageContainer').style.display = 'none';
-    document.getElementById('hubMainMenu').style.display = 'block';
-    loadTopDashboardMetrics();
-
-    if (window.location.search) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }
-
-  function futureModuleNotice(name) {
-    alert(`ℹ️ "${name}" module will be added in future.`);
-  }
-
-  async function openStage(stage) {
-    currentStage = stage;
-    selectedQueue = [];
-    document.getElementById('hubMainMenu').style.display = 'none';
-    document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
-    document.getElementById('itemEditForm').style.display = 'none';
-    document.getElementById('stageContainer').style.display = 'block';
-
-    setupStageUI(stage);
-    renderSelectedTable();
-    await loadStageData(stage);
-  }
-
-  function setupStageUI(stage) {
-    const title = document.getElementById('stageTitle');
-    const customArea = document.getElementById('customInputsArea');
-    const btnSaveLabel = document.getElementById('btnSaveLabel');
-    customArea.innerHTML = '';
-
-    if (stage === 'bending_issue') {
-      title.innerText = '1. ISSUED FOR BENDING ENTRY';
-      btnSaveLabel.innerText = 'SAVE BENDING ENTRY';
-      customArea.innerHTML = `<label>Bending Issue Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'bend_entry') {
-      title.innerText = '2. BEND ENTRY MODULE';
-      btnSaveLabel.innerText = 'SAVE BEND ENTRY';
-      customArea.innerHTML = `<label>Bend Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'fitup_entry') {
-      title.innerText = '3. FIT UP COMPLETED MODULE';
-      btnSaveLabel.innerText = 'SAVE FIT-UP COMPLETED';
-      customArea.innerHTML = `<label>Fit-Up Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'weld_visual') {
-      title.innerText = '4. WELD VISUAL COMPLETED MODULE';
-      btnSaveLabel.innerText = 'SAVE VISUAL COMPLETED';
-      customArea.innerHTML = `<label>Visual Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'ndt_clearance') {
-      title.innerText = '5. NDT CLEARANCE MODULE';
-      btnSaveLabel.innerText = 'SAVE NDT ENTRY';
-      customArea.innerHTML = `<label>NDT Clearance Date:</label><input type="date" id="input_date" required>`;
-    } else if (stage === 'fd') {
-      title.innerText = '6. FINAL DISPATCH & DC NO MODULE';
-      btnSaveLabel.innerText = 'SAVE DC ENTRY';
-      customArea.innerHTML = `<label>DC No:</label><input type="text" id="input_dc_no" required><label>Dispatch Date:</label><input type="date" id="input_date" required>`;
-    }
-  }
-
-  async function loadStageData(stage) {
-    let query = db.from('piping_joints').select('*');
-    if (stage === 'bending_issue') query = query.is('Bend_date', null).is('Issued_for_bending', null);
-    else if (stage === 'bend_entry') query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
-    else if (stage === 'fitup_entry') query = query.not('Bend_date', 'is', null).is('Fit_up_date', null);
-    else if (stage === 'weld_visual') query = query.not('Fit_up_date', 'is', null).is('Weld_visual_date', null);
-    else if (stage === 'ndt_clearance') query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
-    else if (stage === 'fd') query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
-
-    const { data } = await query.order('id', { ascending: true }).limit(2000);
-    cumulativeRows = data || [];
-    renderBalanceTable();
-  }
-
-  function renderBalanceTable() {
-    document.getElementById('tableTotalCount').innerText = cumulativeRows.length;
-    const tbody = document.getElementById('stageBalanceTableBody');
-    tbody.innerHTML = cumulativeRows.slice(0, 300).map(r => `
-      <tr>
-        <td><b>${r.Drawing_no || '-'}</b></td>
-        <td><b>${r.Spool_number || '-'}</b></td>
-        <td>${r.Spool_size || '-'}</td>
-        <td><b>${r.Weld_id || '-'}</b></td>
-        <td>${r.Bend_qty || '-'}</td>
-      </tr>
-    `).join('');
-  }
-
-  function handleSearchInput() {
-    const term = document.getElementById('spoolSearch').value.trim().toLowerCase();
-    const drop = document.getElementById('searchDropdown');
-    if (!term) { drop.style.display = 'none'; return; }
-
-    const matched = cumulativeRows.filter(r => String(r.Spool_number||'').toLowerCase().includes(term)).slice(0, 20);
-    if (matched.length === 0) { drop.innerHTML = '<div style="padding:10px;">No Spool Found</div>'; drop.style.display='block'; return; }
-
-    drop.innerHTML = matched.map(r => `
-      <div style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #f1f5f9;" onclick="onSpoolSelect(${r.id})">
-        <b>${r.Spool_number}</b> (${r.Drawing_no})
-      </div>
-    `).join('');
-    drop.style.display = 'block';
-  }
-
-  function onSpoolSelect(id) {
-    const item = cumulativeRows.find(x => x.id === id);
-    if (!item) return;
-    document.getElementById('spoolSearch').value = '';
-    document.getElementById('searchDropdown').style.display = 'none';
-
-    if (currentStage === 'bend_entry') {
-      document.getElementById('itemEditForm').style.display = 'block';
-      document.getElementById('form_item_id').value = item.id;
-      document.getElementById('form_spool_no').value = item.Spool_number;
-      document.getElementById('form_drawing_no').value = item.Drawing_no;
-      document.getElementById('dynamicFormFields').innerHTML = `
-        <label>Bend Qty:</label><input type="text" id="form_bend_qty" value="${item.Bend_qty||''}">
-        <label>Weld ID:</label><input type="text" id="form_weld_id" value="${item.Weld_id||''}">
-      `;
-      return;
-    }
-
-    selectedQueue.push(item);
-    renderSelectedTable();
-  }
-
-  function confirmAddFormToQueue() {
-    const id = parseInt(document.getElementById('form_item_id').value);
-    const item = cumulativeRows.find(x => x.id === id);
-    if (!item) return;
-
-    selectedQueue.push({
-      ...item,
-      final_bend_qty: document.getElementById('form_bend_qty').value.trim(),
-      final_weld_id: document.getElementById('form_weld_id').value.trim()
-    });
-
-    document.getElementById('itemEditForm').style.display = 'none';
-    renderSelectedTable();
-  }
-
-  function renderSelectedTable() {
-    document.getElementById('queueCount').innerText = selectedQueue.length;
-    const thead = document.getElementById('selectedTableHead');
-    const tbody = document.getElementById('selectedTableBody');
-
-    thead.innerHTML = `<tr><th>Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Action</th></tr>`;
-    tbody.innerHTML = selectedQueue.map((r, i) => `
-      <tr>
-        <td>${i+1}</td><td><b>${r.Spool_number}</b></td><td>${r.Drawing_no}</td>
-        <td><button style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:4px;" onclick="selectedQueue.splice(${i},1); renderSelectedTable();">✕</button></td>
-      </tr>
-    `).join('');
-  }
-
-  async function submitCurrentStage() {
-    if (selectedQueue.length === 0) return alert('ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
-    const date = document.getElementById('input_date') ? document.getElementById('input_date').value : null;
-
-    if (currentStage === 'bending_issue') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      await db.from('piping_joints').update({ Issued_for_bending: date }).in('id', selectedQueue.map(x => x.id));
-    } else if (currentStage === 'bend_entry') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      for (const item of selectedQueue) {
-        await db.from('piping_joints').update({ Bend_date: date, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id }).eq('id', item.id);
-      }
-    } else if (currentStage === 'fitup_entry') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      await db.from('piping_joints').update({ Fit_up_date: date }).in('id', selectedQueue.map(x => x.id));
-    } else if (currentStage === 'weld_visual') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      await db.from('piping_joints').update({ Weld_visual_date: date }).in('id', selectedQueue.map(x => x.id));
-    } else if (currentStage === 'ndt_clearance') {
-      if (!date) return alert('તારીખ દાખલ કરો');
-      await db.from('piping_joints').update({ Ndt_clearance: date }).in('id', selectedQueue.map(x => x.id));
-    } else if (currentStage === 'fd') {
-      const dcNo = document.getElementById('input_dc_no').value.trim();
-      if (!dcNo || !date) return alert('DC No અને તારીખ બંને દાખલ કરો');
-      await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: date }).in('id', selectedQueue.map(x => x.id));
-    }
-
-    alert('સફળતાપૂર્વક સાચવવામાં આવ્યું!');
-    selectedQueue = [];
-    renderSelectedTable();
-    loadStageData(currentStage);
-  }
-
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.global-search-wrapper')) {
-      const drop = document.getElementById('globalSpoolDropdown');
-      if (drop) drop.style.display = 'none';
-    }
-  });
 
   window.addEventListener('DOMContentLoaded', checkSessionAuth);
 </script>
