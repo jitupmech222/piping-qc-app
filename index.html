@@ -162,7 +162,6 @@
     .btn-login-modern:hover {
       background: #1d4ed8;
       transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
     }
 
     .login-error-card {
@@ -592,12 +591,14 @@
     }
     .sub-btn:hover { background: #f0fdfa; border-color: #5eead4; color: #0f766e; }
 
-    /* QA/QC SECONDARY MODAL */
+    /* =========================================================
+       🟢 PROFESSIONAL QA/QC SECURITY MODAL (HIGH FINISH)
+    ========================================================= */
     #qaqcAuthModal {
       position: fixed;
       inset: 0;
       background: rgba(15, 23, 42, 0.7);
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(8px);
       z-index: 20000;
       display: none;
       align-items: center;
@@ -607,36 +608,53 @@
     .qaqc-modal-card {
       background: #ffffff;
       width: 100%;
-      max-width: 400px;
-      border-radius: 18px;
-      padding: 28px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      border: 1.5px solid #cbd5e1;
+      max-width: 420px;
+      border-radius: 20px;
+      padding: 32px 30px;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8);
+      border: 1px solid #cbd5e1;
+      animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .qaqc-modal-header { text-align: center; margin-bottom: 20px; }
+    @keyframes modalPopIn {
+      0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .qaqc-modal-header { text-align: center; margin-bottom: 24px; }
     .qaqc-icon-shield {
-      width: 50px;
-      height: 50px;
-      background: #f5f3ff;
-      border: 2px solid #ddd6fe;
-      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+      border: 2px solid #c4b5fd;
+      border-radius: 16px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      margin-bottom: 10px;
+      font-size: 26px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
     }
     .btn-qaqc-verify {
       width: 100%;
-      padding: 12px;
-      background: #7c3aed;
+      padding: 13px;
+      background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
       color: #ffffff;
       border: none;
       border-radius: 10px;
-      font-size: 14px;
+      font-size: 14.5px;
       font-weight: 800;
       cursor: pointer;
-      margin-top: 14px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+      transition: all 0.2s;
+    }
+    .btn-qaqc-verify:hover {
+      background: linear-gradient(180deg, #6d28d9 0%, #5b21b6 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(124, 58, 237, 0.45);
     }
     .btn-qaqc-cancel {
       width: 100%;
@@ -647,8 +665,11 @@
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 6px;
+      margin-top: 8px;
+      border-radius: 8px;
+      transition: all 0.2s;
     }
+    .btn-qaqc-cancel:hover { background: #f1f5f9; color: #0f172a; }
 
     #spoolTrackerModal {
       position: fixed;
@@ -740,6 +761,7 @@
       <div class="login-footer-note">Secured by Encrypted Authentication • www.pipeflowsys.in</div>
     </div>
 
+    <!-- Right Live Showcase Area (ALWAYS FILLED WITH LIVE/FALLBACK METRICS) -->
     <div class="login-right-pane">
       <div class="preview-card-mockup">
         <div>
@@ -753,41 +775,97 @@
               <span class="live-dot"></span> Live Operations Insight
             </div>
           </div>
+
           <div style="margin-top:16px;">
             <h3 style="margin:0; font-size:20px; font-weight:800; color:#0f172a;">Overall Fabrication Status</h3>
             <span style="font-size:13px; color:#64748b;">Glimpse of active spools, welded joints & dispatch metrics</span>
           </div>
+
+          <!-- KPI Grid (Front Showcase) -->
+          <div class="mockup-kpi-grid">
+            <div class="mockup-kpi">
+              <span style="font-size:12px; color:#64748b; font-weight:600;">Total Spool Scope</span>
+              <div style="font-size:24px; font-weight:800; color:#0f172a; margin-top:4px;" id="loginTotalSpool">4,047</div>
+              <span style="font-size:11px; color:#16a34a; font-weight:700;"><span id="loginDispSpool">3,717</span> Dispatched</span>
+            </div>
+            <div class="mockup-kpi">
+              <span style="font-size:12px; color:#64748b; font-weight:600;">Joints (Weld ID)</span>
+              <div style="font-size:24px; font-weight:800; color:#7c3aed; margin-top:4px;" id="loginTotalWeld">42,255</div>
+              <span style="font-size:11px; color:#7c3aed; font-weight:700;"><span id="loginDoneWeld">39,440</span> Done</span>
+            </div>
+            <div class="mockup-kpi">
+              <span style="font-size:12px; color:#64748b; font-weight:600;">Completion Rate</span>
+              <div style="font-size:24px; font-weight:800; color:#2563eb; margin-top:4px;" id="loginCompRate">91.8%</div>
+              <span style="font-size:11px; color:#d97706; font-weight:700;"><span id="loginBalSpool">330</span> In Shop</span>
+            </div>
+          </div>
         </div>
+
+        <!-- Full Chart Box -->
+        <div class="mockup-chart-box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:13.5px; font-weight:700; color:#334155;">Workflow Status</span>
+            <span style="font-size:11.5px; background:#eff6ff; color:#2563eb; padding:3px 10px; border-radius:999px; font-weight:700;">Active Flow</span>
+          </div>
+          
+          <div class="mockup-chart-bars">
+            <div class="mockup-bar-col">
+              <div class="mockup-bar" style="height:92%;"></div>
+              <span class="mockup-bar-label">Issued</span>
+            </div>
+            <div class="mockup-bar-col">
+              <div class="mockup-bar" style="height:82%;"></div>
+              <span class="mockup-bar-label">Bend</span>
+            </div>
+            <div class="mockup-bar-col">
+              <div class="mockup-bar" style="height:76%;"></div>
+              <span class="mockup-bar-label">Fit-up</span>
+            </div>
+            <div class="mockup-bar-col">
+              <div class="mockup-bar" style="height:68%;"></div>
+              <span class="mockup-bar-label">Visual</span>
+            </div>
+            <div class="mockup-bar-col">
+              <div class="mockup-bar" style="height:54%;"></div>
+              <span class="mockup-bar-label">NDT</span>
+            </div>
+            <div class="mockup-bar-col">
+              <div class="mockup-bar" style="height:46%;"></div>
+              <span class="mockup-bar-label">Dispatched</span>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 </div>
 
-<!-- 🟢 2. QA/QC SECONDARY SECURITY AUTH MODAL -->
+<!-- 🟢 PROFESSIONAL QA/QC SECONDARY PIN/PASSWORD AUTH MODAL -->
 <div id="qaqcAuthModal">
   <div class="qaqc-modal-card">
     <div class="qaqc-modal-header">
       <div class="qaqc-icon-shield">🛡️</div>
-      <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed; border:none; padding:0; justify-content:center;">QA/QC Security Access</h3>
-      <p style="font-size:12.5px; color:#64748b; margin-top:4px;">Enter Authorized QA/QC ID & Password</p>
+      <h3 style="margin:0; font-size:19px; font-weight:800; color:#0f172a; letter-spacing:-0.3px;">QA/QC Security Access</h3>
+      <p style="font-size:12.5px; color:#64748b; margin-top:4px;">Enter Authorized QA/QC Credentials to Continue</p>
     </div>
 
-    <div id="qaqcAuthError" style="color:#dc2626; font-size:12px; font-weight:bold; margin-bottom:10px; display:none; text-align:center;">
+    <div id="qaqcAuthError" style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; font-size:12.5px; font-weight:700; padding:9px 12px; border-radius:8px; margin-bottom:14px; display:none; text-align:center;">
       ⚠️ Invalid QA/QC ID or Password!
     </div>
 
-    <div style="margin-bottom:12px;">
-      <label>QA/QC ID:</label>
-      <input type="text" id="qaqcInputUser" placeholder="Enter QA/QC ID" autocomplete="off">
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12.5px; font-weight:700; color:#334155; margin-bottom:5px; display:block;">QA/QC ID</label>
+      <input type="text" id="qaqcInputUser" class="modern-input" placeholder="Enter QA/QC ID" autocomplete="off">
     </div>
 
-    <div style="margin-bottom:12px;">
-      <label>QA/QC Password:</label>
-      <input type="password" id="qaqcInputPass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeQaqcSecondaryAuth()">
+    <div style="margin-bottom:16px;">
+      <label style="font-size:12.5px; font-weight:700; color:#334155; margin-bottom:5px; display:block;">QA/QC Password</label>
+      <input type="password" id="qaqcInputPass" class="modern-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeQaqcSecondaryAuth()">
     </div>
 
     <button type="button" class="btn-qaqc-verify" onclick="executeQaqcSecondaryAuth()">
-      🔓 Unlock QA/QC Module
+      <span>🔓</span> <span>Unlock QA/QC Module</span>
     </button>
     <button type="button" class="btn-qaqc-cancel" onclick="closeQaqcAuthModal()">Cancel</button>
   </div>
@@ -1038,6 +1116,32 @@
     } else {
       document.getElementById('loginOverlay').style.display = 'flex';
       document.getElementById('appContent').style.display = 'none';
+      // Load public preview stats so login page is never blank
+      loadLoginPreviewMetrics();
+    }
+  }
+
+  // 🟢 Load Stats on Front Login Screen (So it's never blank)
+  async function loadLoginPreviewMetrics() {
+    try {
+      const allRows = await ensureAllRecordsCached();
+      if (!allRows || allRows.length === 0) return;
+
+      const dispatchedRows = allRows.filter(r => r.Fd_date !== null && r.Fd_date !== undefined && String(r.Fd_date).trim() !== '');
+      const totalSpoolsCount = new Set(allRows.map(r => r.Spool_number).filter(Boolean)).size;
+      const dispSpoolsCount = new Set(dispatchedRows.map(r => r.Spool_number).filter(Boolean)).size;
+      const totalWeldSum = calculateWeldSum(allRows);
+      const dispWeldSum = calculateWeldSum(dispatchedRows);
+      const pct = totalSpoolsCount > 0 ? ((dispSpoolsCount / totalSpoolsCount) * 100).toFixed(1) : 0;
+
+      if (document.getElementById('loginTotalSpool')) document.getElementById('loginTotalSpool').innerText = totalSpoolsCount.toLocaleString();
+      if (document.getElementById('loginDispSpool')) document.getElementById('loginDispSpool').innerText = dispSpoolsCount.toLocaleString();
+      if (document.getElementById('loginTotalWeld')) document.getElementById('loginTotalWeld').innerText = totalWeldSum.toLocaleString();
+      if (document.getElementById('loginDoneWeld')) document.getElementById('loginDoneWeld').innerText = dispWeldSum.toLocaleString();
+      if (document.getElementById('loginCompRate')) document.getElementById('loginCompRate').innerText = `${pct}%`;
+      if (document.getElementById('loginBalSpool')) document.getElementById('loginBalSpool').innerText = (totalSpoolsCount - dispSpoolsCount).toLocaleString();
+    } catch (e) {
+      console.warn("Front preview stats fallback:", e.message);
     }
   }
 
@@ -1051,7 +1155,6 @@
       sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
       err.style.display = 'none';
 
-      // If user is mechanical team, directly route to mechanical.html
       if (['bending', 'fitup', 'welding', 'qc/dc'].includes(u)) {
         window.location.href = 'mechanical.html';
       } else {
@@ -1099,7 +1202,7 @@
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
   }
 
-  /* QA/QC SECONDARY AUTH MODAL */
+  /* 🟢 PROFESSIONAL QA/QC SECONDARY AUTH MODAL LOGIC */
   function triggerQaqcModuleAccess() {
     if (!currentUser || currentUser.username !== 'admin') {
       alert("⚠️ માત્ર Admin પાસે જ QA/QC મોડ્યુલની પરમિશન છે!");
@@ -1231,9 +1334,9 @@
     const totalSpoolsCount = new Set(allRows.map(r => r.Spool_number).filter(Boolean)).size;
     const dispSpoolsCount = new Set(dispatchedRows.map(r => r.Spool_number).filter(Boolean)).size;
 
-    if (document.getElementById('cardTotalSpool')) document.getElementById('cardTotalSpool').innerText = totalSpoolsCount;
-    if (document.getElementById('cardTotalWeld')) document.getElementById('cardTotalWeld').innerText = calculateWeldSum(allRows);
-    if (document.getElementById('cardTotalBend')) document.getElementById('cardTotalBend').innerText = calculateBendSum(allRows);
+    if (document.getElementById('cardTotalSpool')) document.getElementById('cardTotalSpool').innerText = totalSpoolsCount.toLocaleString();
+    if (document.getElementById('cardTotalWeld')) document.getElementById('cardTotalWeld').innerText = calculateWeldSum(allRows).toLocaleString();
+    if (document.getElementById('cardTotalBend')) document.getElementById('cardTotalBend').innerText = calculateBendSum(allRows).toLocaleString();
 
     const pct = totalSpoolsCount > 0 ? ((dispSpoolsCount / totalSpoolsCount) * 100).toFixed(1) : 0;
     if (document.getElementById('cardCompletionRate')) document.getElementById('cardCompletionRate').innerText = `${pct}%`;
