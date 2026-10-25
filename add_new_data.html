@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add New Data Console | Piping Console</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    :root {
+      --navy: #0b1329;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #0284c7;
+      --teal: #0d9488;
+      --green: #15803d;
+      --amber: #d97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #f8fafc; color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* TOP NAVBAR */
+    .top-navbar {
+      background: var(--navy);
+      color: #ffffff;
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
+
+    .top-navbar-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+
+    /* WORKSPACE */
+    .full-workspace {
+      flex: 1;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      box-sizing: border-box;
+    }
+
+    /* CARDS */
+    .console-card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    /* OPTION BUTTONS GRID */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .option-card-btn {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .option-card-btn:hover {
+      border-color: var(--primary);
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.12);
+      transform: translateY(-2px);
+    }
+    .option-card-btn.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .option-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    /* SAFE MODE BANNER */
+    .safe-banner {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #166534;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      line-height: 1.5;
+    }
+
+    /* WORKFLOW STEPS GRID */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .step-box {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .step-badge {
+      background: var(--navy);
+      color: #ffffff;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .step-desc {
+      font-size: 12.5px;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .btn-action {
+      width: 100%;
+      padding: 11px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-download { background: #2563eb; color: #ffffff; box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25); }
+    .btn-download:hover { background: #1d4ed8; }
+
+    .btn-upload { background: #15803d; color: #ffffff; box-shadow: 0 3px 10px rgba(21, 128, 61, 0.25); }
+    .btn-upload:hover { background: #166534; }
+    .btn-upload:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+
+    .custom-file-input {
+      width: 100%;
+      padding: 10px;
+      background: #ffffff;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    /* TABLE MAPPING INFO */
+    .table-mapping-box {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .mapping-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 10px;
+    }
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .field-pill {
+      background: #e2e8f0;
+      color: #1e293b;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAVBAR -->
+  <header class="top-navbar">
+    <div class="top-navbar-title">
+      <span>➕</span>
+      <span>ADD NEW DATA CONSOLE</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span id="adminSessionTag" style="font-size:12px; color:#94a3b8; font-weight:bold;"></span>
+      <a href="index.html?tab=dataHub" class="btn-back">⬅️ Back to Data</a>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="full-workspace">
+
+    <!-- 1. OPTIONS SELECTION -->
+    <div class="options-grid">
+      <div class="option-card-btn active" id="btnOptDrawing" onclick="selectOption('drawing')">
+        <div class="option-icon-box" style="background:#eff6ff; color:#2563eb;">📋</div>
+        <div>
+          <div style="font-size:15px; font-weight:800; color:#0f172a;">1. Add New Drawing</div>
+          <span style="font-size:12px; color:#64748b;">Add new drawings & spools to piping_joints and Line_list</span>
+        </div>
+      </div>
+
+      <div class="option-card-btn" id="btnOptSap" onclick="selectOption('sap')">
+        <div class="option-icon-box" style="background:#fef3c7; color:#d97706;">📦</div>
+        <div>
+          <div style="font-size:15px; font-weight:800; color:#0f172a;">2. Add New Sap Code</div>
+          <span style="font-size:12px; color:#d97706; font-weight:bold;">⏳ Coming Soon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. ADD NEW DRAWING PANEL -->
+    <div class="console-card" id="drawingPanel">
+      <div class="section-title">
+        <span>📋</span>
+        <span>Add New Drawing & Spool Master Workflow</span>
+      </div>
+
+      <!-- SAFE MODE BANNER -->
+      <div class="safe-banner">
+        <span style="font-size:18px;">🛡️</span>
+        <div>
+          <b>100% Existing Data Safe Mode:</b> આ પ્રોસેસથી જૂનો કોઈપણ ડેટા રિમૂવ (Delete) કે ઓવરરાઈટ થશે નહીં. Excel માં ભરેલી નવી વિગતો બંને ટેબલ્સમાં છેલ્લી રો પછી જ આપમેળે નવી ક્રમિક ID સાથે ઍપેન્ડ (Insert) થશે.
+        </div>
+      </div>
+
+      <!-- 2 STEPS -->
+      <div class="steps-grid">
+        <!-- STEP 1 -->
+        <div class="step-box">
+          <div>
+            <div class="step-header">
+              <span class="step-badge">STEP 1</span>
+              <span>Download Excel Template</span>
+            </div>
+            <p class="step-desc">
+              ડેટા ભરવા માટેનું ૧૮ કૉલમ્સ સાથેનું તૈયાર સત્તાવાર Excel સેમ્પલ ટેમ્પલેટ ડાઉનલોડ કરો. આ ટેમ્પલેટમાં નવી ડ્રોઇંગ અને સ્પોલની તમામ વિગતો ભરીને સેવ કરો.
+            </p>
+          </div>
+          <button type="button" class="btn-action btn-download" onclick="downloadSampleDrawingExcel()">
+            <span>📥</span> <span>Sample Download Excel</span>
+          </button>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-box">
+          <div>
+            <div class="step-header">
+              <span class="step-badge" style="background:#15803d;">STEP 2</span>
+              <span>Upload & Update New Drawing</span>
+            </div>
+            <p class="step-desc">
+              ભરેલી Excel ફાઇલ પસંદ કરી અપડેટ બટન દબાવો. સિસ્ટમ બંને ટેબલ્સ (<code style="color:#0f766e; font-weight:bold;">piping_joints</code> & <code style="color:#0f766e; font-weight:bold;">Line_list</code>) માં છેલ્લેથી નવો ડેટા ઉમેરી દેશે.
+            </p>
+          </div>
+          <div>
+            <input type="file" id="inputNewDrawingExcel" class="custom-file-input" accept=".xlsx, .xls">
+            <button type="button" id="btnUploadDrawing" class="btn-action btn-upload" onclick="processNewDrawingUpload()">
+              <span>📤</span> <span>Update New Drawing</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE FIELD MAPPING INFO -->
+      <div class="table-mapping-box">
+        <div class="mapping-title">📊 Database Tables Insertion Mapping:</div>
+        <div style="font-size:12px; color:#475569; margin-bottom:6px;">
+          • <b>piping_joints (7 fields appended):</b>
+          <span class="pill-list" style="margin-top:4px;">
+            <span class="field-pill">Drawing_no</span>
+            <span class="field-pill">Spool_size</span>
+            <span class="field-pill">Rev_no</span>
+            <span class="field-pill">Allocation</span>
+            <span class="field-pill">Spool_number</span>
+            <span class="field-pill">Bend_qty</span>
+            <span class="field-pill">Weld_id</span>
+          </span>
+        </div>
+        <div style="font-size:12px; color:#475569; margin-top:8px;">
+          • <b>Line_list (16 fields appended):</b>
+          <span class="pill-list" style="margin-top:4px;">
+            <span class="field-pill">CWP</span>
+            <span class="field-pill">System_UG_AG</span>
+            <span class="field-pill">Unit_WBS</span>
+            <span class="field-pill">UNIT</span>
+            <span class="field-pill">Service</span>
+            <span class="field-pill">Drawing_no</span>
+            <span class="field-pill">Spool_number</span>
+            <span class="field-pill">Spool_size</span>
+            <span class="field-pill">Rev_no</span>
+            <span class="field-pill">Allocation</span>
+            <span class="field-pill">MOC</span>
+            <span class="field-pill">IBR_NON_IBR</span>
+            <span class="field-pill">Paint_code</span>
+            <span class="field-pill">Pipe_Class</span>
+            <span class="field-pill">Fab_Type</span>
+            <span class="field-pill">Weld_id</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      currentUser = JSON.parse(sessionData);
+      if (currentUser.username !== 'admin') {
+        alert("⚠️ Access Denied: માત્ર Admin પાસે જ Add New Data ની પરમિશન છે!");
+        window.location.href = 'index.html?tab=dataHub';
+        return false;
+      }
+      document.getElementById('adminSessionTag').innerText = `Admin: ${currentUser.name}`;
+      return true;
+    }
+
+    function selectOption(opt) {
+      if (opt === 'sap') {
+        alert("ℹ️ 2. Add New SAP Code feature is coming soon!");
+      }
+    }
+
+    // 1. DOWNLOAD SAMPLE EXCEL (EXACT 18 COLUMNS AS REQUESTED)
+    async function downloadSampleDrawingExcel() {
+      const headers = [
+        "id",
+        "CWP",
+        "System_UG_AG",
+        "Unit_WBS",
+        "UNIT",
+        "Service",
+        "Drawing_no",
+        "Spool_number",
+        "Spool_size",
+        "Rev_no",
+        "Bend_qty",
+        "Weld_id",
+        "Allocation",
+        "MOC",
+        "IBR_NON_IBR",
+        "Paint_code",
+        "Pipe_Class",
+        "Fab_Type"
+      ];
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('New_Drawing_Template', {
+        views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
+      });
+
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 25;
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF17365D' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'medium' }, right: { style: 'thin' } };
+      });
+
+      // Sample Row
+      const sampleRow = [
+        "",
+        "CWP-01",
+        "AG",
+        "WBS-101",
+        "100",
+        "STEAM",
+        "401GA-401-CWT-5408",
+        "SPL-001",
+        "2\"",
+        "0",
+        "0",
+        "1",
+        "SHOP",
+        "CS",
+        "NON-IBR",
+        "SYS-A",
+        "1BX1D01",
+        "SHOP"
+      ];
+      worksheet.addRow(sampleRow);
+
+      worksheet.columns.forEach((col, i) => {
+        col.width = Math.max(headers[i].length + 4, 15);
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Sample_New_Drawing_Template.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    // 2. UPLOAD & UPDATE NEW DRAWING (100% EXISTING DATA SAFE APPEND MODE)
+    async function processNewDrawingUpload() {
+      const fileInput = document.getElementById('inputNewDrawingExcel');
+      const file = fileInput.files[0];
+      if (!file) {
+        return alert("⚠️ કૃપા કરીને પહેલા ભરેલી Excel ફાઇલ પસંદ કરો!");
+      }
+
+      const btn = document.getElementById('btnUploadDrawing');
+      btn.disabled = true;
+      btn.innerText = "⏳ Reading Excel File...";
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(arrayBuffer);
+        const worksheet = workbook.worksheets[0];
+
+        if (!worksheet || worksheet.rowCount < 2) {
+          throw new Error("એક્સેલ ફાઇલમાં કોઈ ડેટા મળ્યો નથી!");
+        }
+
+        const headerRow = worksheet.getRow(1);
+        const fileHeaders = [];
+        headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+          const raw = String(cell.value || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+          fileHeaders[colNumber] = raw;
+        });
+
+        const pipingJointsBatch = [];
+        const lineListBatch = [];
+
+        for (let r = 2; r <= worksheet.rowCount; r++) {
+          const row = worksheet.getRow(r);
+          const rowData = {};
+          let hasContent = false;
+
+          fileHeaders.forEach((key, colIndex) => {
+            if (!key) return;
+            const cell = row.getCell(colIndex);
+            let val = cell.value;
+            if (val && typeof val === 'object') {
+              if (val.result !== undefined) val = val.result;
+              else if (val.text !== undefined) val = val.text;
+            }
+            if (val !== null && val !== undefined && String(val).trim() !== '' && String(val).trim().toUpperCase() !== 'NULL') {
+              hasContent = true;
+              rowData[key] = String(val).trim();
+            } else {
+              rowData[key] = null;
+            }
+          });
+
+          const dwg = rowData['drawing_no'] || rowData['drawingno'];
+          const spl = rowData['spool_number'] || rowData['spoolno'] || rowData['spoolnumber'];
+
+          if (hasContent && (dwg || spl)) {
+            const bendVal = parseFloat(rowData['bend_qty'] || rowData['bendqty'] || '0') || 0;
+            const weldVal = parseFloat(rowData['weld_id'] || rowData['weldid'] || '0') || 0;
+
+            // 🟢 Table 1: piping_joints (7 Columns - 'id' omitted for PostgreSQL sequence auto-increment)
+            pipingJointsBatch.push({
+              Drawing_no: dwg || null,
+              Spool_size: rowData['spool_size'] || rowData['spoolsize'] || null,
+              Rev_no: rowData['rev_no'] || rowData['revno'] || null,
+              Allocation: rowData['allocation'] || null,
+              Spool_number: spl || null,
+              Bend_qty: bendVal,
+              Weld_id: weldVal
+            });
+
+            // 🟢 Table 2: Line_list (16 Columns - 'id' omitted for PostgreSQL sequence auto-increment)
+            lineListBatch.push({
+              CWP: rowData['cwp'] || null,
+              System_UG_AG: rowData['system_ug_ag'] || rowData['systemugag'] || null,
+              Unit_WBS: rowData['unit_wbs'] || rowData['unitwbs'] || null,
+              UNIT: rowData['unit'] || null,
+              Service: rowData['service'] || null,
+              Drawing_no: dwg || null,
+              Spool_number: spl || null,
+              Spool_size: rowData['spool_size'] || rowData['spoolsize'] || null,
+              Rev_no: rowData['rev_no'] || rowData['revno'] || null,
+              Allocation: rowData['allocation'] || null,
+              MOC: rowData['moc'] || null,
+              IBR_NON_IBR: rowData['ibr_non_ibr'] || rowData['ibrnonibr'] || null,
+              Paint_code: rowData['paint_code'] || rowData['paintcode'] || null,
+              Pipe_Class: rowData['pipe_class'] || rowData['pipeclass'] || null,
+              Fab_Type: rowData['fab_type'] || rowData['fabtype'] || null,
+              Weld_id: weldVal
+            });
+          }
+        }
+
+        if (pipingJointsBatch.length === 0) {
+          throw new Error("એક્સેલ ફાઇલમાં કોઈ માન્ય Drawing No અથવા Spool No મળ્યા નથી!");
+        }
+
+        const ok = confirm(`🛡️ Safe Append Mode Confirmation:\n\nશું તમે "${file.name}" માંથી કુલ ${pipingJointsBatch.length} નવી રો Database માં ઉમેરવા માંગો છો?\n\n(નોંધ: આ પ્રક્રિયાથી જૂનો તમામ ડેટા સલામત રહેશે; બંને ટેબલ્સમાં છેલ્લી રો પછી જ નવો ડેટા ઍપેન્ડ થશે)`);
+        if (!ok) return;
+
+        btn.innerText = `⏳ Inserting ${pipingJointsBatch.length} rows to piping_joints...`;
+
+        // 1. Safe Append into piping_joints (Chunks of 200)
+        const chunkSize = 200;
+        for (let i = 0; i < pipingJointsBatch.length; i += chunkSize) {
+          const chunk = pipingJointsBatch.slice(i, i + chunkSize);
+          const { error: insPipingErr } = await db.from('piping_joints').insert(chunk);
+          if (insPipingErr) {
+            throw new Error("piping_joints માં ઇન્સર્ટ નિષ્ફળ: " + insPipingErr.message);
+          }
+        }
+
+        btn.innerText = `⏳ Inserting ${lineListBatch.length} rows to Line_list...`;
+
+        // 2. Safe Append into Line_list (Chunks of 200)
+        for (let i = 0; i < lineListBatch.length; i += chunkSize) {
+          const chunk = lineListBatch.slice(i, i + chunkSize);
+          const { error: insLineErr } = await db.from('Line_list').insert(chunk);
+          if (insLineErr) {
+            throw new Error("Line_list માં ઇન્સર્ટ નિષ્ફળ: " + insLineErr.message);
+          }
+        }
+
+        alert(`✅ સફળતાપૂર્વક કુલ ${pipingJointsBatch.length} નવી રો 'piping_joints' અને 'Line_list' બંને ટેબલમાં છેલ્લેથી ઉમેરાઈ ગઈ છે!\n\nજૂનો તમામ ડેટા ૧૦૦% સલામત રહ્યો છે.`);
+        fileInput.value = '';
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ એરર આવી: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "📤 Update New Drawing";
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      verifyAdminAccess();
+    });
+  </script>
+</body>
+</html>
