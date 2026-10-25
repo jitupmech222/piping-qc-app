@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mechanical Custom Report | Piping Console</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    :root {
+      --navy: #0b1329;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text-main: #0f172a;
+      --primary: #0d9488;
+      --green: #15803d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #f1f5f9; color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+    .top-navbar { background: var(--navy); color: #ffffff; padding: 12px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .top-navbar-title { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .btn-back { background: #ffffff; color: var(--navy); border: 1px solid #cbd5e1; border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; }
+    .btn-back:hover { background: #f8fafc; color: var(--primary); }
+
+    .full-workspace { flex: 1; width: 100%; padding: 20px 28px; box-sizing: border-box; }
+    .builder-card { background: #ffffff; border-radius: 14px; border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 18px; }
+    .section-title { font-size: 14.5px; font-weight: 800; color: #0f172a; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 14px; }
+
+    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 14px; align-items: flex-end; }
+    label { font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block; }
+    input, select { width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 7px; font-size: 13px; outline: none; background: #ffffff; }
+
+    .columns-chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; max-height: 220px; overflow-y: auto; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px; background: #f8fafc; margin-bottom: 14px; }
+    .col-chip { display: flex; align-items: center; gap: 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+    .col-chip input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--primary); }
+
+    .action-controls-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1.5px dashed var(--border); }
+    .mode-selector { display: flex; align-items: center; gap: 16px; }
+    .btn-generate { padding: 10px 24px; background: var(--navy); color: #ffffff; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; }
+    .btn-export-excel { padding: 10px 22px; background: var(--green); color: #ffffff; border: none; border-radius: 8px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
+    .btn-export-excel:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .stats-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+    .stat-pill { background: #f0fdfa; color: #0f766e; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1px solid #99f6e4; }
+    .btn-clear-table-filters { padding: 6px 14px; background: #64748b; color: #ffffff; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+    .table-container { overflow-x: auto; max-height: 55vh; border: 1px solid #cbd5e1; border-radius: 10px; background: #ffffff; position: relative; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+    thead { position: sticky; top: 0; z-index: 25; }
+    th { background: #0f172a; color: #ffffff; padding: 8px 10px; font-weight: 700; text-align: center; white-space: nowrap; }
+    td { border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding: 8px 12px; text-align: center; white-space: nowrap; background: #ffffff; }
+    tr:nth-child(even) td { background-color: #f8fafc; }
+    tr.total-row td { background: #fce4d6 !important; color: #7c2d12; font-weight: 900; font-size: 13px; position: sticky; bottom: 0; border-top: 2px solid #fdba74; }
+
+    .filter-btn-icon { border: none; background: #0d9488; color: #ffffff; cursor: pointer; font-size: 11px; padding: 2px 6px; margin-left: 6px; border-radius: 4px; }
+    .filter-btn-icon.active { background: #ffd54f; color: #0f172a; font-weight: bold; }
+    .header-filter-popover { position: absolute; top: 100%; left: 0; z-index: 1000; background: #ffffff; padding: 12px; border: 1.5px solid #cbd5e1; box-shadow: 0 10px 25px rgba(0,0,0,0.25); width: 270px; border-radius: 8px; text-align: left; color: #0f172a; font-size: 12px; }
+    .popover-search-input { width: 100%; padding: 7px 10px; font-size: 12px; border: 1.5px solid #cbd5e1; border-radius: 6px; margin-bottom: 8px; outline: none; }
+    .popover-list-box { max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; background: #ffffff; margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
+    .filter-item-label { display: flex; align-items: center; gap: 7px; font-size: 12px; cursor: pointer; }
+    .btn-popover-ok { flex: 1; padding: 6px; background: #0f766e; color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
+    .btn-popover-clear { flex: 1; padding: 6px; background: #64748b; color: #ffffff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <header class="top-navbar">
+    <div class="top-navbar-title">
+      <span>⚙️</span>
+      <span>MECHANICAL CUSTOM REPORT BUILDER</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span id="adminSessionTag" style="font-size:12px; color:#94a3b8; font-weight:bold;"></span>
+      <a href="index.html?tab=mechHub" class="btn-back">⬅️ Back to Mechanical</a>
+    </div>
+  </header>
+
+  <main class="full-workspace">
+    <div class="builder-card">
+      <div class="section-title">
+        <span>⚙️ Step 1: Filter Conditions (piping_joints)</span>
+      </div>
+
+      <div class="filter-grid">
+        <div>
+          <label>Filter by Stage Date:</label>
+          <select id="filterDateField">
+            <option value="Weld_visual_date">Weld Visual Date</option>
+            <option value="Issued_for_bending">Bending Issue Date</option>
+            <option value="Bend_date">Bend Completed Date</option>
+            <option value="Fit_up_date">Fit-Up Date</option>
+            <option value="Ndt_clearance">NDT Date</option>
+            <option value="Fd_date">FD Date</option>
+          </select>
+        </div>
+        <div>
+          <label>Start Date:</label>
+          <input type="date" id="filterStartDate">
+        </div>
+        <div>
+          <label>End Date:</label>
+          <input type="date" id="filterEndDate">
+        </div>
+        <div>
+          <label>Dispatch Status:</label>
+          <select id="filterDispStatus">
+            <option value="">-- All --</option>
+            <option value="dispatched">Dispatched Only (FD)</option>
+            <option value="shop">Balance in Shop</option>
+          </select>
+        </div>
+        <div>
+          <label>Spool Size (Search):</label>
+          <input type="text" id="filterSpoolSize" placeholder="e.g. 2, 4, 6">
+        </div>
+        <div>
+          <label>Drawing No (Search):</label>
+          <input type="text" id="filterDrawingNo" placeholder="e.g. 401GA...">
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:16px;">
+        <span>📋 Step 2: Select Columns to Include</span>
+        <div style="display:flex; gap:10px;">
+          <button type="button" style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:bold; cursor:pointer;" onclick="toggleAllColumns(true)">Select All</button>
+          <span style="color:#cbd5e1;">|</span>
+          <button type="button" style="background:none; border:none; color:#dc2626; font-size:12px; font-weight:bold; cursor:pointer;" onclick="toggleAllColumns(false)">Clear All</button>
+          <span style="color:#cbd5e1;">|</span>
+          <button type="button" style="background:none; border:none; color:#15803d; font-size:12px; font-weight:bold; cursor:pointer;" onclick="resetDefaultColumns()">Reset Default</button>
+        </div>
+      </div>
+      <div class="columns-chip-grid" id="columnsContainer"></div>
+
+      <div class="action-controls-row">
+        <div class="mode-selector">
+          <label class="mode-radio">
+            <input type="radio" name="reportMode" value="detail" checked onchange="handleModeChange()">
+            <span>Detailed Record View</span>
+          </label>
+          <label class="mode-radio">
+            <input type="radio" name="reportMode" value="summary" onchange="handleModeChange()">
+            <span>Summary / Pivot View</span>
+          </label>
+          <div id="groupByWrapper" style="display:none; align-items:center; gap:8px;">
+            <label style="margin:0;">Group By:</label>
+            <select id="selectGroupBy" style="width:160px; padding:6px 10px;">
+              <option value="Drawing_no">Drawing No</option>
+              <option value="Spool_size">Spool Size</option>
+              <option value="UNIT">Unit</option>
+              <option value="Shift_dc_no">DC Number</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px;">
+          <button type="button" class="btn-generate" id="btnGen" onclick="executeGenerateReport()">
+            <span>⚡ Generate Report</span>
+          </button>
+          <button type="button" class="btn-export-excel" id="btnExport" onclick="exportReportToExcel()" disabled>
+            <span>📥 Export to Excel (.xlsx)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="builder-card" id="outputCard" style="display:none;">
+      <div class="stats-bar">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;" id="statsBarContainer"></div>
+        <button type="button" id="btnClearTableFilters" class="btn-clear-table-filters" style="display:none;" onclick="clearAllTableFilters()">
+          ✖ Clear Table Filters
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead id="reportTableHead"></thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let cachedSourceData = [];
+    let currentMasterFilteredRows = [];
+    let currentVisibleRows = [];
+    let activeColumnsDef = [];
+    let generatedHeaders = [];
+    let tableHeaderFilters = {};
+
+    const MECH_COLUMNS = [
+      { key: 'Drawing_no', title: 'Drawing No', align: 'left' },
+      { key: 'Spool_number', title: 'Spool Unique No' },
+      { key: 'Spool_size', title: 'Spool Size' },
+      { key: 'Weld_id', title: 'Weld ID / Scope', isNum: true },
+      { key: 'Bend_qty', title: 'Bend Qty', isNum: true },
+      { key: 'Issued_for_bending', title: 'Issued for Bending', isDate: true },
+      { key: 'Bend_date', title: 'Bend Completed', isDate: true },
+      { key: 'Fit_up_date', title: 'Fit-Up Completed', isDate: true },
+      { key: 'Weld_visual_date', title: 'Weld Visual Date', isDate: true },
+      { key: 'Ndt_clearance', title: 'NDT Clearance', isDate: true },
+      { key: 'Fd_date', title: 'Dispatch Date (FD)', isDate: true },
+      { key: 'Shift_dc_no', title: 'DC Number' },
+      { key: 'UNIT', title: 'Unit' },
+      { key: 'Allocation', title: 'Allocation' },
+      { key: 'MOC', title: 'MOC' }
+    ];
+
+    const defaultCols = ['Drawing_no', 'Spool_number', 'Spool_size', 'Weld_id', 'Bend_qty', 'Issued_for_bending', 'Bend_date', 'Fit_up_date', 'Weld_visual_date', 'Ndt_clearance', 'Fd_date', 'Shift_dc_no'];
+
+    function verifyAdminAccess() {
+      const sessionData = sessionStorage.getItem('piping_app_auth');
+      if (!sessionData) { alert("⚠️ કૃપા કરીને પહેલા Login કરો!"); window.location.href = 'index.html'; return false; }
+      const user = JSON.parse(sessionData);
+      document.getElementById('adminSessionTag').innerText = `User: ${user.name}`;
+      return true;
+    }
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (!str || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
+
+    function parseNum(val) {
+      if (val === null || val === undefined) return 0;
+      const n = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+      return isNaN(n) ? 0 : n;
+    }
+
+    function escapeHtml(str) { return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function escapeAttr(str) { return String(str).replace(/"/g, '&quot;'); }
+
+    function buildColumnsSelectorUI() {
+      const container = document.getElementById('columnsContainer');
+      container.innerHTML = MECH_COLUMNS.map(c => `
+        <label class="col-chip">
+          <input type="checkbox" value="${c.key}" ${defaultCols.includes(c.key) ? 'checked' : ''}>
+          <span>${c.title}</span>
+        </label>
+      `).join('');
+    }
+    function toggleAllColumns(checked) { document.querySelectorAll('#columnsContainer input[type="checkbox"]').forEach(cb => cb.checked = checked); }
+    function resetDefaultColumns() { document.querySelectorAll('#columnsContainer input[type="checkbox"]').forEach(cb => { cb.checked = defaultCols.includes(cb.value); }); }
+
+    function handleModeChange() {
+      const mode = document.querySelector('input[name="reportMode"]:checked').value;
+      document.getElementById('groupByWrapper').style.display = mode === 'summary' ? 'inline-flex' : 'none';
+    }
+
+    async function fetchSourceData() {
+      let rows = [], from = 0, hasMore = true;
+      while (hasMore) {
+        const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + 999);
+        if (error) throw error;
+        if (data && data.length > 0) {
+          rows = rows.concat(data); from += 1000;
+          if (data.length < 1000) hasMore = false;
+        } else { hasMore = false; }
+      }
+      return rows;
+    }
+
+    async function executeGenerateReport() {
+      tableHeaderFilters = {};
+      const btn = document.getElementById('btnGen');
+      btn.innerText = "⏳ Analyzing Mechanical Data...";
+      btn.disabled = true;
+
+      try {
+        if (cachedSourceData.length === 0) cachedSourceData = await fetchSourceData();
+
+        const dateField = document.getElementById('filterDateField').value;
+        const startDate = document.getElementById('filterStartDate').value;
+        const endDate = document.getElementById('filterEndDate').value;
+        const qDisp = document.getElementById('filterDispStatus').value;
+        const qSize = (document.getElementById('filterSpoolSize').value || '').trim().toLowerCase();
+        const qDwg = (document.getElementById('filterDrawingNo').value || '').trim().toLowerCase();
+
+        currentMasterFilteredRows = cachedSourceData.filter(r => {
+          if (qDisp === 'dispatched' && !r.Fd_date) return false;
+          if (qDisp === 'shop' && r.Fd_date) return false;
+          if (qSize && !String(r.Spool_size || '').toLowerCase().includes(qSize)) return false;
+          if (qDwg && !String(r.Drawing_no || '').toLowerCase().includes(qDwg)) return false;
+
+          if (startDate || endDate) {
+            let d = r[dateField];
+            if (!d) return false;
+            d = String(d).includes('T') ? d.split('T')[0] : d;
+            if (startDate && d < startDate) return false;
+            if (endDate && d > endDate) return false;
+          }
+          return true;
+        });
+
+        const selectedColsKeys = Array.from(document.querySelectorAll('#columnsContainer input[type="checkbox"]:checked')).map(cb => cb.value);
+        if (selectedColsKeys.length === 0) throw new Error("⚠️ કૃપા કરીને ઓછામાં ઓછી ૧ કૉલમ પસંદ કરો!");
+
+        const mode = document.querySelector('input[name="reportMode"]:checked').value;
+        if (mode === 'detail') {
+          activeColumnsDef = MECH_COLUMNS.filter(c => selectedColsKeys.includes(c.key));
+          renderDetailedReportHeaders();
+          applyTableFiltersAndRenderBody();
+        } else {
+          const groupKey = document.getElementById('selectGroupBy').value;
+          renderSummaryReport(currentMasterFilteredRows, groupKey);
+        }
+
+        document.getElementById('outputCard').style.display = 'block';
+        document.getElementById('btnExport').disabled = false;
+      } catch (err) {
+        console.error(err);
+        alert(err.message);
+      } finally {
+        btn.innerText = "⚡ Generate Report";
+        btn.disabled = false;
+      }
+    }
+
+    function renderDetailedReportHeaders() {
+      const thead = document.getElementById('reportTableHead');
+      generatedHeaders = ['Sr.', ...activeColumnsDef.map(c => c.title)];
+      thead.innerHTML = `
+        <tr>
+          <th style="width: 50px;">Sr.</th>
+          ${activeColumnsDef.map(col => `
+            <th id="th_rep_${col.key}" style="position:relative;">
+              <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                <span>${col.title}</span>
+                <button type="button" class="filter-btn-icon ${tableHeaderFilters[col.key] ? 'active' : ''}" onclick="toggleTableHeaderFilter(event, '${col.key}')">▾</button>
+              </div>
+              <div id="popover_rep_${col.key}" class="header-filter-popover" style="display:none;" onclick="event.stopPropagation()"></div>
+            </th>
+          `).join('')}
+        </tr>
+      `;
+    }
+
+    function getTableFilteredRows(excludeKey = null) {
+      return currentMasterFilteredRows.filter(r => {
+        for (const [key, allowedSet] of Object.entries(tableHeaderFilters)) {
+          if (excludeKey && key === excludeKey) continue;
+          let val = r[key];
+          if (val === null || val === undefined || String(val).trim() === '') val = '(Blanks)';
+          else {
+            val = String(val).trim();
+            const colDef = activeColumnsDef.find(c => c.key === key);
+            if (colDef && colDef.isDate) { val = formatDateDisplay(val); if (val === '-') val = '(Blanks)'; }
+          }
+          if (!allowedSet.has(val)) return false;
+        }
+        return true;
+      });
+    }
+
+    function applyTableFiltersAndRenderBody() {
+      currentVisibleRows = getTableFilteredRows();
+      const tbody = document.getElementById('reportTableBody');
+
+      let sumWeld = 0, sumBend = 0;
+      currentVisibleRows.forEach(r => {
+        if (r.Weld_id) sumWeld += parseNum(r.Weld_id);
+        if (r.Bend_qty) sumBend += parseNum(r.Bend_qty);
+      });
+
+      if (currentVisibleRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${activeColumnsDef.length + 1}" style="padding:30px; text-align:center; color:#64748b;">કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>`;
+      } else {
+        tbody.innerHTML = currentVisibleRows.map((r, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            ${activeColumnsDef.map(c => {
+              let v = r[c.key];
+              if (c.isDate) v = formatDateDisplay(v);
+              else if (v === null || v === undefined || String(v).trim() === '') v = '-';
+              return `<td>${v}</td>`;
+            }).join('')}
+          </tr>
+        `).join('');
+
+        tbody.innerHTML += `
+          <tr class="total-row">
+            <td>TOTAL</td>
+            ${activeColumnsDef.map(c => {
+              if (c.key === 'Weld_id') return `<td>${sumWeld}</td>`;
+              if (c.key === 'Bend_qty') return `<td>${sumBend}</td>`;
+              return `<td>-</td>`;
+            }).join('')}
+          </tr>
+        `;
+      }
+
+      document.getElementById('statsBarContainer').innerHTML = `
+        <span class="stat-pill">Total Spools: ${currentVisibleRows.length}</span>
+        <span class="stat-pill">Total Weld Scope: ${sumWeld}</span>
+        <span class="stat-pill">Total Bend Qty: ${sumBend}</span>
+      `;
+      document.getElementById('btnClearTableFilters').style.display = Object.keys(tableHeaderFilters).length > 0 ? 'inline-flex' : 'none';
+    }
+
+    function toggleTableHeaderFilter(e, key) {
+      e.stopPropagation();
+      const pop = document.getElementById(`popover_rep_${key}`);
+      const isVisible = pop.style.display === 'block';
+      document.querySelectorAll('.header-filter-popover').forEach(p => p.style.display = 'none');
+      if (!isVisible) {
+        buildTableHeaderPopoverContent(key);
+        pop.style.display = 'block';
+      }
+    }
+
+    function buildTableHeaderPopoverContent(key) {
+      const colDef = activeColumnsDef.find(c => c.key === key);
+      const pop = document.getElementById(`popover_rep_${key}`);
+      const relevantRows = getTableFilteredRows(key);
+      const valCounts = new Map();
+
+      relevantRows.forEach(r => {
+        let val = r[key];
+        if (val === null || val === undefined || String(val).trim() === '') val = '(Blanks)';
+        else {
+          val = String(val).trim();
+          if (colDef.isDate) { val = formatDateDisplay(val); if (val === '-') val = '(Blanks)'; }
+        }
+        valCounts.set(val, (valCounts.get(val) || 0) + 1);
+      });
+
+      const sortedVals = Array.from(valCounts.keys()).sort();
+      const currentSelected = tableHeaderFilters[key];
+
+      pop.innerHTML = `
+        <input type="text" class="popover-search-input" placeholder="Search..." oninput="handleTableHeaderFilterSearch('${key}', this.value)">
+        <div class="popover-list-box" id="list_box_rep_${key}">
+          ${sortedVals.map(val => `
+            <label class="filter-item-label filter-item-row" data-val="${escapeAttr(val)}">
+              <input type="checkbox" class="chk-header-val" value="${escapeAttr(val)}" ${!currentSelected || currentSelected.has(val) ? 'checked' : ''}>
+              <span>${escapeHtml(val)} (${valCounts.get(val)})</span>
+            </label>
+          `).join('')}
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-popover-ok" onclick="applyTableHeaderCheckboxFilter('${key}')">OK</button>
+          <button type="button" class="btn-popover-clear" onclick="clearTableHeaderCheckboxFilter('${key}')">Clear</button>
+        </div>
+      `;
+    }
+
+    function handleTableHeaderFilterSearch(key, term) {
+      const q = term.trim().toLowerCase();
+      document.getElementById(`list_box_rep_${key}`).querySelectorAll('.filter-item-row').forEach(el => {
+        el.style.display = el.getAttribute('data-val').toLowerCase().includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function applyTableHeaderCheckboxFilter(key) {
+      const checkboxes = Array.from(document.getElementById(`list_box_rep_${key}`).querySelectorAll('.chk-header-val'));
+      const checkedVals = checkboxes.filter(c => c.checked).map(c => c.value);
+      if (checkedVals.length === checkboxes.length) delete tableHeaderFilters[key];
+      else if (checkedVals.length === 0) tableHeaderFilters[key] = new Set(['__NONE__']);
+      else tableHeaderFilters[key] = new Set(checkedVals);
+
+      document.querySelectorAll('.header-filter-popover').forEach(p => p.style.display = 'none');
+      renderDetailedReportHeaders();
+      applyTableFiltersAndRenderBody();
+    }
+
+    function clearTableHeaderCheckboxFilter(key) {
+      delete tableHeaderFilters[key];
+      document.querySelectorAll('.header-filter-popover').forEach(p => p.style.display = 'none');
+      renderDetailedReportHeaders();
+      applyTableFiltersAndRenderBody();
+    }
+
+    function clearAllTableFilters() {
+      tableHeaderFilters = {};
+      document.querySelectorAll('.header-filter-popover').forEach(p => p.style.display = 'none');
+      renderDetailedReportHeaders();
+      applyTableFiltersAndRenderBody();
+    }
+
+    function renderSummaryReport(rows, groupKey) {
+      const groupCol = MECH_COLUMNS.find(c => c.key === groupKey) || { title: groupKey };
+      const groupMap = new Map();
+
+      rows.forEach(r => {
+        let gVal = r[groupKey];
+        if (gVal === null || gVal === undefined || String(gVal).trim() === '') gVal = '(Blanks)';
+        else gVal = String(gVal).trim();
+        if (!groupMap.has(gVal)) groupMap.set(gVal, { count: 0, weld: 0, bend: 0 });
+        const item = groupMap.get(gVal);
+        item.count++;
+        if (r.Weld_id) item.weld += parseNum(r.Weld_id);
+        if (r.Bend_qty) item.bend += parseNum(r.Bend_qty);
+      });
+
+      generatedHeaders = ['Sr.', groupCol.title, 'Total Spools', 'Total Weld ID', 'Total Bend Qty'];
+      document.getElementById('reportTableHead').innerHTML = `<tr>${generatedHeaders.map(h => `<th>${h}</th>`).join('')}</tr>`;
+
+      let totalCount = 0, totalWeld = 0, totalBend = 0;
+      const sortedGroups = Array.from(groupMap.entries()).sort((a, b) => b[1].count - a[1].count);
+
+      document.getElementById('reportTableBody').innerHTML = sortedGroups.map(([gVal, data], idx) => {
+        totalCount += data.count; totalWeld += data.weld; totalBend += data.bend;
+        return `<tr><td>${idx + 1}</td><td><b>${gVal}</b></td><td>${data.count}</td><td>${data.weld}</td><td>${data.bend}</td></tr>`;
+      }).join('') + `
+        <tr class="total-row"><td>TOTAL</td><td>${sortedGroups.length} Groups</td><td>${totalCount}</td><td>${totalWeld}</td><td>${totalBend}</td></tr>
+      `;
+
+      document.getElementById('statsBarContainer').innerHTML = `
+        <span class="stat-pill">Total Groups: ${sortedGroups.length}</span>
+        <span class="stat-pill">Total Spools: ${totalCount}</span>
+        <span class="stat-pill">Total Weld Scope: ${totalWeld}</span>
+      `;
+      document.getElementById('btnClearTableFilters').style.display = 'none';
+    }
+
+    async function exportReportToExcel() {
+      const mode = document.querySelector('input[name="reportMode"]:checked').value;
+      const rowsToExport = mode === 'detail' ? currentVisibleRows : currentMasterFilteredRows;
+      if (!rowsToExport || rowsToExport.length === 0) return alert("⚠️ કોઈ રિપોર્ટ ડેટા નથી!");
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Mechanical_Report');
+      worksheet.addRow(generatedHeaders);
+
+      if (mode === 'detail') {
+        rowsToExport.forEach((r, idx) => {
+          worksheet.addRow([idx + 1, ...activeColumnsDef.map(c => c.isDate ? formatDateDisplay(r[c.key]) : (r[c.key] ?? ''))]);
+        });
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Mechanical_Custom_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (verifyAdminAccess()) buildColumnsSelectorUI();
+    });
+  </script>
+</body>
+</html>
