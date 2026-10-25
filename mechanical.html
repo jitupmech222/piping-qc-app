@@ -7,7 +7,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --navy: #0b1329;
+      --sidebar-bg: #0b1329;
+      --sidebar-active: #0d9488;
+      --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #e2e8f0;
       --text-main: #0f172a;
@@ -19,75 +21,294 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
     body {
-      background: #f8fafc;
+      background: var(--bg);
       color: var(--text-main);
       display: flex;
-      flex-direction: column;
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* TOP NAVBAR */
-    .top-navbar {
-      background: var(--navy);
-      color: #ffffff;
-      padding: 12px 28px;
+    /* =========================================================
+       SIDEBAR STYLING (MATCHING IMAGE 1 EXACTLY)
+    ========================================================= */
+    .sidebar {
+      width: 250px;
+      background: var(--sidebar-bg);
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 14px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      flex-shrink: 0;
+      z-index: 100;
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar.collapsed {
+      margin-left: -250px;
+      transform: translateX(-100%);
+    }
+
+    .brand-area {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding-bottom: 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      margin-bottom: 18px;
     }
 
-    .top-navbar-title {
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
+    .brand-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .btn-back-nav {
-      background: #ffffff;
-      color: var(--navy);
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      padding: 7px 16px;
+    .brand-logo-img {
+      height: 40px;
+      width: auto;
+      max-width: 48px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+    }
+
+    .brand-name { font-size: 14px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
+
+    .btn-toggle-in {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-toggle-in:hover { background: rgba(255, 255, 255, 0.15); color: #ffffff; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 3px;
       text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
+    .nav-item.active { background: #0d9488; color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
+
+    .user-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .user-profile { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1e293b; color: #2dd4bf; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #334155; }
+    .user-details { font-size: 12px; color: #ffffff; font-weight: 600; }
+    .user-details span { display: block; font-size: 10px; color: #64748b; font-weight: normal; }
+    
+    .btn-big-logout {
+      width: 100%;
+      padding: 10px 14px;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-big-logout:hover { background: #b91c1c; }
+
+    /* =========================================================
+       MAIN WORKSPACE & TOP BAR
+    ========================================================= */
+    .main-workspace {
+      flex: 1;
+      padding: 24px 32px;
+      overflow-y: auto;
+      max-height: 100vh;
+      transition: all 0.3s;
+    }
+
+    .btn-toggle-out {
+      display: none;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: #334155;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      margin-right: 12px;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .workspace-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .global-search-wrapper { position: relative; }
+    .search-input-pill {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 10px 20px;
+      width: 400px;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input-pill:focus {
+      border-color: #0d9488;
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+      width: 440px;
+    }
+
+    .search-dropdown-menu {
+      position: absolute;
+      top: 105%;
+      left: 0;
+      width: 440px;
+      max-height: 280px;
+      overflow-y: auto;
+      background: white;
+      border: 1.5px solid #0d9488;
+      border-radius: 12px;
+      z-index: 500;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+      display: none;
+    }
+
+    .search-dropdown-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .search-dropdown-item:hover { background: #f0fdfa; color: #0f766e; }
+
+    .live-status-pill {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #16a34a;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
+
+    /* =========================================================
+       🟢 EXACT QA/QC STYLE 2-COLUMN BUTTON GRID & ACCENTS
+    ========================================================= */
+    .section-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .section-header-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f766e;
+      letter-spacing: -0.3px;
+    }
+
+    .btn-hero-action {
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
     }
-    .btn-back-nav:hover { background: #f1f5f9; color: var(--teal); }
+    .btn-hero-action:hover { opacity: 0.9; }
 
-    /* WORKSPACE */
-    .main-workspace {
-      flex: 1;
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 20px;
-      box-sizing: border-box;
+    .sub-menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
     }
 
+    .sub-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 15px 22px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+      text-align: left;
+    }
+    .sub-btn:hover {
+      background: #f0fdfa;
+      border-color: #5eead4;
+      color: #0f766e;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+    }
+
+    /* CARD STYLING FOR STAGE CONSOLE */
     .card {
       background: #ffffff;
-      padding: 20px 24px;
+      padding: 22px 26px;
       border-radius: 16px;
       border: 1px solid var(--border);
       box-shadow: 0 4px 14px rgba(0,0,0,0.03);
       margin-top: 10px;
     }
 
-    label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 8px; display: block; }
+    label { font-size: 12.5px; font-weight: 700; color: #334155; margin-top: 10px; display: block; }
     input, select {
       width: 100%;
       padding: 10px 14px;
@@ -103,55 +324,12 @@
       box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
     }
 
-    .btn-hero-action {
-      background: #0f172a;
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 18px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-hero-action:hover { opacity: 0.9; }
-
-    /* PREVIOUS SUB-MENU GRID & SUB-BTN LOOK */
-    .sub-menu-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .sub-btn {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 18px;
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      color: #1e293b;
-      cursor: pointer;
-      transition: 0.2s;
-      text-align: left;
-    }
-    .sub-btn:hover {
-      background: #f0fdfa;
-      border-color: #5eead4;
-      color: #0f766e;
-      transform: translateY(-1px);
-    }
-
     .btn-save-action {
       background: #15803d;
       color: white;
       border: none;
       border-radius: 8px;
-      padding: 8px 18px;
+      padding: 9px 20px;
       font-size: 13px;
       font-weight: bold;
       cursor: pointer;
@@ -168,7 +346,7 @@
       font-weight: bold;
       cursor: pointer;
       width: 100%;
-      margin-top: 10px;
+      margin-top: 12px;
     }
     .btn-add-queue:hover { background: #0f766e; }
 
@@ -179,81 +357,160 @@
     tr:nth-child(even) td { background-color: #f8fafc; }
     td { text-align: center; }
 
-    @media (max-width: 768px) {
+    /* SPOOL TRACKER MODAL */
+    #spoolTrackerModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(5px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .tracker-modal-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 680px;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      border: 1px solid #e2e8f0;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .tracker-header-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .timeline-container { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .timeline-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+    }
+    .timeline-card.status-completed { background: #f0fdf4; border-color: #86efac; }
+    .timeline-card.status-hold { background: #fff7ed; border-color: #fdba74; }
+    .stage-badge-tag { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
+    .tag-completed { background: #15803d; color: #ffffff; }
+    .tag-hold { background: #c2410c; color: #ffffff; }
+
+    @media (max-width: 900px) {
       .sub-menu-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- TOP NAVBAR -->
-  <header class="top-navbar">
-    <div class="top-navbar-title">
-      <span>⚙️</span>
-      <span>MECHANICAL WORKFLOWS CONSOLE</span>
+  <!-- LEFT SIDEBAR (EXACT MATCH WITH IMAGE 1) -->
+  <aside class="sidebar" id="appSidebar">
+    <div>
+      <div class="brand-area">
+        <div class="brand-left">
+          <img src="PFS logo.webp" alt="PFS Logo" class="brand-logo-img">
+          <div><div class="brand-name">PIPING FABRICATION</div></div>
+        </div>
+        <button class="btn-toggle-in" title="Close Sidebar" onclick="toggleSidebar(false)">«</button>
+      </div>
+
+      <a class="nav-item" href="index.html"><span>📊</span> <span>Dashboard Overview</span></a>
+      <a class="nav-item active" href="mechanical.html"><span>⚙️</span> <span>Mechanical</span></a>
+      <a class="nav-item" id="navQaqcLink" style="display:none;" href="index.html?tab=qaqc"><span>🛡️</span> <span>QA/QC Module</span></a>
+      <a class="nav-item" href="index.html?tab=matHub"><span>📦</span> <span>Material</span></a>
+      <a class="nav-item" href="index.html?tab=reportHub"><span>📈</span> <span>Report</span></a>
+      <a class="nav-item" href="index.html?tab=dataHub"><span>💾</span> <span>Data</span></a>
     </div>
-    <div style="display:flex; align-items:center; gap:12px;">
-      <span id="userSessionTag" style="font-size:12px; color:#94a3b8; font-weight:bold;"></span>
-      <a href="index.html" class="btn-back-nav">⬅️ Back to Dashboard</a>
+
+    <div class="user-footer">
+      <div class="user-profile">
+        <div class="avatar" id="userAvatarChar">AD</div>
+        <div class="user-details">
+          <span id="sideUserName" style="color:#ffffff; font-weight:bold; font-size:12.5px;">System Admin</span>
+          <span id="sideUserRole" style="font-size:10.5px; color:#64748b;">admin@piping.org</span>
+        </div>
+      </div>
+      <button type="button" class="btn-big-logout" onclick="userLogout()">🚪 LOG OUT</button>
     </div>
-  </header>
+  </aside>
 
   <!-- MAIN WORKSPACE -->
-  <main class="main-workspace">
+  <main class="main-workspace" id="mainWorkspace">
 
-    <!-- 1. SUB-PANEL: Mechanical (PREVIOUS EXACT LOOK) -->
-    <div id="mechHub">
-      <div class="card" style="margin-top:0;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-          <h3 style="margin:0; font-size:18px; font-weight:800; color:#0f766e;">Mechanical Workflows</h3>
-          <button class="btn-hero-action" onclick="window.location.href='index.html'">⬅️ Back to Dashboard</button>
+    <!-- Top Action Bar -->
+    <div class="workspace-top">
+      <div style="display:flex; align-items:center;">
+        <button class="btn-toggle-out" id="btnSidebarOpen" title="Open Sidebar" onclick="toggleSidebar(true)">»</button>
+        <div class="global-search-wrapper">
+          <input type="text" id="globalSpoolSearchInput" class="search-input-pill" placeholder="🔍 Search across operations..." oninput="handleGlobalSpoolSearch(this.value)" autocomplete="off">
+          <div id="globalSpoolDropdown" class="search-dropdown-menu"></div>
         </div>
-
-        <div class="sub-menu-grid">
-          <button class="sub-btn" id="btn_bending_issue" onclick="openStage('bending_issue')">
-            <span>01</span><span>Issued for Bending</span>
-          </button>
-          <button class="sub-btn" id="btn_bend_entry" onclick="openStage('bend_entry')">
-            <span>02</span><span>Bend Completed</span>
-          </button>
-          <button class="sub-btn" id="btn_fitup_entry" onclick="openStage('fitup_entry')">
-            <span>03</span><span>Fit Up Completed</span>
-          </button>
-          <button class="sub-btn" id="btn_weld_visual" onclick="openStage('weld_visual')">
-            <span>04</span><span>Weld Visual Completed</span>
-          </button>
-          <button class="sub-btn" id="btn_ndt_clearance" onclick="openStage('ndt_clearance')">
-            <span>05</span><span>NDT Clearance</span>
-          </button>
-          <button class="sub-btn" id="btn_fd" onclick="openStage('fd')">
-            <span>06</span><span>FD & Dispatch DC No</span>
-          </button>
-
-          <button class="sub-btn" style="border-left: 4px solid #0d9488; font-weight: bold;" onclick="window.location.href='custom_report_Mechanical.html'">
-            <span>⚡</span><span>Mechanical Custom Report</span>
-          </button>
-          <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#fffbeb; color:#b45309;" onclick="window.location.href='spool_tracking.html'">
-            <span>🔍</span><span>Open Spool Tracker Page</span>
-          </button>
-        </div>
+      </div>
+      <div class="live-status-pill">
+        <span class="live-dot"></span>
+        <span>Live Database Sync</span>
       </div>
     </div>
 
-    <!-- 2. STAGE OPERATION SCREEN (PREVIOUS EXACT LOOK) -->
+    <!-- 1. MECHANICAL HUB (EXACT QA/QC STYLED PILL GRID) -->
+    <div id="mechHub">
+      <div class="section-header-row">
+        <h3 class="section-header-title">Mechanical Workflows</h3>
+        <button class="btn-hero-action" onclick="window.location.href='index.html'">⬅️ Back</button>
+      </div>
+
+      <div class="sub-menu-grid">
+        <button class="sub-btn" id="btn_bending_issue" style="border-left: 5px solid #16a34a;" onclick="openStage('bending_issue')">
+          <span>📐</span><span>01 &nbsp; ISSUED FOR BENDING</span>
+        </button>
+        <button class="sub-btn" id="btn_bend_entry" style="border-left: 5px solid #0d6efd;" onclick="openStage('bend_entry')">
+          <span>🔄</span><span>02 &nbsp; BEND COMPLETED</span>
+        </button>
+        <button class="sub-btn" id="btn_fitup_entry" style="border-left: 5px solid #d97706;" onclick="openStage('fitup_entry')">
+          <span>🔧</span><span>03 &nbsp; FIT UP COMPLETED</span>
+        </button>
+        <button class="sub-btn" id="btn_weld_visual" style="border-left: 5px solid #7c3aed;" onclick="openStage('weld_visual')">
+          <span>👁️</span><span>04 &nbsp; WELD VISUAL COMPLETED</span>
+        </button>
+        <button class="sub-btn" id="btn_ndt_clearance" style="border-left: 5px solid #0284c7;" onclick="openStage('ndt_clearance')">
+          <span>🔬</span><span>05 &nbsp; NDT CLEARANCE</span>
+        </button>
+        <button class="sub-btn" id="btn_fd" style="border-left: 5px solid #15803d;" onclick="openStage('fd')">
+          <span>🚚</span><span>06 &nbsp; FD & DISPATCH DC NO</span>
+        </button>
+
+        <button class="sub-btn" style="border-left: 5px solid #0d9488;" onclick="window.location.href='custom_report_Mechanical.html'">
+          <span>⚡</span><span>MECHANICAL CUSTOM REPORT</span>
+        </button>
+        <button class="sub-btn" style="border-left: 5px solid #b45309;" onclick="window.location.href='spool_tracking.html'">
+          <span>🔍</span><span>SPOOL TRACKER</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. STAGE OPERATION SCREEN -->
     <div id="stageContainer" style="display: none;">
-      <div class="card">
+      <div class="card" style="margin-top:0;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <h3 id="stageTitle" style="margin:0; font-size:17px; font-weight:800; color:#0f766e;">Stage Title</h3>
           <button class="btn-hero-action" style="padding:6px 14px;" onclick="backToMechMenu()">⬅️ Back to Mechanical</button>
         </div>
 
-        <label id="spoolSearchLabel" style="margin-top:14px;">Spool Unique Number:</label>
+        <label id="spoolSearchLabel" style="margin-top:16px;">Spool Unique Number:</label>
         <div style="position:relative;">
           <input type="text" id="spoolSearch" placeholder="Type spool no..." oninput="handleSearchInput()" autocomplete="off">
-          <div id="searchDropdown" style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #0d9488; border-radius:8px; max-height:200px; overflow-y:auto; z-index:100; display:none; box-shadow:0 8px 24px rgba(0,0,0,0.12);"></div>
+          <div id="searchDropdown" style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #0d9488; border-radius:8px; max-height:220px; overflow-y:auto; z-index:100; display:none; box-shadow:0 8px 24px rgba(0,0,0,0.12);"></div>
         </div>
 
-        <div id="itemEditForm" style="display:none; background:#f8fafc; border:1px solid #99f6e4; border-radius:10px; padding:14px; margin-top:10px;">
+        <div id="itemEditForm" style="display:none; background:#f8fafc; border:1px solid #99f6e4; border-radius:10px; padding:14px; margin-top:12px;">
           <div style="font-weight: bold; color: #0f766e;">📝 Edit Details:</div>
           <div><label>Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
           <div><label>Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
@@ -262,7 +519,7 @@
           <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Selected List</button>
         </div>
 
-        <div id="selectedCardArea" style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+        <div id="selectedCardArea" style="margin-top: 16px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">Selected Spools (<span id="queueCount">0</span>)</span>
             <button type="button" class="btn-save-action" id="btnSaveAction" onclick="submitCurrentStage()">💾 <span id="btnSaveLabel">SAVE ENTRY</span></button>
@@ -277,7 +534,7 @@
         </div>
       </div>
 
-      <div class="card" style="margin-top: 12px;">
+      <div class="card" style="margin-top: 14px;">
         <h3 style="margin: 0; font-size:15px; font-weight:800; color: #0f766e;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
         <div style="overflow-x:auto; margin-top:10px; max-height:45vh; border:1px solid #e2e8f0; border-radius:8px;">
           <table>
@@ -298,6 +555,27 @@
 
   </main>
 
+  <!-- SPOOL TRACKER MODAL (FOR TOP SEARCH) -->
+  <div id="spoolTrackerModal">
+    <div class="tracker-modal-card">
+      <div class="tracker-header-box">
+        <div>
+          <h3 style="margin: 0; font-size: 18px; color: #b45309;">🔍 Spool Live Stage Tracker</h3>
+          <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Real-time progress inspection timeline</p>
+        </div>
+        <button onclick="closeSpoolTrackerModal()" style="background:#f1f5f9; border:none; padding:6px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">✕ Close</button>
+      </div>
+      <div id="modalSpoolInfo" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:16px; font-weight:800; color:#0f172a;" id="modalTrackSpoolNo">Spool No</span>
+          <span style="font-size:13px; font-weight:700; color:#0d9488;" id="modalTrackDwgNo">Drawing No</span>
+        </div>
+        <div style="font-size:12px; color:#475569; margin-top:4px;" id="modalTrackMeta">Meta</div>
+      </div>
+      <div class="timeline-container" id="modalTimelineList"></div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
@@ -307,6 +585,7 @@
     let currentStage = '';
     let selectedQueue = [];
     let cumulativeRows = [];
+    let allRecordsCache = [];
 
     function checkSessionAuth() {
       const sessionData = sessionStorage.getItem('piping_app_auth');
@@ -316,12 +595,16 @@
         return false;
       }
       currentUser = JSON.parse(sessionData);
-      document.getElementById('userSessionTag').innerText = `User: ${currentUser.name}`;
+      document.getElementById('sideUserName').innerText = currentUser.name;
+      document.getElementById('sideUserRole').innerText = `${currentUser.username}@piping.org`;
+      document.getElementById('userAvatarChar').innerText = currentUser.name.substring(0,2).toUpperCase();
 
-      // Enforce Role Permissions for Stage Buttons
       const isAdmin = currentUser.username === 'admin';
-      const allowedStages = currentUser.allowed || [];
+      const navQaqc = document.getElementById('navQaqcLink');
+      if (navQaqc) navQaqc.style.display = isAdmin ? 'flex' : 'none';
 
+      // Role Based Stage Visibility
+      const allowedStages = currentUser.allowed || [];
       const stageButtons = {
         'bending_issue': 'btn_bending_issue',
         'bend_entry': 'btn_bend_entry',
@@ -341,7 +624,29 @@
           }
         }
       });
+
+      preloadAllRecords();
       return true;
+    }
+
+    function toggleSidebar(show) {
+      const sidebar = document.getElementById('appSidebar');
+      const openBtn = document.getElementById('btnSidebarOpen');
+      if (show) {
+        sidebar.classList.remove('collapsed');
+        openBtn.style.display = 'none';
+      } else {
+        sidebar.classList.add('collapsed');
+        openBtn.style.display = 'inline-flex';
+      }
+    }
+
+    function userLogout() {
+      if (confirm("Do you wish to log out?")) {
+        sessionStorage.removeItem('piping_app_auth');
+        sessionStorage.removeItem('qaqc_auth_passed');
+        window.location.href = 'index.html';
+      }
     }
 
     async function openStage(stage) {
@@ -412,7 +717,7 @@
       document.getElementById('tableTotalCount').innerText = cumulativeRows.length;
       const tbody = document.getElementById('stageBalanceTableBody');
       if (cumulativeRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="padding:20px; color:#15803d; font-weight:bold;">0 Spools Balance for this stage!</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="padding:24px; color:#15803d; font-weight:bold;">0 Spools Balance for this stage!</td></tr>`;
         return;
       }
       tbody.innerHTML = cumulativeRows.slice(0, 300).map(r => `
@@ -433,14 +738,14 @@
 
       const matched = cumulativeRows.filter(r => String(r.Spool_number || '').toLowerCase().includes(term)).slice(0, 20);
       if (matched.length === 0) {
-        drop.innerHTML = '<div style="padding:10px; color:#64748b; font-size:12px;">No Spool Found</div>';
+        drop.innerHTML = '<div style="padding:10px; color:#64748b; font-size:12px; text-align:center;">No Spool Found</div>';
         drop.style.display = 'block';
         return;
       }
 
       drop.innerHTML = matched.map(r => `
-        <div style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;" onclick="onSpoolSelect(${r.id})">
-          <b>${r.Spool_number}</b> <span style="font-size:11.5px; color:#64748b;">(${r.Drawing_no})</span>
+        <div style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;" onclick="onSpoolSelect(${r.id})">
+          <div><b>${r.Spool_number}</b> <span style="font-size:11px; color:#0d9488;">(${r.Drawing_no || '-'})</span></div>
         </div>
       `).join('');
       drop.style.display = 'block';
@@ -449,6 +754,7 @@
     function onSpoolSelect(id) {
       const item = cumulativeRows.find(x => x.id === id);
       if (!item) return;
+
       document.getElementById('spoolSearch').value = '';
       document.getElementById('searchDropdown').style.display = 'none';
 
@@ -488,10 +794,10 @@
       const thead = document.getElementById('selectedTableHead');
       const tbody = document.getElementById('selectedTableBody');
 
-      thead.innerHTML = `<tr><th>Sr.</th><th>Spool Unique No</th><th style="text-align:left;">Drawing No</th><th>Action</th></tr>`;
+      thead.innerHTML = `<tr><th>Sr.</th><th>Spool Unique No</th><th>Drawing No</th><th>Action</th></tr>`;
       
       if (selectedQueue.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="color:#64748b; padding:12px;">No spools selected in queue</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="color:#64748b; padding:14px;">No spools selected in queue</td></tr>`;
         return;
       }
 
@@ -538,10 +844,64 @@
       loadStageData(currentStage);
     }
 
+    /* TOP GLOBAL SEARCH */
+    async function preloadAllRecords() {
+      let from = 0, step = 1000, hasMore = true;
+      while (hasMore) {
+        const { data, error } = await db.from('piping_joints').select('*').order('id', { ascending: true }).range(from, from + step - 1);
+        if (error) break;
+        if (data && data.length > 0) {
+          allRecordsCache = allRecordsCache.concat(data);
+          from += step;
+          if (data.length < step) hasMore = false;
+        } else { hasMore = false; }
+      }
+    }
+
+    function handleGlobalSpoolSearch(term) {
+      const q = term.trim().toLowerCase();
+      const dropdown = document.getElementById('globalSpoolDropdown');
+      if (!q) { dropdown.style.display = 'none'; return; }
+
+      const matched = allRecordsCache.filter(r => {
+        return String(r.Spool_number || '').toLowerCase().includes(q) || String(r.Drawing_no || '').toLowerCase().includes(q);
+      }).slice(0, 30);
+
+      if (matched.length === 0) {
+        dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px; text-align:center;">No matching spools found</div>';
+        dropdown.style.display = 'block';
+        return;
+      }
+
+      dropdown.innerHTML = matched.map(r => `
+        <div class="search-dropdown-item" onclick="openSpoolTrackerModal(${r.id})">
+          <div><b>${r.Spool_number || 'N/A'}</b> <span style="font-size:11px; color:#0d9488;">(${r.Spool_size || '-'})</span></div>
+          <span style="color:#64748b; font-size:11.5px;">${r.Drawing_no || '-'}</span>
+        </div>
+      `).join('');
+      dropdown.style.display = 'block';
+    }
+
+    function openSpoolTrackerModal(id) {
+      const item = allRecordsCache.find(r => r.id === id);
+      if (!item) return;
+      document.getElementById('globalSpoolDropdown').style.display = 'none';
+      document.getElementById('modalTrackSpoolNo').innerText = `Spool: ${item.Spool_number || 'N/A'}`;
+      document.getElementById('modalTrackDwgNo').innerText = `Drawing: ${item.Drawing_no || '-'}`;
+      document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend: ${item.Bend_qty || '0'}`;
+      document.getElementById('spoolTrackerModal').style.display = 'flex';
+    }
+
+    function closeSpoolTrackerModal() { document.getElementById('spoolTrackerModal').style.display = 'none'; }
+
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#spoolSearch') && !e.target.closest('#searchDropdown')) {
         const drop = document.getElementById('searchDropdown');
         if (drop) drop.style.display = 'none';
+      }
+      if (!e.target.closest('.global-search-wrapper')) {
+        const gDrop = document.getElementById('globalSpoolDropdown');
+        if (gDrop) gDrop.style.display = 'none';
       }
     });
 
