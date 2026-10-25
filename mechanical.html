@@ -3,23 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mechanical Operations Console | Piping Console</title>
+  <title>Mechanical Workflows | Piping Console</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --navy: #0b1329;
       --card-bg: #ffffff;
-      --border: #cbd5e1;
+      --border: #e2e8f0;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --primary: #0d9488;
-      --primary-dark: #0f766e;
-      --green: #15803d;
-      --amber: #d97706;
+      --primary: #2563eb;
+      --teal: #0d9488;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #f8fafc; color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+    body {
+      background: #f8fafc;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
     /* TOP NAVBAR */
     .top-navbar {
@@ -45,7 +51,7 @@
       gap: 10px;
     }
 
-    .btn-back {
+    .btn-back-nav {
       background: #ffffff;
       color: var(--navy);
       border: 1px solid #cbd5e1;
@@ -60,111 +66,84 @@
       gap: 6px;
       transition: all 0.2s;
     }
-    .btn-back:hover { background: #f1f5f9; color: var(--primary); }
+    .btn-back-nav:hover { background: #f1f5f9; color: var(--teal); }
 
     /* WORKSPACE */
-    .full-workspace {
+    .main-workspace {
       flex: 1;
       width: 100%;
-      max-width: 1200px;
+      max-width: 1100px;
       margin: 0 auto;
       padding: 24px 20px;
       box-sizing: border-box;
     }
 
-    /* STAGE SELECTOR GRID */
-    .stages-menu-card {
-      background: #ffffff;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-      padding: 22px;
-      margin-bottom: 22px;
-    }
-
-    .stages-header-title {
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--primary-dark);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 10px;
-    }
-
-    .stages-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
-    }
-
-    .stage-btn {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 13px 18px;
-      background: #ffffff;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      color: #1e293b;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: left;
-    }
-    .stage-btn:hover { background: #f0fdfa; border-color: #5eead4; color: #0f766e; transform: translateY(-1px); }
-    .stage-btn.active-stage {
-      background: #0f766e;
-      color: #ffffff;
-      border-color: #0f766e;
-      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
-    }
-    .stage-btn.active-stage span:first-child {
-      background: #ffffff;
-      color: #0f766e;
-    }
-
-    .badge-number {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: #f1f5f9;
-      color: #475569;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
-
-    /* CARD STYLING */
     .card {
       background: #ffffff;
       padding: 20px 24px;
       border-radius: 16px;
       border: 1px solid var(--border);
       box-shadow: 0 4px 14px rgba(0,0,0,0.03);
-      margin-bottom: 18px;
+      margin-top: 10px;
     }
 
-    label { font-size: 12.5px; font-weight: 700; color: #334155; margin-top: 10px; display: block; }
+    label { font-size: 12.5px; font-weight: 600; color: #334155; margin-top: 8px; display: block; }
     input, select {
       width: 100%;
       padding: 10px 14px;
       margin-top: 4px;
       border: 1.5px solid #cbd5e1;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 13px;
       background: #fff;
       outline: none;
     }
     input:focus, select:focus {
-      border-color: var(--primary);
+      border-color: var(--teal);
       box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    }
+
+    .btn-hero-action {
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-hero-action:hover { opacity: 0.9; }
+
+    /* PREVIOUS SUB-MENU GRID & SUB-BTN LOOK */
+    .sub-menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .sub-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: left;
+    }
+    .sub-btn:hover {
+      background: #f0fdfa;
+      border-color: #5eead4;
+      color: #0f766e;
+      transform: translateY(-1px);
     }
 
     .btn-save-action {
@@ -172,16 +151,12 @@
       color: white;
       border: none;
       border-radius: 8px;
-      padding: 9px 20px;
+      padding: 8px 18px;
       font-size: 13px;
-      font-weight: 800;
+      font-weight: bold;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
     }
     .btn-save-action:hover { background: #166534; }
-    .btn-save-action:disabled { background: #94a3b8; cursor: not-allowed; }
 
     .btn-add-queue {
       background: #0d9488;
@@ -190,10 +165,10 @@
       border-radius: 8px;
       padding: 10px;
       font-size: 13.5px;
-      font-weight: 800;
+      font-weight: bold;
       cursor: pointer;
       width: 100%;
-      margin-top: 12px;
+      margin-top: 10px;
     }
     .btn-add-queue:hover { background: #0f766e; }
 
@@ -203,6 +178,10 @@
     th { background: #0f172a; color: white; font-weight: 700; text-align: center; }
     tr:nth-child(even) td { background-color: #f8fafc; }
     td { text-align: center; }
+
+    @media (max-width: 768px) {
+      .sub-menu-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -211,121 +190,99 @@
   <header class="top-navbar">
     <div class="top-navbar-title">
       <span>⚙️</span>
-      <span>MECHANICAL OPERATIONS CONSOLE</span>
+      <span>MECHANICAL WORKFLOWS CONSOLE</span>
     </div>
     <div style="display:flex; align-items:center; gap:12px;">
       <span id="userSessionTag" style="font-size:12px; color:#94a3b8; font-weight:bold;"></span>
-      <a href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
+      <a href="index.html" class="btn-back-nav">⬅️ Back to Dashboard</a>
     </div>
   </header>
 
   <!-- MAIN WORKSPACE -->
-  <main class="full-workspace">
+  <main class="main-workspace">
 
-    <!-- 1. STAGES SELECTOR MENU CARD -->
-    <div class="stages-menu-card">
-      <div class="stages-header-title">
-        <span>⚙️</span>
-        <span>Select Fabrication Stage to Operate:</span>
-      </div>
+    <!-- 1. SUB-PANEL: Mechanical (PREVIOUS EXACT LOOK) -->
+    <div id="mechHub">
+      <div class="card" style="margin-top:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h3 style="margin:0; font-size:18px; font-weight:800; color:#0f766e;">Mechanical Workflows</h3>
+          <button class="btn-hero-action" onclick="window.location.href='index.html'">⬅️ Back to Dashboard</button>
+        </div>
 
-      <div class="stages-grid">
-        <button type="button" class="stage-btn" id="btn_stage_bending_issue" onclick="switchStage('bending_issue')">
-          <span class="badge-number">01</span><span>Issued for Bending</span>
-        </button>
-        <button type="button" class="stage-btn" id="btn_stage_bend_entry" onclick="switchStage('bend_entry')">
-          <span class="badge-number">02</span><span>Bend Completed</span>
-        </button>
-        <button type="button" class="stage-btn" id="btn_stage_fitup_entry" onclick="switchStage('fitup_entry')">
-          <span class="badge-number">03</span><span>Fit Up Completed</span>
-        </button>
-        <button type="button" class="stage-btn" id="btn_stage_weld_visual" onclick="switchStage('weld_visual')">
-          <span class="badge-number">04</span><span>Weld Visual Completed</span>
-        </button>
-        <button type="button" class="stage-btn" id="btn_stage_ndt_clearance" onclick="switchStage('ndt_clearance')">
-          <span class="badge-number">05</span><span>NDT Clearance</span>
-        </button>
-        <button type="button" class="stage-btn" id="btn_stage_fd" onclick="switchStage('fd')">
-          <span class="badge-number">06</span><span>FD & Dispatch DC No</span>
-        </button>
+        <div class="sub-menu-grid">
+          <button class="sub-btn" id="btn_bending_issue" onclick="openStage('bending_issue')">
+            <span>01</span><span>Issued for Bending</span>
+          </button>
+          <button class="sub-btn" id="btn_bend_entry" onclick="openStage('bend_entry')">
+            <span>02</span><span>Bend Completed</span>
+          </button>
+          <button class="sub-btn" id="btn_fitup_entry" onclick="openStage('fitup_entry')">
+            <span>03</span><span>Fit Up Completed</span>
+          </button>
+          <button class="sub-btn" id="btn_weld_visual" onclick="openStage('weld_visual')">
+            <span>04</span><span>Weld Visual Completed</span>
+          </button>
+          <button class="sub-btn" id="btn_ndt_clearance" onclick="openStage('ndt_clearance')">
+            <span>05</span><span>NDT Clearance</span>
+          </button>
+          <button class="sub-btn" id="btn_fd" onclick="openStage('fd')">
+            <span>06</span><span>FD & Dispatch DC No</span>
+          </button>
 
-        <button type="button" class="stage-btn" style="border-left: 4px solid #0d9488; font-weight: bold;" onclick="window.location.href='custom_report_Mechanical.html'">
-          <span>⚡</span><span>Mechanical Custom Report</span>
-        </button>
-        <button type="button" class="stage-btn" style="border-left: 4px solid #b45309; font-weight: bold;" onclick="window.location.href='spool_tracking.html'">
-          <span>🔍</span><span>Open Spool Tracker Page</span>
-        </button>
+          <button class="sub-btn" style="border-left: 4px solid #0d9488; font-weight: bold;" onclick="window.location.href='custom_report_Mechanical.html'">
+            <span>⚡</span><span>Mechanical Custom Report</span>
+          </button>
+          <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#fffbeb; color:#b45309;" onclick="window.location.href='spool_tracking.html'">
+            <span>🔍</span><span>Open Spool Tracker Page</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- 2. STAGE OPERATION CONSOLE -->
-    <div id="stageOperationArea" style="display: none;">
+    <!-- 2. STAGE OPERATION SCREEN (PREVIOUS EXACT LOOK) -->
+    <div id="stageContainer" style="display: none;">
       <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:14px;">
-          <h3 id="stageTitle" style="margin:0; font-size:16px; font-weight:800; color:#0f766e;">Stage Title</h3>
-          <span style="font-size:12px; color:#64748b; font-weight:600;">Safe Operational Mode</span>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 id="stageTitle" style="margin:0; font-size:17px; font-weight:800; color:#0f766e;">Stage Title</h3>
+          <button class="btn-hero-action" style="padding:6px 14px;" onclick="backToMechMenu()">⬅️ Back to Mechanical</button>
         </div>
 
-        <label style="margin-top:4px;">Search Spool Unique Number:</label>
+        <label id="spoolSearchLabel" style="margin-top:14px;">Spool Unique Number:</label>
         <div style="position:relative;">
-          <input type="text" id="spoolSearch" placeholder="Type spool unique number to select..." oninput="handleSearchInput()" autocomplete="off">
-          <div id="searchDropdown" style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1.5px solid #0d9488; border-radius:8px; max-height:220px; overflow-y:auto; z-index:100; display:none; box-shadow:0 8px 24px rgba(0,0,0,0.12);"></div>
+          <input type="text" id="spoolSearch" placeholder="Type spool no..." oninput="handleSearchInput()" autocomplete="off">
+          <div id="searchDropdown" style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #0d9488; border-radius:8px; max-height:200px; overflow-y:auto; z-index:100; display:none; box-shadow:0 8px 24px rgba(0,0,0,0.12);"></div>
         </div>
 
-        <!-- Bend Entry Specific Modal -->
-        <div id="itemEditForm" style="display:none; background:#f0fdfa; border:1.5px solid #99f6e4; border-radius:10px; padding:16px; margin-top:14px;">
-          <div style="font-weight: 800; color: #0f766e; margin-bottom:8px;">📝 Edit Bend Details for Spool:</div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-            <div><label>Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
-            <div><label>Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
-          </div>
-          <div id="dynamicFormFields" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;"></div>
+        <div id="itemEditForm" style="display:none; background:#f8fafc; border:1px solid #99f6e4; border-radius:10px; padding:14px; margin-top:10px;">
+          <div style="font-weight: bold; color: #0f766e;">📝 Edit Details:</div>
+          <div><label>Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
+          <div><label>Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
+          <div id="dynamicFormFields"></div>
           <input type="hidden" id="form_item_id">
-          <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Add to Selected Queue</button>
+          <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Selected List</button>
         </div>
 
-        <!-- Selected Queue Area -->
-        <div id="selectedCardArea" style="margin-top: 18px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <span style="font-size: 14px; font-weight: 800; color: #0f172a;">Selected Spools Queue (<span id="queueCount" style="color:#0d9488;">0</span>)</span>
-            <button type="button" class="btn-save-action" id="btnSaveAction" onclick="submitCurrentStage()">
-              <span>💾</span> <span id="btnSaveLabel">SAVE ENTRY</span>
-            </button>
+        <div id="selectedCardArea" style="margin-top: 14px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">Selected Spools (<span id="queueCount">0</span>)</span>
+            <button type="button" class="btn-save-action" id="btnSaveAction" onclick="submitCurrentStage()">💾 <span id="btnSaveLabel">SAVE ENTRY</span></button>
           </div>
-
-          <div id="customInputsArea" style="margin-bottom: 14px; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;"></div>
-
-          <div style="border: 1px solid #cbd5e1; border-radius: 8px; overflow-x: auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width: 50px;">Sr.</th>
-                  <th>Spool Unique No</th>
-                  <th>Drawing No</th>
-                  <th style="width: 80px;">Action</th>
-                </tr>
-              </thead>
-              <tbody id="selectedTableBody">
-                <tr><td colspan="4" style="color:#64748b; padding:16px;">કોઈ સ્પોલ સિલેક્ટ કરેલ નથી (Search and select spool above).</td></tr>
-              </tbody>
+          <div id="customInputsArea" style="margin-bottom: 12px;"></div>
+          <div style="border: 1px solid #0f172a; border-radius: 8px; overflow-x: auto;">
+            <table style="width:100%; font-size:12px;">
+              <thead id="selectedTableHead"></thead>
+              <tbody id="selectedTableBody"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- Balance List Card -->
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <h3 style="margin: 0; font-size:15px; font-weight:800; color: #0f766e;">
-            📋 STAGE BALANCE LIST (<span id="tableTotalCount">0</span> Spools Pending)
-          </h3>
-          <span style="font-size:12px; color:#64748b;">Showing active shop balance for this stage</span>
-        </div>
-
-        <div style="overflow-x:auto; max-height:48vh; border:1px solid #cbd5e1; border-radius:8px;">
+      <div class="card" style="margin-top: 12px;">
+        <h3 style="margin: 0; font-size:15px; font-weight:800; color: #0f766e;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
+        <div style="overflow-x:auto; margin-top:10px; max-height:45vh; border:1px solid #e2e8f0; border-radius:8px;">
           <table>
             <thead>
-              <tr>
+              <tr style="background:#0f172a; color:white;">
                 <th style="text-align:left;">Drawing No</th>
                 <th>Spool Unique No</th>
                 <th>Spool Size</th>
@@ -351,68 +308,57 @@
     let selectedQueue = [];
     let cumulativeRows = [];
 
-    function verifyAuthAndPermissions() {
+    function checkSessionAuth() {
       const sessionData = sessionStorage.getItem('piping_app_auth');
       if (!sessionData) {
         alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
         window.location.href = 'index.html';
         return false;
       }
-
       currentUser = JSON.parse(sessionData);
-      document.getElementById('userSessionTag').innerText = `Role: ${currentUser.name}`;
+      document.getElementById('userSessionTag').innerText = `User: ${currentUser.name}`;
 
       // Enforce Role Permissions for Stage Buttons
       const isAdmin = currentUser.username === 'admin';
       const allowedStages = currentUser.allowed || [];
 
-      const stageMapping = {
-        'bending_issue': 'btn_stage_bending_issue',
-        'bend_entry': 'btn_stage_bend_entry',
-        'fitup_entry': 'btn_stage_fitup_entry',
-        'weld_visual': 'btn_stage_weld_visual',
-        'ndt_clearance': 'btn_stage_ndt_clearance',
-        'fd': 'btn_stage_fd'
+      const stageButtons = {
+        'bending_issue': 'btn_bending_issue',
+        'bend_entry': 'btn_bend_entry',
+        'fitup_entry': 'btn_fitup_entry',
+        'weld_visual': 'btn_weld_visual',
+        'ndt_clearance': 'btn_ndt_clearance',
+        'fd': 'btn_fd'
       };
 
-      Object.entries(stageMapping).forEach(([stageKey, btnId]) => {
+      Object.entries(stageButtons).forEach(([stageKey, btnId]) => {
         const btn = document.getElementById(btnId);
         if (btn) {
-          if (isAdmin || allowedStages.includes(stageKey)) {
+          if (isAdmin || allowedStages.includes('all') || allowedStages.includes(stageKey)) {
             btn.style.display = 'flex';
           } else {
             btn.style.display = 'none';
           }
         }
       });
-
-      // Default Open First Allowed Stage
-      if (isAdmin) {
-        switchStage('bending_issue');
-      } else if (allowedStages.length > 0) {
-        switchStage(allowedStages[0]);
-      } else {
-        alert("⚠️ તમને કોઈ Mechanical Stage ની પરમિશન નથી!");
-        window.location.href = 'index.html';
-      }
       return true;
     }
 
-    async function switchStage(stage) {
+    async function openStage(stage) {
       currentStage = stage;
       selectedQueue = [];
-
-      // Update Active Tab Styling
-      document.querySelectorAll('.stage-btn').forEach(btn => btn.classList.remove('active-stage'));
-      const activeBtn = document.getElementById(`btn_stage_${stage}`);
-      if (activeBtn) activeBtn.classList.add('active-stage');
-
+      document.getElementById('mechHub').style.display = 'none';
       document.getElementById('itemEditForm').style.display = 'none';
-      document.getElementById('stageOperationArea').style.display = 'block';
+      document.getElementById('stageContainer').style.display = 'block';
 
       setupStageUI(stage);
       renderSelectedTable();
       await loadStageData(stage);
+    }
+
+    function backToMechMenu() {
+      document.getElementById('stageContainer').style.display = 'none';
+      document.getElementById('mechHub').style.display = 'block';
     }
 
     function setupStageUI(stage) {
@@ -422,39 +368,33 @@
       customArea.innerHTML = '';
 
       if (stage === 'bending_issue') {
-        title.innerText = '01. ISSUED FOR BENDING ENTRY';
+        title.innerText = '1. ISSUED FOR BENDING ENTRY';
         btnSaveLabel.innerText = 'SAVE BENDING ENTRY';
-        customArea.innerHTML = `<div><label>Bending Issue Date:</label><input type="date" id="input_date" required></div>`;
+        customArea.innerHTML = `<label>Bending Issue Date:</label><input type="date" id="input_date" required>`;
       } else if (stage === 'bend_entry') {
-        title.innerText = '02. BEND ENTRY MODULE';
+        title.innerText = '2. BEND ENTRY MODULE';
         btnSaveLabel.innerText = 'SAVE BEND ENTRY';
-        customArea.innerHTML = `<div><label>Bend Date:</label><input type="date" id="input_date" required></div>`;
+        customArea.innerHTML = `<label>Bend Date:</label><input type="date" id="input_date" required>`;
       } else if (stage === 'fitup_entry') {
-        title.innerText = '03. FIT UP COMPLETED MODULE';
+        title.innerText = '3. FIT UP COMPLETED MODULE';
         btnSaveLabel.innerText = 'SAVE FIT-UP COMPLETED';
-        customArea.innerHTML = `<div><label>Fit-Up Date:</label><input type="date" id="input_date" required></div>`;
+        customArea.innerHTML = `<label>Fit-Up Date:</label><input type="date" id="input_date" required>`;
       } else if (stage === 'weld_visual') {
-        title.innerText = '04. WELD VISUAL COMPLETED MODULE';
+        title.innerText = '4. WELD VISUAL COMPLETED MODULE';
         btnSaveLabel.innerText = 'SAVE VISUAL COMPLETED';
-        customArea.innerHTML = `<div><label>Visual Date:</label><input type="date" id="input_date" required></div>`;
+        customArea.innerHTML = `<label>Visual Date:</label><input type="date" id="input_date" required>`;
       } else if (stage === 'ndt_clearance') {
-        title.innerText = '05. NDT CLEARANCE MODULE';
+        title.innerText = '5. NDT CLEARANCE MODULE';
         btnSaveLabel.innerText = 'SAVE NDT ENTRY';
-        customArea.innerHTML = `<div><label>NDT Clearance Date:</label><input type="date" id="input_date" required></div>`;
+        customArea.innerHTML = `<label>NDT Clearance Date:</label><input type="date" id="input_date" required>`;
       } else if (stage === 'fd') {
-        title.innerText = '06. FINAL DISPATCH & DC NO MODULE';
+        title.innerText = '6. FINAL DISPATCH & DC NO MODULE';
         btnSaveLabel.innerText = 'SAVE DC ENTRY';
-        customArea.innerHTML = `
-          <div><label>DC No:</label><input type="text" id="input_dc_no" placeholder="Enter DC Number..." required></div>
-          <div><label>Dispatch Date:</label><input type="date" id="input_date" required></div>
-        `;
+        customArea.innerHTML = `<label>DC No:</label><input type="text" id="input_dc_no" required><label>Dispatch Date:</label><input type="date" id="input_date" required>`;
       }
     }
 
     async function loadStageData(stage) {
-      const tbody = document.getElementById('stageBalanceTableBody');
-      tbody.innerHTML = `<tr><td colspan="5" style="padding:20px; color:#64748b;">⏳ Loading balance records...</td></tr>`;
-
       let query = db.from('piping_joints').select('*');
       if (stage === 'bending_issue') query = query.is('Bend_date', null).is('Issued_for_bending', null);
       else if (stage === 'bend_entry') query = query.is('Bend_date', null).not('Issued_for_bending', 'is', null);
@@ -463,11 +403,7 @@
       else if (stage === 'ndt_clearance') query = query.not('Weld_visual_date', 'is', null).is('Ndt_clearance', null);
       else if (stage === 'fd') query = query.not('Ndt_clearance', 'is', null).is('Fd_date', null);
 
-      const { data, error } = await query.order('id', { ascending: true }).limit(2000);
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="5" style="color:red; padding:14px;">Error: ${error.message}</td></tr>`;
-        return;
-      }
+      const { data } = await query.order('id', { ascending: true }).limit(2000);
       cumulativeRows = data || [];
       renderBalanceTable();
     }
@@ -476,13 +412,12 @@
       document.getElementById('tableTotalCount').innerText = cumulativeRows.length;
       const tbody = document.getElementById('stageBalanceTableBody');
       if (cumulativeRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="padding:24px; color:#15803d; font-weight:bold;">🎉 All spools completed for this stage! (0 Balance)</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="padding:20px; color:#15803d; font-weight:bold;">0 Spools Balance for this stage!</td></tr>`;
         return;
       }
-
       tbody.innerHTML = cumulativeRows.slice(0, 300).map(r => `
         <tr>
-          <td style="text-align:left; font-weight:600;">${r.Drawing_no || '-'}</td>
+          <td style="text-align:left;"><b>${r.Drawing_no || '-'}</b></td>
           <td><b>${r.Spool_number || '-'}</b></td>
           <td>${r.Spool_size || '-'}</td>
           <td><b>${r.Weld_id || '-'}</b></td>
@@ -498,15 +433,14 @@
 
       const matched = cumulativeRows.filter(r => String(r.Spool_number || '').toLowerCase().includes(term)).slice(0, 20);
       if (matched.length === 0) {
-        drop.innerHTML = '<div style="padding:10px; color:#64748b; font-size:12px; text-align:center;">No Spool Found in Balance List</div>';
+        drop.innerHTML = '<div style="padding:10px; color:#64748b; font-size:12px;">No Spool Found</div>';
         drop.style.display = 'block';
         return;
       }
 
       drop.innerHTML = matched.map(r => `
-        <div style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;" onclick="onSpoolSelect(${r.id})">
-          <div><b style="color:#0f172a;">${r.Spool_number}</b> <span style="color:#0d9488; font-size:11px;">(Size: ${r.Spool_size || '-'})</span></div>
-          <span style="font-size:11.5px; color:#64748b;">${r.Drawing_no || '-'}</span>
+        <div style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;" onclick="onSpoolSelect(${r.id})">
+          <b>${r.Spool_number}</b> <span style="font-size:11.5px; color:#64748b;">(${r.Drawing_no})</span>
         </div>
       `).join('');
       drop.style.display = 'block';
@@ -515,14 +449,8 @@
     function onSpoolSelect(id) {
       const item = cumulativeRows.find(x => x.id === id);
       if (!item) return;
-
       document.getElementById('spoolSearch').value = '';
       document.getElementById('searchDropdown').style.display = 'none';
-
-      // Duplicate check in queue
-      if (selectedQueue.some(x => x.id === item.id)) {
-        return alert("⚠️ આ Spool પહેલેથી Selected Queue માં ઉમેરેલો છે!");
-      }
 
       if (currentStage === 'bend_entry') {
         document.getElementById('itemEditForm').style.display = 'block';
@@ -530,8 +458,8 @@
         document.getElementById('form_spool_no').value = item.Spool_number;
         document.getElementById('form_drawing_no').value = item.Drawing_no;
         document.getElementById('dynamicFormFields').innerHTML = `
-          <div><label>Bend Qty:</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || ''}"></div>
-          <div><label>Weld ID:</label><input type="text" id="form_weld_id" value="${item.Weld_id || ''}"></div>
+          <label>Bend Qty:</label><input type="text" id="form_bend_qty" value="${item.Bend_qty || ''}">
+          <label>Weld ID:</label><input type="text" id="form_weld_id" value="${item.Weld_id || ''}">
         `;
         return;
       }
@@ -557,10 +485,13 @@
 
     function renderSelectedTable() {
       document.getElementById('queueCount').innerText = selectedQueue.length;
+      const thead = document.getElementById('selectedTableHead');
       const tbody = document.getElementById('selectedTableBody');
 
+      thead.innerHTML = `<tr><th>Sr.</th><th>Spool Unique No</th><th style="text-align:left;">Drawing No</th><th>Action</th></tr>`;
+      
       if (selectedQueue.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="color:#64748b; padding:16px;">કોઈ સ્પોલ સિલેક્ટ કરેલ નથી (Search and select spool above).</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="color:#64748b; padding:12px;">No spools selected in queue</td></tr>`;
         return;
       }
 
@@ -569,56 +500,42 @@
           <td>${i + 1}</td>
           <td><b>${r.Spool_number}</b></td>
           <td style="text-align:left;">${r.Drawing_no}</td>
-          <td>
-            <button style="background:#fee2e2; border:1px solid #fca5a5; color:#dc2626; padding:3px 8px; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="selectedQueue.splice(${i}, 1); renderSelectedTable();">✕</button>
-          </td>
+          <td><button style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="selectedQueue.splice(${i},1); renderSelectedTable();">✕</button></td>
         </tr>
       `).join('');
     }
 
     async function submitCurrentStage() {
-      if (selectedQueue.length === 0) return alert('⚠️ કૃપા કરીને ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
+      if (selectedQueue.length === 0) return alert('ઓછામાં ઓછો ૧ Spool સિલેક્ટ કરો.');
       const date = document.getElementById('input_date') ? document.getElementById('input_date').value : null;
-      const btn = document.getElementById('btnSaveAction');
 
-      btn.disabled = true;
-      btn.innerText = "⏳ Saving...";
-
-      try {
-        if (currentStage === 'bending_issue') {
-          if (!date) throw new Error('તારીખ દાખલ કરો');
-          await db.from('piping_joints').update({ Issued_for_bending: date }).in('id', selectedQueue.map(x => x.id));
-        } else if (currentStage === 'bend_entry') {
-          if (!date) throw new Error('તારીખ દાખલ કરો');
-          for (const item of selectedQueue) {
-            await db.from('piping_joints').update({ Bend_date: date, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id }).eq('id', item.id);
-          }
-        } else if (currentStage === 'fitup_entry') {
-          if (!date) throw new Error('તારીખ દાખલ કરો');
-          await db.from('piping_joints').update({ Fit_up_date: date }).in('id', selectedQueue.map(x => x.id));
-        } else if (currentStage === 'weld_visual') {
-          if (!date) throw new Error('તારીખ દાખલ કરો');
-          await db.from('piping_joints').update({ Weld_visual_date: date }).in('id', selectedQueue.map(x => x.id));
-        } else if (currentStage === 'ndt_clearance') {
-          if (!date) throw new Error('તારીખ દાખલ કરો');
-          await db.from('piping_joints').update({ Ndt_clearance: date }).in('id', selectedQueue.map(x => x.id));
-        } else if (currentStage === 'fd') {
-          const dcNo = document.getElementById('input_dc_no').value.trim();
-          if (!dcNo || !date) throw new Error('DC No અને તારીખ બંને દાખલ કરો');
-          await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: date }).in('id', selectedQueue.map(x => x.id));
+      if (currentStage === 'bending_issue') {
+        if (!date) return alert('તારીખ દાખલ કરો');
+        await db.from('piping_joints').update({ Issued_for_bending: date }).in('id', selectedQueue.map(x => x.id));
+      } else if (currentStage === 'bend_entry') {
+        if (!date) return alert('તારીખ દાખલ કરો');
+        for (const item of selectedQueue) {
+          await db.from('piping_joints').update({ Bend_date: date, Bend_qty: item.final_bend_qty, Weld_id: item.final_weld_id }).eq('id', item.id);
         }
-
-        alert(`✅ સફળતાપૂર્વક ${selectedQueue.length} Spool(s) માટે એન્ટ્રી સેવ થઈ ગઈ છે!`);
-        selectedQueue = [];
-        renderSelectedTable();
-        await loadStageData(currentStage);
-
-      } catch (err) {
-        alert("❌ સેવ કરવામાં ભૂલ: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "💾 " + document.getElementById('btnSaveLabel').innerText;
+      } else if (currentStage === 'fitup_entry') {
+        if (!date) return alert('તારીખ દાખલ કરો');
+        await db.from('piping_joints').update({ Fit_up_date: date }).in('id', selectedQueue.map(x => x.id));
+      } else if (currentStage === 'weld_visual') {
+        if (!date) return alert('તારીખ દાખલ કરો');
+        await db.from('piping_joints').update({ Weld_visual_date: date }).in('id', selectedQueue.map(x => x.id));
+      } else if (currentStage === 'ndt_clearance') {
+        if (!date) return alert('તારીખ દાખલ કરો');
+        await db.from('piping_joints').update({ Ndt_clearance: date }).in('id', selectedQueue.map(x => x.id));
+      } else if (currentStage === 'fd') {
+        const dcNo = document.getElementById('input_dc_no').value.trim();
+        if (!dcNo || !date) return alert('DC No અને તારીખ બંને દાખલ કરો');
+        await db.from('piping_joints').update({ Shift_dc_no: dcNo, Fd_date: date }).in('id', selectedQueue.map(x => x.id));
       }
+
+      alert('સફળતાપૂર્વક સાચવવામાં આવ્યું!');
+      selectedQueue = [];
+      renderSelectedTable();
+      loadStageData(currentStage);
     }
 
     document.addEventListener('click', (e) => {
@@ -628,7 +545,7 @@
       }
     });
 
-    window.addEventListener('DOMContentLoaded', verifyAuthAndPermissions);
+    window.addEventListener('DOMContentLoaded', checkSessionAuth);
   </script>
 </body>
 </html>
