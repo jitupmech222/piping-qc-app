@@ -357,9 +357,17 @@
     /* SUMMARY STATS BAR */
     .stats-bar {
       display: flex;
-      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
       flex-wrap: wrap;
+      gap: 12px;
       margin-bottom: 12px;
+    }
+    .stats-left {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
     }
     .stat-pill {
       background: #e0f2fe;
@@ -370,26 +378,48 @@
       font-weight: 700;
       border: 1px solid #bae6fd;
     }
+    .btn-clear-table-filters {
+      padding: 6px 14px;
+      background: #64748b;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s;
+    }
+    .btn-clear-table-filters:hover { background: #475569; }
 
-    /* TABLE GRID */
+    /* TABLE GRID & HEADER FILTER BUTTONS */
     .table-container {
       overflow-x: auto;
       max-height: 55vh;
       border: 1px solid #cbd5e1;
       border-radius: 10px;
       background: #ffffff;
+      position: relative;
     }
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 25;
+    }
     th {
       background: #0f172a;
       color: #ffffff;
-      padding: 9px 12px;
+      padding: 8px 10px;
       font-weight: 700;
       text-align: center;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 25;
       white-space: nowrap;
+      user-select: none;
     }
     td {
       border-bottom: 1px solid #e2e8f0;
@@ -409,6 +439,103 @@
       bottom: 0;
       border-top: 2px solid #fdba74;
     }
+
+    /* 🟢 TABLE HEADER FILTER BUTTON & POPOVER */
+    .filter-btn-icon {
+      border: none;
+      background: #0284c7;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 11px;
+      padding: 2px 6px;
+      margin-left: 6px;
+      border-radius: 4px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .filter-btn-icon:hover { background: #0369a1; }
+    .filter-btn-icon.active { background: #ffd54f; color: #0f172a; font-weight: bold; }
+
+    .header-filter-popover {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 1000;
+      background: #ffffff;
+      padding: 12px;
+      border: 1.5px solid #cbd5e1;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      width: 270px;
+      border-radius: 8px;
+      text-align: left;
+      color: #0f172a;
+      font-weight: normal;
+      font-size: 12px;
+    }
+    .popover-search-input {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      outline: none;
+    }
+    .popover-search-input:focus { border-color: #0284c7; }
+
+    .popover-list-box {
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 6px 8px;
+      background: #ffffff;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .filter-item-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: #1e293b;
+      cursor: pointer;
+      user-select: none;
+      padding: 2px 0;
+    }
+    .filter-item-label:hover { color: #0284c7; }
+    .filter-item-label input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: #0284c7; }
+
+    .btn-popover-ok {
+      flex: 1;
+      padding: 6px;
+      background: #17365d;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-popover-ok:hover { background: #0f233d; }
+
+    .btn-popover-clear {
+      flex: 1;
+      padding: 6px;
+      background: #64748b;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-popover-clear:hover { background: #475569; }
   </style>
 </head>
 <body>
@@ -493,7 +620,13 @@
 
     <!-- 3. REPORT OUTPUT CARD -->
     <div class="builder-card" id="outputCard" style="display:none;">
-      <div class="stats-bar" id="statsBarContainer"></div>
+      <div class="stats-bar">
+        <div class="stats-left" id="statsBarContainer"></div>
+        <button type="button" id="btnClearTableFilters" class="btn-clear-table-filters" style="display:none;" onclick="clearAllTableFilters()">
+          ✖ Clear Table Filters
+        </button>
+      </div>
+
       <div class="table-container">
         <table>
           <thead id="reportTableHead"></thead>
@@ -511,12 +644,18 @@
 
     let activeSource = 'qaqc';
     let cachedSourceData = [];
-    let generatedReportRows = [];
+    let currentMasterFilteredRows = [];
+    let currentVisibleRows = [];
+    let activeColumnsDef = [];
     let generatedHeaders = [];
 
-    // Multi-select state sets
+    // Filter states
     let selectedSizes = new Set();
     let selectedJointTypes = new Set();
+
+    // 🟢 Table Header Filters: { colKey: Set(['val1', 'val2']) }
+    let tableHeaderFilters = {};
+    let openPopoverColKey = null;
 
     // 🟢 ALL 46 EXACT QA/QC COLUMNS (Matching view_record.html)
     const QAQC_ALL_46_COLUMNS = [
@@ -568,7 +707,6 @@
       { key: "remarks", title: "Remarks" }
     ];
 
-    // 🟢 MODULE CONFIGURATIONS
     const CONFIGS = {
       qaqc: {
         table: 'lhs_entries',
@@ -673,19 +811,26 @@
       return isNaN(n) ? 0 : n;
     }
 
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function escapeAttr(str) {
+      return String(str).replace(/"/g, '&quot;');
+    }
+
     // 1. SWITCH SOURCE TABS
     function switchSource(sourceKey) {
       activeSource = sourceKey;
       cachedSourceData = [];
-      generatedReportRows = [];
+      currentMasterFilteredRows = [];
+      currentVisibleRows = [];
+      tableHeaderFilters = {};
       document.getElementById('outputCard').style.display = 'none';
       document.getElementById('btnExport').disabled = true;
 
-      // Reset Multi-select sets
       selectedSizes.clear();
       selectedJointTypes.clear();
 
-      // Update Tab Styles
       document.getElementById('tabQaqc').className = `tab-btn ${sourceKey === 'qaqc' ? 'active-qaqc' : ''}`;
       document.getElementById('tabMech').className = `tab-btn ${sourceKey === 'mech' ? 'active-mech' : ''}`;
       document.getElementById('tabMat').className = `tab-btn ${sourceKey === 'mat' ? 'active-mat' : ''}`;
@@ -697,7 +842,7 @@
       buildGroupByOptionsUI();
     }
 
-    // 2. BUILD FILTERS UI (ACCORDING TO EXACT 5-POINT CRITERIA)
+    // 2. BUILD FILTERS UI
     function buildDynamicFiltersUI() {
       const container = document.getElementById('dynamicFiltersContainer');
 
@@ -706,7 +851,7 @@
           <!-- FILTER 1: FILTER BY STAGE -->
           <div>
             <label>Filter by stage:</label>
-            <select id="filterStage" onchange="handleStageFilterChange(this.value)">
+            <select id="filterStage">
               <option value="ALL">ALL</option>
               <option value="FIT-UP">FIT-UP</option>
               <option value="VISUAL">VISUAL</option>
@@ -784,7 +929,6 @@
           </div>
         `;
 
-        // Initialize state
         handleSizeCheckboxChange();
         handleJointCheckboxChange();
 
@@ -833,7 +977,6 @@
       }
     }
 
-    // ROUND BAR PILL CHANGE HANDLER
     function updateStageStatusPill(val) {
       const lblAll = document.getElementById('lblStatusAll');
       const lblComp = document.getElementById('lblStatusComp');
@@ -848,11 +991,6 @@
       else lblAll.classList.add('active-pill');
     }
 
-    function handleStageFilterChange(stageVal) {
-      // Stage change logic if needed
-    }
-
-    // MULTI-SELECT DROPDOWNS TOGGLE & LOGIC
     function toggleMultiDropdown(menuId) {
       const menu = document.getElementById(menuId);
       const isVisible = menu.style.display === 'block';
@@ -870,9 +1008,11 @@
       if (!e.target.closest('.multi-select-wrap')) {
         closeAllMultiDropdowns();
       }
+      if (!e.target.closest('.header-filter-popover') && !e.target.closest('.filter-btn-icon')) {
+        closeTableHeaderFilterPopup();
+      }
     });
 
-    // SIZES MULTI-SELECT LOGIC
     function toggleSelectAllSizes(checked) {
       document.querySelectorAll('.chk-size-item').forEach(cb => cb.checked = checked);
       handleSizeCheckboxChange();
@@ -891,17 +1031,12 @@
 
       const label = document.getElementById('labelSizeDisplay');
       if (label) {
-        if (checkedBoxes.length === allCb.length) {
-          label.innerText = 'ALL Sizes Selected';
-        } else if (checkedBoxes.length === 0) {
-          label.innerText = 'None Selected (0)';
-        } else {
-          label.innerText = `Selected (${checkedBoxes.length}): ${Array.from(selectedSizes).join(', ')}`;
-        }
+        if (checkedBoxes.length === allCb.length) label.innerText = 'ALL Sizes Selected';
+        else if (checkedBoxes.length === 0) label.innerText = 'None Selected (0)';
+        else label.innerText = `Selected (${checkedBoxes.length}): ${Array.from(selectedSizes).join(', ')}`;
       }
     }
 
-    // JOINT TYPES MULTI-SELECT LOGIC
     function toggleSelectAllJoints(checked) {
       document.querySelectorAll('.chk-joint-item').forEach(cb => cb.checked = checked);
       handleJointCheckboxChange();
@@ -920,17 +1055,13 @@
 
       const label = document.getElementById('labelJointDisplay');
       if (label) {
-        if (checkedBoxes.length === allCb.length) {
-          label.innerText = 'ALL Joint Types Selected';
-        } else if (checkedBoxes.length === 0) {
-          label.innerText = 'None Selected (0)';
-        } else {
-          label.innerText = `Selected (${checkedBoxes.length}): ${Array.from(selectedJointTypes).join(', ')}`;
-        }
+        if (checkedBoxes.length === allCb.length) label.innerText = 'ALL Joint Types Selected';
+        else if (checkedBoxes.length === 0) label.innerText = 'None Selected (0)';
+        else label.innerText = `Selected (${checkedBoxes.length}): ${Array.from(selectedJointTypes).join(', ')}`;
       }
     }
 
-    // 3. BUILD COLUMNS CHECKBOX SELECTOR (ALL 46 EXACT COLUMNS)
+    // 3. BUILD COLUMNS CHECKBOX SELECTOR
     function buildColumnsSelectorUI() {
       const cfg = CONFIGS[activeSource];
       const container = document.getElementById('columnsContainer');
@@ -954,7 +1085,6 @@
       });
     }
 
-    // 4. BUILD GROUP BY OPTIONS
     function buildGroupByOptionsUI() {
       const cfg = CONFIGS[activeSource];
       const sel = document.getElementById('selectGroupBy');
@@ -966,7 +1096,6 @@
       document.getElementById('groupByWrapper').style.display = mode === 'summary' ? 'inline-flex' : 'none';
     }
 
-    // 5. FETCH SOURCE DATA FROM SUPABASE
     async function fetchSourceData() {
       const cfg = CONFIGS[activeSource];
       let rows = [];
@@ -992,9 +1121,12 @@
       return rows;
     }
 
-    // 6. GENERATE REPORT LOGIC (PRECISE FILTERING)
+    // 6. GENERATE REPORT LOGIC
     async function executeGenerateReport() {
       closeAllMultiDropdowns();
+      closeTableHeaderFilterPopup();
+      tableHeaderFilters = {};
+
       const btn = document.getElementById('btnGen');
       btn.innerText = "⏳ Fetching & Analyzing...";
       btn.disabled = true;
@@ -1008,19 +1140,17 @@
         const startDate = document.getElementById('filterStartDate').value;
         const endDate = document.getElementById('filterEndDate').value;
 
-        let filtered = cachedSourceData.filter(r => {
+        currentMasterFilteredRows = cachedSourceData.filter(r => {
           if (activeSource === 'qaqc') {
-            const stage = document.getElementById('filterStage').value; // ALL, FIT-UP, VISUAL, NDT, FD
-            const statusRadio = document.querySelector('input[name="stageStatusRadio"]:checked').value; // ALL, COMPLETED, NOT_COMPLETED
+            const stage = document.getElementById('filterStage').value;
+            const statusRadio = document.querySelector('input[name="stageStatusRadio"]:checked').value;
 
-            // Map Stage to Database Date Field
             let stageField = null;
             if (stage === 'FIT-UP') stageField = 'fitup_date';
             else if (stage === 'VISUAL') stageField = 'visual_date';
             else if (stage === 'NDT') stageField = 'ndt_clearance';
             else if (stage === 'FD') stageField = 'fd_date';
 
-            // Filter 2: Completed / Not Completed
             if (statusRadio !== 'ALL') {
               if (stageField) {
                 const val = r[stageField];
@@ -1028,15 +1158,12 @@
                 if (statusRadio === 'COMPLETED' && !isCompleted) return false;
                 if (statusRadio === 'NOT_COMPLETED' && isCompleted) return false;
               } else {
-                // If Stage is ALL:
-                // Completed = Finished NDT / FD; Not Completed = FD or NDT is pending
                 const isCompleted = Boolean(r.fd_date || r.ndt_clearance);
                 if (statusRadio === 'COMPLETED' && !isCompleted) return false;
                 if (statusRadio === 'NOT_COMPLETED' && isCompleted) return false;
               }
             }
 
-            // Filter 3: Date Filtering
             if (startDate || endDate) {
               const testField = stageField || 'visual_date';
               let rowDate = r[testField];
@@ -1046,21 +1173,16 @@
               if (endDate && rowDate > endDate) return false;
             }
 
-            // Filter 4: Multiple Size (Weld NPD)
             if (selectedSizes.size > 0) {
               const rowSize = String(r.weld_npd || '').trim();
               if (!selectedSizes.has(rowSize)) return false;
             }
 
-            // Filter 5: Multiple Joint Type
             if (selectedJointTypes.size > 0) {
               const rowType = String(r.joint_type || '').trim().toUpperCase();
               if (!selectedJointTypes.has(rowType)) return false;
             }
-          }
-
-          // Mech & Mat Filters
-          else if (activeSource === 'mech') {
+          } else if (activeSource === 'mech') {
             const qDisp = document.getElementById('filterDispStatus').value;
             const qSize = (document.getElementById('filterSpoolSize').value || '').trim().toLowerCase();
             if (qDisp === 'dispatched' && !r.Fd_date) return false;
@@ -1083,7 +1205,6 @@
           return true;
         });
 
-        // Selected Columns
         const selectedColsKeys = Array.from(document.querySelectorAll('#columnsContainer input[type="checkbox"]:checked')).map(cb => cb.value);
         if (selectedColsKeys.length === 0) {
           throw new Error("⚠️ કૃપા કરીને ઓછામાં ઓછી ૧ કૉલમ પસંદ કરો!");
@@ -1091,10 +1212,12 @@
 
         const mode = document.querySelector('input[name="reportMode"]:checked').value;
         if (mode === 'detail') {
-          renderDetailedReport(filtered, selectedColsKeys);
+          activeColumnsDef = cfg.allCols.filter(c => selectedColsKeys.includes(c.key));
+          renderDetailedReportHeaders();
+          applyTableFiltersAndRenderBody();
         } else {
           const groupKey = document.getElementById('selectGroupBy').value;
-          renderSummaryReport(filtered, groupKey, selectedColsKeys);
+          renderSummaryReport(currentMasterFilteredRows, groupKey, selectedColsKeys);
         }
 
         document.getElementById('outputCard').style.display = 'block';
@@ -1109,78 +1232,283 @@
       }
     }
 
-    // 7. RENDER DETAILED REPORT VIEW
-    function renderDetailedReport(rows, selectedKeys) {
-      const cfg = CONFIGS[activeSource];
-      const activeCols = cfg.allCols.filter(c => selectedKeys.includes(c.key));
-      generatedHeaders = ['Sr.', ...activeCols.map(c => c.title)];
-
+    // 🟢 7. RENDER DETAILED REPORT HEADERS WITH FILTER BUTTONS (▾)
+    function renderDetailedReportHeaders() {
       const thead = document.getElementById('reportTableHead');
-      const tbody = document.getElementById('reportTableBody');
+      generatedHeaders = ['Sr.', ...activeColumnsDef.map(c => c.title)];
 
-      thead.innerHTML = `<tr><th>Sr.</th>${activeCols.map(c => `<th>${c.title}</th>`).join('')}</tr>`;
+      thead.innerHTML = `
+        <tr>
+          <th style="width: 50px;">Sr.</th>
+          ${activeColumnsDef.map(col => {
+            const isActive = Boolean(tableHeaderFilters[col.key]);
+            return `
+              <th id="th_rep_${col.key}" style="position:relative;">
+                <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                  <span>${col.title}</span>
+                  <button type="button" class="filter-btn-icon ${isActive ? 'active' : ''}" onclick="toggleTableHeaderFilter(event, '${col.key}')" title="Filter by ${col.title}">▾</button>
+                </div>
+                <div id="popover_rep_${col.key}" class="header-filter-popover" style="display:none;" onclick="event.stopPropagation()"></div>
+              </th>
+            `;
+          }).join('')}
+        </tr>
+      `;
+    }
+
+    // 🟢 8. FILTER TABLE ROWS VIA HEADER FILTER BUTTONS
+    function getTableFilteredRows(excludeKey = null) {
+      return currentMasterFilteredRows.filter(r => {
+        for (const [key, allowedSet] of Object.entries(tableHeaderFilters)) {
+          if (excludeKey && key === excludeKey) continue;
+          const colDef = activeColumnsDef.find(c => c.key === key);
+          let val = r[key];
+
+          if (val === null || val === undefined || String(val).trim() === '' || String(val).toLowerCase() === 'null') {
+            val = '(Blanks)';
+          } else {
+            val = String(val).trim();
+            if (colDef && colDef.isDate) {
+              val = formatDateDisplay(val);
+              if (val === '-') val = '(Blanks)';
+            }
+          }
+
+          if (!allowedSet.has(val)) return false;
+        }
+        return true;
+      });
+    }
+
+    function applyTableFiltersAndRenderBody() {
+      currentVisibleRows = getTableFilteredRows();
+      const tbody = document.getElementById('reportTableBody');
 
       let sumInchDia = 0;
       let sumBendQty = 0;
       let sumMinQty = 0;
       let sumIssuedQty = 0;
 
-      rows.forEach(r => {
+      currentVisibleRows.forEach(r => {
         if (r.weld_inch_dia) sumInchDia += parseNum(r.weld_inch_dia);
         if (r.Bend_qty) sumBendQty += parseNum(r.Bend_qty);
         if (r.MIN_qty) sumMinQty += parseNum(r.MIN_qty);
         if (r.Issued_qty) sumIssuedQty += parseNum(r.Issued_qty);
       });
 
-      // 🟢 1.125 ACCURACY PRESERVATION:
+      // 🟢 Exact 1.125 precision preserved:
       sumInchDia = Math.round(sumInchDia * 1000) / 1000;
 
-      generatedReportRows = rows.map((r, i) => {
-        const rowVals = [i + 1];
-        activeCols.forEach(c => {
-          let v = r[c.key];
-          if (c.isDate) v = formatDateDisplay(v);
-          else if (c.isInchDia && v !== null && v !== undefined && String(v).trim() !== '') {
-            const numVal = parseFloat(v);
-            v = !isNaN(numVal) ? (Number.isInteger(numVal) ? numVal : numVal.toFixed(3)) : v;
-          } else if (v === null || v === undefined) v = '-';
-          rowVals.push(v);
-        });
-        return rowVals;
-      });
+      if (currentVisibleRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${activeColumnsDef.length + 1}" style="padding:30px; text-align:center; color:#64748b;">કોઈ રેકોર્ડ મળ્યો નથી (No matching records).</td></tr>`;
+      } else {
+        tbody.innerHTML = currentVisibleRows.map((r, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            ${activeColumnsDef.map((c, colIdx) => {
+              let v = r[c.key];
+              if (c.isDate) v = formatDateDisplay(v);
+              else if (c.isInchDia && v !== null && v !== undefined && String(v).trim() !== '') {
+                const numVal = parseFloat(v);
+                v = !isNaN(numVal) ? (Number.isInteger(numVal) ? numVal : numVal.toFixed(3)) : v;
+              } else if (v === null || v === undefined || String(v).trim() === '') {
+                v = '-';
+              }
+              const align = colIdx === 0 ? 'text-align:left; font-weight:600;' : '';
+              return `<td style="${align}">${v}</td>`;
+            }).join('')}
+          </tr>
+        `).join('');
 
-      tbody.innerHTML = generatedReportRows.map(row => `
-        <tr>
-          ${row.map((cell, idx) => {
-            const align = idx === 1 ? 'text-align:left;' : '';
-            return `<td style="${align}">${cell}</td>`;
-          }).join('')}
-        </tr>
-      `).join('');
+        // Total Row
+        tbody.innerHTML += `
+          <tr class="total-row">
+            <td>TOTAL</td>
+            ${activeColumnsDef.map(c => {
+              if (c.isInchDia) return `<td>${Number.isInteger(sumInchDia) ? sumInchDia : sumInchDia.toFixed(3)}</td>`;
+              if (c.key === 'Bend_qty') return `<td>${sumBendQty}</td>`;
+              if (c.key === 'MIN_qty') return `<td>${sumMinQty.toFixed(2)}</td>`;
+              if (c.key === 'Issued_qty') return `<td>${sumIssuedQty.toFixed(2)}</td>`;
+              return `<td>-</td>`;
+            }).join('')}
+          </tr>
+        `;
+      }
 
-      // Add Total Row
-      const totalRowHtml = `
-        <tr class="total-row">
-          <td>TOTAL</td>
-          ${activeCols.map(c => {
-            if (c.isInchDia) return `<td>${Number.isInteger(sumInchDia) ? sumInchDia : sumInchDia.toFixed(3)}</td>`;
-            if (c.key === 'Bend_qty') return `<td>${sumBendQty}</td>`;
-            if (c.key === 'MIN_qty') return `<td>${sumMinQty.toFixed(2)}</td>`;
-            if (c.key === 'Issued_qty') return `<td>${sumIssuedQty.toFixed(2)}</td>`;
-            return `<td>-</td>`;
-          }).join('')}
-        </tr>
-      `;
-      tbody.innerHTML += totalRowHtml;
-
-      // Stats Pill
-      let statPills = `<span class="stat-pill">Total Records: ${rows.length}</span>`;
+      // Stats Pills
+      const hasActiveFilters = Object.keys(tableHeaderFilters).length > 0;
+      let statPills = `<span class="stat-pill">Total Records: ${currentVisibleRows.length} ${hasActiveFilters ? `(Filtered from ${currentMasterFilteredRows.length})` : ''}</span>`;
       if (sumInchDia > 0) statPills += `<span class="stat-pill">Total Inch Dia: ${sumInchDia.toFixed(3)}</span>`;
       if (sumBendQty > 0) statPills += `<span class="stat-pill">Total Bend Qty: ${sumBendQty}</span>`;
       document.getElementById('statsBarContainer').innerHTML = statPills;
+
+      document.getElementById('btnClearTableFilters').style.display = hasActiveFilters ? 'inline-flex' : 'none';
     }
 
-    // 8. RENDER SUMMARY / PIVOT VIEW
+    // 🟢 9. TABLE HEADER FILTER POPOVER BUILDER
+    function toggleTableHeaderFilter(e, key) {
+      e.stopPropagation();
+      const pop = document.getElementById(`popover_rep_${key}`);
+      const isVisible = pop.style.display === 'block';
+
+      closeTableHeaderFilterPopup();
+
+      if (!isVisible) {
+        openPopoverColKey = key;
+        buildTableHeaderPopoverContent(key);
+
+        const th = document.getElementById(`th_rep_${key}`);
+        const rect = th.getBoundingClientRect();
+        if (rect.left + 280 > window.innerWidth) {
+          pop.style.left = 'auto';
+          pop.style.right = '0';
+        } else {
+          pop.style.left = '0';
+          pop.style.right = 'auto';
+        }
+
+        pop.style.display = 'block';
+        const searchInput = document.getElementById(`search_rep_${key}`);
+        if (searchInput) searchInput.focus();
+      }
+    }
+
+    function closeTableHeaderFilterPopup() {
+      document.querySelectorAll('.header-filter-popover').forEach(p => p.style.display = 'none');
+      openPopoverColKey = null;
+    }
+
+    function buildTableHeaderPopoverContent(key) {
+      const colDef = activeColumnsDef.find(c => c.key === key);
+      const pop = document.getElementById(`popover_rep_${key}`);
+
+      const relevantRows = getTableFilteredRows(key);
+      const valCounts = new Map();
+
+      relevantRows.forEach(r => {
+        let val = r[key];
+        if (val === null || val === undefined || String(val).trim() === '' || String(val).toLowerCase() === 'null') {
+          val = '(Blanks)';
+        } else {
+          val = String(val).trim();
+          if (colDef.isDate) {
+            val = formatDateDisplay(val);
+            if (val === '-') val = '(Blanks)';
+          }
+        }
+        valCounts.set(val, (valCounts.get(val) || 0) + 1);
+      });
+
+      const sortedVals = Array.from(valCounts.keys()).sort((a, b) => {
+        if (a === '(Blanks)') return 1;
+        if (b === '(Blanks)') return -1;
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return a.localeCompare(b, undefined, { numeric: true });
+      });
+
+      const currentSelected = tableHeaderFilters[key];
+
+      pop.innerHTML = `
+        <input type="text" id="search_rep_${key}" class="popover-search-input" placeholder="Search in ${colDef.title}..." oninput="handleTableHeaderFilterSearch('${key}', this.value)" autocomplete="off">
+
+        <div class="popover-list-box" id="list_box_rep_${key}">
+          <label class="filter-item-label" style="font-weight:bold; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
+            <input type="checkbox" id="select_all_rep_${key}" onchange="toggleSelectAllTableHeader('${key}', this.checked)" ${!currentSelected || currentSelected.size === sortedVals.length ? 'checked' : ''}>
+            <span>(Select All)</span>
+          </label>
+
+          ${sortedVals.map(val => {
+            const count = valCounts.get(val);
+            const isChecked = !currentSelected || currentSelected.has(val);
+            const safeAttr = escapeAttr(val);
+            return `
+              <label class="filter-item-label filter-item-row" data-val="${safeAttr}">
+                <input type="checkbox" class="chk-header-val" value="${safeAttr}" ${isChecked ? 'checked' : ''} onchange="updateSelectAllTableHeaderState('${key}')">
+                <span>${escapeHtml(val)} <span style="color:#64748b; font-size:11px;">(${count})</span></span>
+              </label>
+            `;
+          }).join('')}
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-popover-ok" onclick="applyTableHeaderCheckboxFilter('${key}')">OK</button>
+          <button type="button" class="btn-popover-clear" onclick="clearTableHeaderCheckboxFilter('${key}')">Clear</button>
+        </div>
+      `;
+
+      updateSelectAllTableHeaderState(key);
+    }
+
+    function handleTableHeaderFilterSearch(key, term) {
+      const q = term.trim().toLowerCase();
+      const listBox = document.getElementById(`list_box_rep_${key}`);
+      const items = listBox.querySelectorAll('.filter-item-row');
+      items.forEach(el => {
+        const valText = el.getAttribute('data-val').toLowerCase();
+        el.style.display = valText.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function toggleSelectAllTableHeader(key, isChecked) {
+      const listBox = document.getElementById(`list_box_rep_${key}`);
+      const checkboxes = listBox.querySelectorAll('.chk-header-val');
+      checkboxes.forEach(cb => {
+        const parent = cb.closest('.filter-item-row');
+        if (parent && parent.style.display !== 'none') {
+          cb.checked = isChecked;
+        }
+      });
+    }
+
+    function updateSelectAllTableHeaderState(key) {
+      const selectAll = document.getElementById(`select_all_rep_${key}`);
+      const listBox = document.getElementById(`list_box_rep_${key}`);
+      if (!selectAll || !listBox) return;
+
+      const checkboxes = Array.from(listBox.querySelectorAll('.chk-header-val'));
+      const allChecked = checkboxes.length > 0 && checkboxes.every(c => c.checked);
+      const someChecked = checkboxes.some(c => c.checked);
+
+      selectAll.checked = allChecked;
+      selectAll.indeterminate = !allChecked && someChecked;
+    }
+
+    function applyTableHeaderCheckboxFilter(key) {
+      const listBox = document.getElementById(`list_box_rep_${key}`);
+      const checkboxes = Array.from(listBox.querySelectorAll('.chk-header-val'));
+      const totalCount = checkboxes.length;
+      const checkedVals = checkboxes.filter(c => c.checked).map(c => c.value);
+
+      if (checkedVals.length === totalCount) {
+        delete tableHeaderFilters[key];
+      } else if (checkedVals.length === 0) {
+        tableHeaderFilters[key] = new Set(['__NONE__']);
+      } else {
+        tableHeaderFilters[key] = new Set(checkedVals);
+      }
+
+      closeTableHeaderFilterPopup();
+      renderDetailedReportHeaders();
+      applyTableFiltersAndRenderBody();
+    }
+
+    function clearTableHeaderCheckboxFilter(key) {
+      delete tableHeaderFilters[key];
+      closeTableHeaderFilterPopup();
+      renderDetailedReportHeaders();
+      applyTableFiltersAndRenderBody();
+    }
+
+    function clearAllTableFilters() {
+      tableHeaderFilters = {};
+      closeTableHeaderFilterPopup();
+      renderDetailedReportHeaders();
+      applyTableFiltersAndRenderBody();
+    }
+
+    // 10. RENDER SUMMARY / PIVOT VIEW
     function renderSummaryReport(rows, groupKey, selectedKeys) {
       const cfg = CONFIGS[activeSource];
       const groupCol = cfg.allCols.find(c => c.key === groupKey) || { title: groupKey };
@@ -1220,7 +1548,7 @@
 
       const sortedGroups = Array.from(groupMap.entries()).sort((a, b) => b[1].count - a[1].count);
 
-      generatedReportRows = sortedGroups.map(([gVal, data], idx) => {
+      const summaryRows = sortedGroups.map(([gVal, data], idx) => {
         totalCount += data.count;
         totalInch += data.inchDia;
         totalBend += data.bendQty;
@@ -1233,7 +1561,7 @@
 
       totalInch = Math.round(totalInch * 1000) / 1000;
 
-      tbody.innerHTML = generatedReportRows.map(row => `
+      tbody.innerHTML = summaryRows.map(row => `
         <tr>
           ${row.map((cell, idx) => {
             const align = idx === 1 ? 'text-align:left;' : '';
@@ -1262,11 +1590,17 @@
         <span class="stat-pill">Total Items: ${totalCount}</span>
         ${totalInch > 0 ? `<span class="stat-pill">Total Inch Dia: ${totalInch.toFixed(3)}</span>` : ''}
       `;
+      document.getElementById('btnClearTableFilters').style.display = 'none';
     }
 
-    // 9. EXPORT REPORT TO EXCEL (.XLSX)
+    // 11. EXPORT REPORT TO EXCEL (.XLSX)
     async function exportReportToExcel() {
-      if (generatedReportRows.length === 0) return alert("⚠️ કોઈ રિપોર્ટ ડેટા ઉપલબ્ધ નથી!");
+      const mode = document.querySelector('input[name="reportMode"]:checked').value;
+      const rowsToExport = mode === 'detail' ? currentVisibleRows : currentMasterFilteredRows;
+
+      if (!rowsToExport || rowsToExport.length === 0) {
+        return alert("⚠️ કોઈ રિપોર્ટ ડેટા ઉપલબ્ધ નથી!");
+      }
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Custom_Report', {
@@ -1284,29 +1618,39 @@
       });
 
       // Data Rows
-      generatedReportRows.forEach(r => {
-        const row = worksheet.addRow(r);
-        row.height = 20;
-        row.eachCell((cell, colIdx) => {
-          cell.font = { name: 'Calibri', size: 10.5 };
-          cell.border = {
-            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-            right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-          };
-          if (colIdx === 2) cell.alignment = { vertical: 'middle', horizontal: 'left' };
-          else cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      if (mode === 'detail') {
+        rowsToExport.forEach((r, idx) => {
+          const rowVals = [idx + 1];
+          activeColumnsDef.forEach(c => {
+            let v = r[c.key];
+            if (c.isDate) v = formatDateDisplay(v);
+            else if (c.isInchDia && v !== null && v !== undefined && String(v).trim() !== '') {
+              const numVal = parseFloat(v);
+              v = !isNaN(numVal) ? (Number.isInteger(numVal) ? numVal : numVal.toFixed(3)) : v;
+            } else if (v === null || v === undefined) {
+              v = '';
+            }
+            rowVals.push(v);
+          });
+          const row = worksheet.addRow(rowVals);
+          row.height = 20;
+          row.eachCell((cell, colIdx) => {
+            cell.font = { name: 'Calibri', size: 10.5 };
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            };
+            if (colIdx === 2) cell.alignment = { vertical: 'middle', horizontal: 'left' };
+            else cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          });
         });
-      });
+      }
 
       // Auto-fit Column Widths
       worksheet.columns.forEach((col, idx) => {
         let maxLen = generatedHeaders[idx] ? generatedHeaders[idx].length : 12;
-        generatedReportRows.slice(0, 100).forEach(r => {
-          const v = String(r[idx] || '');
-          if (v.length > maxLen) maxLen = v.length;
-        });
         col.width = Math.min(Math.max(maxLen + 4, 12), 40);
       });
 
