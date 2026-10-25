@@ -763,26 +763,32 @@
   </div>
 </div>
 
-<!-- QA/QC SECONDARY PIN/PASSWORD AUTH MODAL -->
+<!-- 🟢 2. QA/QC SECONDARY SECURITY AUTH MODAL -->
 <div id="qaqcAuthModal">
   <div class="qaqc-modal-card">
     <div class="qaqc-modal-header">
       <div class="qaqc-icon-shield">🛡️</div>
-      <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed;">QA/QC Security Access</h3>
+      <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed; border:none; padding:0; justify-content:center;">QA/QC Security Access</h3>
       <p style="font-size:12.5px; color:#64748b; margin-top:4px;">Enter Authorized QA/QC ID & Password</p>
     </div>
+
     <div id="qaqcAuthError" style="color:#dc2626; font-size:12px; font-weight:bold; margin-bottom:10px; display:none; text-align:center;">
       ⚠️ Invalid QA/QC ID or Password!
     </div>
+
     <div style="margin-bottom:12px;">
       <label>QA/QC ID:</label>
       <input type="text" id="qaqcInputUser" placeholder="Enter QA/QC ID" autocomplete="off">
     </div>
+
     <div style="margin-bottom:12px;">
       <label>QA/QC Password:</label>
       <input type="password" id="qaqcInputPass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeQaqcSecondaryAuth()">
     </div>
-    <button type="button" class="btn-qaqc-verify" onclick="executeQaqcSecondaryAuth()">🔓 Unlock QA/QC Module</button>
+
+    <button type="button" class="btn-qaqc-verify" onclick="executeQaqcSecondaryAuth()">
+      🔓 Unlock QA/QC Module
+    </button>
     <button type="button" class="btn-qaqc-cancel" onclick="closeQaqcAuthModal()">Cancel</button>
   </div>
 </div>
