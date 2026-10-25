@@ -703,6 +703,71 @@
     th { background: #0f172a; color: white; font-weight: 700; }
     tr:nth-child(even) td { background-color: #f8fafc; }
 
+    /* =========================================================
+       🟢 QA/QC SECONDARY PIN/PASSWORD AUTH MODAL STYLING
+    ========================================================= */
+    #qaqcAuthModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 20000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .qaqc-modal-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      border: 1.5px solid #cbd5e1;
+    }
+    .qaqc-modal-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .qaqc-icon-shield {
+      width: 50px;
+      height: 50px;
+      background: #f5f3ff;
+      border: 2px solid #ddd6fe;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .btn-qaqc-verify {
+      width: 100%;
+      padding: 12px;
+      background: #7c3aed;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: all 0.2s;
+    }
+    .btn-qaqc-verify:hover { background: #6d28d9; }
+    .btn-qaqc-cancel {
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      color: #64748b;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
     #spoolTrackerModal {
       position: fixed;
       inset: 0;
@@ -889,6 +954,36 @@
   </div>
 </div>
 
+<!-- 🟢 2. QA/QC SECONDARY SECURITY AUTH MODAL -->
+<div id="qaqcAuthModal">
+  <div class="qaqc-modal-card">
+    <div class="qaqc-modal-header">
+      <div class="qaqc-icon-shield">🛡️</div>
+      <h3 style="margin:0; font-size:18px; font-weight:800; color:#7c3aed; border:none; padding:0; justify-content:center;">QA/QC Security Access</h3>
+      <p style="font-size:12.5px; color:#64748b; margin-top:4px;">Enter Authorized QA/QC ID & Password</p>
+    </div>
+
+    <div id="qaqcAuthError" style="color:#dc2626; font-size:12px; font-weight:bold; margin-bottom:10px; display:none; text-align:center;">
+      ⚠️ Invalid QA/QC ID or Password!
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label>QA/QC ID:</label>
+      <input type="text" id="qaqcInputUser" placeholder="Enter QA/QC ID" autocomplete="off">
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label>QA/QC Password:</label>
+      <input type="password" id="qaqcInputPass" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeQaqcSecondaryAuth()">
+    </div>
+
+    <button type="button" class="btn-qaqc-verify" onclick="executeQaqcSecondaryAuth()">
+      🔓 Unlock QA/QC Module
+    </button>
+    <button type="button" class="btn-qaqc-cancel" onclick="closeQaqcAuthModal()">Cancel</button>
+  </div>
+</div>
+
 <!-- Integrated Spool Tracker Modal -->
 <div id="spoolTrackerModal">
   <div class="tracker-modal-card">
@@ -930,19 +1025,20 @@
         <span>📊</span> <span>Dashboard Overview</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('mechHub')">
-        <span></span> <span>Mechanical</span>
+        <span>⚙️</span> <span>Mechanical</span>
       </a>
-      <a class="nav-item" id="navQaqcLink" style="display:none;" onclick="openCategoryHub('qaqcHub')">
-        <span></span> <span>QA/QC Module</span>
+      <!-- 🟢 QA/QC Link Trigger with Secondary Authentication -->
+      <a class="nav-item" id="navQaqcLink" style="display:none;" onclick="triggerQaqcModuleAccess()">
+        <span>🛡️</span> <span>QA/QC Module</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('matHub')">
-        <span></span> <span>Material</span>
+        <span>📦</span> <span>Material</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('reportHub')">
-        <span></span> <span>Report</span>
+        <span>📈</span> <span>Report</span>
       </a>
       <a class="nav-item" onclick="openCategoryHub('dataHub')">
-        <span></span> <span>Data</span>
+        <span>💾</span> <span>Data</span>
       </a>
     </div>
 
@@ -1181,8 +1277,8 @@
         <button class="sub-btn" onclick="window.location.href='daily_report.html'"><span>📅</span><span>Daily Progress Report</span></button>
         <button class="sub-btn" onclick="window.location.href='progress_dashboard.html'"><span>📈</span><span>Progress Dashboard</span></button>
         <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center; background:#f0fdf4; border:1.5px solid #22c55e; color:#15803d; font-weight:bold;" onclick="window.location.href='custom_report.html'">
-  <span>⚡</span><span>Universal Custom Report Builder</span>
-</button>
+          <span>⚡</span><span>Universal Custom Report Builder</span>
+        </button>
         <button class="sub-btn" style="grid-column: 1 / -1; justify-content:center;" onclick="window.location.href='priority_dashboard.html'"><span>🔥</span><span>Priority Spools Dashboard</span></button>
       </div>
     </div>
@@ -1283,6 +1379,12 @@
     "viewer": { pass: "view@123", name: "Viewer", allowed: [] }
   };
 
+  // 🛡️ QA/QC MODULE SEPARATE SECURITY CREDENTIALS
+  const QAQC_SECURITY = {
+    user: "qaqc",
+    pass: "qaqc@2026"
+  };
+
   let currentUser = null;
   const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
@@ -1364,7 +1466,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const openTab = urlParams.get('tab');
       if (openTab === 'qaqc') {
-        openCategoryHub('qaqcHub');
+        triggerQaqcModuleAccess();
       } else if (openTab === 'material' || openTab === 'matHub') {
         openCategoryHub('matHub');
       } else if (openTab) {
@@ -1474,6 +1576,7 @@
   function userLogout() {
     if (confirm("Do you wish to log out?")) {
       sessionStorage.removeItem('piping_app_auth');
+      sessionStorage.removeItem('qaqc_auth_passed');
       currentUser = null;
       checkSessionAuth();
     }
@@ -1502,6 +1605,46 @@
     if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
     if (btnLineList) btnLineList.style.display = isAdmin ? 'flex' : 'none';
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
+  }
+
+  /* 🟢 QA/QC SECONDARY AUTH MODAL LOGIC */
+  function triggerQaqcModuleAccess() {
+    if (!currentUser || currentUser.username !== 'admin') {
+      alert("⚠️ માત્ર Admin પાસે જ QA/QC મોડ્યુલની પરમિશન છે!");
+      return;
+    }
+
+    if (sessionStorage.getItem('qaqc_auth_passed') === 'true') {
+      openCategoryHub('qaqcHub');
+      return;
+    }
+
+    document.getElementById('qaqcAuthError').style.display = 'none';
+    document.getElementById('qaqcInputUser').value = '';
+    document.getElementById('qaqcInputPass').value = '';
+    document.getElementById('qaqcAuthModal').style.display = 'flex';
+    document.getElementById('qaqcInputUser').focus();
+  }
+
+  function closeQaqcAuthModal() {
+    document.getElementById('qaqcAuthModal').style.display = 'none';
+    if (window.location.search.includes('tab=qaqc')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+
+  function executeQaqcSecondaryAuth() {
+    const enteredUser = document.getElementById('qaqcInputUser').value.trim();
+    const enteredPass = document.getElementById('qaqcInputPass').value.trim();
+    const err = document.getElementById('qaqcAuthError');
+
+    if (enteredUser === QAQC_SECURITY.user && enteredPass === QAQC_SECURITY.pass) {
+      sessionStorage.setItem('qaqc_auth_passed', 'true');
+      document.getElementById('qaqcAuthModal').style.display = 'none';
+      openCategoryHub('qaqcHub');
+    } else {
+      err.style.display = 'block';
+    }
   }
 
   async function downloadAllTablesExcelBackup() {
@@ -1853,6 +1996,10 @@
     if (hubId === 'qaqcHub') {
       if (!currentUser || currentUser.username !== 'admin') {
         alert("⚠️ માત્ર Admin પાસે જ QA/QC Module જોવાની અથવા વાપરવાની પરમિશન છે!");
+        return;
+      }
+      if (sessionStorage.getItem('qaqc_auth_passed') !== 'true') {
+        triggerQaqcModuleAccess();
         return;
       }
     }
