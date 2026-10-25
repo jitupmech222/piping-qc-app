@@ -10,7 +10,7 @@
     :root {
       --navy: #0b1329;
       --card-bg: #ffffff;
-      --border: #e2e8f0;
+      --border: #cbd5e1;
       --text-main: #0f172a;
       --text-muted: #64748b;
       --primary: #0284c7;
@@ -138,24 +138,25 @@
     .filter-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
+      gap: 16px;
       margin-bottom: 14px;
+      align-items: flex-end;
     }
 
     label {
       font-size: 12px;
       font-weight: 700;
       color: #334155;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       display: block;
     }
 
     input, select {
       width: 100%;
-      padding: 8px 12px;
+      padding: 9px 12px;
       border: 1.5px solid #cbd5e1;
       border-radius: 7px;
-      font-size: 12.5px;
+      font-size: 13px;
       outline: none;
       background: #ffffff;
       transition: all 0.2s;
@@ -165,16 +166,111 @@
       box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
     }
 
+    /* ROUND BAR RADIO PILLS */
+    .radio-pill-group {
+      display: flex;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 8px;
+      border: 1.5px solid #cbd5e1;
+    }
+    .radio-pill-label {
+      flex: 1;
+      text-align: center;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin: 0;
+      transition: all 0.15s;
+    }
+    .radio-pill-label input[type="radio"] { display: none; }
+    .radio-pill-label.active-pill {
+      background: var(--navy);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(11, 19, 41, 0.2);
+    }
+    .radio-pill-label.active-completed {
+      background: #15803d;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(21, 128, 61, 0.2);
+    }
+    .radio-pill-label.active-not-completed {
+      background: #dc2626;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
+    }
+
+    /* MULTI-SELECT DROPDOWN STYLING */
+    .multi-select-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .multi-select-trigger {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 7px;
+      font-size: 13px;
+      background: #ffffff;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .multi-select-trigger:focus, .multi-select-trigger.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+    .multi-dropdown-menu {
+      position: absolute;
+      top: 105%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 50;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      padding: 8px;
+      display: none;
+    }
+    .multi-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      font-size: 12.5px;
+      cursor: pointer;
+      border-radius: 4px;
+      user-select: none;
+    }
+    .multi-dropdown-item:hover { background: #f0fdf4; }
+    .multi-dropdown-item input[type="checkbox"] { width: 14px; height: 14px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+
     /* COLUMN CHECKBOX GRID */
     .columns-chip-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
       gap: 8px;
-      max-height: 180px;
+      max-height: 260px;
       overflow-y: auto;
       border: 1.5px solid #cbd5e1;
       border-radius: 8px;
-      padding: 10px;
+      padding: 12px;
       background: #f8fafc;
       margin-bottom: 14px;
     }
@@ -182,14 +278,15 @@
     .col-chip {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 8px;
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 6px;
-      padding: 5px 8px;
+      padding: 6px 10px;
       font-size: 12px;
       cursor: pointer;
       user-select: none;
+      font-weight: 500;
     }
     .col-chip:hover { background: #f0fdf4; border-color: #86efac; }
     .col-chip input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; accent-color: var(--primary); }
@@ -353,8 +450,8 @@
       <!-- DYNAMIC FILTERS CONTAINER -->
       <div class="filter-grid" id="dynamicFiltersContainer"></div>
 
-      <!-- STEP 2: COLUMN SELECTOR -->
-      <div class="section-title" style="margin-top:14px;">
+      <!-- STEP 2: COLUMN SELECTOR (ALL 46 COLUMNS FOR QA/QC) -->
+      <div class="section-title" style="margin-top:16px;">
         <span>📋 Step 2: Select Columns to Include</span>
         <div style="display:flex; gap:10px;">
           <button type="button" style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:bold; cursor:pointer;" onclick="toggleAllColumns(true)">Select All</button>
@@ -416,7 +513,60 @@
     let cachedSourceData = [];
     let generatedReportRows = [];
     let generatedHeaders = [];
-    let grandSummaryMetrics = {};
+
+    // Multi-select state sets
+    let selectedSizes = new Set();
+    let selectedJointTypes = new Set();
+
+    // 🟢 ALL 46 EXACT QA/QC COLUMNS (Matching view_record.html)
+    const QAQC_ALL_46_COLUMNS = [
+      { key: "cwp", title: "CWP" },
+      { key: "system_ug_ag", title: "System(UG-AG)" },
+      { key: "unit_wbs", title: "Unit-WBS" },
+      { key: "unit", title: "UNIT" },
+      { key: "service", title: "Service" },
+      { key: "drawing_no", title: "ISO No/Drawing No/Line No", width: 240, align: "left" },
+      { key: "spool_no", title: "Spool Unique No.", width: 140 },
+      { key: "joint_no", title: "Joint No." },
+      { key: "spool_size", title: "Spool Size" },
+      { key: "joint_type", title: "Type of Joint" },
+      { key: "weld_npd", title: "WELD NPD", isNum: true },
+      { key: "rev_no", title: "Rev No." },
+      { key: "allocation", title: "Allocation" },
+      { key: "moc", title: "MOC" },
+      { key: "ibr_non_ibr", title: "IBR-NON IBR" },
+      { key: "thk", title: "Thk." },
+      { key: "paint_system", title: "Paint System" },
+      { key: "pipe_class", title: "Pipe Class" },
+      { key: "induction_bend_report_no", title: "Induction bend Report No" },
+      { key: "induction_bend_dpt_lot_no", title: "Induction bend DPT Lot no" },
+      { key: "induction_bend_dpt_report_no", title: "Induction bend DPT Report No" },
+      { key: "induction_bend_dpt_date", title: "Induction bend DPT Date", isDate: true },
+      { key: "fitup_date", title: "FIT UP Date", isDate: true },
+      { key: "welder_no", title: "Welder No" },
+      { key: "wps_no", title: "WPS" },
+      { key: "weld_inch_dia", title: "Weld INCH DIA.", isNum: true, isInchDia: true },
+      { key: "weld_visual_report_no", title: "WELD VISUAL REPORT NO" },
+      { key: "visual_date", title: "VISUAL Date", isDate: true },
+      { key: "dpt_percentage", title: "DPT %" },
+      { key: "dpt_report_no", title: "DPT REPORT NO" },
+      { key: "dpt_date", title: "DPT DATE", isDate: true },
+      { key: "dpt_lot_no", title: "DPT LOT NO" },
+      { key: "rt_percentage", title: "RT %" },
+      { key: "rt_report_no", title: "RT REPORT NO" },
+      { key: "rt_date", title: "RT DATE", isDate: true },
+      { key: "xr_no", title: "XR NO" },
+      { key: "accepted_rejected", title: "Accepted/Rejected" },
+      { key: "rt_lot_no", title: "RT LOT NO" },
+      { key: "rf_pad_test_report_no", title: "RF PAD TEST Report No" },
+      { key: "rf_pad_test_date", title: "RF PAD TEST Date", isDate: true },
+      { key: "pwht_report_no", title: "PWHT REPORT NO" },
+      { key: "pwht_date", title: "PWHT DATE", isDate: true },
+      { key: "ndt_clearance", title: "NDT CLEARANCE", isDate: true },
+      { key: "fd_date", title: "FD Date", isDate: true },
+      { key: "shift_dc_no", title: "Shift to Laydown / DC No" },
+      { key: "remarks", title: "Remarks" }
+    ];
 
     // 🟢 MODULE CONFIGURATIONS
     const CONFIGS = {
@@ -424,44 +574,13 @@
         table: 'lhs_entries',
         title: 'QA/QC (lhs_entries)',
         defaultCols: ['drawing_no', 'spool_no', 'joint_no', 'joint_type', 'weld_npd', 'welder_no', 'wps_no', 'weld_inch_dia', 'weld_visual_report_no', 'visual_date', 'ndt_clearance', 'fd_date'],
-        allCols: [
-          { key: 'drawing_no', title: 'Drawing No / Line No', align: 'left' },
-          { key: 'spool_no', title: 'Spool Unique No' },
-          { key: 'joint_no', title: 'Joint No' },
-          { key: 'joint_type', title: 'Type of Joint' },
-          { key: 'weld_npd', title: 'Weld NPD', isNum: true },
-          { key: 'pipe_class', title: 'Pipe Class' },
-          { key: 'thk', title: 'Thk' },
-          { key: 'welder_no', title: 'Welder No' },
-          { key: 'wps_no', title: 'WPS No' },
-          { key: 'weld_inch_dia', title: 'Inch Dia', isNum: true, isInchDia: true },
-          { key: 'weld_visual_report_no', title: 'Visual Report No' },
-          { key: 'fitup_date', title: 'Fit-Up Date', isDate: true },
-          { key: 'visual_date', title: 'Visual Date', isDate: true },
-          { key: 'rt_percentage', title: 'RT %' },
-          { key: 'rt_report_no', title: 'RT Report No' },
-          { key: 'rt_date', title: 'RT Date', isDate: true },
-          { key: 'dpt_percentage', title: 'DPT %' },
-          { key: 'dpt_report_no', title: 'DPT Report No' },
-          { key: 'dpt_date', title: 'DPT Date', isDate: true },
-          { key: 'ndt_clearance', title: 'NDT Clearance', isDate: true },
-          { key: 'fd_date', title: 'FD Date', isDate: true },
-          { key: 'shift_dc_no', title: 'DC No' },
-          { key: 'remarks', title: 'Remarks' }
-        ],
+        allCols: QAQC_ALL_46_COLUMNS,
         groupByOptions: [
           { key: 'drawing_no', label: 'Drawing No / Line No' },
           { key: 'welder_no', label: 'Welder No' },
           { key: 'joint_type', label: 'Joint Type' },
           { key: 'pipe_class', label: 'Pipe Class' },
-          { key: 'spool_no', label: 'Spool No' }
-        ],
-        dateFields: [
-          { key: 'visual_date', label: 'Visual Date' },
-          { key: 'fitup_date', label: 'Fit-Up Date' },
-          { key: 'ndt_clearance', label: 'NDT Clearance Date' },
-          { key: 'fd_date', label: 'FD Date' },
-          { key: 'rt_date', label: 'RT Date' }
+          { key: 'weld_npd', label: 'Weld Size (NPD)' }
         ]
       },
 
@@ -491,14 +610,6 @@
           { key: 'Spool_size', label: 'Spool Size' },
           { key: 'UNIT', label: 'Unit' },
           { key: 'Shift_dc_no', label: 'DC Number' }
-        ],
-        dateFields: [
-          { key: 'Weld_visual_date', label: 'Weld Visual Date' },
-          { key: 'Issued_for_bending', label: 'Bending Issue Date' },
-          { key: 'Bend_date', label: 'Bend Date' },
-          { key: 'Fit_up_date', label: 'Fit-Up Date' },
-          { key: 'Ndt_clearance', label: 'NDT Date' },
-          { key: 'Fd_date', label: 'FD Date' }
         ]
       },
 
@@ -523,12 +634,7 @@
           { key: 'MAT_SAP_CODE', label: 'Material SAP Code' },
           { key: 'Drawing_no', label: 'Drawing No' },
           { key: 'lot_no', label: 'Lot No' },
-          { key: 'MIN_No', label: 'MIN No' },
-          { key: 'IGP_No', label: 'IGP No' }
-        ],
-        dateFields: [
-          { key: 'IGP_Date', label: 'IGP Date' },
-          { key: 'MIN_Date', label: 'MIN Date' }
+          { key: 'MIN_No', label: 'MIN No' }
         ]
       }
     };
@@ -575,6 +681,10 @@
       document.getElementById('outputCard').style.display = 'none';
       document.getElementById('btnExport').disabled = true;
 
+      // Reset Multi-select sets
+      selectedSizes.clear();
+      selectedJointTypes.clear();
+
       // Update Tab Styles
       document.getElementById('tabQaqc').className = `tab-btn ${sourceKey === 'qaqc' ? 'active-qaqc' : ''}`;
       document.getElementById('tabMech').className = `tab-btn ${sourceKey === 'mech' ? 'active-mech' : ''}`;
@@ -587,61 +697,107 @@
       buildGroupByOptionsUI();
     }
 
-    // 2. BUILD FILTERS UI
+    // 2. BUILD FILTERS UI (ACCORDING TO EXACT 5-POINT CRITERIA)
     function buildDynamicFiltersUI() {
-      const cfg = CONFIGS[activeSource];
       const container = document.getElementById('dynamicFiltersContainer');
 
-      let html = `
-        <div>
-          <label>Filter by Date Type:</label>
-          <select id="filterDateField">
-            ${cfg.dateFields.map(df => `<option value="${df.key}">${df.label}</option>`).join('')}
-          </select>
-        </div>
-        <div>
-          <label>Start Date:</label>
-          <input type="date" id="filterStartDate">
-        </div>
-        <div>
-          <label>End Date:</label>
-          <input type="date" id="filterEndDate">
-        </div>
-        <div>
-          <label>Drawing No / Line No (Search):</label>
-          <input type="text" id="filterDrawingNo" placeholder="e.g. 401GA-401..." autocomplete="off">
-        </div>
-      `;
-
       if (activeSource === 'qaqc') {
-        html += `
+        container.innerHTML = `
+          <!-- FILTER 1: FILTER BY STAGE -->
+          <div>
+            <label>Filter by stage:</label>
+            <select id="filterStage" onchange="handleStageFilterChange(this.value)">
+              <option value="ALL">ALL</option>
+              <option value="FIT-UP">FIT-UP</option>
+              <option value="VISUAL">VISUAL</option>
+              <option value="NDT">NDT</option>
+              <option value="FD">FD</option>
+            </select>
+          </div>
+
+          <!-- FILTER 2: ROUND BAR (COMPLETED / NOT COMPLETED) -->
+          <div>
+            <label>Stage Status:</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill-label active-pill" id="lblStatusAll">
+                <input type="radio" name="stageStatusRadio" value="ALL" checked onchange="updateStageStatusPill(this.value)"> ALL
+              </label>
+              <label class="radio-pill-label" id="lblStatusComp">
+                <input type="radio" name="stageStatusRadio" value="COMPLETED" onchange="updateStageStatusPill(this.value)"> COMPLETED
+              </label>
+              <label class="radio-pill-label" id="lblStatusNotComp">
+                <input type="radio" name="stageStatusRadio" value="NOT_COMPLETED" onchange="updateStageStatusPill(this.value)"> NOT COMPLETED
+              </label>
+            </div>
+          </div>
+
+          <!-- FILTER 3: START DATE & END DATE -->
+          <div>
+            <label>Start Date:</label>
+            <input type="date" id="filterStartDate">
+          </div>
+          <div>
+            <label>End Date:</label>
+            <input type="date" id="filterEndDate">
+          </div>
+
+          <!-- FILTER 4: SIZE (MULTIPLE SIZE SELECT) -->
+          <div>
+            <label>Size (Weld NPD):</label>
+            <div class="multi-select-wrap">
+              <button type="button" class="multi-select-trigger" id="btnTriggerSize" onclick="toggleMultiDropdown('dropdownSizeMenu')">
+                <span id="labelSizeDisplay">ALL Sizes Selected</span> ▾
+              </button>
+              <div id="dropdownSizeMenu" class="multi-dropdown-menu">
+                <label class="multi-dropdown-item" style="font-weight:bold; border-bottom:1px solid #f1f5f9;">
+                  <input type="checkbox" id="chkAllSizes" onchange="toggleSelectAllSizes(this.checked)" checked> (Select All Sizes)
+                </label>
+                ${["0.5", "0.75", "1", "1.5", "2", "3", "4", "6", "8", "10", "12", "14", "16", "18", "20", "24"].map(s => `
+                  <label class="multi-dropdown-item">
+                    <input type="checkbox" class="chk-size-item" value="${s}" checked onchange="handleSizeCheckboxChange()">
+                    <span>${s}"</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- FILTER 5: JOINT TYPE (MULTIPLE JOINT TYPE SELECT) -->
           <div>
             <label>Joint Type:</label>
-            <select id="filterJointType">
-              <option value="">-- All Types --</option>
-              <option value="BW">BW</option>
-              <option value="LET">LET</option>
-              <option value="SOF">SOF</option>
-              <option value="SOB">SOB</option>
-              <option value="SW">SW</option>
-              <option value="EB">EB</option>
-            </select>
-          </div>
-          <div>
-            <label>Welder No:</label>
-            <input type="text" id="filterWelderNo" placeholder="e.g. 711, 853">
-          </div>
-          <div>
-            <label>NDT Status:</label>
-            <select id="filterNdtStatus">
-              <option value="">-- All --</option>
-              <option value="cleared">NDT Cleared Only</option>
-              <option value="pending">NDT Pending Only</option>
-            </select>
+            <div class="multi-select-wrap">
+              <button type="button" class="multi-select-trigger" id="btnTriggerJoint" onclick="toggleMultiDropdown('dropdownJointMenu')">
+                <span id="labelJointDisplay">ALL Joint Types Selected</span> ▾
+              </button>
+              <div id="dropdownJointMenu" class="multi-dropdown-menu">
+                <label class="multi-dropdown-item" style="font-weight:bold; border-bottom:1px solid #f1f5f9;">
+                  <input type="checkbox" id="chkAllJoints" onchange="toggleSelectAllJoints(this.checked)" checked> (Select All Types)
+                </label>
+                ${["BW", "SW", "LET", "SOF", "SOB", "EB"].map(t => `
+                  <label class="multi-dropdown-item">
+                    <input type="checkbox" class="chk-joint-item" value="${t}" checked onchange="handleJointCheckboxChange()">
+                    <span>${t}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
           </div>
         `;
+
+        // Initialize state
+        handleSizeCheckboxChange();
+        handleJointCheckboxChange();
+
       } else if (activeSource === 'mech') {
-        html += `
+        container.innerHTML = `
+          <div>
+            <label>Start Date:</label>
+            <input type="date" id="filterStartDate">
+          </div>
+          <div>
+            <label>End Date:</label>
+            <input type="date" id="filterEndDate">
+          </div>
           <div>
             <label>Dispatch Status:</label>
             <select id="filterDispStatus">
@@ -656,7 +812,15 @@
           </div>
         `;
       } else if (activeSource === 'mat') {
-        html += `
+        container.innerHTML = `
+          <div>
+            <label>Start Date:</label>
+            <input type="date" id="filterStartDate">
+          </div>
+          <div>
+            <label>End Date:</label>
+            <input type="date" id="filterEndDate">
+          </div>
           <div>
             <label>MIN No (Filter):</label>
             <input type="text" id="filterMinNo" placeholder="e.g. 11035">
@@ -665,21 +829,108 @@
             <label>Material SAP Code:</label>
             <input type="text" id="filterSapCode" placeholder="e.g. 3000...">
           </div>
-          <div>
-            <label>Balance Status:</label>
-            <select id="filterMatBalance">
-              <option value="">-- All --</option>
-              <option value="pending">Pending Balance Only (Issued < MIN)</option>
-              <option value="issued">Fully Issued</option>
-            </select>
-          </div>
         `;
       }
-
-      container.innerHTML = html;
     }
 
-    // 3. BUILD COLUMNS CHECKBOX SELECTOR
+    // ROUND BAR PILL CHANGE HANDLER
+    function updateStageStatusPill(val) {
+      const lblAll = document.getElementById('lblStatusAll');
+      const lblComp = document.getElementById('lblStatusComp');
+      const lblNotComp = document.getElementById('lblStatusNotComp');
+
+      lblAll.className = 'radio-pill-label';
+      lblComp.className = 'radio-pill-label';
+      lblNotComp.className = 'radio-pill-label';
+
+      if (val === 'COMPLETED') lblComp.classList.add('active-completed');
+      else if (val === 'NOT_COMPLETED') lblNotComp.classList.add('active-not-completed');
+      else lblAll.classList.add('active-pill');
+    }
+
+    function handleStageFilterChange(stageVal) {
+      // Stage change logic if needed
+    }
+
+    // MULTI-SELECT DROPDOWNS TOGGLE & LOGIC
+    function toggleMultiDropdown(menuId) {
+      const menu = document.getElementById(menuId);
+      const isVisible = menu.style.display === 'block';
+      closeAllMultiDropdowns();
+      if (!isVisible) {
+        menu.style.display = 'block';
+      }
+    }
+
+    function closeAllMultiDropdowns() {
+      document.querySelectorAll('.multi-dropdown-menu').forEach(m => m.style.display = 'none');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.multi-select-wrap')) {
+        closeAllMultiDropdowns();
+      }
+    });
+
+    // SIZES MULTI-SELECT LOGIC
+    function toggleSelectAllSizes(checked) {
+      document.querySelectorAll('.chk-size-item').forEach(cb => cb.checked = checked);
+      handleSizeCheckboxChange();
+    }
+
+    function handleSizeCheckboxChange() {
+      const allCb = document.querySelectorAll('.chk-size-item');
+      const checkedBoxes = Array.from(allCb).filter(cb => cb.checked);
+      selectedSizes = new Set(checkedBoxes.map(cb => cb.value));
+
+      const chkAll = document.getElementById('chkAllSizes');
+      if (chkAll) {
+        chkAll.checked = checkedBoxes.length === allCb.length;
+        chkAll.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < allCb.length;
+      }
+
+      const label = document.getElementById('labelSizeDisplay');
+      if (label) {
+        if (checkedBoxes.length === allCb.length) {
+          label.innerText = 'ALL Sizes Selected';
+        } else if (checkedBoxes.length === 0) {
+          label.innerText = 'None Selected (0)';
+        } else {
+          label.innerText = `Selected (${checkedBoxes.length}): ${Array.from(selectedSizes).join(', ')}`;
+        }
+      }
+    }
+
+    // JOINT TYPES MULTI-SELECT LOGIC
+    function toggleSelectAllJoints(checked) {
+      document.querySelectorAll('.chk-joint-item').forEach(cb => cb.checked = checked);
+      handleJointCheckboxChange();
+    }
+
+    function handleJointCheckboxChange() {
+      const allCb = document.querySelectorAll('.chk-joint-item');
+      const checkedBoxes = Array.from(allCb).filter(cb => cb.checked);
+      selectedJointTypes = new Set(checkedBoxes.map(cb => cb.value));
+
+      const chkAll = document.getElementById('chkAllJoints');
+      if (chkAll) {
+        chkAll.checked = checkedBoxes.length === allCb.length;
+        chkAll.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < allCb.length;
+      }
+
+      const label = document.getElementById('labelJointDisplay');
+      if (label) {
+        if (checkedBoxes.length === allCb.length) {
+          label.innerText = 'ALL Joint Types Selected';
+        } else if (checkedBoxes.length === 0) {
+          label.innerText = 'None Selected (0)';
+        } else {
+          label.innerText = `Selected (${checkedBoxes.length}): ${Array.from(selectedJointTypes).join(', ')}`;
+        }
+      }
+    }
+
+    // 3. BUILD COLUMNS CHECKBOX SELECTOR (ALL 46 EXACT COLUMNS)
     function buildColumnsSelectorUI() {
       const cfg = CONFIGS[activeSource];
       const container = document.getElementById('columnsContainer');
@@ -741,8 +992,9 @@
       return rows;
     }
 
-    // 6. GENERATE REPORT LOGIC
+    // 6. GENERATE REPORT LOGIC (PRECISE FILTERING)
     async function executeGenerateReport() {
+      closeAllMultiDropdowns();
       const btn = document.getElementById('btnGen');
       btn.innerText = "⏳ Fetching & Analyzing...";
       btn.disabled = true;
@@ -753,68 +1005,79 @@
         }
 
         const cfg = CONFIGS[activeSource];
-        const dateField = document.getElementById('filterDateField').value;
         const startDate = document.getElementById('filterStartDate').value;
         const endDate = document.getElementById('filterEndDate').value;
-        const dwgSearch = (document.getElementById('filterDrawingNo').value || '').trim().toLowerCase();
 
-        // Specific filters
-        const qJoint = document.getElementById('filterJointType') ? document.getElementById('filterJointType').value : '';
-        const qWelder = document.getElementById('filterWelderNo') ? document.getElementById('filterWelderNo').value.trim() : '';
-        const qNdt = document.getElementById('filterNdtStatus') ? document.getElementById('filterNdtStatus').value : '';
-
-        const qDisp = document.getElementById('filterDispStatus') ? document.getElementById('filterDispStatus').value : '';
-        const qSize = document.getElementById('filterSpoolSize') ? document.getElementById('filterSpoolSize').value.trim().toLowerCase() : '';
-
-        const qMin = document.getElementById('filterMinNo') ? document.getElementById('filterMinNo').value.trim().toLowerCase() : '';
-        const qSap = document.getElementById('filterSapCode') ? document.getElementById('filterSapCode').value.trim().toLowerCase() : '';
-        const qMatBal = document.getElementById('filterMatBalance') ? document.getElementById('filterMatBalance').value : '';
-
-        // Filter Rows
         let filtered = cachedSourceData.filter(r => {
-          // Date Filter
-          if (startDate || endDate) {
-            let rowDate = r[dateField];
-            if (!rowDate) return false;
-            rowDate = String(rowDate).includes('T') ? rowDate.split('T')[0] : rowDate;
-            if (startDate && rowDate < startDate) return false;
-            if (endDate && rowDate > endDate) return false;
-          }
-
-          // Drawing No Search
-          if (dwgSearch) {
-            const dwgVal = String(r.drawing_no || r.Drawing_no || '').toLowerCase();
-            if (!dwgVal.includes(dwgSearch)) return false;
-          }
-
-          // QA/QC Filters
           if (activeSource === 'qaqc') {
-            if (qJoint && String(r.joint_type || '').toUpperCase() !== qJoint.toUpperCase()) return false;
-            if (qWelder && !String(r.welder_no || '').includes(qWelder)) return false;
-            if (qNdt === 'cleared' && !r.ndt_clearance) return false;
-            if (qNdt === 'pending' && r.ndt_clearance) return false;
+            const stage = document.getElementById('filterStage').value; // ALL, FIT-UP, VISUAL, NDT, FD
+            const statusRadio = document.querySelector('input[name="stageStatusRadio"]:checked').value; // ALL, COMPLETED, NOT_COMPLETED
+
+            // Map Stage to Database Date Field
+            let stageField = null;
+            if (stage === 'FIT-UP') stageField = 'fitup_date';
+            else if (stage === 'VISUAL') stageField = 'visual_date';
+            else if (stage === 'NDT') stageField = 'ndt_clearance';
+            else if (stage === 'FD') stageField = 'fd_date';
+
+            // Filter 2: Completed / Not Completed
+            if (statusRadio !== 'ALL') {
+              if (stageField) {
+                const val = r[stageField];
+                const isCompleted = (val !== null && val !== undefined && String(val).trim() !== '' && String(val).toLowerCase() !== 'null');
+                if (statusRadio === 'COMPLETED' && !isCompleted) return false;
+                if (statusRadio === 'NOT_COMPLETED' && isCompleted) return false;
+              } else {
+                // If Stage is ALL:
+                // Completed = Finished NDT / FD; Not Completed = FD or NDT is pending
+                const isCompleted = Boolean(r.fd_date || r.ndt_clearance);
+                if (statusRadio === 'COMPLETED' && !isCompleted) return false;
+                if (statusRadio === 'NOT_COMPLETED' && isCompleted) return false;
+              }
+            }
+
+            // Filter 3: Date Filtering
+            if (startDate || endDate) {
+              const testField = stageField || 'visual_date';
+              let rowDate = r[testField];
+              if (!rowDate) return false;
+              rowDate = String(rowDate).includes('T') ? rowDate.split('T')[0] : rowDate;
+              if (startDate && rowDate < startDate) return false;
+              if (endDate && rowDate > endDate) return false;
+            }
+
+            // Filter 4: Multiple Size (Weld NPD)
+            if (selectedSizes.size > 0) {
+              const rowSize = String(r.weld_npd || '').trim();
+              if (!selectedSizes.has(rowSize)) return false;
+            }
+
+            // Filter 5: Multiple Joint Type
+            if (selectedJointTypes.size > 0) {
+              const rowType = String(r.joint_type || '').trim().toUpperCase();
+              if (!selectedJointTypes.has(rowType)) return false;
+            }
           }
 
-          // Mech Filters
-          if (activeSource === 'mech') {
+          // Mech & Mat Filters
+          else if (activeSource === 'mech') {
+            const qDisp = document.getElementById('filterDispStatus').value;
+            const qSize = (document.getElementById('filterSpoolSize').value || '').trim().toLowerCase();
             if (qDisp === 'dispatched' && !r.Fd_date) return false;
             if (qDisp === 'shop' && r.Fd_date) return false;
             if (qSize && !String(r.Spool_size || '').toLowerCase().includes(qSize)) return false;
-          }
-
-          // Mat Filters
-          if (activeSource === 'mat') {
+            if (startDate || endDate) {
+              let d = r.Weld_visual_date || r.Bend_date;
+              if (!d) return false;
+              d = String(d).includes('T') ? d.split('T')[0] : d;
+              if (startDate && d < startDate) return false;
+              if (endDate && d > endDate) return false;
+            }
+          } else if (activeSource === 'mat') {
+            const qMin = (document.getElementById('filterMinNo').value || '').trim().toLowerCase();
+            const qSap = (document.getElementById('filterSapCode').value || '').trim().toLowerCase();
             if (qMin && !String(r.MIN_No || '').toLowerCase().includes(qMin)) return false;
             if (qSap && !String(r.MAT_SAP_CODE || '').toLowerCase().includes(qSap)) return false;
-            if (qMatBal === 'pending') {
-              const mq = parseNum(r.MIN_qty);
-              const iq = parseNum(r.Issued_qty);
-              if (iq >= mq) return false;
-            } else if (qMatBal === 'issued') {
-              const mq = parseNum(r.MIN_qty);
-              const iq = parseNum(r.Issued_qty);
-              if (iq < mq || mq === 0) return false;
-            }
           }
 
           return true;
@@ -827,9 +1090,6 @@
         }
 
         const mode = document.querySelector('input[name="reportMode"]:checked').value;
-        const thead = document.getElementById('reportTableHead');
-        const tbody = document.getElementById('reportTableBody');
-
         if (mode === 'detail') {
           renderDetailedReport(filtered, selectedColsKeys);
         } else {
@@ -917,7 +1177,6 @@
       let statPills = `<span class="stat-pill">Total Records: ${rows.length}</span>`;
       if (sumInchDia > 0) statPills += `<span class="stat-pill">Total Inch Dia: ${sumInchDia.toFixed(3)}</span>`;
       if (sumBendQty > 0) statPills += `<span class="stat-pill">Total Bend Qty: ${sumBendQty}</span>`;
-      if (sumMinQty > 0) statPills += `<span class="stat-pill">Total MIN Qty: ${sumMinQty.toFixed(2)}</span>`;
       document.getElementById('statsBarContainer').innerHTML = statPills;
     }
 
@@ -934,7 +1193,7 @@
         else gVal = String(gVal).trim();
 
         if (!groupMap.has(gVal)) {
-          groupMap.set(gVal, { count: 0, inchDia: 0, bendQty: 0, minQty: 0, issuedQty: 0, extra: new Set() });
+          groupMap.set(gVal, { count: 0, inchDia: 0, bendQty: 0, minQty: 0, issuedQty: 0 });
         }
         const item = groupMap.get(gVal);
         item.count++;
@@ -951,7 +1210,6 @@
       let colsHeaders = ['Sr.', groupCol.title, 'Total Count'];
       if (activeSource === 'qaqc') colsHeaders.push('Total Inch Dia');
       if (activeSource === 'mech') colsHeaders.push('Total Bend Qty');
-      if (activeSource === 'mat') colsHeaders.push('Total MIN Qty', 'Total Issued Qty', 'Balance Qty');
 
       generatedHeaders = colsHeaders;
       thead.innerHTML = `<tr>${colsHeaders.map(h => `<th>${h}</th>`).join('')}</tr>`;
@@ -959,8 +1217,6 @@
       let totalCount = 0;
       let totalInch = 0;
       let totalBend = 0;
-      let totalMin = 0;
-      let totalIssued = 0;
 
       const sortedGroups = Array.from(groupMap.entries()).sort((a, b) => b[1].count - a[1].count);
 
@@ -968,16 +1224,10 @@
         totalCount += data.count;
         totalInch += data.inchDia;
         totalBend += data.bendQty;
-        totalMin += data.minQty;
-        totalIssued += data.issuedQty;
 
         const row = [idx + 1, gVal, data.count];
         if (activeSource === 'qaqc') row.push(Math.round(data.inchDia * 1000) / 1000);
         if (activeSource === 'mech') row.push(data.bendQty);
-        if (activeSource === 'mat') {
-          const bal = Math.round((data.minQty - data.issuedQty) * 100) / 100;
-          row.push(data.minQty.toFixed(2), data.issuedQty.toFixed(2), bal.toFixed(2));
-        }
         return row;
       });
 
@@ -1000,10 +1250,6 @@
       ];
       if (activeSource === 'qaqc') totalRow.push(Number.isInteger(totalInch) ? totalInch : totalInch.toFixed(3));
       if (activeSource === 'mech') totalRow.push(totalBend);
-      if (activeSource === 'mat') {
-        const totalBal = Math.round((totalMin - totalIssued) * 100) / 100;
-        totalRow.push(totalMin.toFixed(2), totalIssued.toFixed(2), totalBal.toFixed(2));
-      }
 
       tbody.innerHTML += `
         <tr class="total-row">
