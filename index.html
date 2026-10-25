@@ -1603,12 +1603,19 @@
     if (!currentUser) return;
     const isAdmin = currentUser.username === 'admin';
 
+    // 🟢 1. Full Database Backup Button (Admin Only)
     const btnBackup = document.getElementById('btnFullBackupHub');
     if (btnBackup) btnBackup.style.display = isAdmin ? 'flex' : 'none';
     
+    // 🟢 2. QA/QC Module Navigation Link (Admin Only)
     const navQaqc = document.getElementById('navQaqcLink');
     if (navQaqc) navQaqc.style.display = isAdmin ? 'flex' : 'none';
 
+    // 🟢 3. Add New Data Button (Admin Only)
+    const btnAddNewData = document.getElementById('btnAddNewDataHub');
+    if (btnAddNewData) btnAddNewData.style.display = isAdmin ? 'flex' : 'none';
+
+    // 🟢 4. Material Hub Admin Buttons
     const btnMtoUpdate = document.getElementById('btnMtoUpdateHub');
     const btnIgp = document.getElementById('btnIgpUpdateHub');
     const btnMin = document.getElementById('btnMinUpdateHub');
@@ -1616,13 +1623,14 @@
     if (btnIgp) btnIgp.style.display = isAdmin ? 'flex' : 'none';
     if (btnMin) btnMin.style.display = isAdmin ? 'flex' : 'none';
 
+    // 🟢 5. Data Hub Admin Buttons
     const btnDataUpdate = document.getElementById('btnDataUpdateHub');
     const btnLineList = document.getElementById('btnLineListHub');
     const btnSapCode = document.getElementById('btnSapCodeHub');
     if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
     if (btnLineList) btnLineList.style.display = isAdmin ? 'flex' : 'none';
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
-  }
+}
 
   /* 🟢 QA/QC SECONDARY AUTH MODAL LOGIC */
   function triggerQaqcModuleAccess() {
