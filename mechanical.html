@@ -252,7 +252,7 @@
     .live-dot { width: 7px; height: 7px; background: #34d399; border-radius: 50%; box-shadow: 0 0 8px #34d399; }
 
     /* =========================================================
-       🟢 BLACK CARDS + BLUE TEXT STYLING
+       🟢 CLEAN BLACK WORKFLOW BUTTONS (NO ICONS / NO NUMBERS)
     ========================================================= */
     .section-header-row {
       display: flex;
@@ -297,15 +297,15 @@
       width: 100%;
     }
 
-    /* 🟢 BLACK WORKFLOW BUTTON / CARD */
+    /* 🟢 PURE BLACK MINIMAL CARD BUTTON */
     .workflow-card {
       display: flex;
       align-items: center;
       background-color: var(--btn-black);
-      padding: 16px 22px;
+      padding: 18px 24px;
       border-radius: 10px;
       border: 1px solid #1e293b;
-      border-left: 5px solid #0284c7; /* Glowing Accent Border */
+      border-left: 5px solid #0284c7; /* Distinct Colored Accent Strip */
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
@@ -320,49 +320,19 @@
       box-shadow: 0 8px 24px rgba(56, 189, 248, 0.18);
     }
 
-    /* આઇકોન બોક્સ (Dark with Blue Icon) */
-    .icon-box {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 8px;
-      margin-right: 18px;
-      font-size: 20px;
-      flex-shrink: 0;
-      background-color: #131b2e;
-      border: 1px solid #1e293b;
-      color: #38bdf8;
-    }
-
-    .text-group {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex: 1;
-    }
-
-    /* 🟢 સ્ટેપ નંબર: બ્લુ ટેક્સ્ટ */
-    .step-number {
-      font-size: 14px;
-      font-weight: 800;
-      color: #38bdf8;
-      letter-spacing: 0.5px;
-    }
-
-    /* 🟢 મુખ્ય ટાઇટલ: બ્લુ ટેક્સ્ટ */
+    /* 🟢 TITLE TEXT ONLY: ELECTRIC SKY BLUE */
     .step-title {
-      font-size: 14.5px;
+      font-size: 15px;
       font-weight: 800;
-      color: #e0f2fe; /* Crisp Light Blue/Cyan */
-      letter-spacing: 0.5px;
+      color: #38bdf8;
+      letter-spacing: 0.6px;
+      transition: color 0.2s;
     }
     .workflow-card:hover .step-title {
-      color: #38bdf8;
+      color: #7dd3fc;
     }
 
-    /* સ્ટેજ મુજબ વિશિષ્ટ એક્સેન્ટ લેફ્ટ બોર્ડર */
+    /* સ્ટેજ મુજબ વિશિષ્ટ લેફ્ટ એક્સેન્ટ પટ્ટી */
     .stage-01 { border-left-color: #10b981; }
     .stage-02 { border-left-color: #38bdf8; }
     .stage-03 { border-left-color: #f59e0b; }
@@ -540,7 +510,7 @@
       </div>
     </div>
 
-    <!-- 1. MECHANICAL HUB (BLACK CARDS WITH BLUE TEXT) -->
+    <!-- 1. MECHANICAL HUB (CLEAN TEXT ONLY BUTTONS) -->
     <div id="mechHub">
       <div class="section-header-row">
         <h3 class="section-header-title">Mechanical Workflows</h3>
@@ -550,74 +520,42 @@
       <div class="workflow-grid">
         <!-- 01: ISSUED FOR BENDING -->
         <div class="workflow-card stage-01" id="btn_bending_issue" onclick="openStage('bending_issue')">
-          <div class="icon-box">📐</div>
-          <div class="text-group">
-            <span class="step-number">01</span>
-            <span class="step-title">ISSUED FOR BENDING</span>
-          </div>
+          <span class="step-title">ISSUED FOR BENDING</span>
         </div>
 
         <!-- 02: BEND COMPLETED -->
         <div class="workflow-card stage-02" id="btn_bend_entry" onclick="openStage('bend_entry')">
-          <div class="icon-box">🔄</div>
-          <div class="text-group">
-            <span class="step-number">02</span>
-            <span class="step-title">BEND COMPLETED</span>
-          </div>
+          <span class="step-title">BEND COMPLETED</span>
         </div>
 
         <!-- 03: FIT UP COMPLETED -->
         <div class="workflow-card stage-03" id="btn_fitup_entry" onclick="openStage('fitup_entry')">
-          <div class="icon-box">🔧</div>
-          <div class="text-group">
-            <span class="step-number">03</span>
-            <span class="step-title">FIT UP COMPLETED</span>
-          </div>
+          <span class="step-title">FIT UP COMPLETED</span>
         </div>
 
         <!-- 04: WELD VISUAL COMPLETED -->
         <div class="workflow-card stage-04" id="btn_weld_visual" onclick="openStage('weld_visual')">
-          <div class="icon-box">👁️</div>
-          <div class="text-group">
-            <span class="step-number">04</span>
-            <span class="step-title">WELD VISUAL COMPLETED</span>
-          </div>
+          <span class="step-title">WELD VISUAL COMPLETED</span>
         </div>
 
         <!-- 05: NDT CLEARANCE -->
         <div class="workflow-card stage-05" id="btn_ndt_clearance" onclick="openStage('ndt_clearance')">
-          <div class="icon-box">🔬</div>
-          <div class="text-group">
-            <span class="step-number">05</span>
-            <span class="step-title">NDT CLEARANCE</span>
-          </div>
+          <span class="step-title">NDT CLEARANCE</span>
         </div>
 
         <!-- 06: FINAL DISPATCH & DC NO -->
         <div class="workflow-card stage-06" id="btn_fd" onclick="openStage('fd')">
-          <div class="icon-box">🚚</div>
-          <div class="text-group">
-            <span class="step-number">06</span>
-            <span class="step-title">FINAL DISPATCH & DC NO</span>
-          </div>
+          <span class="step-title">FINAL DISPATCH & DC NO</span>
         </div>
 
         <!-- MECHANICAL CUSTOM REPORT -->
         <div class="workflow-card stage-report" onclick="window.location.href='custom_report_Mechanical.html'">
-          <div class="icon-box">⚡</div>
-          <div class="text-group">
-            <span class="step-number">REP</span>
-            <span class="step-title">MECHANICAL CUSTOM REPORT</span>
-          </div>
+          <span class="step-title">MECHANICAL CUSTOM REPORT</span>
         </div>
 
         <!-- SPOOL TRACKER -->
         <div class="workflow-card stage-tracker" onclick="window.location.href='spool_tracking.html'">
-          <div class="icon-box">🔍</div>
-          <div class="text-group">
-            <span class="step-number">TRACK</span>
-            <span class="step-title">SPOOL TRACKER</span>
-          </div>
+          <span class="step-title">SPOOL TRACKER</span>
         </div>
       </div>
     </div>
