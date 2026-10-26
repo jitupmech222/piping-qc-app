@@ -16,6 +16,9 @@
       --text-muted: #64748b;
       --primary: #2563eb;
       --teal: #0d9488;
+      --btn-blue: #8cb4e6; /* 🟢 તમારા સ્વેચ મુજબનો Light Blue કલર */
+      --btn-blue-hover: #7ea8dc;
+      --btn-border: #7da6db;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -235,7 +238,7 @@
     .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
 
     /* =========================================================
-       🟢 NEW MODERN RECTANGULAR WORKFLOW CARDS STYLING
+       🟢 LIGHT BLUE WORKFLOW CARDS (REPLACING WHITE)
     ========================================================= */
     .section-header-row {
       display: flex;
@@ -276,16 +279,16 @@
       width: 100%;
     }
 
-    /* મુખ્ય પ્રીમિયમ લંબચોરસ કાર્ડ */
+    /* 🟢 મુખ્ય કાર્ડ: વ્હાઇટના બદલે લાઇટ બ્લુ (#8cb4e6) */
     .workflow-card {
       display: flex;
       align-items: center;
-      background-color: #ffffff;
+      background-color: var(--btn-blue); /* 🟢 Light Blue Colour */
       padding: 15px 22px;
-      border-radius: 8px; /* મોર્ડન લંબચોરસ વળાંક */
-      border: 1px solid #e2e8f0;
-      border-left: 5px solid #0ea5e9; /* પ્રીમિયમ એક્સેન્ટ પટ્ટી */
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+      border-radius: 8px;
+      border: 1px solid var(--btn-border);
+      border-left: 5px solid #0284c7; /* પ્રીમિયમ લેફ્ટ એક્સેન્ટ પટ્ટી */
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.06);
       transition: all 0.2s ease-in-out;
       cursor: pointer;
       text-align: left;
@@ -293,12 +296,13 @@
     }
 
     .workflow-card:hover {
-      border-color: #cbd5e1;
+      background-color: var(--btn-blue-hover);
+      border-color: #6b97ce;
       transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
     }
 
-    /* આઇકોન બોક્સ */
+    /* આઇકોન બોક્સ: બ્લુ કાર્ડ પર સ્પષ્ટ દેખાય તે માટે વ્હાઇટ બેકગ્રાઉન્ડ */
     .icon-box {
       display: flex;
       align-items: center;
@@ -309,6 +313,8 @@
       margin-right: 18px;
       font-size: 19px;
       flex-shrink: 0;
+      background-color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
 
     /* ટેક્સ્ટ ગ્રુપ */
@@ -323,42 +329,42 @@
     .step-number {
       font-size: 14px;
       font-weight: 800;
-      color: #64748b;
+      color: #1e293b;
       letter-spacing: 0.5px;
     }
 
     /* મુખ્ય ટાઇટલ */
     .step-title {
       font-size: 14.5px;
-      font-weight: 700;
-      color: #1e293b;
+      font-weight: 800;
+      color: #0f172a;
       letter-spacing: 0.4px;
     }
 
-    /* સ્ટેજ મુજબ વિશિષ્ટ એક્સેન્ટ કલર્સ */
-    .stage-01 { border-left-color: #16a34a; }
-    .stage-01 .icon-box { background-color: #f0fdf4; color: #16a34a; }
+    /* સ્ટેજ મુજબ વિશિષ્ટ લેફ્ટ બોર્ડર અને આઇકોન કલર્સ */
+    .stage-01 { border-left-color: #15803d; }
+    .stage-01 .icon-box { color: #15803d; }
 
-    .stage-02 { border-left-color: #0d6efd; }
-    .stage-02 .icon-box { background-color: #eff6ff; color: #0d6efd; }
+    .stage-02 { border-left-color: #1d4ed8; }
+    .stage-02 .icon-box { color: #1d4ed8; }
 
-    .stage-03 { border-left-color: #d97706; }
-    .stage-03 .icon-box { background-color: #fffbeb; color: #d97706; }
+    .stage-03 { border-left-color: #b45309; }
+    .stage-03 .icon-box { color: #b45309; }
 
-    .stage-04 { border-left-color: #7c3aed; }
-    .stage-04 .icon-box { background-color: #f5f3ff; color: #7c3aed; }
+    .stage-04 { border-left-color: #6d28d9; }
+    .stage-04 .icon-box { color: #6d28d9; }
 
-    .stage-05 { border-left-color: #0284c7; }
-    .stage-05 .icon-box { background-color: #f0f9ff; color: #0284c7; }
+    .stage-05 { border-left-color: #0369a1; }
+    .stage-05 .icon-box { color: #0369a1; }
 
-    .stage-06 { border-left-color: #15803d; }
-    .stage-06 .icon-box { background-color: #f0fdf4; color: #15803d; }
+    .stage-06 { border-left-color: #166534; }
+    .stage-06 .icon-box { color: #166534; }
 
-    .stage-report { border-left-color: #0d9488; }
-    .stage-report .icon-box { background-color: #f0fdfa; color: #0d9488; }
+    .stage-report { border-left-color: #0f766e; }
+    .stage-report .icon-box { color: #0f766e; }
 
-    .stage-tracker { border-left-color: #b45309; }
-    .stage-tracker .icon-box { background-color: #fffbeb; color: #b45309; }
+    .stage-tracker { border-left-color: #c2410c; }
+    .stage-tracker .icon-box { color: #c2410c; }
 
     /* CARD STYLING FOR STAGE CONSOLE */
     .card {
@@ -522,7 +528,7 @@
       </div>
     </div>
 
-    <!-- 1. MECHANICAL HUB (NEW MODERN RECTANGULAR CARDS) -->
+    <!-- 1. MECHANICAL HUB (LIGHT BLUE WORKFLOW CARDS) -->
     <div id="mechHub">
       <div class="section-header-row">
         <h3 class="section-header-title">Mechanical Workflows</h3>
