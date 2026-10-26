@@ -7,18 +7,21 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --sidebar-bg: #0b1329;
-      --sidebar-active: #0d9488;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #e2e8f0;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --primary: #2563eb;
-      --teal: #0d9488;
-      --btn-blue: #8cb4e6; /* 🟢 તમારા સ્વેચ મુજબનો Light Blue કલર */
-      --btn-blue-hover: #7ea8dc;
-      --btn-border: #7da6db;
+      --sidebar-bg: #070b14;
+      --sidebar-active: #0284c7;
+      --bg: #090d16;             /* 🟢 Black Theme Deep Background */
+      --card-bg: #0f172a;        /* 🟢 Dark Card Surface */
+      --card-inner: #131b2e;
+      --border: #1e293b;          /* 🟢 Subtle Dark Border */
+      --border-focus: #38bdf8;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-blue: #38bdf8;       /* 🟢 Glowing Electric Blue Text */
+      --text-blue-light: #7dd3fc;
+      --primary: #0284c7;
+      --teal: #0ea5e9;
+      --btn-black: #0b1120;       /* 🟢 Deep Black Button Card */
+      --btn-black-hover: #111c33;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -32,7 +35,7 @@
     }
 
     /* =========================================================
-       SIDEBAR STYLING
+       SIDEBAR STYLING (DARK THEME)
     ========================================================= */
     .sidebar {
       width: 250px;
@@ -47,6 +50,7 @@
       height: 100vh;
       flex-shrink: 0;
       z-index: 100;
+      border-right: 1px solid var(--border);
       transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -76,7 +80,7 @@
       max-width: 48px;
       object-fit: contain;
       display: block;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
     }
 
     .brand-name { font-size: 14px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
@@ -113,7 +117,12 @@
       text-decoration: none;
     }
     .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
-    .nav-item.active { background: #0d9488; color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
+    .nav-item.active { 
+      background: #0284c7; 
+      color: #ffffff; 
+      font-weight: 700; 
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); 
+    }
 
     .user-footer {
       display: flex;
@@ -123,7 +132,7 @@
       border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
     .user-profile { display: flex; align-items: center; gap: 10px; }
-    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1e293b; color: #2dd4bf; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #334155; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #131b2e; color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #1e293b; }
     .user-details { font-size: 12px; color: #ffffff; font-weight: 600; }
     .user-details span { display: block; font-size: 10px; color: #64748b; font-weight: normal; }
     
@@ -147,31 +156,33 @@
     .btn-big-logout:hover { background: #b91c1c; }
 
     /* =========================================================
-       MAIN WORKSPACE & TOP BAR
+       MAIN WORKSPACE (DARK THEME)
     ========================================================= */
     .main-workspace {
       flex: 1;
       padding: 24px 32px;
       overflow-y: auto;
       max-height: 100vh;
+      background: var(--bg);
       transition: all 0.3s;
     }
 
     .btn-toggle-out {
       display: none;
-      background: #ffffff;
-      border: 1.5px solid #cbd5e1;
-      color: #334155;
+      background: #0f172a;
+      border: 1.5px solid #1e293b;
+      color: #94a3b8;
       border-radius: 8px;
       padding: 7px 12px;
       font-size: 13px;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
       margin-right: 12px;
       align-items: center;
       gap: 4px;
     }
+    .btn-toggle-out:hover { color: #38bdf8; border-color: #38bdf8; }
 
     .workspace-top {
       display: flex;
@@ -182,8 +193,9 @@
 
     .global-search-wrapper { position: relative; }
     .search-input-pill {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      color: #f1f5f9;
       border-radius: 999px;
       padding: 10px 20px;
       width: 400px;
@@ -191,9 +203,10 @@
       outline: none;
       transition: all 0.2s;
     }
+    .search-input-pill::placeholder { color: #64748b; }
     .search-input-pill:focus {
-      border-color: #0d9488;
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
       width: 440px;
     }
 
@@ -204,29 +217,30 @@
       width: 440px;
       max-height: 280px;
       overflow-y: auto;
-      background: white;
-      border: 1.5px solid #0d9488;
+      background: #0f172a;
+      border: 1.5px solid #38bdf8;
       border-radius: 12px;
       z-index: 500;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.5);
       display: none;
     }
 
     .search-dropdown-item {
       padding: 10px 14px;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid #1e293b;
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
       font-size: 13px;
+      color: #f1f5f9;
     }
-    .search-dropdown-item:hover { background: #f0fdfa; color: #0f766e; }
+    .search-dropdown-item:hover { background: #1e293b; color: #38bdf8; }
 
     .live-status-pill {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #16a34a;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
       padding: 6px 14px;
       border-radius: 999px;
       font-size: 12px;
@@ -235,10 +249,10 @@
       align-items: center;
       gap: 6px;
     }
-    .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
+    .live-dot { width: 7px; height: 7px; background: #34d399; border-radius: 50%; box-shadow: 0 0 8px #34d399; }
 
     /* =========================================================
-       🟢 LIGHT BLUE WORKFLOW CARDS (REPLACING WHITE)
+       🟢 BLACK CARDS + BLUE TEXT STYLING
     ========================================================= */
     .section-header-row {
       display: flex;
@@ -251,14 +265,14 @@
       margin: 0;
       font-size: 20px;
       font-weight: 800;
-      color: #0f766e;
+      color: #38bdf8;
       letter-spacing: -0.3px;
     }
 
     .btn-hero-action {
-      background: #0f172a;
-      color: #ffffff;
-      border: none;
+      background: #0b1120;
+      color: #38bdf8;
+      border: 1px solid #1e293b;
       border-radius: 8px;
       padding: 8px 18px;
       font-size: 13px;
@@ -269,9 +283,13 @@
       gap: 6px;
       transition: all 0.2s;
     }
-    .btn-hero-action:hover { opacity: 0.9; }
+    .btn-hero-action:hover { 
+      background: #111c33; 
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
 
-    /* 2-Column Responsive Grid */
     .workflow-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -279,45 +297,45 @@
       width: 100%;
     }
 
-    /* 🟢 મુખ્ય કાર્ડ: વ્હાઇટના બદલે લાઇટ બ્લુ (#8cb4e6) */
+    /* 🟢 BLACK WORKFLOW BUTTON / CARD */
     .workflow-card {
       display: flex;
       align-items: center;
-      background-color: var(--btn-blue); /* 🟢 Light Blue Colour */
-      padding: 15px 22px;
-      border-radius: 8px;
-      border: 1px solid var(--btn-border);
-      border-left: 5px solid #0284c7; /* પ્રીમિયમ લેફ્ટ એક્સેન્ટ પટ્ટી */
-      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.06);
-      transition: all 0.2s ease-in-out;
+      background-color: var(--btn-black);
+      padding: 16px 22px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      border-left: 5px solid #0284c7; /* Glowing Accent Border */
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
       text-align: left;
       user-select: none;
     }
 
     .workflow-card:hover {
-      background-color: var(--btn-blue-hover);
-      border-color: #6b97ce;
+      background-color: var(--btn-black-hover);
+      border-color: #38bdf8;
       transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+      box-shadow: 0 8px 24px rgba(56, 189, 248, 0.18);
     }
 
-    /* આઇકોન બોક્સ: બ્લુ કાર્ડ પર સ્પષ્ટ દેખાય તે માટે વ્હાઇટ બેકગ્રાઉન્ડ */
+    /* આઇકોન બોક્સ (Dark with Blue Icon) */
     .icon-box {
       display: flex;
       align-items: center;
       justify-content: center;
       width: 42px;
       height: 42px;
-      border-radius: 6px;
+      border-radius: 8px;
       margin-right: 18px;
-      font-size: 19px;
+      font-size: 20px;
       flex-shrink: 0;
-      background-color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      background-color: #131b2e;
+      border: 1px solid #1e293b;
+      color: #38bdf8;
     }
 
-    /* ટેક્સ્ટ ગ્રુપ */
     .text-group {
       display: flex;
       align-items: center;
@@ -325,75 +343,66 @@
       flex: 1;
     }
 
-    /* સ્ટેપ નંબર (01, 02...) */
+    /* 🟢 સ્ટેપ નંબર: બ્લુ ટેક્સ્ટ */
     .step-number {
       font-size: 14px;
       font-weight: 800;
-      color: #1e293b;
+      color: #38bdf8;
       letter-spacing: 0.5px;
     }
 
-    /* મુખ્ય ટાઇટલ */
+    /* 🟢 મુખ્ય ટાઇટલ: બ્લુ ટેક્સ્ટ */
     .step-title {
       font-size: 14.5px;
       font-weight: 800;
-      color: #0f172a;
-      letter-spacing: 0.4px;
+      color: #e0f2fe; /* Crisp Light Blue/Cyan */
+      letter-spacing: 0.5px;
+    }
+    .workflow-card:hover .step-title {
+      color: #38bdf8;
     }
 
-    /* સ્ટેજ મુજબ વિશિષ્ટ લેફ્ટ બોર્ડર અને આઇકોન કલર્સ */
-    .stage-01 { border-left-color: #15803d; }
-    .stage-01 .icon-box { color: #15803d; }
+    /* સ્ટેજ મુજબ વિશિષ્ટ એક્સેન્ટ લેફ્ટ બોર્ડર */
+    .stage-01 { border-left-color: #10b981; }
+    .stage-02 { border-left-color: #38bdf8; }
+    .stage-03 { border-left-color: #f59e0b; }
+    .stage-04 { border-left-color: #a855f7; }
+    .stage-05 { border-left-color: #06b6d4; }
+    .stage-06 { border-left-color: #22c55e; }
+    .stage-report { border-left-color: #38bdf8; }
+    .stage-tracker { border-left-color: #fb923c; }
 
-    .stage-02 { border-left-color: #1d4ed8; }
-    .stage-02 .icon-box { color: #1d4ed8; }
-
-    .stage-03 { border-left-color: #b45309; }
-    .stage-03 .icon-box { color: #b45309; }
-
-    .stage-04 { border-left-color: #6d28d9; }
-    .stage-04 .icon-box { color: #6d28d9; }
-
-    .stage-05 { border-left-color: #0369a1; }
-    .stage-05 .icon-box { color: #0369a1; }
-
-    .stage-06 { border-left-color: #166534; }
-    .stage-06 .icon-box { color: #166534; }
-
-    .stage-report { border-left-color: #0f766e; }
-    .stage-report .icon-box { color: #0f766e; }
-
-    .stage-tracker { border-left-color: #c2410c; }
-    .stage-tracker .icon-box { color: #c2410c; }
-
-    /* CARD STYLING FOR STAGE CONSOLE */
+    /* =========================================================
+       STAGE OPERATION CONSOLE (DARK THEME)
+    ========================================================= */
     .card {
-      background: #ffffff;
+      background: var(--card-bg);
       padding: 22px 26px;
       border-radius: 16px;
       border: 1px solid var(--border);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
       margin-top: 10px;
     }
 
-    label { font-size: 12.5px; font-weight: 700; color: #334155; margin-top: 10px; display: block; }
+    label { font-size: 12.5px; font-weight: 700; color: #94a3b8; margin-top: 10px; display: block; }
     input, select {
       width: 100%;
       padding: 10px 14px;
       margin-top: 4px;
-      border: 1.5px solid #cbd5e1;
+      border: 1.5px solid #1e293b;
       border-radius: 10px;
       font-size: 13px;
-      background: #fff;
+      background: #0b1120;
+      color: #f1f5f9;
       outline: none;
     }
     input:focus, select:focus {
-      border-color: var(--teal);
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
     }
 
     .btn-save-action {
-      background: #15803d;
+      background: #0284c7;
       color: white;
       border: none;
       border-radius: 8px;
@@ -401,11 +410,12 @@
       font-size: 13px;
       font-weight: bold;
       cursor: pointer;
+      transition: all 0.2s;
     }
-    .btn-save-action:hover { background: #166534; }
+    .btn-save-action:hover { background: #0369a1; }
 
     .btn-add-queue {
-      background: #0d9488;
+      background: #0284c7;
       color: white;
       border: none;
       border-radius: 8px;
@@ -416,21 +426,22 @@
       width: 100%;
       margin-top: 12px;
     }
-    .btn-add-queue:hover { background: #0f766e; }
+    .btn-add-queue:hover { background: #0369a1; }
 
-    /* TABLES */
+    /* DARK TABLES */
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; text-align: left; }
-    th, td { border: 1px solid #e2e8f0; padding: 9px 12px; white-space: nowrap; }
-    th { background: #0f172a; color: white; font-weight: 700; text-align: center; }
-    tr:nth-child(even) td { background-color: #f8fafc; }
+    th, td { border: 1px solid #1e293b; padding: 10px 14px; white-space: nowrap; color: #cbd5e1; }
+    th { background: #070b14; color: #38bdf8; font-weight: 700; text-align: center; }
+    tr:nth-child(even) td { background-color: #0b1120; }
+    tr:hover td { background-color: #131b2e; }
     td { text-align: center; }
 
-    /* SPOOL TRACKER MODAL */
+    /* SPOOL TRACKER MODAL (DARK THEME) */
     #spoolTrackerModal {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(5px);
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
       z-index: 2000;
       display: none;
       align-items: center;
@@ -438,21 +449,22 @@
       padding: 20px;
     }
     .tracker-modal-card {
-      background: #ffffff;
+      background: #0f172a;
       width: 100%;
       max-width: 680px;
       border-radius: 18px;
       padding: 24px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-      border: 1px solid #e2e8f0;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+      border: 1px solid #1e293b;
       max-height: 90vh;
       overflow-y: auto;
+      color: #f1f5f9;
     }
     .tracker-header-box {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #e2e8f0;
+      border-bottom: 2px solid #1e293b;
       padding-bottom: 12px;
       margin-bottom: 16px;
     }
@@ -463,14 +475,14 @@
       align-items: center;
       padding: 12px 16px;
       border-radius: 10px;
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
+      border: 1px solid #1e293b;
+      background: #0b1120;
     }
-    .timeline-card.status-completed { background: #f0fdf4; border-color: #86efac; }
-    .timeline-card.status-hold { background: #fff7ed; border-color: #fdba74; }
+    .timeline-card.status-completed { background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.3); }
+    .timeline-card.status-hold { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3); }
     .stage-badge-tag { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
-    .tag-completed { background: #15803d; color: #ffffff; }
-    .tag-hold { background: #c2410c; color: #ffffff; }
+    .tag-completed { background: #059669; color: #ffffff; }
+    .tag-hold { background: #d97706; color: #ffffff; }
 
     @media (max-width: 900px) {
       .workflow-grid { grid-template-columns: 1fr; }
@@ -528,7 +540,7 @@
       </div>
     </div>
 
-    <!-- 1. MECHANICAL HUB (LIGHT BLUE WORKFLOW CARDS) -->
+    <!-- 1. MECHANICAL HUB (BLACK CARDS WITH BLUE TEXT) -->
     <div id="mechHub">
       <div class="section-header-row">
         <h3 class="section-header-title">Mechanical Workflows</h3>
@@ -614,32 +626,32 @@
     <div id="stageContainer" style="display: none;">
       <div class="card" style="margin-top:0;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h3 id="stageTitle" style="margin:0; font-size:17px; font-weight:800; color:#0f766e;">Stage Title</h3>
+          <h3 id="stageTitle" style="margin:0; font-size:17px; font-weight:800; color:#38bdf8;">Stage Title</h3>
           <button class="btn-hero-action" style="padding:6px 14px;" onclick="backToMechMenu()">⬅️ Back to Mechanical</button>
         </div>
 
         <label id="spoolSearchLabel" style="margin-top:16px;">Spool Unique Number:</label>
         <div style="position:relative;">
           <input type="text" id="spoolSearch" placeholder="Type spool no..." oninput="handleSearchInput()" autocomplete="off">
-          <div id="searchDropdown" style="position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #0d9488; border-radius:8px; max-height:220px; overflow-y:auto; z-index:100; display:none; box-shadow:0 8px 24px rgba(0,0,0,0.12);"></div>
+          <div id="searchDropdown" style="position:absolute; top:100%; left:0; right:0; background:#0f172a; border:1px solid #38bdf8; border-radius:8px; max-height:220px; overflow-y:auto; z-index:100; display:none; box-shadow:0 8px 24px rgba(0,0,0,0.5);"></div>
         </div>
 
-        <div id="itemEditForm" style="display:none; background:#f8fafc; border:1px solid #99f6e4; border-radius:10px; padding:14px; margin-top:12px;">
-          <div style="font-weight: bold; color: #0f766e;">📝 Edit Details:</div>
-          <div><label>Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#e2e8f0;"></div>
-          <div><label>Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#e2e8f0;"></div>
+        <div id="itemEditForm" style="display:none; background:#131b2e; border:1px solid #0284c7; border-radius:10px; padding:14px; margin-top:12px;">
+          <div style="font-weight: bold; color: #38bdf8;">📝 Edit Details:</div>
+          <div><label>Spool Unique No:</label><input type="text" id="form_spool_no" readonly style="background:#0b1120; color:#94a3b8;"></div>
+          <div><label>Drawing No:</label><input type="text" id="form_drawing_no" readonly style="background:#0b1120; color:#94a3b8;"></div>
           <div id="dynamicFormFields"></div>
           <input type="hidden" id="form_item_id">
           <button type="button" class="btn-add-queue" onclick="confirmAddFormToQueue()">➕ Save to Selected List</button>
         </div>
 
-        <div id="selectedCardArea" style="margin-top: 16px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+        <div id="selectedCardArea" style="margin-top: 16px; background: #0f172a; border: 1.5px solid #1e293b; border-radius: 10px; padding: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 14px; font-weight: bold; color: #0f172a;" id="queueHeading">Selected Spools (<span id="queueCount">0</span>)</span>
+            <span style="font-size: 14px; font-weight: bold; color: #38bdf8;" id="queueHeading">Selected Spools (<span id="queueCount">0</span>)</span>
             <button type="button" class="btn-save-action" id="btnSaveAction" onclick="submitCurrentStage()">💾 <span id="btnSaveLabel">SAVE ENTRY</span></button>
           </div>
           <div id="customInputsArea" style="margin-bottom: 12px;"></div>
-          <div style="border: 1px solid #0f172a; border-radius: 8px; overflow-x: auto;">
+          <div style="border: 1px solid #1e293b; border-radius: 8px; overflow-x: auto;">
             <table style="width:100%; font-size:12px;">
               <thead id="selectedTableHead"></thead>
               <tbody id="selectedTableBody"></tbody>
@@ -649,11 +661,11 @@
       </div>
 
       <div class="card" style="margin-top: 14px;">
-        <h3 style="margin: 0; font-size:15px; font-weight:800; color: #0f766e;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
-        <div style="overflow-x:auto; margin-top:10px; max-height:45vh; border:1px solid #e2e8f0; border-radius:8px;">
+        <h3 style="margin: 0; font-size:15px; font-weight:800; color: #38bdf8;">📋 BALANCE LIST (<span id="tableTotalCount">0</span>)</h3>
+        <div style="overflow-x:auto; margin-top:10px; max-height:45vh; border:1px solid #1e293b; border-radius:8px;">
           <table>
             <thead>
-              <tr style="background:#0f172a; color:white;">
+              <tr>
                 <th style="text-align:left;">Drawing No</th>
                 <th>Spool Unique No</th>
                 <th>Spool Size</th>
@@ -674,17 +686,17 @@
     <div class="tracker-modal-card">
       <div class="tracker-header-box">
         <div>
-          <h3 style="margin: 0; font-size: 18px; color: #b45309;">🔍 Spool Live Stage Tracker</h3>
-          <p style="font-size: 12px; color: #64748b; margin-top: 2px;">Real-time progress inspection timeline</p>
+          <h3 style="margin: 0; font-size: 18px; color: #38bdf8;">🔍 Spool Live Stage Tracker</h3>
+          <p style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Real-time progress inspection timeline</p>
         </div>
-        <button onclick="closeSpoolTrackerModal()" style="background:#f1f5f9; border:none; padding:6px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">✕ Close</button>
+        <button onclick="closeSpoolTrackerModal()" style="background:#131b2e; color:#94a3b8; border:1px solid #1e293b; padding:6px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">✕ Close</button>
       </div>
-      <div id="modalSpoolInfo" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px; margin-bottom:12px;">
+      <div id="modalSpoolInfo" style="background:#0b1120; border:1px solid #1e293b; border-radius:12px; padding:12px; margin-bottom:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:16px; font-weight:800; color:#0f172a;" id="modalTrackSpoolNo">Spool No</span>
-          <span style="font-size:13px; font-weight:700; color:#0d9488;" id="modalTrackDwgNo">Drawing No</span>
+          <span style="font-size:16px; font-weight:800; color:#38bdf8;" id="modalTrackSpoolNo">Spool No</span>
+          <span style="font-size:13px; font-weight:700; color:#34d399;" id="modalTrackDwgNo">Drawing No</span>
         </div>
-        <div style="font-size:12px; color:#475569; margin-top:4px;" id="modalTrackMeta">Meta</div>
+        <div style="font-size:12px; color:#94a3b8; margin-top:4px;" id="modalTrackMeta">Meta</div>
       </div>
       <div class="timeline-container" id="modalTimelineList"></div>
     </div>
@@ -831,13 +843,13 @@
       document.getElementById('tableTotalCount').innerText = cumulativeRows.length;
       const tbody = document.getElementById('stageBalanceTableBody');
       if (cumulativeRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="padding:24px; color:#15803d; font-weight:bold;">0 Spools Balance for this stage!</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="padding:24px; color:#34d399; font-weight:bold;">0 Spools Balance for this stage!</td></tr>`;
         return;
       }
       tbody.innerHTML = cumulativeRows.slice(0, 300).map(r => `
         <tr>
-          <td style="text-align:left;"><b>${r.Drawing_no || '-'}</b></td>
-          <td><b>${r.Spool_number || '-'}</b></td>
+          <td style="text-align:left;"><b style="color:#e0f2fe;">${r.Drawing_no || '-'}</b></td>
+          <td><b style="color:#38bdf8;">${r.Spool_number || '-'}</b></td>
           <td>${r.Spool_size || '-'}</td>
           <td><b>${r.Weld_id || '-'}</b></td>
           <td>${r.Bend_qty || '-'}</td>
@@ -858,8 +870,8 @@
       }
 
       drop.innerHTML = matched.map(r => `
-        <div style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;" onclick="onSpoolSelect(${r.id})">
-          <div><b>${r.Spool_number}</b> <span style="font-size:11px; color:#0d9488;">(${r.Drawing_no || '-'})</span></div>
+        <div style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;" onclick="onSpoolSelect(${r.id})">
+          <div><b style="color:#38bdf8;">${r.Spool_number}</b> <span style="font-size:11px; color:#94a3b8;">(${r.Drawing_no || '-'})</span></div>
         </div>
       `).join('');
       drop.style.display = 'block';
@@ -918,7 +930,7 @@
       tbody.innerHTML = selectedQueue.map((r, i) => `
         <tr>
           <td>${i + 1}</td>
-          <td><b>${r.Spool_number}</b></td>
+          <td><b style="color:#38bdf8;">${r.Spool_number}</b></td>
           <td style="text-align:left;">${r.Drawing_no}</td>
           <td><button style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="selectedQueue.splice(${i},1); renderSelectedTable();">✕</button></td>
         </tr>
@@ -982,14 +994,14 @@
       }).slice(0, 30);
 
       if (matched.length === 0) {
-        dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px; text-align:center;">No matching spools found</div>';
+        dropdown.innerHTML = '<div style="padding:10px; color:#64748b; font-size:12px; text-align:center;">No matching spools found</div>';
         dropdown.style.display = 'block';
         return;
       }
 
       dropdown.innerHTML = matched.map(r => `
         <div class="search-dropdown-item" onclick="openSpoolTrackerModal(${r.id})">
-          <div><b>${r.Spool_number || 'N/A'}</b> <span style="font-size:11px; color:#0d9488;">(${r.Spool_size || '-'})</span></div>
+          <div><b style="color:#38bdf8;">${r.Spool_number || 'N/A'}</b> <span style="font-size:11px; color:#94a3b8;">(${r.Spool_size || '-'})</span></div>
           <span style="color:#64748b; font-size:11.5px;">${r.Drawing_no || '-'}</span>
         </div>
       `).join('');
