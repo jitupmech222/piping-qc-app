@@ -29,7 +29,7 @@
     }
 
     /* =========================================================
-       SIDEBAR STYLING (MATCHING IMAGE 1 EXACTLY)
+       SIDEBAR STYLING
     ========================================================= */
     .sidebar {
       width: 250px;
@@ -235,7 +235,7 @@
     .live-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
 
     /* =========================================================
-       🟢 EXACT QA/QC STYLE 2-COLUMN BUTTON GRID & ACCENTS
+       🟢 NEW MODERN RECTANGULAR WORKFLOW CARDS STYLING
     ========================================================= */
     .section-header-row {
       display: flex;
@@ -268,35 +268,97 @@
     }
     .btn-hero-action:hover { opacity: 0.9; }
 
-    .sub-menu-grid {
+    /* 2-Column Responsive Grid */
+    .workflow-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
+      gap: 16px;
+      width: 100%;
     }
 
-    .sub-btn {
+    /* મુખ્ય પ્રીમિયમ લંબચોરસ કાર્ડ */
+    .workflow-card {
       display: flex;
       align-items: center;
-      gap: 14px;
+      background-color: #ffffff;
       padding: 15px 22px;
-      background: #ffffff;
+      border-radius: 8px; /* મોર્ડન લંબચોરસ વળાંક */
       border: 1px solid #e2e8f0;
-      border-radius: 999px;
-      font-size: 13.5px;
+      border-left: 5px solid #0ea5e9; /* પ્રીમિયમ એક્સેન્ટ પટ્ટી */
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+      transition: all 0.2s ease-in-out;
+      cursor: pointer;
+      text-align: left;
+      user-select: none;
+    }
+
+    .workflow-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    /* આઇકોન બોક્સ */
+    .icon-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 6px;
+      margin-right: 18px;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+
+    /* ટેક્સ્ટ ગ્રુપ */
+    .text-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+    }
+
+    /* સ્ટેપ નંબર (01, 02...) */
+    .step-number {
+      font-size: 14px;
+      font-weight: 800;
+      color: #64748b;
+      letter-spacing: 0.5px;
+    }
+
+    /* મુખ્ય ટાઇટલ */
+    .step-title {
+      font-size: 14.5px;
       font-weight: 700;
       color: #1e293b;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
-      text-align: left;
+      letter-spacing: 0.4px;
     }
-    .sub-btn:hover {
-      background: #f0fdfa;
-      border-color: #5eead4;
-      color: #0f766e;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
-    }
+
+    /* સ્ટેજ મુજબ વિશિષ્ટ એક્સેન્ટ કલર્સ */
+    .stage-01 { border-left-color: #16a34a; }
+    .stage-01 .icon-box { background-color: #f0fdf4; color: #16a34a; }
+
+    .stage-02 { border-left-color: #0d6efd; }
+    .stage-02 .icon-box { background-color: #eff6ff; color: #0d6efd; }
+
+    .stage-03 { border-left-color: #d97706; }
+    .stage-03 .icon-box { background-color: #fffbeb; color: #d97706; }
+
+    .stage-04 { border-left-color: #7c3aed; }
+    .stage-04 .icon-box { background-color: #f5f3ff; color: #7c3aed; }
+
+    .stage-05 { border-left-color: #0284c7; }
+    .stage-05 .icon-box { background-color: #f0f9ff; color: #0284c7; }
+
+    .stage-06 { border-left-color: #15803d; }
+    .stage-06 .icon-box { background-color: #f0fdf4; color: #15803d; }
+
+    .stage-report { border-left-color: #0d9488; }
+    .stage-report .icon-box { background-color: #f0fdfa; color: #0d9488; }
+
+    .stage-tracker { border-left-color: #b45309; }
+    .stage-tracker .icon-box { background-color: #fffbeb; color: #b45309; }
 
     /* CARD STYLING FOR STAGE CONSOLE */
     .card {
@@ -405,13 +467,13 @@
     .tag-hold { background: #c2410c; color: #ffffff; }
 
     @media (max-width: 900px) {
-      .sub-menu-grid { grid-template-columns: 1fr; }
+      .workflow-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- LEFT SIDEBAR (EXACT MATCH WITH IMAGE 1) -->
+  <!-- LEFT SIDEBAR -->
   <aside class="sidebar" id="appSidebar">
     <div>
       <div class="brand-area">
@@ -460,39 +522,85 @@
       </div>
     </div>
 
-    <!-- 1. MECHANICAL HUB (EXACT QA/QC STYLED PILL GRID) -->
+    <!-- 1. MECHANICAL HUB (NEW MODERN RECTANGULAR CARDS) -->
     <div id="mechHub">
       <div class="section-header-row">
         <h3 class="section-header-title">Mechanical Workflows</h3>
         <button class="btn-hero-action" onclick="window.location.href='index.html'">⬅️ Back</button>
       </div>
 
-      <div class="sub-menu-grid">
-        <button class="sub-btn" id="btn_bending_issue" style="border-left: 5px solid #16a34a;" onclick="openStage('bending_issue')">
-          <span>📐</span><span>01 &nbsp; ISSUED FOR BENDING</span>
-        </button>
-        <button class="sub-btn" id="btn_bend_entry" style="border-left: 5px solid #0d6efd;" onclick="openStage('bend_entry')">
-          <span>🔄</span><span>02 &nbsp; BEND COMPLETED</span>
-        </button>
-        <button class="sub-btn" id="btn_fitup_entry" style="border-left: 5px solid #d97706;" onclick="openStage('fitup_entry')">
-          <span>🔧</span><span>03 &nbsp; FIT UP COMPLETED</span>
-        </button>
-        <button class="sub-btn" id="btn_weld_visual" style="border-left: 5px solid #7c3aed;" onclick="openStage('weld_visual')">
-          <span>👁️</span><span>04 &nbsp; WELD VISUAL COMPLETED</span>
-        </button>
-        <button class="sub-btn" id="btn_ndt_clearance" style="border-left: 5px solid #0284c7;" onclick="openStage('ndt_clearance')">
-          <span>🔬</span><span>05 &nbsp; NDT CLEARANCE</span>
-        </button>
-        <button class="sub-btn" id="btn_fd" style="border-left: 5px solid #15803d;" onclick="openStage('fd')">
-          <span>🚚</span><span>06 &nbsp; FD & DISPATCH DC NO</span>
-        </button>
+      <div class="workflow-grid">
+        <!-- 01: ISSUED FOR BENDING -->
+        <div class="workflow-card stage-01" id="btn_bending_issue" onclick="openStage('bending_issue')">
+          <div class="icon-box">📐</div>
+          <div class="text-group">
+            <span class="step-number">01</span>
+            <span class="step-title">ISSUED FOR BENDING</span>
+          </div>
+        </div>
 
-        <button class="sub-btn" style="border-left: 5px solid #0d9488;" onclick="window.location.href='custom_report_Mechanical.html'">
-          <span>⚡</span><span>MECHANICAL CUSTOM REPORT</span>
-        </button>
-        <button class="sub-btn" style="border-left: 5px solid #b45309;" onclick="window.location.href='spool_tracking.html'">
-          <span>🔍</span><span>SPOOL TRACKER</span>
-        </button>
+        <!-- 02: BEND COMPLETED -->
+        <div class="workflow-card stage-02" id="btn_bend_entry" onclick="openStage('bend_entry')">
+          <div class="icon-box">🔄</div>
+          <div class="text-group">
+            <span class="step-number">02</span>
+            <span class="step-title">BEND COMPLETED</span>
+          </div>
+        </div>
+
+        <!-- 03: FIT UP COMPLETED -->
+        <div class="workflow-card stage-03" id="btn_fitup_entry" onclick="openStage('fitup_entry')">
+          <div class="icon-box">🔧</div>
+          <div class="text-group">
+            <span class="step-number">03</span>
+            <span class="step-title">FIT UP COMPLETED</span>
+          </div>
+        </div>
+
+        <!-- 04: WELD VISUAL COMPLETED -->
+        <div class="workflow-card stage-04" id="btn_weld_visual" onclick="openStage('weld_visual')">
+          <div class="icon-box">👁️</div>
+          <div class="text-group">
+            <span class="step-number">04</span>
+            <span class="step-title">WELD VISUAL COMPLETED</span>
+          </div>
+        </div>
+
+        <!-- 05: NDT CLEARANCE -->
+        <div class="workflow-card stage-05" id="btn_ndt_clearance" onclick="openStage('ndt_clearance')">
+          <div class="icon-box">🔬</div>
+          <div class="text-group">
+            <span class="step-number">05</span>
+            <span class="step-title">NDT CLEARANCE</span>
+          </div>
+        </div>
+
+        <!-- 06: FINAL DISPATCH & DC NO -->
+        <div class="workflow-card stage-06" id="btn_fd" onclick="openStage('fd')">
+          <div class="icon-box">🚚</div>
+          <div class="text-group">
+            <span class="step-number">06</span>
+            <span class="step-title">FINAL DISPATCH & DC NO</span>
+          </div>
+        </div>
+
+        <!-- MECHANICAL CUSTOM REPORT -->
+        <div class="workflow-card stage-report" onclick="window.location.href='custom_report_Mechanical.html'">
+          <div class="icon-box">⚡</div>
+          <div class="text-group">
+            <span class="step-number">REP</span>
+            <span class="step-title">MECHANICAL CUSTOM REPORT</span>
+          </div>
+        </div>
+
+        <!-- SPOOL TRACKER -->
+        <div class="workflow-card stage-tracker" onclick="window.location.href='spool_tracking.html'">
+          <div class="icon-box">🔍</div>
+          <div class="text-group">
+            <span class="step-number">TRACK</span>
+            <span class="step-title">SPOOL TRACKER</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -555,7 +663,7 @@
 
   </main>
 
-  <!-- SPOOL TRACKER MODAL (FOR TOP SEARCH) -->
+  <!-- SPOOL TRACKER MODAL -->
   <div id="spoolTrackerModal">
     <div class="tracker-modal-card">
       <div class="tracker-header-box">
