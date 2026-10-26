@@ -394,7 +394,7 @@
     let currentAvailableSapList = [];
     let isMismatchDetected = false;
     
-    // 🟢 Flag for Balance MIN mode
+    // Flag for Balance MIN mode
     let isBalanceMinMode = false;
     let selectedSapMasterItem = null;
 
@@ -454,7 +454,7 @@
       mtoRecords.forEach(r => {
         if (!r.lot_no) return;
         const lot = String(r.lot_no).trim();
-        if (lot.toUpperCase() === 'BALANCE MIN') return; // Separate handling
+        if (lot.toUpperCase() === 'BALANCE MIN') return;
 
         const minNo = r.MIN_No ? String(r.MIN_No).trim() : '';
         if (minNo === '' || minNo === '-' || minNo.toLowerCase() === 'null') {
@@ -497,11 +497,10 @@
       });
     }
 
-    // 🟢 ૪. BALANCE MIN સ્પેશિયલ સિલેક્શન હેન્ડલર
+    // ૪. BALANCE MIN સિલેક્શન હેન્ડલર
     function onBalanceMinSelection(isChecked) {
       isBalanceMinMode = isChecked;
 
-      // Deselect all standard lot checkboxes
       document.querySelectorAll('.chk-standard-lot').forEach(chk => {
         chk.checked = false;
         chk.disabled = isChecked;
@@ -526,7 +525,6 @@
         bannerTitle.style.color = "#92400e";
         document.getElementById('totalBalanceVal').innerText = "Direct Add";
 
-        // Load all SAP Master Records directly from Sap_code Table
         currentAvailableSapList = sapMasterRecords.map(item => ({
           sap: item.MAT_SAP_CODE || item.Sap_Code || item.sap_code || '',
           desc: item.MAT_Description || item.mat_description || '-',
@@ -670,11 +668,9 @@
       document.getElementById('btnSaveMin').disabled = false;
 
       if (isBalanceMinMode) {
-        // Direct Stock Mode
         document.getElementById('totalBalanceVal').innerText = "Direct Add";
         document.getElementById('previewArea').style.display = 'none';
       } else {
-        // Standard Lot Mode
         currentFilteredRows = mtoRecords.filter(r => {
           const lot = String(r.lot_no || '').trim();
           const rowSap = String(r.MAT_SAP_CODE || '').trim();
@@ -813,7 +809,7 @@
       previewArea.style.display = 'block';
     }
 
-    // 🟢 ૭. SAVE EXECUTION (Handles both BALANCE MIN Insert and Standard Update)
+    // 🟢 ૭. SAVE EXECUTION (With Safe Max-ID Calculation to Prevent duplicate key error)
     async function executeBatchMinSave() {
       const minNo = document.getElementById('inputMinNo').value.trim();
       const minDate = document.getElementById('inputMinDate').value;
@@ -828,7 +824,7 @@
       }
 
       // ==========================================
-      // CASE A: 🌟 BALANCE MIN MODE (INSERT NEW ROW)
+      // CASE A: 🌟 BALANCE MIN MODE (SAFE INSERT NEW ROW)
       // ==========================================
       if (isBalanceMinMode) {
         if (!selectedSapMasterItem) {
@@ -847,10 +843,24 @@
         if (!confirm(confirmMsg)) return;
 
         saveBtn.disabled = true;
-        saveBtn.innerText = "⏳ Inserting new BALANCE MIN row to mto...";
+        saveBtn.innerText = "⏳ Finding next ID and inserting to mto...";
 
         try {
+          // 🟢 1. Calculate Maximum ID currently in 'mto' table
+          const { data: maxRows, error: maxErr } = await db
+            .from('mto')
+            .select('id')
+            .order('id', { ascending: false })
+            .limit(1);
+
+          let nextId = 1;
+          if (maxRows && maxRows.length > 0 && maxRows[0].id) {
+            nextId = Number(maxRows[0].id) + 1;
+          }
+
+          // 🟢 2. Build payload with explicit nextId (Guarantees NO duplicate key error)
           const newRowPayload = {
+            id: nextId,
             Spool_number: null,
             Drawing_no: null,
             MAT_SAP_CODE: selectedSapMasterItem.sap,
@@ -867,7 +877,7 @@
           const { error: insErr } = await db.from('mto').insert([newRowPayload]);
           if (insErr) throw insErr;
 
-          alert(`🎉 સફળતાપૂર્વક 'mto' ટેબલમાં નવી રો (Lot No: BALANCE MIN) સાથે ઉમેરાઈ ગઈ છે!\n\nMIN No: ${minNo} | Qty: ${inputVal}`);
+          alert(`🎉 સફળતાપૂર્વક 'mto' ટેબલમાં નવી રો (ID: ${nextId}, Lot No: BALANCE MIN) સાથે ઉમેરાઈ ગઈ છે!\n\nMIN No: ${minNo} | Qty: ${inputVal}`);
           window.location.reload();
 
         } catch (err) {
