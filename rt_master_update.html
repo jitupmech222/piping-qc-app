@@ -300,14 +300,19 @@
               <option value="ACCEPTED">ACCEPTED</option>
               <option value="REPAIR">REPAIR</option>
               <option value="REJECTED">REJECTED</option>
+              <option value="CRS">CRS</option>
+              <option value="RS">RS</option>
+              <option value="RT">RT</option>
+              <option value="FRS">FRS</option>
+              <option value="GRS">GRS</option>
             </select>
           </div>
         </div>
 
         <!-- 🌟 Conditional Repair Box -->
         <div class="repair-box" id="m1_repairBox">
-          <div class="repair-title"><span>⚠️</span><span>Repair Details Required</span></div>
-          <label style="color:#9a3412;">Enter Repair Observation:</label>
+          <div class="repair-title"><span>⚠️</span><span>Repair / Reshoot Details Required</span></div>
+          <label style="color:#9a3412;">Enter Repair / Reshoot Observation:</label>
           <input type="text" id="m1_repair_observation" placeholder="e.g. Porosity, Lack of Penetration, Crack..." style="margin-bottom:0; background:#ffffff;">
         </div>
 
@@ -357,12 +362,17 @@
               <option value="ACCEPTED">ACCEPTED</option>
               <option value="REPAIR">REPAIR</option>
               <option value="REJECTED">REJECTED</option>
+              <option value="CRS">CRS</option>
+              <option value="RS">RS</option>
+              <option value="RT">RT</option>
+              <option value="FRS">FRS</option>
+              <option value="GRS">GRS</option>
             </select>
           </div>
         </div>
 
         <div class="repair-box" id="m2_repairBox">
-          <div class="repair-title"><span>⚠️</span><span>New Repair Observation</span></div>
+          <div class="repair-title"><span>⚠️</span><span>New Repair / Reshoot Observation</span></div>
           <label style="color:#9a3412;">Enter Updated Observation:</label>
           <input type="text" id="m2_repair_observation" placeholder="e.g. Slag Inclusion, Incomplete Root..." style="margin-bottom:0; background:#ffffff;">
         </div>
@@ -418,12 +428,17 @@
             <option value="ACCEPTED">ACCEPTED</option>
             <option value="REPAIR">REPAIR</option>
             <option value="REJECTED">REJECTED</option>
+            <option value="CRS">CRS</option>
+            <option value="RS">RS</option>
+            <option value="RT">RT</option>
+            <option value="FRS">FRS</option>
+            <option value="GRS">GRS</option>
           </select>
         </div>
       </div>
 
       <div class="repair-box" id="m3_repairBox">
-        <div class="repair-title"><span>⚠️</span><span>WQT Repair Observation</span></div>
+        <div class="repair-title"><span>⚠️</span><span>WQT Repair / Reshoot Observation</span></div>
         <label style="color:#9a3412;">Enter Repair Observation:</label>
         <input type="text" id="m3_repair_observation" placeholder="e.g. Root Defect, Lack of Fusion..." style="margin-bottom:0; background:#ffffff;">
       </div>
@@ -442,8 +457,8 @@
     let activeRtMasterRecord = null;
 
     const THK_MAP = { 0.5: 3.73, 2: 5.54, 4: 6.02, 6: 7.11, 8: 8.18 };
+    const REPAIR_TYPES = ['REPAIR', 'CRS', 'RS', 'FRS', 'GRS'];
 
-    // ઓથેન્ટિકેશન સુરક્ષા ચેક
     function checkAuth() {
       const auth = sessionStorage.getItem('piping_app_auth');
       if (!auth) {
@@ -454,7 +469,6 @@
       return true;
     }
 
-    // ટેબ સ્વિચિંગ
     function switchMode(mode) {
       document.getElementById('tabMode1').classList.toggle('active', mode === 1);
       document.getElementById('tabMode2').classList.toggle('active', mode === 2);
@@ -465,10 +479,9 @@
       document.getElementById('mode3Card').style.display = mode === 3 ? 'block' : 'none';
     }
 
-    // Repair ઓબ્ઝર્વેશન બોક્સ ટોગલ કરવું
     function handleResultChange(mode, res) {
       const box = document.getElementById(`m${mode}_repairBox`);
-      if (res === 'REPAIR') {
+      if (REPAIR_TYPES.includes(res)) {
         box.style.display = 'block';
       } else {
         box.style.display = 'none';
@@ -482,8 +495,7 @@
       const xrVal = document.getElementById('m1_xr_input').value.trim().toUpperCase();
       if (!xrVal) return alert("⚠️ કૃપા કરીને XR No દાખલ કરો!");
 
-      // ૧. rt_master માં ડુપ્લિકેટ ચેક
-      const { data: rtExisting, error: rtErr } = await db
+      const { data: rtExisting } = await db
         .from('rt_master')
         .select('id, xr_no')
         .ilike('xr_no', xrVal);
@@ -492,14 +504,12 @@
         return alert("❌ Duplicate XR No found in RT Master! આ XR No અગાઉથી RT Master માં હાજર છે.");
       }
 
-      // ૨. lhs_entries માંથી રેકોર્ડ ફેચ કરવો
       const { data: lhsRows, error: lhsErr } = await db
         .from('lhs_entries')
         .select('*');
 
       if (lhsErr) return alert("LHS Fetching Error: " + lhsErr.message);
 
-      // કેસ-ઇન્સેન્સિટિવ મેચિંગ
       const matched = lhsRows.find(r => {
         const xr = r.xr_no || r.XR_no || r.XR || r.xr;
         return xr && String(xr).trim().toUpperCase() === xrVal;
@@ -509,7 +519,6 @@
         return alert(`❌ XR No "${xrVal}" LHS Entries માં મળ્યો નથી!`);
       }
 
-      // ફિલ્ડ્સ એક્સટ્રેક્ટ કરવા
       const iso = matched.drawing_no || matched.Drawing_no || matched.ISO || matched.iso || '-';
       const joint = matched.joint_no || matched.Joint_no || matched.joint || '-';
       const size = matched.joint_size || matched.Joint_size || matched.size || matched.Size || 0;
@@ -519,7 +528,6 @@
       const unit = matched.unit || matched.Unit || '-';
       const system = matched.system_ug_ag || matched.system || matched.System || '-';
 
-      // ૩. rt_master માં Duplicate Drawing & Joint ચેક
       const { data: dupJointRows } = await db
         .from('rt_master')
         .select('id')
@@ -532,7 +540,6 @@
 
       activeLhsRecord = { ...matched, iso, joint, size, welder, spool, thk, unit, system, xr_input: xrVal };
 
-      // પ્રીવ્યૂમાં ડેટા બતાવવો
       document.getElementById('m1_disp_iso').innerText = iso;
       document.getElementById('m1_disp_joint').innerText = joint;
       document.getElementById('m1_disp_size').innerText = size;
@@ -555,6 +562,7 @@
 
       if (!repNo || !rtDate) return alert("⚠️ કૃપા કરીને RT Report No અને Date બંને દાખલ કરો!");
 
+      const isRepType = REPAIR_TYPES.includes(rtRes);
       if (rtRes === 'REPAIR' && !obsVal) {
         return alert("⚠️ Joint REPAIR હોવાથી Repair Observation દાખલ કરવું ફરજિયાત છે!");
       }
@@ -575,8 +583,8 @@
         rt_report_no: formattedRepNo,
         rt_date: rtDate,
         final_status: rtRes,
-        repair_1: rtRes === 'REPAIR' ? 'Repair' : null,
-        repair_observation: rtRes === 'REPAIR' ? obsVal : null
+        repair_1: isRepType ? (rtRes === 'REPAIR' ? 'Repair' : rtRes) : null,
+        repair_observation: isRepType && obsVal ? obsVal : null
       };
 
       const btn = document.getElementById('m1_btnSave');
@@ -617,7 +625,6 @@
       const item = rows[0];
       const curStatus = String(item.final_status || '').trim().toUpperCase();
 
-      // સુરક્ષા નિયમ: ACCEPTED કે REJECTED ઓવરરાઈટ નહીં થાય
       if (curStatus === 'ACCEPTED' || curStatus === 'REJECTED') {
         return alert(`❌ Overwriting not allowed!\n\nઆ જોઈન્ટનું સ્ટેટસ અગાઉથી "${curStatus}" છે, તેથી તેને એડિટ કરી શકાય નહીં.`);
       }
@@ -646,6 +653,7 @@
 
       if (!newRep || !newDate) return alert("⚠️ કૃપા કરીને New RT Report No અને Date બંને દાખલ કરો!");
 
+      const isRepType = REPAIR_TYPES.includes(newRes);
       if (newRes === 'REPAIR' && !newObs) {
         return alert("⚠️ New Result REPAIR હોવાથી Repair Observation દાખલ કરવું ફરજિયાત છે!");
       }
@@ -658,8 +666,8 @@
         rt_report_no: combinedReport,
         rt_date: newDate,
         final_status: newRes,
-        repair_1: newRes === 'REPAIR' ? 'Repair' : activeRtMasterRecord.repair_1,
-        repair_observation: newRes === 'REPAIR' ? newObs : activeRtMasterRecord.repair_observation
+        repair_1: isRepType ? (newRes === 'REPAIR' ? 'Repair' : newRes) : activeRtMasterRecord.repair_1,
+        repair_observation: isRepType && newObs ? newObs : activeRtMasterRecord.repair_observation
       };
 
       const btn = document.getElementById('m2_btnSave');
@@ -708,6 +716,7 @@
       if (!wqtNo) return alert("⚠️ કૃપા કરીને WQT No દાખલ કરો!");
       if (!repNo || !rtDate) return alert("⚠️ કૃપા કરીને RT Report No અને Date બંને દાખલ કરો!");
 
+      const isRepType = REPAIR_TYPES.includes(rtRes);
       if (rtRes === 'REPAIR' && !obsVal) {
         return alert("⚠️ Result REPAIR હોવાથી Repair Observation દાખલ કરવું ફરજિયાત છે!");
       }
@@ -729,8 +738,8 @@
         rt_report_no: formattedRepNo,
         rt_date: rtDate,
         final_status: rtRes,
-        repair_1: rtRes === 'REPAIR' ? 'Repair' : null,
-        repair_observation: rtRes === 'REPAIR' ? obsVal : null
+        repair_1: isRepType ? (rtRes === 'REPAIR' ? 'Repair' : rtRes) : null,
+        repair_observation: isRepType && obsVal ? obsVal : null
       };
 
       const btn = document.getElementById('m3_btnSave');
