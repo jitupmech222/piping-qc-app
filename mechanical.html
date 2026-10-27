@@ -16,7 +16,7 @@
       --border-focus: #38bdf8;
       --text-main: #f1f5f9;
       --text-muted: #94a3b8;
-      --text-blue: #38bdf8;       /* 🟢 Glowing Electric Blue Text */
+      --text-blue: #38bdf8;       /* 🟢 Glowing Electric Blue */
       --text-blue-light: #7dd3fc;
       --primary: #0284c7;
       --teal: #0ea5e9;
@@ -252,7 +252,7 @@
     .live-dot { width: 7px; height: 7px; background: #34d399; border-radius: 50%; box-shadow: 0 0 8px #34d399; }
 
     /* =========================================================
-       🟢 CLEAN BLACK WORKFLOW BUTTONS (NO ICONS / NO NUMBERS)
+       🟢 BLACK BUTTONS WITH WHITE TEXT
     ========================================================= */
     .section-header-row {
       display: flex;
@@ -320,16 +320,16 @@
       box-shadow: 0 8px 24px rgba(56, 189, 248, 0.18);
     }
 
-    /* 🟢 TITLE TEXT ONLY: ELECTRIC SKY BLUE */
+    /* 🟢 TITLE TEXT ONLY: WHITE COLOUR */
     .step-title {
       font-size: 15px;
       font-weight: 800;
-      color: #38bdf8;
+      color: #ffffff; /* 🟢 Pure White as requested */
       letter-spacing: 0.6px;
       transition: color 0.2s;
     }
     .workflow-card:hover .step-title {
-      color: #7dd3fc;
+      color: #ffffff;
     }
 
     /* સ્ટેજ મુજબ વિશિષ્ટ લેફ્ટ એક્સેન્ટ પટ્ટી */
@@ -510,7 +510,7 @@
       </div>
     </div>
 
-    <!-- 1. MECHANICAL HUB (CLEAN TEXT ONLY BUTTONS) -->
+    <!-- 1. MECHANICAL HUB (CLEAN WHITE TEXT BUTTONS) -->
     <div id="mechHub">
       <div class="section-header-row">
         <h3 class="section-header-title">Mechanical Workflows</h3>
@@ -650,6 +650,16 @@
     let selectedQueue = [];
     let cumulativeRows = [];
     let allRecordsCache = [];
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      if (str === '' || str.toLowerCase() === 'null') return '-';
+      const dPart = str.includes('T') ? str.split('T')[0] : str;
+      const parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
 
     function checkSessionAuth() {
       const sessionData = sessionStorage.getItem('piping_app_auth');
@@ -946,13 +956,39 @@
       dropdown.style.display = 'block';
     }
 
+    /* 🟢 COMPLETE SPOOL LIVE TRACKER (ALL 6 STAGES POPULATED) */
     function openSpoolTrackerModal(id) {
       const item = allRecordsCache.find(r => r.id === id);
       if (!item) return;
+
       document.getElementById('globalSpoolDropdown').style.display = 'none';
+      document.getElementById('globalSpoolSearchInput').value = item.Spool_number || '';
+
       document.getElementById('modalTrackSpoolNo').innerText = `Spool: ${item.Spool_number || 'N/A'}`;
       document.getElementById('modalTrackDwgNo').innerText = `Drawing: ${item.Drawing_no || '-'}`;
       document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend: ${item.Bend_qty || '0'}`;
+
+      const stages = [
+        { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
+        { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
+        { no: '03', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
+        { no: '04', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
+        { no: '05', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
+        { no: '06', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
+      ];
+
+      document.getElementById('modalTimelineList').innerHTML = stages.map(s => `
+        <div class="timeline-card ${s.done ? 'status-completed' : 'status-hold'}">
+          <div>
+            <span style="font-size: 13.5px; color: ${s.done ? '#f1f5f9' : '#e2e8f0'};"><b>${s.no}. ${s.title}</b></span>
+            <div style="font-size: 12px; margin-top: 3px; color: ${s.done ? '#34d399' : '#fb923c'}; font-weight: 500;">
+              ${s.done ? s.detail : 'Stage Pending / Not Reached'}
+            </div>
+          </div>
+          <span class="stage-badge-tag ${s.done ? 'tag-completed' : 'tag-hold'}">${s.done ? 'COMPLETED' : 'HOLD / PENDING'}</span>
+        </div>
+      `).join('');
+
       document.getElementById('spoolTrackerModal').style.display = 'flex';
     }
 
