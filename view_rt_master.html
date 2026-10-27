@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RT Master Register | PipeFlow Sys</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Excel Export Library -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --navy: #0b1329;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --green: #16a34a;
+      --amber: #d97706;
+      --red: #dc2626;
+      --purple: #7c3aed;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP NAVBAR */
+    .top-navbar {
+      background: var(--navy);
+      color: white;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .top-navbar-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-nav {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-nav:hover { background: #f8fafc; color: var(--primary); }
+
+    /* WORKSPACE */
+    .workspace {
+      flex: 1;
+      width: 100%;
+      padding: 20px 28px;
+    }
+
+    /* KPI METRICS ROW */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    }
+    .kpi-card span { font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-card h3 { font-size: 24px; font-weight: 800; margin-top: 4px; color: #0f172a; }
+
+    /* CONTROLS & FILTER BAR */
+    .control-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .search-filter-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .search-box {
+      position: relative;
+      min-width: 320px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 9px 14px 9px 36px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); }
+    .search-box .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    select.filter-select {
+      padding: 9px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      background: #ffffff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-export-excel {
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-export-excel:hover { background: #15803d; }
+
+    .btn-add-new {
+      background: var(--purple);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-add-new:hover { background: #6d28d9; }
+
+    /* DATA TABLE CONTAINER */
+    .table-container {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+      overflow-x: auto;
+      max-height: 65vh;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      text-align: center;
+    }
+
+    tr:nth-child(even) td { background: #f8fafc; }
+    tr:hover td { background: #f0fdf4; }
+
+    /* STATUS BADGES */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+    .badge-accepted { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .badge-repair { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    /* TABLE ACTION BUTTONS */
+    .btn-tbl-action {
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 4px;
+    }
+    .btn-tbl-view { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .btn-tbl-view:hover { background: #dbeafe; }
+    .btn-tbl-edit { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .btn-tbl-edit:hover { background: #fde68a; }
+
+    /* =========================================================
+       MODALS (VIEW & EDIT)
+    ========================================================= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 680px;
+      border-radius: 16px;
+      padding: 26px 30px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+    }
+    .modal-header h3 { font-size: 18px; font-weight: 800; color: #0f172a; }
+    .btn-close-modal { background: #f1f5f9; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+    .modal-grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .modal-grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 5px; }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+
+    .view-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+    }
+    .view-row span { color: var(--text-muted); font-weight: 600; }
+    .view-row b { color: #0f172a; }
+
+    .btn-save-edit {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    }
+    .btn-save-edit:hover { background: var(--primary-dark); }
+
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .search-box { min-width: 100%; }
+      .modal-grid-2col, .modal-grid-3col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="top-navbar">
+    <div class="top-navbar-title">
+      <span>📊</span>
+      <span>RT MASTER REGISTER & INVENTORY</span>
+    </div>
+    <div class="nav-actions">
+      <a href="rt_master_update.html" class="btn-nav"><span>➕</span><span>Update RT Master</span></a>
+      <a href="index.html?tab=qaqc" class="btn-nav"><span>⬅️</span><span>Back to QA/QC</span></a>
+    </div>
+  </header>
+
+  <main class="workspace">
+
+    <!-- KPI Summary Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span>Total Tested Joints</span>
+        <h3 id="kpiTotal">0</h3>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid #16a34a;">
+        <span style="color:#16a34a;">Accepted (PASS)</span>
+        <h3 id="kpiAccepted" style="color:#16a34a;">0</h3>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid #d97706;">
+        <span style="color:#d97706;">Repair Joints</span>
+        <h3 id="kpiRepair" style="color:#d97706;">0</h3>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid #dc2626;">
+        <span style="color:#dc2626;">Rejected Joints</span>
+        <h3 id="kpiRejected" style="color:#dc2626;">0</h3>
+      </div>
+      <div class="kpi-card" style="border-left: 4px solid #0284c7;">
+        <span style="color:#0284c7;">Total Inch-Dia</span>
+        <h3 id="kpiTotalInch" style="color:#0284c7;">0.00</h3>
+      </div>
+    </div>
+
+    <!-- Filter & Export Controls -->
+    <div class="control-panel">
+      <div class="search-filter-group">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="globalFilterInput" placeholder="Search XR No, ISO, Joint, Welder, Report No..." oninput="filterTableData()">
+        </div>
+
+        <select id="statusFilter" class="filter-select" onchange="filterTableData()">
+          <option value="ALL">Status: All Results</option>
+          <option value="ACCEPTED">ACCEPTED Only</option>
+          <option value="REPAIR">REPAIR Only</option>
+          <option value="REJECTED">REJECTED Only</option>
+        </select>
+
+        <select id="sizeFilter" class="filter-select" onchange="filterTableData()">
+          <option value="ALL">Size: All Sizes</option>
+        </select>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" class="btn-export-excel" onclick="exportRtMasterToExcel()">
+          <span>📥</span><span>Download Excel (Export)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">Sr.</th>
+            <th style="width:120px;">Actions</th>
+            <th>Status</th>
+            <th>XR No</th>
+            <th>RT Report No</th>
+            <th>RT Date</th>
+            <th>Drawing No (ISO)</th>
+            <th>Joint No</th>
+            <th>Size (Inch)</th>
+            <th>THK (mm)</th>
+            <th>Welder No</th>
+            <th>Spool No</th>
+            <th>Connection</th>
+            <th>Unit</th>
+            <th>System</th>
+            <th>Repair</th>
+            <th>Repair Observation</th>
+            <th>Remarks</th>
+            <th>Bill</th>
+          </tr>
+        </thead>
+        <tbody id="rtMasterTableBody">
+          <tr><td colspan="19" style="text-align:center; padding:30px; color:#64748b;">⏳ Loading RT Master records from Supabase...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- =========================================================
+       👁️ VIEW MODAL
+  ========================================================= -->
+  <div id="viewModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🔍 Joint RT Inspection Details</h3>
+        <button class="btn-close-modal" onclick="closeModal('viewModal')">✕</button>
+      </div>
+      <div id="viewModalContent"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       ✏️ EDIT & UPDATE MODAL
+  ========================================================= -->
+  <div id="editModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>✏️ Edit / Update RT Master Record</h3>
+        <button class="btn-close-modal" onclick="closeModal('editModal')">✕</button>
+      </div>
+
+      <form id="editForm" onsubmit="submitRecordUpdate(event)">
+        <input type="hidden" id="edit_id">
+
+        <div class="modal-grid-2col">
+          <div class="form-group">
+            <label>Drawing No (ISO):</label>
+            <input type="text" id="edit_drawing_no" readonly style="background:#f1f5f9;">
+          </div>
+          <div class="form-group">
+            <label>Joint No:</label>
+            <input type="text" id="edit_joint_no" readonly style="background:#f1f5f9;">
+          </div>
+        </div>
+
+        <div class="modal-grid-3col">
+          <div class="form-group">
+            <label>XR No:</label>
+            <input type="text" id="edit_xr_no" required>
+          </div>
+          <div class="form-group">
+            <label>Joint Size (Inch):</label>
+            <input type="number" step="any" id="edit_joint_size">
+          </div>
+          <div class="form-group">
+            <label>Thickness (THK):</label>
+            <input type="number" step="any" id="edit_thk">
+          </div>
+        </div>
+
+        <div class="modal-grid-3col">
+          <div class="form-group">
+            <label>Welder No:</label>
+            <input type="text" id="edit_welder_no">
+          </div>
+          <div class="form-group">
+            <label>RT Report No:</label>
+            <input type="text" id="edit_rt_report_no" required>
+          </div>
+          <div class="form-group">
+            <label>RT Date:</label>
+            <input type="date" id="edit_rt_date" required>
+          </div>
+        </div>
+
+        <div class="modal-grid-2col">
+          <div class="form-group">
+            <label>Final Status:</label>
+            <select id="edit_final_status" onchange="toggleEditRepairBox(this.value)">
+              <option value="ACCEPTED">ACCEPTED</option>
+              <option value="REPAIR">REPAIR</option>
+              <option value="REJECTED">REJECTED</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Repair Flag:</label>
+            <input type="text" id="edit_repair_1" placeholder="e.g. Repair">
+          </div>
+        </div>
+
+        <div class="form-group" id="editRepairObsGroup">
+          <label style="color:#c2410c;">Repair Observation:</label>
+          <input type="text" id="edit_repair_observation" placeholder="e.g. Porosity, Slag Inclusion, Crack...">
+        </div>
+
+        <div class="modal-grid-2col">
+          <div class="form-group">
+            <label>Remarks:</label>
+            <input type="text" id="edit_remarks">
+          </div>
+          <div class="form-group">
+            <label>Bill Reference:</label>
+            <input type="text" id="edit_bill">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save-edit" id="btnSaveEdit">💾 Save Changes to Database</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allRtRecords = [];
+    let currentFilteredRecords = [];
+
+    // ૧. ડેટા લોડિંગ
+    async function loadRtMasterData() {
+      try {
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from('rt_master')
+            .select('*')
+            .order('id', { ascending: false })
+            .range(from, from + 999);
+
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        allRtRecords = allRows;
+        buildSizeFilterOptions();
+        updateKpiMetrics();
+        filterTableData();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('rtMasterTableBody').innerHTML = `
+          <tr><td colspan="19" style="text-align:center; padding:30px; color:#dc2626; font-weight:bold;">
+            ❌ ડેટા લોડ કરવામાં ભૂલ આવી: ${err.message}
+          </td></tr>`;
+      }
+    }
+
+    // ૨. KPI કાર્ડ્સ અપડેટ
+    function updateKpiMetrics() {
+      const total = allRtRecords.length;
+      let acc = 0, rep = 0, rej = 0, totalInch = 0;
+
+      allRtRecords.forEach(r => {
+        const st = String(r.final_status || '').toUpperCase();
+        if (st.includes('ACC')) acc++;
+        else if (st.includes('REP')) rep++;
+        else if (st.includes('REJ')) rej++;
+
+        const size = parseFloat(r.joint_size) || 0;
+        totalInch += size;
+      });
+
+      document.getElementById('kpiTotal').innerText = total.toLocaleString();
+      document.getElementById('kpiAccepted').innerText = acc.toLocaleString();
+      document.getElementById('kpiRepair').innerText = rep.toLocaleString();
+      document.getElementById('kpiRejected').innerText = rej.toLocaleString();
+      document.getElementById('kpiTotalInch').innerText = totalInch.toFixed(2);
+    }
+
+    // ૩. સાઇઝ ફિલ્ટર વિકલ્પો
+    function buildSizeFilterOptions() {
+      const sizeSet = new Set();
+      allRtRecords.forEach(r => {
+        if (r.joint_size !== null && r.joint_size !== undefined && String(r.joint_size).trim() !== '') {
+          sizeSet.add(parseFloat(r.joint_size));
+        }
+      });
+      const sorted = Array.from(sizeSet).sort((a, b) => a - b);
+      const sel = document.getElementById('sizeFilter');
+      sel.innerHTML = '<option value="ALL">Size: All Sizes</option>' + 
+        sorted.map(s => `<option value="${s}">${s}"</option>`).join('');
+    }
+
+    // ૪. લાઈવ ફિલ્ટર અને ટેબલ રેન્ડરિંગ
+    function filterTableData() {
+      const q = document.getElementById('globalFilterInput').value.trim().toLowerCase();
+      const statusFilt = document.getElementById('statusFilter').value;
+      const sizeFilt = document.getElementById('sizeFilter').value;
+
+      currentFilteredRecords = allRtRecords.filter(r => {
+        // Status Filter
+        if (statusFilt !== 'ALL') {
+          const st = String(r.final_status || '').toUpperCase();
+          if (!st.includes(statusFilt)) return false;
+        }
+
+        // Size Filter
+        if (sizeFilt !== 'ALL') {
+          if (parseFloat(r.joint_size) !== parseFloat(sizeFilt)) return false;
+        }
+
+        // Search Query
+        if (q) {
+          const haystack = `${r.xr_no || ''} ${r.drawing_no || ''} ${r.joint_no || ''} ${r.welder_no || ''} ${r.rt_report_no || ''} ${r.spool_no || ''} ${r.repair_observation || ''} ${r.remarks || ''}`.toLowerCase();
+          if (!haystack.includes(q)) return false;
+        }
+
+        return true;
+      });
+
+      renderTable(currentFilteredRecords);
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById('rtMasterTableBody');
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="19" style="text-align:center; padding:30px; color:#64748b; font-weight:bold;">કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map((r, idx) => {
+        const st = String(r.final_status || '-').toUpperCase();
+        let badgeClass = 'badge-accepted';
+        if (st.includes('REP')) badgeClass = 'badge-repair';
+        else if (st.includes('REJ')) badgeClass = 'badge-rejected';
+
+        return `
+          <tr>
+            <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+            <td style="text-align:center;">
+              <button class="btn-tbl-action btn-tbl-view" onclick="openViewModal(${r.id})">👁️ View</button>
+              <button class="btn-tbl-action btn-tbl-edit" onclick="openEditModal(${r.id})">✏️ Edit</button>
+            </td>
+            <td style="text-align:center;"><span class="badge ${badgeClass}">${st}</span></td>
+            <td><b>${r.xr_no || '-'}</b></td>
+            <td><b>${r.rt_report_no || '-'}</b></td>
+            <td style="text-align:center;">${formatDateDisplay(r.rt_date)}</td>
+            <td><b>${r.drawing_no || '-'}</b></td>
+            <td style="text-align:center;"><b>${r.joint_no || '-'}</b></td>
+            <td style="text-align:right;">${r.joint_size !== null ? r.joint_size : '-'}</td>
+            <td style="text-align:right;">${r.thk !== null ? r.thk : '-'}</td>
+            <td style="text-align:center;">${r.welder_no || '-'}</td>
+            <td>${r.spool_no || '-'}</td>
+            <td>${r.con || '-'}</td>
+            <td style="text-align:center;">${r.unit || '-'}</td>
+            <td style="text-align:center;">${r.system_ug_ag || '-'}</td>
+            <td style="text-align:center; color:${r.repair_1 ? '#c2410c' : '#64748b'}; font-weight:bold;">${r.repair_1 || '-'}</td>
+            <td>${r.repair_observation || '-'}</td>
+            <td>${r.remarks || '-'}</td>
+            <td>${r.bill || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ૫. 👁️ View Modal
+    function openViewModal(id) {
+      const item = allRtRecords.find(x => x.id === id);
+      if (!item) return;
+
+      const content = document.getElementById('viewModalContent');
+      content.innerHTML = `
+        <div class="view-row"><span>XR Number:</span><b>${item.xr_no || '-'}</b></div>
+        <div class="view-row"><span>Drawing No (ISO):</span><b>${item.drawing_no || '-'}</b></div>
+        <div class="view-row"><span>Joint No:</span><b>${item.joint_no || '-'}</b></div>
+        <div class="view-row"><span>Spool No:</span><b>${item.spool_no || '-'}</b></div>
+        <div class="view-row"><span>Joint Size:</span><b>${item.joint_size ? item.joint_size + '"' : '-'}</b></div>
+        <div class="view-row"><span>Thickness (THK):</span><b>${item.thk ? item.thk + ' mm' : '-'}</b></div>
+        <div class="view-row"><span>Welder Stamp:</span><b>${item.welder_no || '-'}</b></div>
+        <div class="view-row"><span>Connection:</span><b>${item.con || '-'}</b></div>
+        <div class="view-row"><span>RT Report No:</span><b>${item.rt_report_no || '-'}</b></div>
+        <div class="view-row"><span>RT Date:</span><b>${formatDateDisplay(item.rt_date)}</b></div>
+        <div class="view-row"><span>Final Status:</span><b style="color:${item.final_status === 'ACCEPTED' ? '#16a34a' : '#d97706'};">${item.final_status || '-'}</b></div>
+        <div class="view-row"><span>Repair Flag:</span><b>${item.repair_1 || 'None'}</b></div>
+        <div class="view-row"><span>Repair Observation:</span><b style="color:#c2410c;">${item.repair_observation || '-'}</b></div>
+        <div class="view-row"><span>Plant Unit:</span><b>${item.unit || '-'}</b></div>
+        <div class="view-row"><span>System (UG/AG):</span><b>${item.system_ug_ag || '-'}</b></div>
+        <div class="view-row"><span>Remarks:</span><b>${item.remarks || '-'}</b></div>
+        <div class="view-row"><span>Bill Reference:</span><b>${item.bill || '-'}</b></div>
+      `;
+      document.getElementById('viewModal').style.display = 'flex';
+    }
+
+    // ૬. ✏️ Edit Modal & Update
+    function openEditModal(id) {
+      const item = allRtRecords.find(x => x.id === id);
+      if (!item) return;
+
+      document.getElementById('edit_id').value = item.id;
+      document.getElementById('edit_drawing_no').value = item.drawing_no || '';
+      document.getElementById('edit_joint_no').value = item.joint_no || '';
+      document.getElementById('edit_xr_no').value = item.xr_no || '';
+      document.getElementById('edit_joint_size').value = item.joint_size || '';
+      document.getElementById('edit_thk').value = item.thk || '';
+      document.getElementById('edit_welder_no').value = item.welder_no || '';
+      document.getElementById('edit_rt_report_no').value = item.rt_report_no || '';
+      document.getElementById('edit_rt_date').value = item.rt_date || '';
+      document.getElementById('edit_final_status').value = item.final_status || 'ACCEPTED';
+      document.getElementById('edit_repair_1').value = item.repair_1 || '';
+      document.getElementById('edit_repair_observation').value = item.repair_observation || '';
+      document.getElementById('edit_remarks').value = item.remarks || '';
+      document.getElementById('edit_bill').value = item.bill || '';
+
+      toggleEditRepairBox(item.final_status);
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function toggleEditRepairBox(st) {
+      const repBox = document.getElementById('editRepairObsGroup');
+      if (st === 'REPAIR') {
+        repBox.style.display = 'block';
+        if (!document.getElementById('edit_repair_1').value) {
+          document.getElementById('edit_repair_1').value = 'Repair';
+        }
+      } else {
+        repBox.style.display = 'block'; // accessible if needed
+      }
+    }
+
+    async function submitRecordUpdate(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit_id').value;
+      const btn = document.getElementById('btnSaveEdit');
+
+      const payload = {
+        xr_no: document.getElementById('edit_xr_no').value.trim(),
+        joint_size: parseFloat(document.getElementById('edit_joint_size').value) || null,
+        thk: parseFloat(document.getElementById('edit_thk').value) || null,
+        welder_no: document.getElementById('edit_welder_no').value.trim(),
+        rt_report_no: document.getElementById('edit_rt_report_no').value.trim(),
+        rt_date: document.getElementById('edit_rt_date').value,
+        final_status: document.getElementById('edit_final_status').value,
+        repair_1: document.getElementById('edit_repair_1').value.trim() || null,
+        repair_observation: document.getElementById('edit_repair_observation').value.trim() || null,
+        remarks: document.getElementById('edit_remarks').value.trim() || null,
+        bill: document.getElementById('edit_bill').value.trim() || null
+      };
+
+      btn.disabled = true;
+      btn.innerText = "⏳ Saving Updates...";
+
+      try {
+        const { error } = await db.from('rt_master').update(payload).eq('id', id);
+        if (error) throw error;
+
+        alert("🎉 સફળતાપૂર્વક RT Master રેકોર્ડ અપડેટ થઈ ગયો!");
+        closeModal('editModal');
+        await loadRtMasterData();
+      } catch (err) {
+        console.error(err);
+        alert("❌ અપડેટ કરવામાં એરર આવી: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "💾 Save Changes to Database";
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // ૭. 📥 Export to Excel
+    function exportRtMasterToExcel() {
+      if (currentFilteredRecords.length === 0) {
+        return alert("⚠️ એક્સપોર્ટ કરવા માટે કોઈ ડેટા ઉપલબ્ધ નથી!");
+      }
+
+      const excelData = currentFilteredRecords.map((r, i) => ({
+        "Sr.": i + 1,
+        "Status": r.final_status || '',
+        "XR No": r.xr_no || '',
+        "RT Report No": r.rt_report_no || '',
+        "RT Date": formatDateDisplay(r.rt_date),
+        "Drawing No": r.drawing_no || '',
+        "Joint No": r.joint_no || '',
+        "Joint Size": r.joint_size || '',
+        "THK": r.thk || '',
+        "Welder No": r.welder_no || '',
+        "Spool No": r.spool_no || '',
+        "Connection": r.con || '',
+        "Unit": r.unit || '',
+        "System": r.system_ug_ag || '',
+        "Repair": r.repair_1 || '',
+        "Repair Observation": r.repair_observation || '',
+        "Remarks": r.remarks || '',
+        "Bill": r.bill || ''
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "RT_Master");
+
+      const today = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `RT_Master_Export_${today}.xlsx`);
+    }
+
+    function formatDateDisplay(val) {
+      if (!val) return '-';
+      const str = String(val).trim();
+      const d = str.includes('T') ? str.split('T')[0] : str;
+      const parts = d.split('-');
+      if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      return str;
+    }
+
+    window.addEventListener('DOMContentLoaded', loadRtMasterData);
+  </script>
+</body>
+</html>
