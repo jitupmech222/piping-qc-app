@@ -1423,20 +1423,184 @@
     dropdown.style.display = 'block';
   }
 
+  // 🟢 ૧. તારીખ વ્યવસ્થિત ફોર્મેટ (DD-MM-YYYY) કરવા માટેનું ફંક્શન
+  function formatDateDisplay(val) {
+    if (!val) return '-';
+    const str = String(val).trim();
+    if (str === '' || str.toLowerCase() === 'null') return '-';
+    const dPart = str.includes('T') ? str.split('T')[0] : str;
+    const parts = dPart.split('-');
+    if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return str;
+  }
+
+  // 🟢 ૨. ૬ એ ૬ સ્ટેજની સંપૂર્ણ લાઈવ વિગતો સાથેનું Spool Tracker Modal
   function openSpoolTrackerModal(id) {
     const item = allRecordsCache.find(r => r.id === id);
     if (!item) return;
+
     document.getElementById('globalSpoolDropdown').style.display = 'none';
+    document.getElementById('globalSpoolSearchInput').value = item.Spool_number || '';
+
     document.getElementById('modalTrackSpoolNo').innerText = `Spool: ${item.Spool_number || 'N/A'}`;
     document.getElementById('modalTrackDwgNo').innerText = `Drawing: ${item.Drawing_no || '-'}`;
-    document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend: ${item.Bend_qty || '0'}`;
+    document.getElementById('modalTrackMeta').innerText = `Size: ${item.Spool_size || '-'} | Weld ID: ${item.Weld_id || '-'} | Bend Qty: ${item.Bend_qty || '0'}`;
+
+    const stages = [
+      { no: '01', title: 'ISSUED FOR BENDING', done: Boolean(item.Issued_for_bending), detail: `Date: ${formatDateDisplay(item.Issued_for_bending)}` },
+      { no: '02', title: 'BEND COMPLETED', done: Boolean(item.Bend_date), detail: `Date: ${formatDateDisplay(item.Bend_date)} | Bend Qty: ${item.Bend_qty || '-'}` },
+      { no: '03', title: 'FIT UP COMPLETED', done: Boolean(item.Fit_up_date), detail: `Date: ${formatDateDisplay(item.Fit_up_date)}` },
+      { no: '04', title: 'WELD VISUAL COMPLETED', done: Boolean(item.Weld_visual_date), detail: `Date: ${formatDateDisplay(item.Weld_visual_date)}` },
+      { no: '05', title: 'NDT CLEARANCE', done: Boolean(item.Ndt_clearance), detail: `Date: ${formatDateDisplay(item.Ndt_clearance)}` },
+      { no: '06', title: 'FINAL DISPATCH & DC NO', done: Boolean(item.Fd_date), detail: `Date: ${formatDateDisplay(item.Fd_date)} | DC No: ${item.Shift_dc_no || '-'}` }
+    ];
+
+    document.getElementById('modalTimelineList').innerHTML = stages.map(s => `
+      <div class="timeline-card ${s.done ? 'status-completed' : 'status-hold'}">
+        <div>
+          <span style="font-size: 13.5px;"><b>${s.no}. ${s.title}</b></span>
+          <div style="font-size: 12px; margin-top: 3px; color: ${s.done ? '#15803d' : '#9a3412'}; font-weight: 500;">
+            ${s.done ? s.detail : 'Stage Pending / Not Reached'}
+          </div>
+        </div>
+        <span class="stage-badge-tag ${s.done ? 'tag-completed' : 'tag-hold'}">${s.done ? 'COMPLETED' : 'HOLD / PENDING'}</span>
+      </div>
+    `).join('');
+
     document.getElementById('spoolTrackerModal').style.display = 'flex';
   }
 
-  function closeSpoolTrackerModal() { document.getElementById('spoolTrackerModal').style.display = 'none'; }
+  function closeSpoolTrackerModal() { 
+    document.getElementById('spoolTrackerModal').style.display = 'none'; 
+  }
 
+  // 🟢 ૩. તમામ ૬ ટેબલ્સનો Complete Excel File Download કરતો બેકઅપ કોડ
   async function downloadAllTablesExcelBackup() {
-    alert("બેકઅપ શરૂ થઈ રહ્યું છે...");
+    if (!currentUser || currentUser.username !== 'admin') {
+      return alert("⚠️ માત્ર Admin પાસે જ Full Database Backup લેવાની પરમિશન છે!");
+    }
+
+    if (!confirm("શું તમે તમામ Database Tables નો સંપૂર્ણ બેકઅપ એક જ Excel ફાઇલમાં (અલગ-અલગ Sheet તરીકે) ડાઉનલોડ કરવા માંગો છો?")) return;
+
+    const btn = document.getElementById('btnFullBackupHub');
+    if (btn) btn.disabled = true;
+
+    const tablesToBackup = [
+      { tableName: 'piping_joints', sheetName: 'Master_Piping_Joints' },
+      { tableName: 'Line_list', sheetName: 'Line_List' },
+      { tableName: 'Sap_code', sheetName: 'SAP_Codes' },
+      { tableName: 'mto', sheetName: 'MTO_Register' },
+      { tableName: 'lhs_entries', sheetName: 'LHS_Entries' },
+      { tableName: 'ndt_lots', sheetName: 'NDT_Lots' }
+    ];
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      let totalRecordsBackedUp = 0;
+
+      for (const item of tablesToBackup) {
+        if (btn) btn.innerHTML = `<span>⏳</span><span>Fetching ${item.tableName}... Please wait...</span>`;
+
+        let allRows = [];
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await db
+            .from(item.tableName)
+            .select('*')
+            .order('id', { ascending: true })
+            .range(from, from + 999);
+
+          if (error) {
+            console.warn(`Skipping or error in ${item.tableName}:`, error.message);
+            hasMore = false;
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            from += 1000;
+            if (data.length < 1000) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        const worksheet = workbook.addWorksheet(item.sheetName, {
+          views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
+        });
+
+        if (allRows.length > 0) {
+          totalRecordsBackedUp += allRows.length;
+          const headers = Object.keys(allRows[0]);
+
+          const headerRow = worksheet.addRow(headers);
+          headerRow.height = 24;
+          headerRow.eachCell((cell) => {
+            cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'medium' },
+              right: { style: 'thin' }
+            };
+          });
+
+          allRows.forEach(rowObj => {
+            const rowValues = headers.map(h => {
+              const val = rowObj[h];
+              return (val !== null && val !== undefined) ? val : '';
+            });
+            const dataRow = worksheet.addRow(rowValues);
+            dataRow.height = 19;
+            dataRow.eachCell((cell) => {
+              cell.font = { name: 'Calibri', size: 10.5 };
+              cell.border = {
+                top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+              };
+            });
+          });
+
+          worksheet.columns.forEach((col, idx) => {
+            const headerLen = headers[idx] ? headers[idx].length : 10;
+            col.width = Math.max(headerLen + 6, 15);
+          });
+        } else {
+          worksheet.addRow([`No records found in ${item.tableName}`]);
+        }
+      }
+
+      if (btn) btn.innerHTML = `<span>⏳</span><span>Generating Excel file...</span>`;
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      const today = new Date().toISOString().split('T')[0];
+
+      link.href = URL.createObjectURL(blob);
+      link.download = `Piping_Full_Database_Backup_${today}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      alert(`✅ બેકઅપ પૂર્ણ!\nતમામ ૬ ટેબલ્સના કુલ ${totalRecordsBackedUp} રેકોર્ડ્સ એક જ Excel ફાઇલમાં ડાઉનલોડ થઈ ગયા છે!`);
+
+    } catch (err) {
+      console.error("Backup Error:", err);
+      alert("❌ બેકઅપ લેવામાં ભૂલ આવી: " + err.message);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<span>📥</span><span>Backup All Database Tables (Single Excel File)</span>`;
+      }
+    }
   }
 
   window.addEventListener('DOMContentLoaded', checkSessionAuth);
