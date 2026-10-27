@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RT Master Update Console | PipeFlow Sys</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-dark: #6d28d9;
+      --navy: #0b1329;
+      --card-bg: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --green: #16a34a;
+      --amber: #d97706;
+      --red: #dc2626;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP NAVBAR */
+    .top-navbar {
+      background: var(--navy);
+      color: white;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+
+    .top-navbar-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-back:hover { background: #f8fafc; color: var(--primary); }
+
+    /* WORKSPACE */
+    .workspace {
+      flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 24px auto;
+      padding: 0 20px;
+    }
+
+    /* MODE TABS */
+    .tab-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      padding: 14px;
+      border-radius: 10px;
+      border: 1.5px solid #cbd5e1;
+      background: #ffffff;
+      color: #475569;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .tab-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px 28px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 1.5px solid #f1f5f9;
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13.5px;
+      outline: none;
+      background: #ffffff;
+      transition: border-color 0.2s;
+      margin-bottom: 14px;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    /* PREVIEW INFO BOX */
+    .info-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 18px;
+      display: none;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      font-size: 13px;
+    }
+    .info-item b { color: #0f172a; }
+    .info-item span { color: #64748b; display: block; font-size: 11px; margin-bottom: 2px; }
+
+    /* ACTION BUTTON */
+    .btn-action {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 14.5px;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+      transition: all 0.2s ease;
+      margin-top: 10px;
+    }
+    .btn-action:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-action:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* REPAIR CONDITIONAL BOX */
+    .repair-box {
+      background: #fff7ed;
+      border: 1.5px solid #fdba74;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-top: 6px;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .repair-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #c2410c;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    @media (max-width: 768px) {
+      .tab-container { grid-template-columns: 1fr; }
+      .grid-2col, .grid-3col, .info-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="top-navbar">
+    <div class="top-navbar-title">
+      <span>☢️</span>
+      <span>RT MASTER UPDATE CONSOLE</span>
+    </div>
+    <a href="index.html?tab=qaqc" class="btn-back">⬅️ Back to QA/QC</a>
+  </header>
+
+  <main class="workspace">
+
+    <!-- 3 MODE TABS -->
+    <div class="tab-container">
+      <button class="tab-btn active" id="tabMode1" onclick="switchMode(1)">
+        <span>➕</span> <span>1. NEW ENTRY</span>
+      </button>
+      <button class="tab-btn" id="tabMode2" onclick="switchMode(2)">
+        <span>✏️</span> <span>2. EDIT / RETEST</span>
+      </button>
+      <button class="tab-btn" id="tabMode3" onclick="switchMode(3)">
+        <span>🛠️</span> <span>3. WQT MANUAL</span>
+      </button>
+    </div>
+
+    <!-- ==========================================
+         MODE 1: NEW ENTRY (LHS TO RT MASTER)
+    ========================================== -->
+    <div class="card" id="mode1Card">
+      <div class="card-title"><span>➕</span><span>Mode 1: New Joint RT Entry from LHS</span></div>
+
+      <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:14px;">
+        <div style="flex:1;">
+          <label>Enter XR No:</label>
+          <input type="text" id="m1_xr_input" placeholder="e.g. XR-101" style="margin-bottom:0;" onkeydown="if(event.key==='Enter') searchLhsForXr()">
+        </div>
+        <button type="button" class="btn-action" style="width:auto; padding:10px 20px; margin-top:0;" onclick="searchLhsForXr()">🔍 Fetch</button>
+      </div>
+
+      <!-- Preview from LHS -->
+      <div id="m1_previewBox" class="info-box">
+        <div class="info-grid">
+          <div class="info-item"><span>DRAWING NO (ISO):</span><b id="m1_disp_iso">-</b></div>
+          <div class="info-item"><span>JOINT NO:</span><b id="m1_disp_joint">-</b></div>
+          <div class="info-item"><span>JOINT SIZE:</span><b id="m1_disp_size">-</b></div>
+          <div class="info-item"><span>WELDER NO:</span><b id="m1_disp_welder">-</b></div>
+          <div class="info-item"><span>SPOOL NO:</span><b id="m1_disp_spool">-</b></div>
+          <div class="info-item"><span>THICKNESS (THK):</span><b id="m1_disp_thk">-</b></div>
+        </div>
+      </div>
+
+      <div id="m1_inputsArea" style="display:none;">
+        <div class="grid-3col">
+          <div>
+            <label>Enter RT Report No:</label>
+            <input type="text" id="m1_rep_no" placeholder="e.g. 501">
+          </div>
+          <div>
+            <label>Enter RT Date:</label>
+            <input type="date" id="m1_rt_date">
+          </div>
+          <div>
+            <label>Enter RT Result:</label>
+            <select id="m1_rt_result" onchange="handleResultChange(1, this.value)">
+              <option value="ACCEPTED">ACCEPTED</option>
+              <option value="REPAIR">REPAIR</option>
+              <option value="REJECTED">REJECTED</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 🌟 Conditional Repair Box -->
+        <div class="repair-box" id="m1_repairBox">
+          <div class="repair-title"><span>⚠️</span><span>Repair Details Required</span></div>
+          <label style="color:#9a3412;">Enter Repair Observation:</label>
+          <input type="text" id="m1_repair_observation" placeholder="e.g. Porosity, Lack of Penetration, Crack..." style="margin-bottom:0; background:#ffffff;">
+        </div>
+
+        <button type="button" class="btn-action" id="m1_btnSave" onclick="saveMode1NewEntry()">💾 SAVE TO RT MASTER</button>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         MODE 2: EDIT / RETEST ENTRY
+    ========================================== -->
+    <div class="card" id="mode2Card" style="display:none;">
+      <div class="card-title"><span>✏️</span><span>Mode 2: Edit / Retest Repaired Joint</span></div>
+
+      <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:14px;">
+        <div style="flex:1;">
+          <label>Enter XR No to Edit:</label>
+          <input type="text" id="m2_xr_input" placeholder="e.g. XR-101" style="margin-bottom:0;" onkeydown="if(event.key==='Enter') searchRtMasterForEdit()">
+        </div>
+        <button type="button" class="btn-action" style="width:auto; padding:10px 20px; margin-top:0;" onclick="searchRtMasterForEdit()">🔍 Find Record</button>
+      </div>
+
+      <!-- Preview from RT Master -->
+      <div id="m2_previewBox" class="info-box">
+        <div class="info-grid">
+          <div class="info-item"><span>DRAWING NO:</span><b id="m2_disp_iso">-</b></div>
+          <div class="info-item"><span>JOINT NO:</span><b id="m2_disp_joint">-</b></div>
+          <div class="info-item"><span>SIZE:</span><b id="m2_disp_size">-</b></div>
+          <div class="info-item"><span>CURRENT REPORT:</span><b id="m2_disp_report">-</b></div>
+          <div class="info-item"><span>PREVIOUS DATE:</span><b id="m2_disp_date">-</b></div>
+          <div class="info-item"><span>CURRENT STATUS:</span><b id="m2_disp_status" style="color:#ea580c;">-</b></div>
+        </div>
+      </div>
+
+      <div id="m2_inputsArea" style="display:none;">
+        <div class="grid-3col">
+          <div>
+            <label>Enter New RT Report No:</label>
+            <input type="text" id="m2_new_rep" placeholder="e.g. 540">
+          </div>
+          <div>
+            <label>Enter New RT Date:</label>
+            <input type="date" id="m2_new_date">
+          </div>
+          <div>
+            <label>Enter New RT Result:</label>
+            <select id="m2_new_result" onchange="handleResultChange(2, this.value)">
+              <option value="ACCEPTED">ACCEPTED</option>
+              <option value="REPAIR">REPAIR</option>
+              <option value="REJECTED">REJECTED</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="repair-box" id="m2_repairBox">
+          <div class="repair-title"><span>⚠️</span><span>New Repair Observation</span></div>
+          <label style="color:#9a3412;">Enter Updated Observation:</label>
+          <input type="text" id="m2_repair_observation" placeholder="e.g. Slag Inclusion, Incomplete Root..." style="margin-bottom:0; background:#ffffff;">
+        </div>
+
+        <button type="button" class="btn-action" id="m2_btnSave" onclick="saveMode2EditEntry()">🔄 UPDATE RETEST RECORD</button>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         MODE 3: MANUAL WQT ENTRY
+    ========================================== -->
+    <div class="card" id="mode3Card" style="display:none;">
+      <div class="card-title"><span>🛠️</span><span>Mode 3: Welder Qualification Test (WQT) Manual Entry</span></div>
+
+      <div class="grid-2col">
+        <div>
+          <label>Enter WQT No:</label>
+          <input type="text" id="m3_wqt_no" placeholder="e.g. 711" oninput="updateWqtPreview()">
+        </div>
+        <div>
+          <label>Select Joint Size (Inch):</label>
+          <select id="m3_size" onchange="updateWqtPreview()">
+            <option value="0.5">0.5" (THK: 3.73)</option>
+            <option value="2" selected>2" (THK: 5.54)</option>
+            <option value="4">4" (THK: 6.02)</option>
+            <option value="6">6" (THK: 7.11)</option>
+            <option value="8">8" (THK: 8.18)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live Auto Generated Fields Preview -->
+      <div class="info-box" id="m3_previewBox" style="display:block;">
+        <div class="info-grid">
+          <div class="info-item"><span>DRAWING NO:</span><b id="m3_disp_drawing">MPL/AK/WQT-</b></div>
+          <div class="info-item"><span>WELDER NO:</span><b id="m3_disp_welder">WQT-</b></div>
+          <div class="info-item"><span>CALCULATED THK:</span><b id="m3_disp_thk">5.54</b></div>
+        </div>
+      </div>
+
+      <div class="grid-3col">
+        <div>
+          <label>Enter RT Report No:</label>
+          <input type="text" id="m3_rep_no" placeholder="e.g. 601">
+        </div>
+        <div>
+          <label>Enter RT Date:</label>
+          <input type="date" id="m3_rt_date">
+        </div>
+        <div>
+          <label>Enter RT Result:</label>
+          <select id="m3_rt_result" onchange="handleResultChange(3, this.value)">
+            <option value="ACCEPTED">ACCEPTED</option>
+            <option value="REPAIR">REPAIR</option>
+            <option value="REJECTED">REJECTED</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="repair-box" id="m3_repairBox">
+        <div class="repair-title"><span>⚠️</span><span>WQT Repair Observation</span></div>
+        <label style="color:#9a3412;">Enter Repair Observation:</label>
+        <input type="text" id="m3_repair_observation" placeholder="e.g. Root Defect, Lack of Fusion..." style="margin-bottom:0; background:#ffffff;">
+      </div>
+
+      <button type="button" class="btn-action" id="m3_btnSave" onclick="saveMode3ManualEntry()">💾 SAVE WQT RECORD</button>
+    </div>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4DvhZ0usZv6Jeayd5TOamA_gbQQJ8mt';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let activeLhsRecord = null;
+    let activeRtMasterRecord = null;
+
+    const THK_MAP = { 0.5: 3.73, 2: 5.54, 4: 6.02, 6: 7.11, 8: 8.18 };
+
+    // ઓથેન્ટિકેશન સુરક્ષા ચેક
+    function checkAuth() {
+      const auth = sessionStorage.getItem('piping_app_auth');
+      if (!auth) {
+        alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    // ટેબ સ્વિચિંગ
+    function switchMode(mode) {
+      document.getElementById('tabMode1').classList.toggle('active', mode === 1);
+      document.getElementById('tabMode2').classList.toggle('active', mode === 2);
+      document.getElementById('tabMode3').classList.toggle('active', mode === 3);
+
+      document.getElementById('mode1Card').style.display = mode === 1 ? 'block' : 'none';
+      document.getElementById('mode2Card').style.display = mode === 2 ? 'block' : 'none';
+      document.getElementById('mode3Card').style.display = mode === 3 ? 'block' : 'none';
+    }
+
+    // Repair ઓબ્ઝર્વેશન બોક્સ ટોગલ કરવું
+    function handleResultChange(mode, res) {
+      const box = document.getElementById(`m${mode}_repairBox`);
+      if (res === 'REPAIR') {
+        box.style.display = 'block';
+      } else {
+        box.style.display = 'none';
+      }
+    }
+
+    // ==========================================
+    // 🟢 MODE 1 LOGIC: NEW ENTRY
+    // ==========================================
+    async function searchLhsForXr() {
+      const xrVal = document.getElementById('m1_xr_input').value.trim().toUpperCase();
+      if (!xrVal) return alert("⚠️ કૃપા કરીને XR No દાખલ કરો!");
+
+      // ૧. rt_master માં ડુપ્લિકેટ ચેક
+      const { data: rtExisting, error: rtErr } = await db
+        .from('rt_master')
+        .select('id, xr_no')
+        .ilike('xr_no', xrVal);
+
+      if (rtExisting && rtExisting.length > 0) {
+        return alert("❌ Duplicate XR No found in RT Master! આ XR No અગાઉથી RT Master માં હાજર છે.");
+      }
+
+      // ૨. lhs_entries માંથી રેકોર્ડ ફેચ કરવો
+      const { data: lhsRows, error: lhsErr } = await db
+        .from('lhs_entries')
+        .select('*');
+
+      if (lhsErr) return alert("LHS Fetching Error: " + lhsErr.message);
+
+      // કેસ-ઇન્સેન્સિટિવ મેચિંગ
+      const matched = lhsRows.find(r => {
+        const xr = r.xr_no || r.XR_no || r.XR || r.xr;
+        return xr && String(xr).trim().toUpperCase() === xrVal;
+      });
+
+      if (!matched) {
+        return alert(`❌ XR No "${xrVal}" LHS Entries માં મળ્યો નથી!`);
+      }
+
+      // ફિલ્ડ્સ એક્સટ્રેક્ટ કરવા
+      const iso = matched.drawing_no || matched.Drawing_no || matched.ISO || matched.iso || '-';
+      const joint = matched.joint_no || matched.Joint_no || matched.joint || '-';
+      const size = matched.joint_size || matched.Joint_size || matched.size || matched.Size || 0;
+      const welder = matched.welder_no || matched.Welder_no || matched.welder || '-';
+      const spool = matched.spool_no || matched.Spool_number || matched.spool_unique_no || matched.Unique || '-';
+      const thk = matched.thk || matched.Thk || matched.thickness || 0;
+      const unit = matched.unit || matched.Unit || '-';
+      const system = matched.system_ug_ag || matched.system || matched.System || '-';
+
+      // ૩. rt_master માં Duplicate Drawing & Joint ચેક
+      const { data: dupJointRows } = await db
+        .from('rt_master')
+        .select('id')
+        .eq('drawing_no', iso)
+        .eq('joint_no', joint);
+
+      if (dupJointRows && dupJointRows.length > 0) {
+        return alert(`❌ Duplicate ISO (${iso}) & Joint No (${joint}) Found in RT Master!`);
+      }
+
+      activeLhsRecord = { ...matched, iso, joint, size, welder, spool, thk, unit, system, xr_input: xrVal };
+
+      // પ્રીવ્યૂમાં ડેટા બતાવવો
+      document.getElementById('m1_disp_iso').innerText = iso;
+      document.getElementById('m1_disp_joint').innerText = joint;
+      document.getElementById('m1_disp_size').innerText = size;
+      document.getElementById('m1_disp_welder').innerText = welder;
+      document.getElementById('m1_disp_spool').innerText = spool;
+      document.getElementById('m1_disp_thk').innerText = thk;
+      document.getElementById('m1_previewBox').style.display = 'block';
+
+      document.getElementById('m1_inputsArea').style.display = 'block';
+      document.getElementById('m1_rt_date').value = new Date().toISOString().split('T')[0];
+    }
+
+    async function saveMode1NewEntry() {
+      if (!activeLhsRecord) return alert("⚠️ કૃપા કરીને પહેલા XR No શોધો!");
+
+      const repNo = document.getElementById('m1_rep_no').value.trim();
+      const rtDate = document.getElementById('m1_rt_date').value;
+      const rtRes = document.getElementById('m1_rt_result').value;
+      const obsVal = document.getElementById('m1_repair_observation').value.trim();
+
+      if (!repNo || !rtDate) return alert("⚠️ કૃપા કરીને RT Report No અને Date બંને દાખલ કરો!");
+
+      if (rtRes === 'REPAIR' && !obsVal) {
+        return alert("⚠️ Joint REPAIR હોવાથી Repair Observation દાખલ કરવું ફરજિયાત છે!");
+      }
+
+      const formattedRepNo = repNo.toUpperCase().startsWith('RT-') ? repNo.toUpperCase() : `RT-${repNo}`;
+
+      const payload = {
+        unit: activeLhsRecord.unit,
+        system_ug_ag: activeLhsRecord.system,
+        spool_no: activeLhsRecord.spool,
+        drawing_no: activeLhsRecord.iso,
+        joint_no: activeLhsRecord.joint,
+        con: `${activeLhsRecord.iso}${activeLhsRecord.joint}`,
+        welder_no: activeLhsRecord.welder,
+        joint_size: parseFloat(activeLhsRecord.size) || null,
+        thk: parseFloat(activeLhsRecord.thk) || null,
+        xr_no: activeLhsRecord.xr_input,
+        rt_report_no: formattedRepNo,
+        rt_date: rtDate,
+        final_status: rtRes,
+        repair_1: rtRes === 'REPAIR' ? 'Repair' : null,
+        repair_observation: rtRes === 'REPAIR' ? obsVal : null
+      };
+
+      const btn = document.getElementById('m1_btnSave');
+      btn.disabled = true;
+      btn.innerText = "⏳ Saving to RT Master...";
+
+      try {
+        const { error } = await db.from('rt_master').insert([payload]);
+        if (error) throw error;
+
+        alert(`🎉 સફળતાપૂર્વક RT Master માં રેકોર્ડ ઉમેરાઈ ગયો!\n\nXR No: ${activeLhsRecord.xr_input} | Status: ${rtRes}`);
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("❌ સેવ કરવામાં એરર આવી: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "💾 SAVE TO RT MASTER";
+      }
+    }
+
+    // ==========================================
+    // 🟡 MODE 2 LOGIC: EDIT / RETEST ENTRY
+    // ==========================================
+    async function searchRtMasterForEdit() {
+      const xrVal = document.getElementById('m2_xr_input').value.trim().toUpperCase();
+      if (!xrVal) return alert("⚠️ કૃપા કરીને XR No દાખલ કરો!");
+
+      const { data: rows, error } = await db
+        .from('rt_master')
+        .select('*')
+        .ilike('xr_no', xrVal);
+
+      if (error) return alert("Error: " + error.message);
+      if (!rows || rows.length === 0) {
+        return alert(`❌ XR No "${xrVal}" RT Master માં મળ્યો નથી!`);
+      }
+
+      const item = rows[0];
+      const curStatus = String(item.final_status || '').trim().toUpperCase();
+
+      // સુરક્ષા નિયમ: ACCEPTED કે REJECTED ઓવરરાઈટ નહીં થાય
+      if (curStatus === 'ACCEPTED' || curStatus === 'REJECTED') {
+        return alert(`❌ Overwriting not allowed!\n\nઆ જોઈન્ટનું સ્ટેટસ અગાઉથી "${curStatus}" છે, તેથી તેને એડિટ કરી શકાય નહીં.`);
+      }
+
+      activeRtMasterRecord = item;
+
+      document.getElementById('m2_disp_iso').innerText = item.drawing_no || '-';
+      document.getElementById('m2_disp_joint').innerText = item.joint_no || '-';
+      document.getElementById('m2_disp_size').innerText = item.joint_size || '-';
+      document.getElementById('m2_disp_report').innerText = item.rt_report_no || '-';
+      document.getElementById('m2_disp_date').innerText = item.rt_date || '-';
+      document.getElementById('m2_disp_status').innerText = curStatus || 'REPAIR';
+      document.getElementById('m2_previewBox').style.display = 'block';
+
+      document.getElementById('m2_inputsArea').style.display = 'block';
+      document.getElementById('m2_new_date').value = new Date().toISOString().split('T')[0];
+    }
+
+    async function saveMode2EditEntry() {
+      if (!activeRtMasterRecord) return alert("⚠️ કૃપા કરીને પહેલા રેકોર્ડ શોધો!");
+
+      const newRep = document.getElementById('m2_new_rep').value.trim();
+      const newDate = document.getElementById('m2_new_date').value;
+      const newRes = document.getElementById('m2_new_result').value;
+      const newObs = document.getElementById('m2_repair_observation').value.trim();
+
+      if (!newRep || !newDate) return alert("⚠️ કૃપા કરીને New RT Report No અને Date બંને દાખલ કરો!");
+
+      if (newRes === 'REPAIR' && !newObs) {
+        return alert("⚠️ New Result REPAIR હોવાથી Repair Observation દાખલ કરવું ફરજિયાત છે!");
+      }
+
+      const cleanNewRep = newRep.toUpperCase().startsWith('RT-') ? newRep.toUpperCase() : `RT-${newRep}`;
+      const oldRep = activeRtMasterRecord.rt_report_no || '';
+      const combinedReport = oldRep ? `${oldRep}/${cleanNewRep}` : cleanNewRep;
+
+      const updatePayload = {
+        rt_report_no: combinedReport,
+        rt_date: newDate,
+        final_status: newRes,
+        repair_1: newRes === 'REPAIR' ? 'Repair' : activeRtMasterRecord.repair_1,
+        repair_observation: newRes === 'REPAIR' ? newObs : activeRtMasterRecord.repair_observation
+      };
+
+      const btn = document.getElementById('m2_btnSave');
+      btn.disabled = true;
+      btn.innerText = "⏳ Updating Retest Record...";
+
+      try {
+        const { error } = await db
+          .from('rt_master')
+          .update(updatePayload)
+          .eq('id', activeRtMasterRecord.id);
+
+        if (error) throw error;
+
+        alert(`🎉 સફળતાપૂર્વક Retest Record Update થઈ ગયો!\n\nCombined Report: ${combinedReport}\nStatus: ${newRes}`);
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("❌ અપડેટ કરવામાં એરર આવી: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "🔄 UPDATE RETEST RECORD";
+      }
+    }
+
+    // ==========================================
+    // 🔵 MODE 3 LOGIC: MANUAL WQT ENTRY
+    // ==========================================
+    function updateWqtPreview() {
+      const wqtNo = document.getElementById('m3_wqt_no').value.trim();
+      const sizeVal = parseFloat(document.getElementById('m3_size').value) || 2;
+      const calcThk = THK_MAP[sizeVal] || 5.54;
+
+      document.getElementById('m3_disp_drawing').innerText = wqtNo ? `MPL/AK/WQT-${wqtNo}` : `MPL/AK/WQT-`;
+      document.getElementById('m3_disp_welder').innerText = wqtNo ? `WQT-${wqtNo}` : `WQT-`;
+      document.getElementById('m3_disp_thk').innerText = calcThk;
+    }
+
+    async function saveMode3ManualEntry() {
+      const wqtNo = document.getElementById('m3_wqt_no').value.trim();
+      const sizeVal = parseFloat(document.getElementById('m3_size').value) || 2;
+      const repNo = document.getElementById('m3_rep_no').value.trim();
+      const rtDate = document.getElementById('m3_rt_date').value;
+      const rtRes = document.getElementById('m3_rt_result').value;
+      const obsVal = document.getElementById('m3_repair_observation').value.trim();
+
+      if (!wqtNo) return alert("⚠️ કૃપા કરીને WQT No દાખલ કરો!");
+      if (!repNo || !rtDate) return alert("⚠️ કૃપા કરીને RT Report No અને Date બંને દાખલ કરો!");
+
+      if (rtRes === 'REPAIR' && !obsVal) {
+        return alert("⚠️ Result REPAIR હોવાથી Repair Observation દાખલ કરવું ફરજિયાત છે!");
+      }
+
+      const calcThk = THK_MAP[sizeVal] || 5.54;
+      const formattedRepNo = repNo.toUpperCase().startsWith('RT-') ? repNo.toUpperCase() : `RT-${repNo}`;
+
+      const payload = {
+        unit: "-",
+        system_ug_ag: "-",
+        spool_no: "-",
+        drawing_no: `MPL/AK/WQT-${wqtNo}`,
+        joint_no: "-",
+        con: `MPL/AK/WQT-${wqtNo}-`,
+        welder_no: `WQT-${wqtNo}`,
+        joint_size: sizeVal,
+        thk: calcThk,
+        xr_no: "-",
+        rt_report_no: formattedRepNo,
+        rt_date: rtDate,
+        final_status: rtRes,
+        repair_1: rtRes === 'REPAIR' ? 'Repair' : null,
+        repair_observation: rtRes === 'REPAIR' ? obsVal : null
+      };
+
+      const btn = document.getElementById('m3_btnSave');
+      btn.disabled = true;
+      btn.innerText = "⏳ Saving WQT Record...";
+
+      try {
+        const { error } = await db.from('rt_master').insert([payload]);
+        if (error) throw error;
+
+        alert(`🎉 સફળતાપૂર્વક WQT Record Save થઈ ગયો!\n\nDrawing: MPL/AK/WQT-${wqtNo} | Size: ${sizeVal}" | Status: ${rtRes}`);
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("❌ સેવ કરવામાં એરર આવી: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "💾 SAVE WQT RECORD";
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (checkAuth()) {
+        document.getElementById('m3_rt_date').value = new Date().toISOString().split('T')[0];
+        updateWqtPreview();
+      }
+    });
+  </script>
+</body>
+</html>
