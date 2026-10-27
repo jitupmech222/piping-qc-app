@@ -184,23 +184,6 @@
     }
     .btn-export-excel:hover { background: #15803d; }
 
-    .btn-add-new {
-      background: var(--purple);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-    .btn-add-new:hover { background: #6d28d9; }
-
     /* DATA TABLE CONTAINER */
     .table-container {
       background: #ffffff;
@@ -269,9 +252,7 @@
     .btn-tbl-edit { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
     .btn-tbl-edit:hover { background: #fde68a; }
 
-    /* =========================================================
-       MODALS (VIEW & EDIT)
-    ========================================================= */
+    /* MODALS */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -307,16 +288,8 @@
     .modal-header h3 { font-size: 18px; font-weight: 800; color: #0f172a; }
     .btn-close-modal { background: #f1f5f9; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-    .modal-grid-2col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    .modal-grid-3col {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
+    .modal-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .modal-grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 5px; }
@@ -407,7 +380,7 @@
       <div class="search-filter-group">
         <div class="search-box">
           <span class="search-icon">🔍</span>
-          <input type="text" id="globalFilterInput" placeholder="Search XR No, ISO, Joint, Welder, Report No..." oninput="filterTableData()">
+          <input type="text" id="globalFilterInput" placeholder="Search Spool, ISO, Joint, Welder, XR, Report No..." oninput="filterTableData()">
         </div>
 
         <select id="statusFilter" class="filter-select" onchange="filterTableData()">
@@ -429,26 +402,26 @@
       </div>
     </div>
 
-    <!-- Data Table -->
+    <!-- Data Table (Updated Sequence) -->
     <div class="table-container">
       <table>
         <thead>
           <tr>
             <th style="width:40px;">Sr.</th>
             <th style="width:120px;">Actions</th>
-            <th>Status</th>
+            <th>Unit</th>
+            <th>System</th>
+            <th>Spool No</th>
+            <th>Drawing No</th>
+            <th>Joint No</th>
+            <th>Connection</th>
+            <th>Welder No</th>
+            <th>Joint Size</th>
+            <th>THK</th>
             <th>XR No</th>
             <th>RT Report No</th>
             <th>RT Date</th>
-            <th>Drawing No (ISO)</th>
-            <th>Joint No</th>
-            <th>Size (Inch)</th>
-            <th>THK (mm)</th>
-            <th>Welder No</th>
-            <th>Spool No</th>
-            <th>Connection</th>
-            <th>Unit</th>
-            <th>System</th>
+            <th>Status</th>
             <th>Repair</th>
             <th>Repair Observation</th>
             <th>Remarks</th>
@@ -456,16 +429,14 @@
           </tr>
         </thead>
         <tbody id="rtMasterTableBody">
-          <tr><td colspan="19" style="text-align:center; padding:30px; color:#64748b;">⏳ Loading RT Master records from Supabase...</td></tr>
+          <tr><td colspan="20" style="text-align:center; padding:30px; color:#64748b;">⏳ Loading RT Master records from Supabase...</td></tr>
         </tbody>
       </table>
     </div>
 
   </main>
 
-  <!-- =========================================================
-       👁️ VIEW MODAL
-  ========================================================= -->
+  <!-- VIEW MODAL -->
   <div id="viewModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -476,9 +447,7 @@
     </div>
   </div>
 
-  <!-- =========================================================
-       ✏️ EDIT & UPDATE MODAL
-  ========================================================= -->
+  <!-- EDIT & UPDATE MODAL -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -533,10 +502,15 @@
         <div class="modal-grid-2col">
           <div class="form-group">
             <label>Final Status:</label>
-            <select id="edit_final_status" onchange="toggleEditRepairBox(this.value)">
+            <select id="edit_final_status">
               <option value="ACCEPTED">ACCEPTED</option>
               <option value="REPAIR">REPAIR</option>
               <option value="REJECTED">REJECTED</option>
+              <option value="CRS">CRS</option>
+              <option value="RS">RS</option>
+              <option value="RT">RT</option>
+              <option value="FRS">FRS</option>
+              <option value="GRS">GRS</option>
             </select>
           </div>
           <div class="form-group">
@@ -605,7 +579,7 @@
       } catch (err) {
         console.error(err);
         document.getElementById('rtMasterTableBody').innerHTML = `
-          <tr><td colspan="19" style="text-align:center; padding:30px; color:#dc2626; font-weight:bold;">
+          <tr><td colspan="20" style="text-align:center; padding:30px; color:#dc2626; font-weight:bold;">
             ❌ ડેટા લોડ કરવામાં ભૂલ આવી: ${err.message}
           </td></tr>`;
       }
@@ -619,7 +593,7 @@
       allRtRecords.forEach(r => {
         const st = String(r.final_status || '').toUpperCase();
         if (st.includes('ACC')) acc++;
-        else if (st.includes('REP')) rep++;
+        else if (st.includes('REP') || ['CRS', 'RS', 'FRS', 'GRS'].includes(st)) rep++;
         else if (st.includes('REJ')) rej++;
 
         const size = parseFloat(r.joint_size) || 0;
@@ -633,7 +607,7 @@
       document.getElementById('kpiTotalInch').innerText = totalInch.toFixed(2);
     }
 
-    // ૩. સાઇઝ ફિલ્ટર વિકલ્પો
+    // ૩. સાઇઝ ફિલ્ટર
     function buildSizeFilterOptions() {
       const sizeSet = new Set();
       allRtRecords.forEach(r => {
@@ -647,27 +621,24 @@
         sorted.map(s => `<option value="${s}">${s}"</option>`).join('');
     }
 
-    // ૪. લાઈવ ફિલ્ટર અને ટેબલ રેન્ડરિંગ
+    // ૪. ફિલ્ટર અને ટેબલ રેન્ડરિંગ (Updated Sequence)
     function filterTableData() {
       const q = document.getElementById('globalFilterInput').value.trim().toLowerCase();
       const statusFilt = document.getElementById('statusFilter').value;
       const sizeFilt = document.getElementById('sizeFilter').value;
 
       currentFilteredRecords = allRtRecords.filter(r => {
-        // Status Filter
         if (statusFilt !== 'ALL') {
           const st = String(r.final_status || '').toUpperCase();
           if (!st.includes(statusFilt)) return false;
         }
 
-        // Size Filter
         if (sizeFilt !== 'ALL') {
           if (parseFloat(r.joint_size) !== parseFloat(sizeFilt)) return false;
         }
 
-        // Search Query
         if (q) {
-          const haystack = `${r.xr_no || ''} ${r.drawing_no || ''} ${r.joint_no || ''} ${r.welder_no || ''} ${r.rt_report_no || ''} ${r.spool_no || ''} ${r.repair_observation || ''} ${r.remarks || ''}`.toLowerCase();
+          const haystack = `${r.unit || ''} ${r.system_ug_ag || ''} ${r.spool_no || ''} ${r.drawing_no || ''} ${r.joint_no || ''} ${r.con || ''} ${r.welder_no || ''} ${r.xr_no || ''} ${r.rt_report_no || ''} ${r.repair_observation || ''} ${r.remarks || ''}`.toLowerCase();
           if (!haystack.includes(q)) return false;
         }
 
@@ -680,14 +651,14 @@
     function renderTable(rows) {
       const tbody = document.getElementById('rtMasterTableBody');
       if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="19" style="text-align:center; padding:30px; color:#64748b; font-weight:bold;">કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="20" style="text-align:center; padding:30px; color:#64748b; font-weight:bold;">કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = rows.map((r, idx) => {
         const st = String(r.final_status || '-').toUpperCase();
         let badgeClass = 'badge-accepted';
-        if (st.includes('REP')) badgeClass = 'badge-repair';
+        if (st.includes('REP') || ['CRS', 'RS', 'FRS', 'GRS'].includes(st)) badgeClass = 'badge-repair';
         else if (st.includes('REJ')) badgeClass = 'badge-rejected';
 
         return `
@@ -697,57 +668,57 @@
               <button class="btn-tbl-action btn-tbl-view" onclick="openViewModal(${r.id})">👁️ View</button>
               <button class="btn-tbl-action btn-tbl-edit" onclick="openEditModal(${r.id})">✏️ Edit</button>
             </td>
-            <td style="text-align:center;"><span class="badge ${badgeClass}">${st}</span></td>
-            <td><b>${r.xr_no || '-'}</b></td>
-            <td><b>${r.rt_report_no || '-'}</b></td>
+            <td style="text-align:center;">${r.unit || ''}</td>
+            <td style="text-align:center;">${r.system_ug_ag || ''}</td>
+            <td>${r.spool_no || ''}</td>
+            <td><b>${r.drawing_no || ''}</b></td>
+            <td style="text-align:center;"><b>${r.joint_no || ''}</b></td>
+            <td>${r.con || ''}</td>
+            <td style="text-align:center;">${r.welder_no || ''}</td>
+            <td style="text-align:right;">${r.joint_size !== null && r.joint_size !== undefined ? r.joint_size : ''}</td>
+            <td style="text-align:right;">${r.thk !== null && r.thk !== undefined ? r.thk : ''}</td>
+            <td><b>${r.xr_no || ''}</b></td>
+            <td><b>${r.rt_report_no || ''}</b></td>
             <td style="text-align:center;">${formatDateDisplay(r.rt_date)}</td>
-            <td><b>${r.drawing_no || '-'}</b></td>
-            <td style="text-align:center;"><b>${r.joint_no || '-'}</b></td>
-            <td style="text-align:right;">${r.joint_size !== null ? r.joint_size : '-'}</td>
-            <td style="text-align:right;">${r.thk !== null ? r.thk : '-'}</td>
-            <td style="text-align:center;">${r.welder_no || '-'}</td>
-            <td>${r.spool_no || '-'}</td>
-            <td>${r.con || '-'}</td>
-            <td style="text-align:center;">${r.unit || '-'}</td>
-            <td style="text-align:center;">${r.system_ug_ag || '-'}</td>
-            <td style="text-align:center; color:${r.repair_1 ? '#c2410c' : '#64748b'}; font-weight:bold;">${r.repair_1 || '-'}</td>
-            <td>${r.repair_observation || '-'}</td>
-            <td>${r.remarks || '-'}</td>
-            <td>${r.bill || '-'}</td>
+            <td style="text-align:center;"><span class="badge ${badgeClass}">${st}</span></td>
+            <td style="text-align:center; color:${r.repair_1 ? '#c2410c' : '#64748b'}; font-weight:bold;">${r.repair_1 || ''}</td>
+            <td>${r.repair_observation || ''}</td>
+            <td>${r.remarks || ''}</td>
+            <td>${r.bill || ''}</td>
           </tr>
         `;
       }).join('');
     }
 
-    // ૫. 👁️ View Modal
+    // ૫. View Modal
     function openViewModal(id) {
       const item = allRtRecords.find(x => x.id === id);
       if (!item) return;
 
       const content = document.getElementById('viewModalContent');
       content.innerHTML = `
-        <div class="view-row"><span>XR Number:</span><b>${item.xr_no || '-'}</b></div>
+        <div class="view-row"><span>Unit:</span><b>${item.unit || '-'}</b></div>
+        <div class="view-row"><span>System:</span><b>${item.system_ug_ag || '-'}</b></div>
+        <div class="view-row"><span>Spool No:</span><b>${item.spool_no || '-'}</b></div>
         <div class="view-row"><span>Drawing No (ISO):</span><b>${item.drawing_no || '-'}</b></div>
         <div class="view-row"><span>Joint No:</span><b>${item.joint_no || '-'}</b></div>
-        <div class="view-row"><span>Spool No:</span><b>${item.spool_no || '-'}</b></div>
+        <div class="view-row"><span>Connection:</span><b>${item.con || '-'}</b></div>
+        <div class="view-row"><span>Welder No:</span><b>${item.welder_no || '-'}</b></div>
         <div class="view-row"><span>Joint Size:</span><b>${item.joint_size ? item.joint_size + '"' : '-'}</b></div>
         <div class="view-row"><span>Thickness (THK):</span><b>${item.thk ? item.thk + ' mm' : '-'}</b></div>
-        <div class="view-row"><span>Welder Stamp:</span><b>${item.welder_no || '-'}</b></div>
-        <div class="view-row"><span>Connection:</span><b>${item.con || '-'}</b></div>
+        <div class="view-row"><span>XR No:</span><b>${item.xr_no || '-'}</b></div>
         <div class="view-row"><span>RT Report No:</span><b>${item.rt_report_no || '-'}</b></div>
         <div class="view-row"><span>RT Date:</span><b>${formatDateDisplay(item.rt_date)}</b></div>
-        <div class="view-row"><span>Final Status:</span><b style="color:${item.final_status === 'ACCEPTED' ? '#16a34a' : '#d97706'};">${item.final_status || '-'}</b></div>
-        <div class="view-row"><span>Repair Flag:</span><b>${item.repair_1 || 'None'}</b></div>
+        <div class="view-row"><span>Status:</span><b style="color:${item.final_status === 'ACCEPTED' ? '#16a34a' : '#d97706'};">${item.final_status || '-'}</b></div>
+        <div class="view-row"><span>Repair:</span><b>${item.repair_1 || 'None'}</b></div>
         <div class="view-row"><span>Repair Observation:</span><b style="color:#c2410c;">${item.repair_observation || '-'}</b></div>
-        <div class="view-row"><span>Plant Unit:</span><b>${item.unit || '-'}</b></div>
-        <div class="view-row"><span>System (UG/AG):</span><b>${item.system_ug_ag || '-'}</b></div>
         <div class="view-row"><span>Remarks:</span><b>${item.remarks || '-'}</b></div>
-        <div class="view-row"><span>Bill Reference:</span><b>${item.bill || '-'}</b></div>
+        <div class="view-row"><span>Bill:</span><b>${item.bill || '-'}</b></div>
       `;
       document.getElementById('viewModal').style.display = 'flex';
     }
 
-    // ૬. ✏️ Edit Modal & Update
+    // ૬. Edit Modal & Update
     function openEditModal(id) {
       const item = allRtRecords.find(x => x.id === id);
       if (!item) return;
@@ -767,20 +738,7 @@
       document.getElementById('edit_remarks').value = item.remarks || '';
       document.getElementById('edit_bill').value = item.bill || '';
 
-      toggleEditRepairBox(item.final_status);
       document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function toggleEditRepairBox(st) {
-      const repBox = document.getElementById('editRepairObsGroup');
-      if (st === 'REPAIR') {
-        repBox.style.display = 'block';
-        if (!document.getElementById('edit_repair_1').value) {
-          document.getElementById('edit_repair_1').value = 'Repair';
-        }
-      } else {
-        repBox.style.display = 'block'; // accessible if needed
-      }
     }
 
     async function submitRecordUpdate(e) {
@@ -825,7 +783,7 @@
       document.getElementById(modalId).style.display = 'none';
     }
 
-    // ૭. 📥 Export to Excel
+    // ૭. 📥 Export to Excel (Exact Sequence as Requested)
     function exportRtMasterToExcel() {
       if (currentFilteredRecords.length === 0) {
         return alert("⚠️ એક્સપોર્ટ કરવા માટે કોઈ ડેટા ઉપલબ્ધ નથી!");
@@ -833,19 +791,19 @@
 
       const excelData = currentFilteredRecords.map((r, i) => ({
         "Sr.": i + 1,
-        "Status": r.final_status || '',
+        "Unit": r.unit || '',
+        "System": r.system_ug_ag || '',
+        "Spool No": r.spool_no || '',
+        "Drawing No": r.drawing_no || '',
+        "Joint No": r.joint_no || '',
+        "Connection": r.con || '',
+        "Welder No": r.welder_no || '',
+        "Joint Size": r.joint_size || '',
+        "THK": r.thk || '',
         "XR No": r.xr_no || '',
         "RT Report No": r.rt_report_no || '',
         "RT Date": formatDateDisplay(r.rt_date),
-        "Drawing No": r.drawing_no || '',
-        "Joint No": r.joint_no || '',
-        "Joint Size": r.joint_size || '',
-        "THK": r.thk || '',
-        "Welder No": r.welder_no || '',
-        "Spool No": r.spool_no || '',
-        "Connection": r.con || '',
-        "Unit": r.unit || '',
-        "System": r.system_ug_ag || '',
+        "Status": r.final_status || '',
         "Repair": r.repair_1 || '',
         "Repair Observation": r.repair_observation || '',
         "Remarks": r.remarks || '',
@@ -857,7 +815,7 @@
       XLSX.utils.book_append_sheet(workbook, worksheet, "RT_Master");
 
       const today = new Date().toISOString().split('T')[0];
-      XLSX.writeFile(workbook, `RT_Master_Export_${today}.xlsx`);
+      XLSX.writeFile(workbook, `RT_Master_Register_${today}.xlsx`);
     }
 
     function formatDateDisplay(val) {
