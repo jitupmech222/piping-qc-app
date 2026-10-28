@@ -30,7 +30,6 @@
       flex-direction: column;
     }
 
-    /* TOP NAVBAR */
     .top-navbar {
       background: var(--navy);
       color: white;
@@ -71,7 +70,6 @@
     }
     .btn-back:hover { background: #f8fafc; color: var(--primary); }
 
-    /* WORKSPACE */
     .workspace {
       flex: 1;
       max-width: 900px;
@@ -80,7 +78,6 @@
       padding: 0 20px;
     }
 
-    /* MODE TABS */
     .tab-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -111,7 +108,6 @@
       box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
     }
 
-    /* CARDS */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -157,19 +153,9 @@
       box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
     }
 
-    .grid-2col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 
-    .grid-3col {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-
-    /* PREVIEW INFO BOX */
     .info-box {
       background: #f8fafc;
       border: 1px solid #cbd5e1;
@@ -187,7 +173,6 @@
     .info-item b { color: #0f172a; }
     .info-item span { color: #64748b; display: block; font-size: 11px; margin-bottom: 2px; }
 
-    /* ACTION BUTTON */
     .btn-action {
       background: var(--primary);
       color: white;
@@ -206,7 +191,6 @@
     .btn-action:hover { background: var(--primary-dark); transform: translateY(-1px); }
     .btn-action:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    /* REPAIR CONDITIONAL BOX */
     .repair-box {
       background: #fff7ed;
       border: 1.5px solid #fdba74;
@@ -234,7 +218,6 @@
 </head>
 <body>
 
-  <!-- Top Navbar -->
   <header class="top-navbar">
     <div class="top-navbar-title">
       <span>☢️</span>
@@ -245,7 +228,6 @@
 
   <main class="workspace">
 
-    <!-- 3 MODE TABS -->
     <div class="tab-container">
       <button class="tab-btn active" id="tabMode1" onclick="switchMode(1)">
         <span>➕</span> <span>1. NEW ENTRY</span>
@@ -258,9 +240,7 @@
       </button>
     </div>
 
-    <!-- ==========================================
-         MODE 1: NEW ENTRY (LHS TO RT MASTER)
-    ========================================== -->
+    <!-- MODE 1 -->
     <div class="card" id="mode1Card">
       <div class="card-title"><span>➕</span><span>Mode 1: New Joint RT Entry from LHS</span></div>
 
@@ -272,12 +252,11 @@
         <button type="button" class="btn-action" style="width:auto; padding:10px 20px; margin-top:0;" onclick="searchLhsForXr()">🔍 Fetch</button>
       </div>
 
-      <!-- Preview from LHS -->
       <div id="m1_previewBox" class="info-box">
         <div class="info-grid">
           <div class="info-item"><span>DRAWING NO (ISO):</span><b id="m1_disp_iso">-</b></div>
           <div class="info-item"><span>JOINT NO:</span><b id="m1_disp_joint">-</b></div>
-          <div class="info-item"><span>JOINT SIZE:</span><b id="m1_disp_size">-</b></div>
+          <div class="info-item"><span>JOINT SIZE (NPD):</span><b id="m1_disp_size" style="color:#7c3aed;">-</b></div>
           <div class="info-item"><span>WELDER NO:</span><b id="m1_disp_welder">-</b></div>
           <div class="info-item"><span>SPOOL NO:</span><b id="m1_disp_spool">-</b></div>
           <div class="info-item"><span>THICKNESS (THK):</span><b id="m1_disp_thk">-</b></div>
@@ -309,7 +288,6 @@
           </div>
         </div>
 
-        <!-- 🌟 Conditional Repair Box -->
         <div class="repair-box" id="m1_repairBox">
           <div class="repair-title"><span>⚠️</span><span>Repair / Reshoot Details Required</span></div>
           <label style="color:#9a3412;">Enter Repair / Reshoot Observation:</label>
@@ -320,9 +298,7 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         MODE 2: EDIT / RETEST ENTRY
-    ========================================== -->
+    <!-- MODE 2 -->
     <div class="card" id="mode2Card" style="display:none;">
       <div class="card-title"><span>✏️</span><span>Mode 2: Edit / Retest Repaired Joint</span></div>
 
@@ -334,7 +310,6 @@
         <button type="button" class="btn-action" style="width:auto; padding:10px 20px; margin-top:0;" onclick="searchRtMasterForEdit()">🔍 Find Record</button>
       </div>
 
-      <!-- Preview from RT Master -->
       <div id="m2_previewBox" class="info-box">
         <div class="info-grid">
           <div class="info-item"><span>DRAWING NO:</span><b id="m2_disp_iso">-</b></div>
@@ -381,9 +356,7 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         MODE 3: MANUAL WQT ENTRY
-    ========================================== -->
+    <!-- MODE 3 -->
     <div class="card" id="mode3Card" style="display:none;">
       <div class="card-title"><span>🛠️</span><span>Mode 3: Welder Qualification Test (WQT) Manual Entry</span></div>
 
@@ -404,7 +377,6 @@
         </div>
       </div>
 
-      <!-- Live Auto Generated Fields Preview -->
       <div class="info-box" id="m3_previewBox" style="display:block;">
         <div class="info-grid">
           <div class="info-item"><span>DRAWING NO:</span><b id="m3_disp_drawing">MPL/AK/WQT-</b></div>
@@ -489,7 +461,7 @@
     }
 
     // ==========================================
-    // 🟢 MODE 1 LOGIC: NEW ENTRY
+    // 🟢 MODE 1 LOGIC: NEW ENTRY (POINT-2 APPLIED)
     // ==========================================
     async function searchLhsForXr() {
       const xrVal = document.getElementById('m1_xr_input').value.trim().toUpperCase();
@@ -521,10 +493,14 @@
 
       const iso = matched.drawing_no || matched.Drawing_no || matched.ISO || matched.iso || '-';
       const joint = matched.joint_no || matched.Joint_no || matched.joint || '-';
-      const size = matched.joint_size || matched.Joint_size || matched.size || matched.Size || 0;
+      
+      // 🟢 POINT-2: weld_npd થી Joint Size Fetch કરવું
+      const rawSize = matched.weld_npd !== undefined ? matched.weld_npd : (matched.Weld_npd || matched.joint_size || matched.Joint_size || matched.size || 0);
+      const size = parseFloat(rawSize) || 0;
+
       const welder = matched.welder_no || matched.Welder_no || matched.welder || '-';
       const spool = matched.spool_no || matched.Spool_number || matched.spool_unique_no || matched.Unique || '-';
-      const thk = matched.thk || matched.Thk || matched.thickness || 0;
+      const thk = parseFloat(matched.thk || matched.Thk || matched.thickness || matched.weld_thk || 0) || null;
       const unit = matched.unit || matched.Unit || '-';
       const system = matched.system_ug_ag || matched.system || matched.System || '-';
 
@@ -542,10 +518,10 @@
 
       document.getElementById('m1_disp_iso').innerText = iso;
       document.getElementById('m1_disp_joint').innerText = joint;
-      document.getElementById('m1_disp_size').innerText = size;
+      document.getElementById('m1_disp_size').innerText = size ? `${size}"` : '-';
       document.getElementById('m1_disp_welder').innerText = welder;
       document.getElementById('m1_disp_spool').innerText = spool;
-      document.getElementById('m1_disp_thk').innerText = thk;
+      document.getElementById('m1_disp_thk').innerText = thk || '-';
       document.getElementById('m1_previewBox').style.display = 'block';
 
       document.getElementById('m1_inputsArea').style.display = 'block';
@@ -577,8 +553,8 @@
         joint_no: activeLhsRecord.joint,
         con: `${activeLhsRecord.iso}${activeLhsRecord.joint}`,
         welder_no: activeLhsRecord.welder,
-        joint_size: parseFloat(activeLhsRecord.size) || null,
-        thk: parseFloat(activeLhsRecord.thk) || null,
+        joint_size: activeLhsRecord.size || null,
+        thk: activeLhsRecord.thk || null,
         xr_no: activeLhsRecord.xr_input,
         rt_report_no: formattedRepNo,
         rt_date: rtDate,
@@ -606,7 +582,7 @@
     }
 
     // ==========================================
-    // 🟡 MODE 2 LOGIC: EDIT / RETEST ENTRY
+    // 🟡 MODE 2 LOGIC: EDIT / RETEST (POINT-6 APPLIED)
     // ==========================================
     async function searchRtMasterForEdit() {
       const xrVal = document.getElementById('m2_xr_input').value.trim().toUpperCase();
@@ -633,7 +609,7 @@
 
       document.getElementById('m2_disp_iso').innerText = item.drawing_no || '-';
       document.getElementById('m2_disp_joint').innerText = item.joint_no || '-';
-      document.getElementById('m2_disp_size').innerText = item.joint_size || '-';
+      document.getElementById('m2_disp_size').innerText = item.joint_size ? `${item.joint_size}"` : '-';
       document.getElementById('m2_disp_report').innerText = item.rt_report_no || '-';
       document.getElementById('m2_disp_date').innerText = item.rt_date || '-';
       document.getElementById('m2_disp_status').innerText = curStatus || 'REPAIR';
@@ -658,9 +634,16 @@
         return alert("⚠️ New Result REPAIR હોવાથી Repair Observation દાખલ કરવું ફરજિયાત છે!");
       }
 
-      const cleanNewRep = newRep.toUpperCase().startsWith('RT-') ? newRep.toUpperCase() : `RT-${newRep}`;
-      const oldRep = activeRtMasterRecord.rt_report_no || '';
-      const combinedReport = oldRep ? `${oldRep}/${cleanNewRep}` : cleanNewRep;
+      // 🟢 POINT-6: Clean RT- and format like RT-428/429
+      const cleanNewNumber = newRep.replace(/^RT[-_\s]*/i, '').trim();
+      const oldRep = (activeRtMasterRecord.rt_report_no || '').trim();
+      
+      let combinedReport = '';
+      if (oldRep) {
+        combinedReport = `${oldRep}/${cleanNewNumber}`;
+      } else {
+        combinedReport = `RT-${cleanNewNumber}`;
+      }
 
       const updatePayload = {
         rt_report_no: combinedReport,
