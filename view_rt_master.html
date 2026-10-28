@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RT Master Register | PipeFlow Sys</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Excel Export Library -->
+  <!-- ExcelJS Library for professional Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <!-- SheetJS for reading uploaded Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
@@ -33,7 +35,6 @@
       flex-direction: column;
     }
 
-    /* TOP NAVBAR */
     .top-navbar {
       background: var(--navy);
       color: white;
@@ -80,14 +81,12 @@
     }
     .btn-nav:hover { background: #f8fafc; color: var(--primary); }
 
-    /* WORKSPACE */
     .workspace {
       flex: 1;
       width: 100%;
       padding: 20px 28px;
     }
 
-    /* KPI METRICS ROW */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -105,7 +104,6 @@
     .kpi-card span { font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
     .kpi-card h3 { font-size: 24px; font-weight: 800; margin-top: 4px; color: #0f172a; }
 
-    /* CONTROLS & FILTER BAR */
     .control-panel {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -151,21 +149,11 @@
       font-size: 14px;
     }
 
-    select.filter-select {
-      padding: 9px 12px;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 13px;
-      outline: none;
-      background: #ffffff;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
     .action-buttons {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .btn-export-excel {
@@ -184,7 +172,22 @@
     }
     .btn-export-excel:hover { background: #15803d; }
 
-    /* DATA TABLE CONTAINER */
+    .btn-update-excel {
+      background: #ea580c;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-update-excel:hover { background: #c2410c; }
+
     .table-container {
       background: #ffffff;
       border: 1px solid var(--border);
@@ -196,13 +199,14 @@
 
     table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       font-size: 12.5px;
       text-align: left;
     }
 
     th, td {
-      padding: 10px 14px;
+      padding: 8px 12px;
       border: 1px solid #e2e8f0;
       white-space: nowrap;
     }
@@ -217,10 +221,29 @@
       text-align: center;
     }
 
+    /* Filter Row inside Header (POINT-4) */
+    .filter-header-row th {
+      background: #1e293b;
+      padding: 4px 6px;
+      top: 36px;
+      z-index: 9;
+    }
+
+    .hdr-filter-input {
+      width: 100%;
+      padding: 4px 6px;
+      border: 1px solid #475569;
+      border-radius: 4px;
+      font-size: 11px;
+      background: #0f172a;
+      color: #ffffff;
+      outline: none;
+    }
+    .hdr-filter-input:focus { border-color: #38bdf8; }
+
     tr:nth-child(even) td { background: #f8fafc; }
     tr:hover td { background: #f0fdf4; }
 
-    /* STATUS BADGES */
     .badge {
       display: inline-block;
       padding: 3px 10px;
@@ -234,7 +257,6 @@
     .badge-repair { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
     .badge-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
-    /* TABLE ACTION BUTTONS */
     .btn-tbl-action {
       border: none;
       padding: 4px 10px;
@@ -337,7 +359,6 @@
 </head>
 <body>
 
-  <!-- Top Navbar -->
   <header class="top-navbar">
     <div class="top-navbar-title">
       <span>📊</span>
@@ -375,37 +396,34 @@
       </div>
     </div>
 
-    <!-- Filter & Export Controls -->
+    <!-- Control Bar -->
     <div class="control-panel">
       <div class="search-filter-group">
         <div class="search-box">
           <span class="search-icon">🔍</span>
-          <input type="text" id="globalFilterInput" placeholder="Search Spool, ISO, Joint, Welder, XR, Report No..." oninput="filterTableData()">
+          <input type="text" id="globalFilterInput" placeholder="Quick Search Spool, ISO, Joint, Welder, XR, Report..." oninput="filterTableData()">
         </div>
-
-        <select id="statusFilter" class="filter-select" onchange="filterTableData()">
-          <option value="ALL">Status: All Results</option>
-          <option value="ACCEPTED">ACCEPTED Only</option>
-          <option value="REPAIR">REPAIR Only</option>
-          <option value="REJECTED">REJECTED Only</option>
-        </select>
-
-        <select id="sizeFilter" class="filter-select" onchange="filterTableData()">
-          <option value="ALL">Size: All Sizes</option>
-        </select>
+        <button type="button" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;" onclick="clearAllFilters()">❌ Clear Filters</button>
       </div>
 
+      <!-- Action Buttons (POINT-3 & POINT-5) -->
       <div class="action-buttons">
-        <button type="button" class="btn-export-excel" onclick="exportRtMasterToExcel()">
-          <span>📥</span><span>Download Excel (Export)</span>
+        <button type="button" class="btn-export-excel" id="btnExportDynamic" onclick="exportRtMasterToExcel()">
+          <span>📥</span><span id="exportBtnLabel">Download Excel (Export View)</span>
         </button>
+
+        <button type="button" class="btn-update-excel" onclick="document.getElementById('excelFileInput').click()">
+          <span>🔄</span><span>Replace & Update from Excel</span>
+        </button>
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display:none;" onchange="handleExcelUpload(event)">
       </div>
     </div>
 
-    <!-- Data Table (Updated Sequence) -->
+    <!-- Table Container (POINT-1 & POINT-4) -->
     <div class="table-container">
       <table>
         <thead>
+          <!-- Header Labels -->
           <tr>
             <th style="width:40px;">Sr.</th>
             <th style="width:120px;">Actions</th>
@@ -426,6 +444,28 @@
             <th>Repair Observation</th>
             <th>Remarks</th>
             <th>Bill</th>
+          </tr>
+          <!-- 🟢 POINT-4: Header Individual Column Filter Inputs -->
+          <tr class="filter-header-row">
+            <th></th>
+            <th></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Unit" oninput="filterTableData()" id="f_unit"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="System" oninput="filterTableData()" id="f_system"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Spool" oninput="filterTableData()" id="f_spool"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Drawing" oninput="filterTableData()" id="f_drawing"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Joint" oninput="filterTableData()" id="f_joint"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Con" oninput="filterTableData()" id="f_con"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Welder" oninput="filterTableData()" id="f_welder"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Size" oninput="filterTableData()" id="f_size"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="THK" oninput="filterTableData()" id="f_thk"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="XR No" oninput="filterTableData()" id="f_xr"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Report" oninput="filterTableData()" id="f_report"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Date" oninput="filterTableData()" id="f_date"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Status" oninput="filterTableData()" id="f_status"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Repair" oninput="filterTableData()" id="f_repair"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Observation" oninput="filterTableData()" id="f_obs"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Remarks" oninput="filterTableData()" id="f_remarks"></th>
+            <th><input type="text" class="hdr-filter-input" placeholder="Bill" oninput="filterTableData()" id="f_bill"></th>
           </tr>
         </thead>
         <tbody id="rtMasterTableBody">
@@ -548,7 +588,7 @@
     let allRtRecords = [];
     let currentFilteredRecords = [];
 
-    // ૧. ડેટા લોડિંગ
+    // 🟢 POINT-1: TOP TO BOTTOM LOADING (ascending: true)
     async function loadRtMasterData() {
       try {
         let allRows = [];
@@ -559,7 +599,7 @@
           const { data, error } = await db
             .from('rt_master')
             .select('*')
-            .order('id', { ascending: false })
+            .order('id', { ascending: true }) // 🟢 Row 1, Row 2, Row 3 top to bottom
             .range(from, from + 999);
 
           if (error) throw error;
@@ -573,7 +613,7 @@
         }
 
         allRtRecords = allRows;
-        buildSizeFilterOptions();
+        currentFilteredRecords = [...allRtRecords];
         updateKpiMetrics();
         filterTableData();
       } catch (err) {
@@ -585,12 +625,12 @@
       }
     }
 
-    // ૨. KPI કાર્ડ્સ અપડેટ
     function updateKpiMetrics() {
-      const total = allRtRecords.length;
+      const recordsToCount = currentFilteredRecords || [];
+      const total = recordsToCount.length;
       let acc = 0, rep = 0, rej = 0, totalInch = 0;
 
-      allRtRecords.forEach(r => {
+      recordsToCount.forEach(r => {
         const st = String(r.final_status || '').toUpperCase();
         if (st.includes('ACC')) acc++;
         else if (st.includes('REP') || ['CRS', 'RS', 'FRS', 'GRS'].includes(st)) rep++;
@@ -607,45 +647,72 @@
       document.getElementById('kpiTotalInch').innerText = totalInch.toFixed(2);
     }
 
-    // ૩. સાઇઝ ફિલ્ટર
-    function buildSizeFilterOptions() {
-      const sizeSet = new Set();
-      allRtRecords.forEach(r => {
-        if (r.joint_size !== null && r.joint_size !== undefined && String(r.joint_size).trim() !== '') {
-          sizeSet.add(parseFloat(r.joint_size));
-        }
-      });
-      const sorted = Array.from(sizeSet).sort((a, b) => a - b);
-      const sel = document.getElementById('sizeFilter');
-      sel.innerHTML = '<option value="ALL">Size: All Sizes</option>' + 
-        sorted.map(s => `<option value="${s}">${s}"</option>`).join('');
-    }
-
-    // ૪. ફિલ્ટર અને ટેબલ રેન્ડરિંગ (Updated Sequence)
+    // 🟢 POINT-4: HEADER FILTER & QUICK SEARCH ENGINE
     function filterTableData() {
-      const q = document.getElementById('globalFilterInput').value.trim().toLowerCase();
-      const statusFilt = document.getElementById('statusFilter').value;
-      const sizeFilt = document.getElementById('sizeFilter').value;
+      const gQ = (document.getElementById('globalFilterInput').value || '').trim().toLowerCase();
+
+      const f_unit = (document.getElementById('f_unit').value || '').trim().toLowerCase();
+      const f_system = (document.getElementById('f_system').value || '').trim().toLowerCase();
+      const f_spool = (document.getElementById('f_spool').value || '').trim().toLowerCase();
+      const f_drawing = (document.getElementById('f_drawing').value || '').trim().toLowerCase();
+      const f_joint = (document.getElementById('f_joint').value || '').trim().toLowerCase();
+      const f_con = (document.getElementById('f_con').value || '').trim().toLowerCase();
+      const f_welder = (document.getElementById('f_welder').value || '').trim().toLowerCase();
+      const f_size = (document.getElementById('f_size').value || '').trim().toLowerCase();
+      const f_thk = (document.getElementById('f_thk').value || '').trim().toLowerCase();
+      const f_xr = (document.getElementById('f_xr').value || '').trim().toLowerCase();
+      const f_report = (document.getElementById('f_report').value || '').trim().toLowerCase();
+      const f_date = (document.getElementById('f_date').value || '').trim().toLowerCase();
+      const f_status = (document.getElementById('f_status').value || '').trim().toLowerCase();
+      const f_repair = (document.getElementById('f_repair').value || '').trim().toLowerCase();
+      const f_obs = (document.getElementById('f_obs').value || '').trim().toLowerCase();
+      const f_remarks = (document.getElementById('f_remarks').value || '').trim().toLowerCase();
+      const f_bill = (document.getElementById('f_bill').value || '').trim().toLowerCase();
 
       currentFilteredRecords = allRtRecords.filter(r => {
-        if (statusFilt !== 'ALL') {
-          const st = String(r.final_status || '').toUpperCase();
-          if (!st.includes(statusFilt)) return false;
+        // Global Quick Search
+        if (gQ) {
+          const hay = `${r.unit||''} ${r.system_ug_ag||''} ${r.spool_no||''} ${r.drawing_no||''} ${r.joint_no||''} ${r.con||''} ${r.welder_no||''} ${r.xr_no||''} ${r.rt_report_no||''} ${r.repair_observation||''} ${r.remarks||''}`.toLowerCase();
+          if (!hay.includes(gQ)) return false;
         }
 
-        if (sizeFilt !== 'ALL') {
-          if (parseFloat(r.joint_size) !== parseFloat(sizeFilt)) return false;
-        }
-
-        if (q) {
-          const haystack = `${r.unit || ''} ${r.system_ug_ag || ''} ${r.spool_no || ''} ${r.drawing_no || ''} ${r.joint_no || ''} ${r.con || ''} ${r.welder_no || ''} ${r.xr_no || ''} ${r.rt_report_no || ''} ${r.repair_observation || ''} ${r.remarks || ''}`.toLowerCase();
-          if (!haystack.includes(q)) return false;
-        }
+        // Column Specific Filters
+        if (f_unit && !String(r.unit || '').toLowerCase().includes(f_unit)) return false;
+        if (f_system && !String(r.system_ug_ag || '').toLowerCase().includes(f_system)) return false;
+        if (f_spool && !String(r.spool_no || '').toLowerCase().includes(f_spool)) return false;
+        if (f_drawing && !String(r.drawing_no || '').toLowerCase().includes(f_drawing)) return false;
+        if (f_joint && !String(r.joint_no || '').toLowerCase().includes(f_joint)) return false;
+        if (f_con && !String(r.con || '').toLowerCase().includes(f_con)) return false;
+        if (f_welder && !String(r.welder_no || '').toLowerCase().includes(f_welder)) return false;
+        if (f_size && !String(r.joint_size || '').toLowerCase().includes(f_size)) return false;
+        if (f_thk && !String(r.thk || '').toLowerCase().includes(f_thk)) return false;
+        if (f_xr && !String(r.xr_no || '').toLowerCase().includes(f_xr)) return false;
+        if (f_report && !String(r.rt_report_no || '').toLowerCase().includes(f_report)) return false;
+        if (f_date && !formatDateDisplay(r.rt_date).toLowerCase().includes(f_date)) return false;
+        if (f_status && !String(r.final_status || '').toLowerCase().includes(f_status)) return false;
+        if (f_repair && !String(r.repair_1 || '').toLowerCase().includes(f_repair)) return false;
+        if (f_obs && !String(r.repair_observation || '').toLowerCase().includes(f_obs)) return false;
+        if (f_remarks && !String(r.remarks || '').toLowerCase().includes(f_remarks)) return false;
+        if (f_bill && !String(r.bill || '').toLowerCase().includes(f_bill)) return false;
 
         return true;
       });
 
+      // Update Export Button Label dynamically
+      const isFiltered = currentFilteredRecords.length !== allRtRecords.length;
+      document.getElementById('exportBtnLabel').innerText = isFiltered
+        ? `Download Filtered Data (${currentFilteredRecords.length.toLocaleString()})`
+        : `Download All Data (${allRtRecords.length.toLocaleString()})`;
+
+      updateKpiMetrics();
       renderTable(currentFilteredRecords);
+    }
+
+    function clearAllFilters() {
+      document.getElementById('globalFilterInput').value = '';
+      const inputs = document.querySelectorAll('.hdr-filter-input');
+      inputs.forEach(inp => inp.value = '');
+      filterTableData();
     }
 
     function renderTable(rows) {
@@ -690,7 +757,7 @@
       }).join('');
     }
 
-    // ૫. View Modal
+    // VIEW MODAL
     function openViewModal(id) {
       const item = allRtRecords.find(x => x.id === id);
       if (!item) return;
@@ -718,7 +785,7 @@
       document.getElementById('viewModal').style.display = 'flex';
     }
 
-    // ૬. Edit Modal & Update
+    // EDIT MODAL
     function openEditModal(id) {
       const item = allRtRecords.find(x => x.id === id);
       if (!item) return;
@@ -783,39 +850,228 @@
       document.getElementById(modalId).style.display = 'none';
     }
 
-    // ૭. 📥 Export to Excel (Exact Sequence as Requested)
-    function exportRtMasterToExcel() {
-      if (currentFilteredRecords.length === 0) {
-        return alert("⚠️ એક્સપોર્ટ કરવા માટે કોઈ ડેટા ઉપલબ્ધ નથી!");
+    // 🟢 POINT-5: PROFESSIONAL EXCELJS EXPORT (DYNAMIC FILTERED OR ALL DATA)
+    async function exportRtMasterToExcel() {
+      // If filtered, download filtered data. If not filtered, download all data
+      const isFiltered = currentFilteredRecords && currentFilteredRecords.length > 0 && currentFilteredRecords.length !== allRtRecords.length;
+      const exportList = isFiltered ? currentFilteredRecords : allRtRecords;
+
+      if (!exportList || exportList.length === 0) {
+        return alert("⚠️ ડાઉનલોડ કરવા માટે કોઈ ડેટા ઉપલબ્ધ નથી!");
       }
 
-      const excelData = currentFilteredRecords.map((r, i) => ({
-        "Sr.": i + 1,
-        "Unit": r.unit || '',
-        "System": r.system_ug_ag || '',
-        "Spool No": r.spool_no || '',
-        "Drawing No": r.drawing_no || '',
-        "Joint No": r.joint_no || '',
-        "Connection": r.con || '',
-        "Welder No": r.welder_no || '',
-        "Joint Size": r.joint_size || '',
-        "THK": r.thk || '',
-        "XR No": r.xr_no || '',
-        "RT Report No": r.rt_report_no || '',
-        "RT Date": formatDateDisplay(r.rt_date),
-        "Status": r.final_status || '',
-        "Repair": r.repair_1 || '',
-        "Repair Observation": r.repair_observation || '',
-        "Remarks": r.remarks || '',
-        "Bill": r.bill || ''
-      }));
+      const btn = document.getElementById('btnExportDynamic');
+      btn.disabled = true;
+      btn.innerHTML = `<span>⏳</span><span>Generating Excel...</span>`;
 
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "RT_Master");
+      try {
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'PipeFlow Sys';
+        workbook.created = new Date();
 
-      const today = new Date().toISOString().split('T')[0];
-      XLSX.writeFile(workbook, `RT_Master_Register_${today}.xlsx`);
+        const worksheet = workbook.addWorksheet('RT_Master', {
+          views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
+        });
+
+        // Exact Column Headers
+        const columnsConfig = [
+          { header: 'Sr.', key: 'sr', width: 8, align: 'center' },
+          { header: 'Unit', key: 'unit', width: 12, align: 'center' },
+          { header: 'System', key: 'system_ug_ag', width: 12, align: 'center' },
+          { header: 'Spool No', key: 'spool_no', width: 18, align: 'left' },
+          { header: 'Drawing No', key: 'drawing_no', width: 26, align: 'left' },
+          { header: 'Joint No', key: 'joint_no', width: 12, align: 'center' },
+          { header: 'Connection', key: 'con', width: 28, align: 'left' },
+          { header: 'Welder No', key: 'welder_no', width: 14, align: 'center' },
+          { header: 'Joint Size', key: 'joint_size', width: 12, align: 'right' },
+          { header: 'THK', key: 'thk', width: 12, align: 'right' },
+          { header: 'XR No', key: 'xr_no', width: 14, align: 'center' },
+          { header: 'RT Report No', key: 'rt_report_no', width: 20, align: 'center' },
+          { header: 'RT Date', key: 'rt_date', width: 14, align: 'center' },
+          { header: 'Status', key: 'final_status', width: 14, align: 'center' },
+          { header: 'Repair', key: 'repair_1', width: 12, align: 'center' },
+          { header: 'Repair Observation', key: 'repair_observation', width: 24, align: 'left' },
+          { header: 'Remarks', key: 'remarks', width: 20, align: 'left' },
+          { header: 'Bill', key: 'bill', width: 14, align: 'left' }
+        ];
+
+        worksheet.columns = columnsConfig.map(c => ({
+          header: c.header,
+          key: c.key,
+          width: c.width
+        }));
+
+        // Format Header Row
+        const headerRow = worksheet.getRow(1);
+        headerRow.height = 25;
+        headerRow.eachCell((cell) => {
+          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+            left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+            bottom: { style: 'medium', color: { argb: 'FFFFFFFF' } },
+            right: { style: 'thin', color: { argb: 'FF94A3B8' } }
+          };
+        });
+
+        // Insert Rows
+        exportList.forEach((r, idx) => {
+          const rowData = {
+            sr: idx + 1,
+            unit: r.unit || '',
+            system_ug_ag: r.system_ug_ag || '',
+            spool_no: r.spool_no || '',
+            drawing_no: r.drawing_no || '',
+            joint_no: r.joint_no || '',
+            con: r.con || '',
+            welder_no: r.welder_no || '',
+            joint_size: r.joint_size !== null && r.joint_size !== undefined ? r.joint_size : '',
+            thk: r.thk !== null && r.thk !== undefined ? r.thk : '',
+            xr_no: r.xr_no || '',
+            rt_report_no: r.rt_report_no || '',
+            rt_date: formatDateDisplay(r.rt_date),
+            final_status: r.final_status || '',
+            repair_1: r.repair_1 || '',
+            repair_observation: r.repair_observation || '',
+            remarks: r.remarks || '',
+            bill: r.bill || ''
+          };
+
+          const row = worksheet.addRow(rowData);
+          row.height = 20;
+
+          // Alignments & Borders
+          columnsConfig.forEach((cfg, colIdx) => {
+            const cell = row.getCell(colIdx + 1);
+            cell.font = { name: 'Calibri', size: 10.5 };
+            cell.alignment = { vertical: 'middle', horizontal: cfg.align };
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            };
+
+            // Status Styling
+            if (cfg.key === 'final_status') {
+              const val = String(cell.value || '').toUpperCase();
+              if (val.includes('ACC')) cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FF166534' } };
+              else if (val.includes('REP')) cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFB45309' } };
+              else if (val.includes('REJ')) cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FF991B1B' } };
+            }
+          });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const link = document.createElement('a');
+        const today = new Date().toISOString().split('T')[0];
+        const fileName = isFiltered
+          ? `RT_Master_Filtered_Export_${today}.xlsx`
+          : `RT_Master_Complete_Register_${today}.xlsx`;
+
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ એક્સેલ એક્સપોર્ટ કરવામાં ભૂલ આવી: " + err.message);
+      } finally {
+        btn.disabled = false;
+        filterTableData();
+      }
+    }
+
+    // 🟢 POINT-3: REPLACE ALL DATA AND REINSERT FROM EXCEL
+    async function handleExcelUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const confirmMsg = "⚠️ ચેતવણી (WARNING):\n\nઆ પ્રક્રિયાથી RT Master નો તમામ જૂનો ડેટા ડિલીટ થઈ જશે અને પસંદ કરેલી Excel ફાઇલમાંથી નવો ડેટા સંપૂર્ણપણે રી-ઈન્સર્ટ (Reinsert) થશે.\n\nશું તમે ખરેખર આગળ વધવા માંગો છો?";
+      if (!confirm(confirmMsg)) {
+        e.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.SheetNames[0];
+          const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+
+          if (!rawRows || rawRows.length === 0) {
+            return alert("❌ એક્સેલ ફાઇલમાં કોઈ ડેટા મળ્યો નથી!");
+          }
+
+          // Map and clean records
+          const parsedPayload = rawRows.map(r => {
+            const rawDate = r["RT Date"] || r["rt_date"] || null;
+            let finalDate = null;
+            if (rawDate) {
+              if (rawDate instanceof Date) {
+                finalDate = rawDate.toISOString().split('T')[0];
+              } else {
+                const s = String(rawDate).trim();
+                const p = s.split(/[-/]/);
+                if (p.length === 3) {
+                  if (p[0].length === 4) finalDate = `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+                  else finalDate = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                }
+              }
+            }
+
+            return {
+              unit: r["Unit"] || r["unit"] || null,
+              system_ug_ag: r["System"] || r["system_ug_ag"] || null,
+              spool_no: r["Spool No"] || r["spool_no"] || null,
+              drawing_no: r["Drawing No"] || r["drawing_no"] || null,
+              joint_no: r["Joint No"] || r["joint_no"] || null,
+              con: r["Connection"] || r["con"] || null,
+              welder_no: r["Welder No"] || r["welder_no"] || null,
+              joint_size: parseFloat(r["Joint Size"] || r["joint_size"]) || null,
+              thk: parseFloat(r["THK"] || r["thk"]) || null,
+              xr_no: r["XR No"] || r["xr_no"] || null,
+              rt_report_no: r["RT Report No"] || r["rt_report_no"] || null,
+              rt_date: finalDate,
+              final_status: r["Status"] || r["final_status"] || null,
+              repair_1: r["Repair"] || r["repair_1"] || null,
+              repair_observation: r["Repair Observation"] || r["repair_observation"] || null,
+              remarks: r["Remarks"] || r["remarks"] || null,
+              bill: r["Bill"] || r["bill"] || null
+            };
+          });
+
+          // Step 1: Remove All Existing Data
+          const { error: delErr } = await db.from('rt_master').delete().gte('id', 0);
+          if (delErr) throw new Error("Delete Error: " + delErr.message);
+
+          // Step 2: Batch Insert in chunks of 500
+          const chunkSize = 500;
+          for (let i = 0; i < parsedPayload.length; i += chunkSize) {
+            const chunk = parsedPayload.slice(i, i + chunkSize);
+            const { error: insErr } = await db.from('rt_master').insert(chunk);
+            if (insErr) throw new Error("Insert Error: " + insErr.message);
+          }
+
+          alert(`🎉 સફળતાપૂર્વક RT Master નો જૂનો ડેટા સાફ કરીને કુલ ${parsedPayload.length} રેકોર્ડ્સ એક્સેલમાંથી અપડેટ થઈ ગયા!`);
+          e.target.value = '';
+          await loadRtMasterData();
+
+        } catch (err) {
+          console.error(err);
+          alert("❌ ડેટા અપડેટ કરવામાં એરર આવી: " + err.message);
+          e.target.value = '';
+        }
+      };
+      reader.readAsArrayBuffer(file);
     }
 
     function formatDateDisplay(val) {
