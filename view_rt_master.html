@@ -16,13 +16,15 @@
       --navy: #0b1329;
       --card-bg: #ffffff;
       --bg: #f8fafc;
-      --border: #e2e8f0;
+      --border: #cbd5e1;
       --text-main: #0f172a;
       --text-muted: #64748b;
       --green: #16a34a;
-      --amber: #d97706;
+      --green-dark: #15803d;
+      --blue: #0284c7;
+      --blue-dark: #0369a1;
       --red: #dc2626;
-      --purple: #7c3aed;
+      --red-dark: #b91c1c;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -35,10 +37,11 @@
       flex-direction: column;
     }
 
+    /* TOP NAVBAR */
     .top-navbar {
       background: var(--navy);
       color: white;
-      padding: 14px 28px;
+      padding: 12px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -69,7 +72,7 @@
       color: var(--navy);
       border: 1px solid #cbd5e1;
       border-radius: 8px;
-      padding: 7px 16px;
+      padding: 6px 14px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
@@ -84,169 +87,204 @@
     .workspace {
       flex: 1;
       width: 100%;
-      padding: 20px 28px;
+      padding: 16px 24px;
     }
 
+    /* KPI METRICS ROW */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 14px;
-      margin-bottom: 18px;
+      gap: 12px;
+      margin-bottom: 14px;
     }
 
     .kpi-card {
       background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 18px;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03);
     }
-    .kpi-card span { font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .kpi-card h3 { font-size: 24px; font-weight: 800; margin-top: 4px; color: #0f172a; }
+    .kpi-card span { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-card h3 { font-size: 22px; font-weight: 800; margin-top: 4px; color: #0f172a; }
 
-    .control-panel {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px 20px;
-      margin-bottom: 18px;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    /* ACTION BAR - EXACTLY AS IMAGE */
+    .action-bar-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 14px;
-    }
-
-    .search-filter-group {
-      display: flex;
-      align-items: center;
       gap: 12px;
-      flex-wrap: wrap;
-      flex: 1;
+      margin-bottom: 10px;
     }
 
-    .search-box {
-      position: relative;
-      min-width: 320px;
-    }
-    .search-box input {
-      width: 100%;
-      padding: 9px 14px 9px 36px;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 13px;
-      outline: none;
-      transition: all 0.2s;
-    }
-    .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); }
-    .search-box .search-icon {
-      position: absolute;
-      left: 11px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #94a3b8;
-      font-size: 14px;
-    }
-
-    .action-buttons {
+    .action-bar-left {
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
     }
 
-    .btn-export-excel {
-      background: #16a34a;
-      color: white;
+    .badge-summary {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 800;
+    }
+
+    .action-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* BUTTONS AS PER IMAGE */
+    .btn-act {
       border: none;
-      border-radius: 8px;
-      padding: 9px 16px;
-      font-size: 13px;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 12.5px;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       transition: all 0.2s;
     }
-    .btn-export-excel:hover { background: #15803d; }
 
-    .btn-update-excel {
-      background: #ea580c;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
+    .btn-clear {
+      background: #ffffff;
+      color: #334155;
+      border: 1.5px solid #cbd5e1;
+    }
+    .btn-clear:hover { background: #f1f5f9; }
+
+    .btn-export-view {
+      background: var(--green);
+      color: #ffffff;
+    }
+    .btn-export-view:hover { background: var(--green-dark); }
+
+    .btn-download-data {
+      background: var(--blue);
+      color: #ffffff;
+    }
+    .btn-download-data:hover { background: var(--blue-dark); }
+
+    .btn-update-data {
+      background: var(--red);
+      color: #ffffff;
+    }
+    .btn-update-data:hover { background: var(--red-dark); }
+
+    /* PAGINATION ROW */
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 12px;
+      color: #475569;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .pagination-controls {
+      display: flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s;
     }
-    .btn-update-excel:hover { background: #c2410c; }
 
+    .btn-page {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #1e293b;
+    }
+    .btn-page:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* TABLE CONTAINER */
     .table-container {
       background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
       box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-      overflow-x: auto;
-      max-height: 65vh;
+      overflow: auto;
+      max-height: 64vh;
+      position: relative;
     }
 
     table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      font-size: 12.5px;
+      border-collapse: collapse;
+      font-size: 12px;
       text-align: left;
     }
 
     th, td {
-      padding: 8px 12px;
+      padding: 7px 10px;
       border: 1px solid #e2e8f0;
       white-space: nowrap;
     }
 
+    /* HEADER - EXCEL SAAS NAVY BLUE */
     th {
-      background: #0f172a;
+      background: #0284c7;
       color: #ffffff;
       font-weight: 700;
       position: sticky;
       top: 0;
       z-index: 10;
       text-align: center;
+      user-select: none;
     }
 
-    /* Filter Row inside Header (POINT-4) */
-    .filter-header-row th {
-      background: #1e293b;
-      padding: 4px 6px;
-      top: 36px;
-      z-index: 9;
+    .th-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
     }
 
-    .hdr-filter-input {
-      width: 100%;
-      padding: 4px 6px;
-      border: 1px solid #475569;
-      border-radius: 4px;
-      font-size: 11px;
-      background: #0f172a;
+    .btn-filter-icon {
+      background: transparent;
+      border: none;
       color: #ffffff;
-      outline: none;
+      font-size: 10px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      opacity: 0.8;
+      transition: all 0.2s;
     }
-    .hdr-filter-input:focus { border-color: #38bdf8; }
+    .btn-filter-icon:hover {
+      background: rgba(255, 255, 255, 0.25);
+      opacity: 1;
+    }
+    .btn-filter-icon.active {
+      color: #facc15;
+      font-weight: bold;
+      opacity: 1;
+    }
 
     tr:nth-child(even) td { background: #f8fafc; }
     tr:hover td { background: #f0fdf4; }
 
+    /* STATUS BADGES */
     .badge {
       display: inline-block;
-      padding: 3px 10px;
+      padding: 2px 8px;
       border-radius: 999px;
       font-size: 11px;
       font-weight: 800;
@@ -259,20 +297,99 @@
 
     .btn-tbl-action {
       border: none;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      margin-right: 4px;
+      gap: 3px;
+      margin-right: 3px;
     }
     .btn-tbl-view { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-    .btn-tbl-view:hover { background: #dbeafe; }
     .btn-tbl-edit { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-    .btn-tbl-edit:hover { background: #fde68a; }
+
+    /* =========================================================
+       🟢 EXCEL-STYLE MULTI-SELECT CHECKBOX DROPDOWN (AS PER IMAGE)
+    ========================================================= */
+    .filter-dropdown-popup {
+      position: absolute;
+      background: #ffffff;
+      border: 1.5px solid #0284c7;
+      border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.25);
+      width: 250px;
+      z-index: 5000;
+      display: none;
+      padding: 10px;
+      font-size: 12px;
+      color: #1e293b;
+    }
+
+    .filter-popup-search {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 11.5px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .filter-popup-search:focus { border-color: #0284c7; }
+
+    .filter-items-container {
+      max-height: 190px;
+      overflow-y: auto;
+      border: 1px solid #f1f5f9;
+      padding: 4px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .filter-item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11.5px;
+    }
+    .filter-item-row:hover { background: #f1f5f9; }
+    .filter-item-row input[type="checkbox"] { cursor: pointer; }
+    .filter-item-row label { cursor: pointer; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .filter-popup-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-popup-ok {
+      flex: 1;
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-popup-ok:hover { background: #0369a1; }
+
+    .btn-popup-clear {
+      flex: 1;
+      background: #64748b;
+      color: white;
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-popup-clear:hover { background: #475569; }
 
     /* MODALS */
     .modal-overlay {
@@ -280,7 +397,7 @@
       inset: 0;
       background: rgba(15, 23, 42, 0.65);
       backdrop-filter: blur(5px);
-      z-index: 1000;
+      z-index: 6000;
       display: none;
       align-items: center;
       justify-content: center;
@@ -291,8 +408,8 @@
       background: #ffffff;
       width: 100%;
       max-width: 680px;
-      border-radius: 16px;
-      padding: 26px 30px;
+      border-radius: 14px;
+      padding: 24px;
       box-shadow: 0 25px 50px rgba(0,0,0,0.25);
       border: 1px solid var(--border);
       max-height: 90vh;
@@ -304,23 +421,23 @@
       justify-content: space-between;
       align-items: center;
       border-bottom: 2px solid #f1f5f9;
-      padding-bottom: 12px;
-      margin-bottom: 18px;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
     }
-    .modal-header h3 { font-size: 18px; font-weight: 800; color: #0f172a; }
-    .btn-close-modal { background: #f1f5f9; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .modal-header h3 { font-size: 17px; font-weight: 800; color: #0f172a; }
+    .btn-close-modal { background: #f1f5f9; border: none; padding: 5px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-    .modal-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .modal-grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .modal-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 5px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px; }
     .form-group input, .form-group select {
       width: 100%;
-      padding: 9px 12px;
+      padding: 8px 10px;
       border: 1.5px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 13px;
+      border-radius: 6px;
+      font-size: 12.5px;
       outline: none;
     }
     .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
@@ -328,37 +445,31 @@
     .view-row {
       display: flex;
       justify-content: space-between;
-      padding: 9px 0;
+      padding: 8px 0;
       border-bottom: 1px solid #f1f5f9;
-      font-size: 13px;
+      font-size: 12.5px;
     }
     .view-row span { color: var(--text-muted); font-weight: 600; }
     .view-row b { color: #0f172a; }
 
     .btn-save-edit {
       width: 100%;
-      padding: 12px;
+      padding: 11px;
       background: var(--primary);
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
+      border-radius: 6px;
+      font-size: 13.5px;
       font-weight: 800;
       cursor: pointer;
       margin-top: 10px;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
     }
     .btn-save-edit:hover { background: var(--primary-dark); }
-
-    @media (max-width: 900px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .search-box { min-width: 100%; }
-      .modal-grid-2col, .modal-grid-3col { grid-template-columns: 1fr; }
-    }
   </style>
 </head>
 <body>
 
+  <!-- Top Navbar -->
   <header class="top-navbar">
     <div class="top-navbar-title">
       <span>📊</span>
@@ -396,76 +507,119 @@
       </div>
     </div>
 
-    <!-- Control Bar -->
-    <div class="control-panel">
-      <div class="search-filter-group">
-        <div class="search-box">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="globalFilterInput" placeholder="Quick Search Spool, ISO, Joint, Welder, XR, Report..." oninput="filterTableData()">
-        </div>
-        <button type="button" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;" onclick="clearAllFilters()">❌ Clear Filters</button>
+    <!-- 🟢 ACTION BUTTONS BAR EXACTLY MATCHING YOUR IMAGE -->
+    <div class="action-bar-top">
+      <div class="action-bar-left">
+        <span class="badge-summary" id="badgeRowSummary">RT Master (0 Rows)</span>
+        <span class="badge-summary" style="background:#f0fdf4; border-color:#bbf7d0; color:#15803d;" id="badgeInchSummary">Inch Dia Sum: 0.00</span>
       </div>
 
-      <!-- Action Buttons (POINT-3 & POINT-5) -->
-      <div class="action-buttons">
-        <button type="button" class="btn-export-excel" id="btnExportDynamic" onclick="exportRtMasterToExcel()">
-          <span>📥</span><span id="exportBtnLabel">Download Excel (Export View)</span>
+      <div class="action-bar-right">
+        <!-- 1. Clear Filters Button -->
+        <button type="button" class="btn-act btn-clear" onclick="clearAllFilters()">
+          <span>✕</span><span>Clear Filters</span>
         </button>
 
-        <button type="button" class="btn-update-excel" onclick="document.getElementById('excelFileInput').click()">
-          <span>🔄</span><span>Replace & Update from Excel</span>
+        <!-- 2. Export View Button (Green) -->
+        <button type="button" class="btn-act btn-export-view" id="btnExportView" onclick="exportDataToExcel(true)">
+          <span>📥</span><span>Export View</span>
+        </button>
+
+        <!-- 3. Download Data Button (Blue) -->
+        <button type="button" class="btn-act btn-download-data" id="btnDownloadAll" onclick="exportDataToExcel(false)">
+          <span>📥</span><span>Download Data</span>
+        </button>
+
+        <!-- 4. Update Data Button (Red) -->
+        <button type="button" class="btn-act btn-update-data" onclick="document.getElementById('excelFileInput').click()">
+          <span>🔄</span><span>Update Data</span>
         </button>
         <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display:none;" onchange="handleExcelUpload(event)">
       </div>
     </div>
 
-    <!-- Table Container (POINT-1 & POINT-4) -->
-    <div class="table-container">
+    <!-- PAGINATION BAR -->
+    <div class="pagination-bar">
+      <div>
+        <span>Rows per page: </span>
+        <select id="rowsPerPageSelect" onchange="changeRowsPerPage(this.value)" style="padding:3px 6px; border-radius:4px; border:1px solid #cbd5e1; font-weight:bold;">
+          <option value="50">50</option>
+          <option value="100" selected>100</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+          <option value="ALL">All</option>
+        </select>
+        <span style="margin-left: 10px;" id="showingRangeText">Showing 0 - 0 of 0</span>
+      </div>
+
+      <div class="pagination-controls">
+        <button class="btn-page" id="btnFirstPage" onclick="goToPage(1)">|&laquo; First</button>
+        <button class="btn-page" id="btnPrevPage" onclick="goToPage(currentPage - 1)">&lsaquo; Prev</button>
+        <span id="pageIndicatorText" style="padding: 0 4px;">Page 1 of 1</span>
+        <button class="btn-page" id="btnNextPage" onclick="goToPage(currentPage + 1)">Next &rsaquo;</button>
+        <button class="btn-page" id="btnLastPage" onclick="goToPage(totalPages)">Last &raquo;|</button>
+      </div>
+    </div>
+
+    <!-- DATA TABLE WITH FILTER BUTTONS IN HEADERS -->
+    <div class="table-container" id="mainTableContainer">
       <table>
         <thead>
-          <!-- Header Labels -->
           <tr>
             <th style="width:40px;">Sr.</th>
-            <th style="width:120px;">Actions</th>
-            <th>Unit</th>
-            <th>System</th>
-            <th>Spool No</th>
-            <th>Drawing No</th>
-            <th>Joint No</th>
-            <th>Connection</th>
-            <th>Welder No</th>
-            <th>Joint Size</th>
-            <th>THK</th>
-            <th>XR No</th>
-            <th>RT Report No</th>
-            <th>RT Date</th>
-            <th>Status</th>
-            <th>Repair</th>
-            <th>Repair Observation</th>
-            <th>Remarks</th>
-            <th>Bill</th>
-          </tr>
-          <!-- 🟢 POINT-4: Header Individual Column Filter Inputs -->
-          <tr class="filter-header-row">
-            <th></th>
-            <th></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Unit" oninput="filterTableData()" id="f_unit"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="System" oninput="filterTableData()" id="f_system"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Spool" oninput="filterTableData()" id="f_spool"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Drawing" oninput="filterTableData()" id="f_drawing"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Joint" oninput="filterTableData()" id="f_joint"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Con" oninput="filterTableData()" id="f_con"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Welder" oninput="filterTableData()" id="f_welder"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Size" oninput="filterTableData()" id="f_size"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="THK" oninput="filterTableData()" id="f_thk"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="XR No" oninput="filterTableData()" id="f_xr"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Report" oninput="filterTableData()" id="f_report"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Date" oninput="filterTableData()" id="f_date"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Status" oninput="filterTableData()" id="f_status"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Repair" oninput="filterTableData()" id="f_repair"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Observation" oninput="filterTableData()" id="f_obs"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Remarks" oninput="filterTableData()" id="f_remarks"></th>
-            <th><input type="text" class="hdr-filter-input" placeholder="Bill" oninput="filterTableData()" id="f_bill"></th>
+            <th style="width:110px;">Actions</th>
+
+            <th data-col="unit">
+              <div class="th-content"><span>Unit</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'unit')">▼</button></div>
+            </th>
+            <th data-col="system_ug_ag">
+              <div class="th-content"><span>System</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'system_ug_ag')">▼</button></div>
+            </th>
+            <th data-col="spool_no">
+              <div class="th-content"><span>Spool No</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'spool_no')">▼</button></div>
+            </th>
+            <th data-col="drawing_no">
+              <div class="th-content"><span>Drawing No</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'drawing_no')">▼</button></div>
+            </th>
+            <th data-col="joint_no">
+              <div class="th-content"><span>Joint No</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'joint_no')">▼</button></div>
+            </th>
+            <th data-col="con">
+              <div class="th-content"><span>Connection</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'con')">▼</button></div>
+            </th>
+            <th data-col="welder_no">
+              <div class="th-content"><span>Welder No</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'welder_no')">▼</button></div>
+            </th>
+            <th data-col="joint_size">
+              <div class="th-content"><span>Joint Size</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'joint_size')">▼</button></div>
+            </th>
+            <th data-col="thk">
+              <div class="th-content"><span>THK</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'thk')">▼</button></div>
+            </th>
+            <th data-col="xr_no">
+              <div class="th-content"><span>XR No</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'xr_no')">▼</button></div>
+            </th>
+            <th data-col="rt_report_no">
+              <div class="th-content"><span>RT Report No</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'rt_report_no')">▼</button></div>
+            </th>
+            <th data-col="rt_date">
+              <div class="th-content"><span>RT Date</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'rt_date')">▼</button></div>
+            </th>
+            <th data-col="final_status">
+              <div class="th-content"><span>Status</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'final_status')">▼</button></div>
+            </th>
+            <th data-col="repair_1">
+              <div class="th-content"><span>Repair</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'repair_1')">▼</button></div>
+            </th>
+            <th data-col="repair_observation">
+              <div class="th-content"><span>Repair Observation</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'repair_observation')">▼</button></div>
+            </th>
+            <th data-col="remarks">
+              <div class="th-content"><span>Remarks</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'remarks')">▼</button></div>
+            </th>
+            <th data-col="bill">
+              <div class="th-content"><span>Bill</span><button class="btn-filter-icon" onclick="openColumnFilter(event, 'bill')">▼</button></div>
+            </th>
           </tr>
         </thead>
         <tbody id="rtMasterTableBody">
@@ -475,6 +629,20 @@
     </div>
 
   </main>
+
+  <!-- 🟢 DYNAMIC EXCEL FILTER POPUP (EXACTLY AS IMAGE) -->
+  <div id="filterPopup" class="filter-dropdown-popup">
+    <input type="text" id="filterPopupSearch" class="filter-popup-search" placeholder="Search..." oninput="handlePopupSearch(this.value)">
+    <div class="filter-item-row" style="border-bottom: 1px solid #e2e8f0; font-weight: bold;">
+      <input type="checkbox" id="chkSelectAll" onchange="toggleSelectAllInPopup(this.checked)">
+      <label for="chkSelectAll">(Select All)</label>
+    </div>
+    <div class="filter-items-container" id="filterPopupList"></div>
+    <div class="filter-popup-actions">
+      <button type="button" class="btn-popup-ok" onclick="applyPopupFilter()">OK</button>
+      <button type="button" class="btn-popup-clear" onclick="clearCurrentColumnFilter()">Clear</button>
+    </div>
+  </div>
 
   <!-- VIEW MODAL -->
   <div id="viewModal" class="modal-overlay">
@@ -487,7 +655,7 @@
     </div>
   </div>
 
-  <!-- EDIT & UPDATE MODAL -->
+  <!-- EDIT MODAL -->
   <div id="editModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
@@ -588,7 +756,16 @@
     let allRtRecords = [];
     let currentFilteredRecords = [];
 
-    // 🟢 POINT-1: TOP TO BOTTOM LOADING (ascending: true)
+    // Filter state: { colKey: Set of selected values }
+    let activeFilters = {};
+    let currentActiveCol = null;
+
+    // Pagination State
+    let currentPage = 1;
+    let rowsPerPage = 100;
+    let totalPages = 1;
+
+    // 1. DATA LOADING (TOP TO BOTTOM)
     async function loadRtMasterData() {
       try {
         let allRows = [];
@@ -599,7 +776,7 @@
           const { data, error } = await db
             .from('rt_master')
             .select('*')
-            .order('id', { ascending: true }) // 🟢 Row 1, Row 2, Row 3 top to bottom
+            .order('id', { ascending: true })
             .range(from, from + 999);
 
           if (error) throw error;
@@ -614,8 +791,7 @@
 
         allRtRecords = allRows;
         currentFilteredRecords = [...allRtRecords];
-        updateKpiMetrics();
-        filterTableData();
+        applyFilterLogic();
       } catch (err) {
         console.error(err);
         document.getElementById('rtMasterTableBody').innerHTML = `
@@ -625,12 +801,45 @@
       }
     }
 
-    function updateKpiMetrics() {
-      const recordsToCount = currentFilteredRecords || [];
-      const total = recordsToCount.length;
+    // 2. FILTER ENGINE
+    function applyFilterLogic() {
+      currentFilteredRecords = allRtRecords.filter(r => {
+        for (const [colKey, selectedSet] of Object.entries(activeFilters)) {
+          let val = r[colKey];
+          if (colKey === 'rt_date') val = formatDateDisplay(val);
+          val = (val !== null && val !== undefined) ? String(val).trim() : '(Blank)';
+          if (!selectedSet.has(val)) return false;
+        }
+        return true;
+      });
+
+      // Update Column Header Filter Icons Active State
+      document.querySelectorAll('.btn-filter-icon').forEach(btn => {
+        const th = btn.closest('th');
+        const col = th.getAttribute('data-col');
+        if (activeFilters[col]) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      currentPage = 1;
+      updateKpiAndSummary();
+      renderCurrentPage();
+    }
+
+    function clearAllFilters() {
+      activeFilters = {};
+      applyFilterLogic();
+    }
+
+    function updateKpiAndSummary() {
+      const records = currentFilteredRecords || [];
+      const total = records.length;
       let acc = 0, rep = 0, rej = 0, totalInch = 0;
 
-      recordsToCount.forEach(r => {
+      records.forEach(r => {
         const st = String(r.final_status || '').toUpperCase();
         if (st.includes('ACC')) acc++;
         else if (st.includes('REP') || ['CRS', 'RS', 'FRS', 'GRS'].includes(st)) rep++;
@@ -645,84 +854,53 @@
       document.getElementById('kpiRepair').innerText = rep.toLocaleString();
       document.getElementById('kpiRejected').innerText = rej.toLocaleString();
       document.getElementById('kpiTotalInch').innerText = totalInch.toFixed(2);
+
+      document.getElementById('badgeRowSummary').innerText = `RT Master (${total.toLocaleString()} Rows)`;
+      document.getElementById('badgeInchSummary').innerText = `Inch Dia Sum: ${totalInch.toFixed(3)}`;
     }
 
-    // 🟢 POINT-4: HEADER FILTER & QUICK SEARCH ENGINE
-    function filterTableData() {
-      const gQ = (document.getElementById('globalFilterInput').value || '').trim().toLowerCase();
-
-      const f_unit = (document.getElementById('f_unit').value || '').trim().toLowerCase();
-      const f_system = (document.getElementById('f_system').value || '').trim().toLowerCase();
-      const f_spool = (document.getElementById('f_spool').value || '').trim().toLowerCase();
-      const f_drawing = (document.getElementById('f_drawing').value || '').trim().toLowerCase();
-      const f_joint = (document.getElementById('f_joint').value || '').trim().toLowerCase();
-      const f_con = (document.getElementById('f_con').value || '').trim().toLowerCase();
-      const f_welder = (document.getElementById('f_welder').value || '').trim().toLowerCase();
-      const f_size = (document.getElementById('f_size').value || '').trim().toLowerCase();
-      const f_thk = (document.getElementById('f_thk').value || '').trim().toLowerCase();
-      const f_xr = (document.getElementById('f_xr').value || '').trim().toLowerCase();
-      const f_report = (document.getElementById('f_report').value || '').trim().toLowerCase();
-      const f_date = (document.getElementById('f_date').value || '').trim().toLowerCase();
-      const f_status = (document.getElementById('f_status').value || '').trim().toLowerCase();
-      const f_repair = (document.getElementById('f_repair').value || '').trim().toLowerCase();
-      const f_obs = (document.getElementById('f_obs').value || '').trim().toLowerCase();
-      const f_remarks = (document.getElementById('f_remarks').value || '').trim().toLowerCase();
-      const f_bill = (document.getElementById('f_bill').value || '').trim().toLowerCase();
-
-      currentFilteredRecords = allRtRecords.filter(r => {
-        // Global Quick Search
-        if (gQ) {
-          const hay = `${r.unit||''} ${r.system_ug_ag||''} ${r.spool_no||''} ${r.drawing_no||''} ${r.joint_no||''} ${r.con||''} ${r.welder_no||''} ${r.xr_no||''} ${r.rt_report_no||''} ${r.repair_observation||''} ${r.remarks||''}`.toLowerCase();
-          if (!hay.includes(gQ)) return false;
-        }
-
-        // Column Specific Filters
-        if (f_unit && !String(r.unit || '').toLowerCase().includes(f_unit)) return false;
-        if (f_system && !String(r.system_ug_ag || '').toLowerCase().includes(f_system)) return false;
-        if (f_spool && !String(r.spool_no || '').toLowerCase().includes(f_spool)) return false;
-        if (f_drawing && !String(r.drawing_no || '').toLowerCase().includes(f_drawing)) return false;
-        if (f_joint && !String(r.joint_no || '').toLowerCase().includes(f_joint)) return false;
-        if (f_con && !String(r.con || '').toLowerCase().includes(f_con)) return false;
-        if (f_welder && !String(r.welder_no || '').toLowerCase().includes(f_welder)) return false;
-        if (f_size && !String(r.joint_size || '').toLowerCase().includes(f_size)) return false;
-        if (f_thk && !String(r.thk || '').toLowerCase().includes(f_thk)) return false;
-        if (f_xr && !String(r.xr_no || '').toLowerCase().includes(f_xr)) return false;
-        if (f_report && !String(r.rt_report_no || '').toLowerCase().includes(f_report)) return false;
-        if (f_date && !formatDateDisplay(r.rt_date).toLowerCase().includes(f_date)) return false;
-        if (f_status && !String(r.final_status || '').toLowerCase().includes(f_status)) return false;
-        if (f_repair && !String(r.repair_1 || '').toLowerCase().includes(f_repair)) return false;
-        if (f_obs && !String(r.repair_observation || '').toLowerCase().includes(f_obs)) return false;
-        if (f_remarks && !String(r.remarks || '').toLowerCase().includes(f_remarks)) return false;
-        if (f_bill && !String(r.bill || '').toLowerCase().includes(f_bill)) return false;
-
-        return true;
-      });
-
-      // Update Export Button Label dynamically
-      const isFiltered = currentFilteredRecords.length !== allRtRecords.length;
-      document.getElementById('exportBtnLabel').innerText = isFiltered
-        ? `Download Filtered Data (${currentFilteredRecords.length.toLocaleString()})`
-        : `Download All Data (${allRtRecords.length.toLocaleString()})`;
-
-      updateKpiMetrics();
-      renderTable(currentFilteredRecords);
+    // 3. PAGINATION LOGIC
+    function changeRowsPerPage(val) {
+      if (val === 'ALL') {
+        rowsPerPage = currentFilteredRecords.length || 100;
+      } else {
+        rowsPerPage = parseInt(val);
+      }
+      currentPage = 1;
+      renderCurrentPage();
     }
 
-    function clearAllFilters() {
-      document.getElementById('globalFilterInput').value = '';
-      const inputs = document.querySelectorAll('.hdr-filter-input');
-      inputs.forEach(inp => inp.value = '');
-      filterTableData();
+    function goToPage(page) {
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      renderCurrentPage();
     }
 
-    function renderTable(rows) {
+    function renderCurrentPage() {
+      const total = currentFilteredRecords.length;
+      totalPages = rowsPerPage >= total ? 1 : Math.ceil(total / rowsPerPage);
+      if (totalPages === 0) totalPages = 1;
+
+      const startIdx = (currentPage - 1) * rowsPerPage;
+      const endIdx = Math.min(startIdx + rowsPerPage, total);
+      const pageRows = currentFilteredRecords.slice(startIdx, endIdx);
+
+      // Pagination Controls Update
+      document.getElementById('showingRangeText').innerText = total > 0 ? `Showing ${startIdx + 1} - ${endIdx} of ${total}` : 'Showing 0 - 0 of 0';
+      document.getElementById('pageIndicatorText').innerText = `Page ${currentPage} of ${totalPages}`;
+      document.getElementById('btnFirstPage').disabled = (currentPage === 1);
+      document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+      document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
+      document.getElementById('btnLastPage').disabled = (currentPage === totalPages);
+
       const tbody = document.getElementById('rtMasterTableBody');
-      if (rows.length === 0) {
+      if (pageRows.length === 0) {
         tbody.innerHTML = `<tr><td colspan="20" style="text-align:center; padding:30px; color:#64748b; font-weight:bold;">કોઈ રેકોર્ડ મળ્યો નથી.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = rows.map((r, idx) => {
+      tbody.innerHTML = pageRows.map((r, idx) => {
+        const srNo = startIdx + idx + 1;
         const st = String(r.final_status || '-').toUpperCase();
         let badgeClass = 'badge-accepted';
         if (st.includes('REP') || ['CRS', 'RS', 'FRS', 'GRS'].includes(st)) badgeClass = 'badge-repair';
@@ -730,7 +908,7 @@
 
         return `
           <tr>
-            <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+            <td style="text-align:center; font-weight:bold;">${srNo}</td>
             <td style="text-align:center;">
               <button class="btn-tbl-action btn-tbl-view" onclick="openViewModal(${r.id})">👁️ View</button>
               <button class="btn-tbl-action btn-tbl-edit" onclick="openEditModal(${r.id})">✏️ Edit</button>
@@ -757,7 +935,353 @@
       }).join('');
     }
 
-    // VIEW MODAL
+    // 🟢 4. EXCEL-STYLE POPUP MULTI-SELECT DROPDOWN FILTER LOGIC
+    function openColumnFilter(e, colKey) {
+      e.stopPropagation();
+      currentActiveCol = colKey;
+
+      const btn = e.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      const popup = document.getElementById('filterPopup');
+
+      popup.style.top = `${rect.bottom + window.scrollY + 6}px`;
+      popup.style.left = `${Math.min(rect.left + window.scrollX - 80, window.innerWidth - 270)}px`;
+      popup.style.display = 'block';
+
+      // Set input placeholder
+      const th = btn.closest('th');
+      const title = th.querySelector('span').innerText;
+      document.getElementById('filterPopupSearch').placeholder = `Search in ${title}...`;
+      document.getElementById('filterPopupSearch').value = '';
+
+      buildPopupItemList(colKey);
+    }
+
+    function buildPopupItemList(colKey, searchTxt = '') {
+      const counts = {};
+      allRtRecords.forEach(r => {
+        let val = r[colKey];
+        if (colKey === 'rt_date') val = formatDateDisplay(val);
+        val = (val !== null && val !== undefined) ? String(val).trim() : '(Blank)';
+        counts[val] = (counts[val] || 0) + 1;
+      });
+
+      const distinctVals = Object.keys(counts).sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
+      const filteredVals = searchTxt ? distinctVals.filter(v => v.toLowerCase().includes(searchTxt.toLowerCase())) : distinctVals;
+
+      const selectedSet = activeFilters[colKey] || new Set(distinctVals);
+
+      const listContainer = document.getElementById('filterPopupList');
+      listContainer.innerHTML = filteredVals.map((val, i) => {
+        const isChecked = selectedSet.has(val);
+        const safeVal = val.replace(/"/g, '&quot;');
+        return `
+          <div class="filter-item-row">
+            <input type="checkbox" id="pop_chk_${i}" value="${safeVal}" ${isChecked ? 'checked' : ''} onchange="onPopupItemCheckboxChange()">
+            <label for="pop_chk_${i}">${val} <span style="color:#64748b;">(${counts[val]})</span></label>
+          </div>
+        `;
+      }).join('');
+
+      // Check Select All state
+      const allChecked = filteredVals.every(v => selectedSet.has(v));
+      document.getElementById('chkSelectAll').checked = allChecked;
+    }
+
+    function handlePopupSearch(query) {
+      if (currentActiveCol) {
+        buildPopupItemList(currentActiveCol, query.trim());
+      }
+    }
+
+    function toggleSelectAllInPopup(checked) {
+      const listContainer = document.getElementById('filterPopupList');
+      const checkboxes = listContainer.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(chk => chk.checked = checked);
+    }
+
+    function onPopupItemCheckboxChange() {
+      const listContainer = document.getElementById('filterPopupList');
+      const checkboxes = listContainer.querySelectorAll('input[type="checkbox"]');
+      const allChecked = Array.from(checkboxes).every(c => c.checked);
+      document.getElementById('chkSelectAll').checked = allChecked;
+    }
+
+    function applyPopupFilter() {
+      if (!currentActiveCol) return;
+
+      const listContainer = document.getElementById('filterPopupList');
+      const checkboxes = listContainer.querySelectorAll('input[type="checkbox"]');
+      const selected = new Set();
+
+      checkboxes.forEach(c => {
+        if (c.checked) selected.add(c.value);
+      });
+
+      // Calculate total distinct values for this column
+      const counts = {};
+      allRtRecords.forEach(r => {
+        let val = r[currentActiveCol];
+        if (currentActiveCol === 'rt_date') val = formatDateDisplay(val);
+        val = (val !== null && val !== undefined) ? String(val).trim() : '(Blank)';
+        counts[val] = 1;
+      });
+      const totalDistinct = Object.keys(counts).length;
+
+      // If all selected, clear filter for this column
+      if (selected.size === totalDistinct || selected.size === 0) {
+        delete activeFilters[currentActiveCol];
+      } else {
+        activeFilters[currentActiveCol] = selected;
+      }
+
+      closeFilterPopup();
+      applyFilterLogic();
+    }
+
+    function clearCurrentColumnFilter() {
+      if (currentActiveCol) {
+        delete activeFilters[currentActiveCol];
+        closeFilterPopup();
+        applyFilterLogic();
+      }
+    }
+
+    function closeFilterPopup() {
+      document.getElementById('filterPopup').style.display = 'none';
+      currentActiveCol = null;
+    }
+
+    // Close popup on outside click
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('filterPopup');
+      if (popup && popup.style.display === 'block') {
+        if (!popup.contains(e.target) && !e.target.classList.contains('btn-filter-icon')) {
+          closeFilterPopup();
+        }
+      }
+    });
+
+    // 🟢 5. EXPORT VIEW & DOWNLOAD DATA TO PROPER EXCEL (EXCELJS)
+    async function exportDataToExcel(isFilteredOnly) {
+      const exportList = isFilteredOnly ? currentFilteredRecords : allRtRecords;
+
+      if (!exportList || exportList.length === 0) {
+        return alert("⚠️ એક્સપોર્ટ કરવા માટે કોઈ ડેટા ઉપલબ્ધ નથી!");
+      }
+
+      const btn = isFilteredOnly ? document.getElementById('btnExportView') : document.getElementById('btnDownloadAll');
+      const origText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span>⏳</span><span>Exporting...</span>`;
+
+      try {
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'PipeFlow Sys';
+        workbook.created = new Date();
+
+        const worksheet = workbook.addWorksheet('RT_Master', {
+          views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
+        });
+
+        const columnsConfig = [
+          { header: 'Sr.', key: 'sr', width: 8, align: 'center' },
+          { header: 'Unit', key: 'unit', width: 12, align: 'center' },
+          { header: 'System', key: 'system_ug_ag', width: 12, align: 'center' },
+          { header: 'Spool No', key: 'spool_no', width: 18, align: 'left' },
+          { header: 'Drawing No', key: 'drawing_no', width: 26, align: 'left' },
+          { header: 'Joint No', key: 'joint_no', width: 12, align: 'center' },
+          { header: 'Connection', key: 'con', width: 28, align: 'left' },
+          { header: 'Welder No', key: 'welder_no', width: 14, align: 'center' },
+          { header: 'Joint Size', key: 'joint_size', width: 12, align: 'right' },
+          { header: 'THK', key: 'thk', width: 12, align: 'right' },
+          { header: 'XR No', key: 'xr_no', width: 14, align: 'center' },
+          { header: 'RT Report No', key: 'rt_report_no', width: 20, align: 'center' },
+          { header: 'RT Date', key: 'rt_date', width: 14, align: 'center' },
+          { header: 'Status', key: 'final_status', width: 14, align: 'center' },
+          { header: 'Repair', key: 'repair_1', width: 12, align: 'center' },
+          { header: 'Repair Observation', key: 'repair_observation', width: 24, align: 'left' },
+          { header: 'Remarks', key: 'remarks', width: 20, align: 'left' },
+          { header: 'Bill', key: 'bill', width: 14, align: 'left' }
+        ];
+
+        worksheet.columns = columnsConfig.map(c => ({
+          header: c.header,
+          key: c.key,
+          width: c.width
+        }));
+
+        // Format Header
+        const headerRow = worksheet.getRow(1);
+        headerRow.height = 24;
+        headerRow.eachCell((cell) => {
+          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0284C7' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+            left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+            bottom: { style: 'medium', color: { argb: 'FFFFFFFF' } },
+            right: { style: 'thin', color: { argb: 'FF94A3B8' } }
+          };
+        });
+
+        // Insert Rows
+        exportList.forEach((r, idx) => {
+          const rowData = {
+            sr: idx + 1,
+            unit: r.unit || '',
+            system_ug_ag: r.system_ug_ag || '',
+            spool_no: r.spool_no || '',
+            drawing_no: r.drawing_no || '',
+            joint_no: r.joint_no || '',
+            con: r.con || '',
+            welder_no: r.welder_no || '',
+            joint_size: r.joint_size !== null && r.joint_size !== undefined ? r.joint_size : '',
+            thk: r.thk !== null && r.thk !== undefined ? r.thk : '',
+            xr_no: r.xr_no || '',
+            rt_report_no: r.rt_report_no || '',
+            rt_date: formatDateDisplay(r.rt_date),
+            final_status: r.final_status || '',
+            repair_1: r.repair_1 || '',
+            repair_observation: r.repair_observation || '',
+            remarks: r.remarks || '',
+            bill: r.bill || ''
+          };
+
+          const row = worksheet.addRow(rowData);
+          row.height = 19;
+
+          columnsConfig.forEach((cfg, colIdx) => {
+            const cell = row.getCell(colIdx + 1);
+            cell.font = { name: 'Calibri', size: 10.5 };
+            cell.alignment = { vertical: 'middle', horizontal: cfg.align };
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+              right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            };
+
+            if (cfg.key === 'final_status') {
+              const val = String(cell.value || '').toUpperCase();
+              if (val.includes('ACC')) cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FF166534' } };
+              else if (val.includes('REP') || ['CRS', 'RS', 'FRS', 'GRS'].includes(val)) cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFB45309' } };
+              else if (val.includes('REJ')) cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FF991B1B' } };
+            }
+          });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const link = document.createElement('a');
+        const today = new Date().toISOString().split('T')[0];
+        const fileName = isFilteredOnly
+          ? `RT_Master_Export_View_${today}.xlsx`
+          : `RT_Master_All_Data_${today}.xlsx`;
+
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ એક્સેલ એક્સપોર્ટ કરવામાં ભૂલ આવી: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+      }
+    }
+
+    // 🟢 6. UPDATE DATA: REPLACE & REINSERT FROM EXCEL
+    async function handleExcelUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const confirmMsg = "⚠️ ચેતવણી (WARNING):\n\nઆ પ્રક્રિયાથી RT Master નો તમામ જૂનો ડેટા ડિલીટ થઈ જશે અને પસંદ કરેલી Excel ફાઇલમાંથી નવો ડેટા સંપૂર્ણપણે રી-ઈન્સર્ટ થશે.\n\nશું તમે ખરેખર આગળ વધવા માંગો છો?";
+      if (!confirm(confirmMsg)) {
+        e.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.SheetNames[0];
+          const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+
+          if (!rawRows || rawRows.length === 0) {
+            return alert("❌ એક્સેલ ફાઇલમાં કોઈ ડેટા મળ્યો નથી!");
+          }
+
+          const parsedPayload = rawRows.map(r => {
+            const rawDate = r["RT Date"] || r["rt_date"] || null;
+            let finalDate = null;
+            if (rawDate) {
+              if (rawDate instanceof Date) {
+                finalDate = rawDate.toISOString().split('T')[0];
+              } else {
+                const s = String(rawDate).trim();
+                const p = s.split(/[-/]/);
+                if (p.length === 3) {
+                  if (p[0].length === 4) finalDate = `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+                  else finalDate = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                }
+              }
+            }
+
+            return {
+              unit: r["Unit"] || r["unit"] || null,
+              system_ug_ag: r["System"] || r["system_ug_ag"] || null,
+              spool_no: r["Spool No"] || r["spool_no"] || null,
+              drawing_no: r["Drawing No"] || r["drawing_no"] || null,
+              joint_no: r["Joint No"] || r["joint_no"] || null,
+              con: r["Connection"] || r["con"] || null,
+              welder_no: r["Welder No"] || r["welder_no"] || null,
+              joint_size: parseFloat(r["Joint Size"] || r["joint_size"]) || null,
+              thk: parseFloat(r["THK"] || r["thk"]) || null,
+              xr_no: r["XR No"] || r["xr_no"] || null,
+              rt_report_no: r["RT Report No"] || r["rt_report_no"] || null,
+              rt_date: finalDate,
+              final_status: r["Status"] || r["final_status"] || null,
+              repair_1: r["Repair"] || r["repair_1"] || null,
+              repair_observation: r["Repair Observation"] || r["repair_observation"] || null,
+              remarks: r["Remarks"] || r["remarks"] || null,
+              bill: r["Bill"] || r["bill"] || null
+            };
+          });
+
+          // Delete all records
+          const { error: delErr } = await db.from('rt_master').delete().gte('id', 0);
+          if (delErr) throw new Error("Delete Error: " + delErr.message);
+
+          // Batch insert in chunks of 500
+          const chunkSize = 500;
+          for (let i = 0; i < parsedPayload.length; i += chunkSize) {
+            const chunk = parsedPayload.slice(i, i + chunkSize);
+            const { error: insErr } = await db.from('rt_master').insert(chunk);
+            if (insErr) throw new Error("Insert Error: " + insErr.message);
+          }
+
+          alert(`🎉 સફળતાપૂર્વક RT Master નો ડેટા સાફ કરીને કુલ ${parsedPayload.length} રેકોર્ડ્સ એક્સેલમાંથી અપડેટ થઈ ગયા!`);
+          e.target.value = '';
+          await loadRtMasterData();
+
+        } catch (err) {
+          console.error(err);
+          alert("❌ ડેટા અપડેટ કરવામાં એરર આવી: " + err.message);
+          e.target.value = '';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // 7. VIEW & EDIT MODALS
     function openViewModal(id) {
       const item = allRtRecords.find(x => x.id === id);
       if (!item) return;
@@ -785,7 +1309,6 @@
       document.getElementById('viewModal').style.display = 'flex';
     }
 
-    // EDIT MODAL
     function openEditModal(id) {
       const item = allRtRecords.find(x => x.id === id);
       if (!item) return;
@@ -848,230 +1371,6 @@
 
     function closeModal(modalId) {
       document.getElementById(modalId).style.display = 'none';
-    }
-
-    // 🟢 POINT-5: PROFESSIONAL EXCELJS EXPORT (DYNAMIC FILTERED OR ALL DATA)
-    async function exportRtMasterToExcel() {
-      // If filtered, download filtered data. If not filtered, download all data
-      const isFiltered = currentFilteredRecords && currentFilteredRecords.length > 0 && currentFilteredRecords.length !== allRtRecords.length;
-      const exportList = isFiltered ? currentFilteredRecords : allRtRecords;
-
-      if (!exportList || exportList.length === 0) {
-        return alert("⚠️ ડાઉનલોડ કરવા માટે કોઈ ડેટા ઉપલબ્ધ નથી!");
-      }
-
-      const btn = document.getElementById('btnExportDynamic');
-      btn.disabled = true;
-      btn.innerHTML = `<span>⏳</span><span>Generating Excel...</span>`;
-
-      try {
-        const workbook = new ExcelJS.Workbook();
-        workbook.creator = 'PipeFlow Sys';
-        workbook.created = new Date();
-
-        const worksheet = workbook.addWorksheet('RT_Master', {
-          views: [{ state: 'frozen', ySplit: 1, showGridLines: true }]
-        });
-
-        // Exact Column Headers
-        const columnsConfig = [
-          { header: 'Sr.', key: 'sr', width: 8, align: 'center' },
-          { header: 'Unit', key: 'unit', width: 12, align: 'center' },
-          { header: 'System', key: 'system_ug_ag', width: 12, align: 'center' },
-          { header: 'Spool No', key: 'spool_no', width: 18, align: 'left' },
-          { header: 'Drawing No', key: 'drawing_no', width: 26, align: 'left' },
-          { header: 'Joint No', key: 'joint_no', width: 12, align: 'center' },
-          { header: 'Connection', key: 'con', width: 28, align: 'left' },
-          { header: 'Welder No', key: 'welder_no', width: 14, align: 'center' },
-          { header: 'Joint Size', key: 'joint_size', width: 12, align: 'right' },
-          { header: 'THK', key: 'thk', width: 12, align: 'right' },
-          { header: 'XR No', key: 'xr_no', width: 14, align: 'center' },
-          { header: 'RT Report No', key: 'rt_report_no', width: 20, align: 'center' },
-          { header: 'RT Date', key: 'rt_date', width: 14, align: 'center' },
-          { header: 'Status', key: 'final_status', width: 14, align: 'center' },
-          { header: 'Repair', key: 'repair_1', width: 12, align: 'center' },
-          { header: 'Repair Observation', key: 'repair_observation', width: 24, align: 'left' },
-          { header: 'Remarks', key: 'remarks', width: 20, align: 'left' },
-          { header: 'Bill', key: 'bill', width: 14, align: 'left' }
-        ];
-
-        worksheet.columns = columnsConfig.map(c => ({
-          header: c.header,
-          key: c.key,
-          width: c.width
-        }));
-
-        // Format Header Row
-        const headerRow = worksheet.getRow(1);
-        headerRow.height = 25;
-        headerRow.eachCell((cell) => {
-          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-          cell.border = {
-            top: { style: 'thin', color: { argb: 'FF94A3B8' } },
-            left: { style: 'thin', color: { argb: 'FF94A3B8' } },
-            bottom: { style: 'medium', color: { argb: 'FFFFFFFF' } },
-            right: { style: 'thin', color: { argb: 'FF94A3B8' } }
-          };
-        });
-
-        // Insert Rows
-        exportList.forEach((r, idx) => {
-          const rowData = {
-            sr: idx + 1,
-            unit: r.unit || '',
-            system_ug_ag: r.system_ug_ag || '',
-            spool_no: r.spool_no || '',
-            drawing_no: r.drawing_no || '',
-            joint_no: r.joint_no || '',
-            con: r.con || '',
-            welder_no: r.welder_no || '',
-            joint_size: r.joint_size !== null && r.joint_size !== undefined ? r.joint_size : '',
-            thk: r.thk !== null && r.thk !== undefined ? r.thk : '',
-            xr_no: r.xr_no || '',
-            rt_report_no: r.rt_report_no || '',
-            rt_date: formatDateDisplay(r.rt_date),
-            final_status: r.final_status || '',
-            repair_1: r.repair_1 || '',
-            repair_observation: r.repair_observation || '',
-            remarks: r.remarks || '',
-            bill: r.bill || ''
-          };
-
-          const row = worksheet.addRow(rowData);
-          row.height = 20;
-
-          // Alignments & Borders
-          columnsConfig.forEach((cfg, colIdx) => {
-            const cell = row.getCell(colIdx + 1);
-            cell.font = { name: 'Calibri', size: 10.5 };
-            cell.alignment = { vertical: 'middle', horizontal: cfg.align };
-            cell.border = {
-              top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-              left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-              bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-              right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-            };
-
-            // Status Styling
-            if (cfg.key === 'final_status') {
-              const val = String(cell.value || '').toUpperCase();
-              if (val.includes('ACC')) cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FF166534' } };
-              else if (val.includes('REP')) cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFB45309' } };
-              else if (val.includes('REJ')) cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FF991B1B' } };
-            }
-          });
-        });
-
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const link = document.createElement('a');
-        const today = new Date().toISOString().split('T')[0];
-        const fileName = isFiltered
-          ? `RT_Master_Filtered_Export_${today}.xlsx`
-          : `RT_Master_Complete_Register_${today}.xlsx`;
-
-        link.href = URL.createObjectURL(blob);
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-
-      } catch (err) {
-        console.error(err);
-        alert("❌ એક્સેલ એક્સપોર્ટ કરવામાં ભૂલ આવી: " + err.message);
-      } finally {
-        btn.disabled = false;
-        filterTableData();
-      }
-    }
-
-    // 🟢 POINT-3: REPLACE ALL DATA AND REINSERT FROM EXCEL
-    async function handleExcelUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const confirmMsg = "⚠️ ચેતવણી (WARNING):\n\nઆ પ્રક્રિયાથી RT Master નો તમામ જૂનો ડેટા ડિલીટ થઈ જશે અને પસંદ કરેલી Excel ફાઇલમાંથી નવો ડેટા સંપૂર્ણપણે રી-ઈન્સર્ટ (Reinsert) થશે.\n\nશું તમે ખરેખર આગળ વધવા માંગો છો?";
-      if (!confirm(confirmMsg)) {
-        e.target.value = '';
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = async (evt) => {
-        try {
-          const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.SheetNames[0];
-          const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
-
-          if (!rawRows || rawRows.length === 0) {
-            return alert("❌ એક્સેલ ફાઇલમાં કોઈ ડેટા મળ્યો નથી!");
-          }
-
-          // Map and clean records
-          const parsedPayload = rawRows.map(r => {
-            const rawDate = r["RT Date"] || r["rt_date"] || null;
-            let finalDate = null;
-            if (rawDate) {
-              if (rawDate instanceof Date) {
-                finalDate = rawDate.toISOString().split('T')[0];
-              } else {
-                const s = String(rawDate).trim();
-                const p = s.split(/[-/]/);
-                if (p.length === 3) {
-                  if (p[0].length === 4) finalDate = `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
-                  else finalDate = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
-                }
-              }
-            }
-
-            return {
-              unit: r["Unit"] || r["unit"] || null,
-              system_ug_ag: r["System"] || r["system_ug_ag"] || null,
-              spool_no: r["Spool No"] || r["spool_no"] || null,
-              drawing_no: r["Drawing No"] || r["drawing_no"] || null,
-              joint_no: r["Joint No"] || r["joint_no"] || null,
-              con: r["Connection"] || r["con"] || null,
-              welder_no: r["Welder No"] || r["welder_no"] || null,
-              joint_size: parseFloat(r["Joint Size"] || r["joint_size"]) || null,
-              thk: parseFloat(r["THK"] || r["thk"]) || null,
-              xr_no: r["XR No"] || r["xr_no"] || null,
-              rt_report_no: r["RT Report No"] || r["rt_report_no"] || null,
-              rt_date: finalDate,
-              final_status: r["Status"] || r["final_status"] || null,
-              repair_1: r["Repair"] || r["repair_1"] || null,
-              repair_observation: r["Repair Observation"] || r["repair_observation"] || null,
-              remarks: r["Remarks"] || r["remarks"] || null,
-              bill: r["Bill"] || r["bill"] || null
-            };
-          });
-
-          // Step 1: Remove All Existing Data
-          const { error: delErr } = await db.from('rt_master').delete().gte('id', 0);
-          if (delErr) throw new Error("Delete Error: " + delErr.message);
-
-          // Step 2: Batch Insert in chunks of 500
-          const chunkSize = 500;
-          for (let i = 0; i < parsedPayload.length; i += chunkSize) {
-            const chunk = parsedPayload.slice(i, i + chunkSize);
-            const { error: insErr } = await db.from('rt_master').insert(chunk);
-            if (insErr) throw new Error("Insert Error: " + insErr.message);
-          }
-
-          alert(`🎉 સફળતાપૂર્વક RT Master નો જૂનો ડેટા સાફ કરીને કુલ ${parsedPayload.length} રેકોર્ડ્સ એક્સેલમાંથી અપડેટ થઈ ગયા!`);
-          e.target.value = '';
-          await loadRtMasterData();
-
-        } catch (err) {
-          console.error(err);
-          alert("❌ ડેટા અપડેટ કરવામાં એરર આવી: " + err.message);
-          e.target.value = '';
-        }
-      };
-      reader.readAsArrayBuffer(file);
     }
 
     function formatDateDisplay(val) {
