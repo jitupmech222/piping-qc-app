@@ -1197,6 +1197,59 @@
     }
 
     // 🟢 6. UPDATE DATA: REPLACE & REINSERT FROM EXCEL
+    // 🟢 EXCEL DATE PARSER HELPER (HANDLES NUMERIC SERIALS, DATES & TEXT)
+    function parseExcelDate(rawDate) {
+      if (!rawDate) return null;
+
+      // કેસ ૧: જો એક્સેલ ડેટ ઓબ્જેક્ટ હોય
+      if (rawDate instanceof Date) {
+        if (!isNaN(rawDate.getTime())) {
+          const y = rawDate.getFullYear();
+          const m = String(rawDate.getMonth() + 1).padStart(2, '0');
+          const d = String(rawDate.getDate()).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
+      }
+
+      // કેસ ૨: જો એક્સેલ સીરીયલ નંબર હોય (દા.ત. 45850)
+      if (typeof rawDate === 'number' || (!isNaN(rawDate) && !String(rawDate).includes('-') && !String(rawDate).includes('/'))) {
+        const num = Number(rawDate);
+        if (num > 1000) {
+          // XLSX SSF built-in converter
+          if (typeof XLSX !== 'undefined' && XLSX.SSF && XLSX.SSF.parse_date_code) {
+            const p = XLSX.SSF.parse_date_code(num);
+            if (p) return `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`;
+          }
+          // Fallback Excel Epoch
+          const epoch = new Date(Date.UTC(1899, 11, 30));
+          const dateObj = new Date(epoch.getTime() + num * 86400000);
+          return dateObj.toISOString().split('T')[0];
+        }
+      }
+
+      // કેસ ૩: જો ટેક્સ્ટ સ્ટ્રિંગ હોય (દા.ત. 12-07-2025 અથવા 12/07/2025)
+      const str = String(rawDate).trim();
+      const p = str.split(/[-/.]/);
+      if (p.length === 3) {
+        // YYYY-MM-DD
+        if (p[0].length === 4) {
+          return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
+        }
+        // DD-MM-YYYY
+        if (p[2].length === 4) {
+          return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+        }
+        // DD-MM-YY
+        if (p[2].length === 2) {
+          const year = Number(p[2]) > 50 ? `19${p[2]}` : `20${p[2]}`;
+          return `${year}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+        }
+      }
+
+      return null;
+    }
+
+    // 🟢 UPDATE DATA: REPLACE & REINSERT FROM EXCEL (WITH BULLETPROOF DATE SUPPORT)
     async function handleExcelUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1211,7 +1264,8 @@
       reader.onload = async (evt) => {
         try {
           const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
+          // cellDates: true રાખવાથી એક્સેલ ડેટ્સ આપમેળે કન્વર્ટ થશે
+          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
           const firstSheet = workbook.SheetNames[0];
           const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
 
@@ -1220,20 +1274,14 @@
           }
 
           const parsedPayload = rawRows.map(r => {
-            const rawDate = r["RT Date"] || r["rt_date"] || null;
-            let finalDate = null;
-            if (rawDate) {
-              if (rawDate instanceof Date) {
-                finalDate = rawDate.toISOString().split('T')[0];
-              } else {
-                const s = String(rawDate).trim();
-                const p = s.split(/[-/]/);
-                if (p.length === 3) {
-                  if (p[0].length === 4) finalDate = `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
-                  else finalDate = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
-                }
-              }
+            // કેસ-ઇન્સેન્સિટિવ હેડર મેચિંગ (RT Date શોધવા માટે)
+            let rawDate = r["RT Date"] || r["rt_date"] || r["RT DATE"] || r["Date"] || r["date"];
+            if (!rawDate) {
+              const dateEntry = Object.entries(r).find(([k]) => k.trim().toLowerCase().replace(/[\s_]/g, '') === 'rtdate');
+              if (dateEntry) rawDate = dateEntry[1];
             }
+
+            const finalDate = parseExcelDate(rawDate);
 
             return {
               unit: r["Unit"] || r["unit"] || null,
@@ -1247,7 +1295,7 @@
               thk: parseFloat(r["THK"] || r["thk"]) || null,
               xr_no: r["XR No"] || r["xr_no"] || null,
               rt_report_no: r["RT Report No"] || r["rt_report_no"] || null,
-              rt_date: finalDate,
+              rt_date: finalDate, // 🟢 પરફેક્ટ તારીખ સેટ થશે
               final_status: r["Status"] || r["final_status"] || null,
               repair_1: r["Repair"] || r["repair_1"] || null,
               repair_observation: r["Repair Observation"] || r["repair_observation"] || null,
@@ -1256,11 +1304,11 @@
             };
           });
 
-          // Delete all records
+          // ૧. જૂનો ડેટા સાફ કરવો
           const { error: delErr } = await db.from('rt_master').delete().gte('id', 0);
           if (delErr) throw new Error("Delete Error: " + delErr.message);
 
-          // Batch insert in chunks of 500
+          // ૨. ૫૦૦-૫૦૦ રેકોર્ડ્સના બેચમાં નવો ડેટા ઈન્સર્ટ કરવો
           const chunkSize = 500;
           for (let i = 0; i < parsedPayload.length; i += chunkSize) {
             const chunk = parsedPayload.slice(i, i + chunkSize);
@@ -1268,7 +1316,7 @@
             if (insErr) throw new Error("Insert Error: " + insErr.message);
           }
 
-          alert(`🎉 સફળતાપૂર્વક RT Master નો ડેટા સાફ કરીને કુલ ${parsedPayload.length} રેકોર્ડ્સ એક્સેલમાંથી અપડેટ થઈ ગયા!`);
+          alert(`🎉 સફળતાપૂર્વક RT Master નો ડેટા તારીખો સાથે અપડેટ થઈ ગયો! (કુલ ${parsedPayload.length} રેકોર્ડ્સ)`);
           e.target.value = '';
           await loadRtMasterData();
 
@@ -1280,7 +1328,6 @@
       };
       reader.readAsArrayBuffer(file);
     }
-
     // 7. VIEW & EDIT MODALS
     function openViewModal(id) {
       const item = allRtRecords.find(x => x.id === id);
