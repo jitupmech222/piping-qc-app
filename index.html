@@ -592,6 +592,58 @@
     }
     .sub-btn:hover { background: #f0fdfa; border-color: #5eead4; color: #0f766e; }
 
+    /* 🟢 SPOOLMAN STYLE NESTED SUB-MENU */
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 4px;
+    }
+    .nav-item .chevron {
+      margin-left: auto;
+      font-size: 11px;
+      transition: transform 0.25s ease;
+    }
+    .nav-group.open .nav-item .chevron {
+      transform: rotate(90deg);
+    }
+    .sub-nav-list {
+      display: none;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      padding: 4px 0 4px 14px;
+      margin: 3px 0 6px 8px;
+      border-left: 2px solid rgba(255, 255, 255, 0.15);
+    }
+    .nav-group.open .sub-nav-list {
+      display: flex;
+    }
+    .sub-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-decoration: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sub-nav-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #38bdf8;
+    }
+    .sub-nav-item .arrow {
+      font-size: 11px;
+      font-weight: bold;
+      color: #64748b;
+    }
+    .sub-nav-item:hover .arrow {
+      color: #38bdf8;
+    }
+
     /* =========================================================
        🟢 PROFESSIONAL QA/QC SECURITY MODAL (HIGH FINISH)
     ========================================================= */
@@ -905,13 +957,91 @@
         <button class="btn-toggle-in" title="Close Sidebar" onclick="toggleSidebar(false)">«</button>
       </div>
 
+      <!-- 1. Dashboard Overview -->
       <a class="nav-item active" onclick="backToHubMenu()"><span>📊</span> <span>Dashboard Overview</span></a>
-      <!-- 🟢 MECHANICAL: Directly routes to mechanical.html -->
-      <a class="nav-item" onclick="window.location.href='mechanical.html'"><span>⚙️</span> <span>Mechanical</span></a>
-      <a class="nav-item" id="navQaqcLink" style="display:none;" onclick="triggerQaqcModuleAccess()"><span>🛡️</span> <span>QA/QC Module</span></a>
-      <a class="nav-item" onclick="openCategoryHub('matHub')"><span>📦</span> <span>Material</span></a>
-      <a class="nav-item" onclick="openCategoryHub('reportHub')"><span>📈</span> <span>Report</span></a>
-      <a class="nav-item" onclick="openCategoryHub('dataHub')"><span>💾</span> <span>Data</span></a>
+
+      <!-- 2. Mechanical Dropdown (Image 1 મુજબ) -->
+      <div class="nav-group" id="grp-mech">
+        <a class="nav-item" onclick="toggleNavGroup('grp-mech')">
+          <span>⚙️</span> <span>Mechanical</span> <span class="chevron">▶</span>
+        </a>
+        <div class="sub-nav-list">
+          <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=bending_issue'"><span class="arrow">›</span> Issued for Bending</a>
+          <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=bend_entry'"><span class="arrow">›</span> Bend Completed</a>
+          <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=fitup_entry'"><span class="arrow">›</span> Fit Up Completed</a>
+          <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=weld_visual'"><span class="arrow">›</span> Weld Visual Completed</a>
+          <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=ndt_clearance'"><span class="arrow">›</span> NDT Clearance</a>
+          <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=fd'"><span class="arrow">›</span> Final Dispatch & DC No</a>
+          <a class="sub-nav-item" onclick="window.location.href='mechanical.html'"><span class="arrow">›</span> Mechanical Custom Report</a>
+        </div>
+      </div>
+
+      <!-- 3. QA/QC Module Dropdown (Image 2 મુજબ - Protected) -->
+      <div class="nav-group" id="grp-qaqc" style="display:none;">
+        <a class="nav-item" onclick="handleQaqcNavClick()">
+          <span>🛡️</span> <span>QA/QC Module</span> <span class="chevron">▶</span>
+        </a>
+        <div class="sub-nav-list">
+          <a class="sub-nav-item" onclick="window.location.href='lhs_entry.html'"><span class="arrow">›</span> LHS Entry</a>
+          <a class="sub-nav-item" onclick="window.location.href='lot_entry.html'"><span class="arrow">›</span> LOT Entry</a>
+          <a class="sub-nav-item" onclick="window.location.href='lot_offer_cleared.html'"><span class="arrow">›</span> LOT Offer / Cleared</a>
+          <a class="sub-nav-item" onclick="window.location.href='lot_generate.html'"><span class="arrow">›</span> LOT Generate</a>
+          <a class="sub-nav-item" onclick="window.location.href='dpt_lot_status.html'"><span class="arrow">›</span> DPT LOT Status</a>
+          <a class="sub-nav-item" onclick="window.location.href='rt_lot_status.html'"><span class="arrow">›</span> RT LOT Status</a>
+          <a class="sub-nav-item" onclick="window.location.href='ndt_dc.html'"><span class="arrow">›</span> NDT / DC</a>
+          <a class="sub-nav-item" onclick="window.location.href='qaqc_progress.html'"><span class="arrow">›</span> Progress (Work Amount)</a>
+          <a class="sub-nav-item" onclick="window.location.href='inch_dia_progress.html'"><span class="arrow">›</span> Inch Dia Progress</a>
+          <a class="sub-nav-item" onclick="window.location.href='spool_report.html'"><span class="arrow">›</span> Spool Report</a>
+          <a class="sub-nav-item" onclick="window.location.href='ndt_fd_pending_amount.html'"><span class="arrow">›</span> NDT/FD Pending Amount</a>
+          <a class="sub-nav-item" onclick="window.location.href='ndt_fd_pending_list.html'"><span class="arrow">›</span> NDT/FD Pending List</a>
+          <a class="sub-nav-item" onclick="window.location.href='custom_report_QAQC.html'"><span class="arrow">›</span> QA/QC Custom Report</a>
+          <a class="sub-nav-item" onclick="window.location.href='rt_master_update.html'"><span class="arrow">›</span> Update RT Master</a>
+          <a class="sub-nav-item" onclick="window.location.href='view_rt_master.html'"><span class="arrow">›</span> View RT Master</a>
+          <a class="sub-nav-item" onclick="window.location.href='view_record.html'"><span class="arrow">›</span> View Record</a>
+        </div>
+      </div>
+
+      <!-- 4. Material Management Dropdown (Image 3 મુજબ) -->
+      <div class="nav-group" id="grp-mat">
+        <a class="nav-item" onclick="toggleNavGroup('grp-mat')">
+          <span>📦</span> <span>Material</span> <span class="chevron">▶</span>
+        </a>
+        <div class="sub-nav-list">
+          <a class="sub-nav-item" id="sideMtoUpd" style="display:none;" onclick="window.location.href='mto_update_entry.html'"><span class="arrow">›</span> MTO Update</a>
+          <a class="sub-nav-item" id="sideIgpUpd" style="display:none;" onclick="window.location.href='igp_update.html'"><span class="arrow">›</span> IGP Update</a>
+          <a class="sub-nav-item" id="sideMinUpd" style="display:none;" onclick="window.location.href='min_update.html'"><span class="arrow">›</span> MIN Update</a>
+          <a class="sub-nav-item" onclick="window.location.href='custom_report_Material.html'"><span class="arrow">›</span> Material Custom Report</a>
+          <a class="sub-nav-item" onclick="window.location.href='mto_register.html'"><span class="arrow">›</span> MTO Register</a>
+        </div>
+      </div>
+
+      <!-- 5. Reports Dropdown (Image 4 મુજબ) -->
+      <div class="nav-group" id="grp-report">
+        <a class="nav-item" onclick="toggleNavGroup('grp-report')">
+          <span>📈</span> <span>Report</span> <span class="chevron">▶</span>
+        </a>
+        <div class="sub-nav-list">
+          <a class="sub-nav-item" onclick="window.location.href='daily_report.html'"><span class="arrow">›</span> Daily Progress Report</a>
+          <a class="sub-nav-item" onclick="window.location.href='progress_dashboard.html'"><span class="arrow">›</span> Progress Dashboard</a>
+          <a class="sub-nav-item" onclick="window.location.href='custom_report.html'"><span class="arrow">›</span> Universal Custom Report</a>
+          <a class="sub-nav-item" onclick="window.location.href='priority_dashboard.html'"><span class="arrow">›</span> Priority Spools Dashboard</a>
+        </div>
+      </div>
+
+      <!-- 6. Data Registers Dropdown (Image 5 મુજબ) -->
+      <div class="nav-group" id="grp-data">
+        <a class="nav-item" onclick="toggleNavGroup('grp-data')">
+          <span>💾</span> <span>Data</span> <span class="chevron">▶</span>
+        </a>
+        <div class="sub-nav-list">
+          <a class="sub-nav-item" id="sideAddNew" style="display:none;" onclick="window.location.href='add_new_data.html'"><span class="arrow">›</span> Add New Data</a>
+          <a class="sub-nav-item" id="sideLineList" style="display:none;" onclick="window.location.href='line_list.html'"><span class="arrow">›</span> Line List Master</a>
+          <a class="sub-nav-item" id="sideSapCode" style="display:none;" onclick="window.location.href='sap_code.html'"><span class="arrow">›</span> Material SAP Codes</a>
+          <a class="sub-nav-item" id="sideDataUpd" style="display:none;" onclick="window.location.href='data_update.html'"><span class="arrow">›</span> Master Update</a>
+          <a class="sub-nav-item" onclick="window.location.href='master_register.html'"><span class="arrow">›</span> Master Register Full View</a>
+          <a class="sub-nav-item" id="sideBackup" style="display:none;" onclick="downloadAllTablesExcelBackup()"><span class="arrow">›</span> Backup All Tables (Excel)</a>
+        </div>
+      </div>
     </div>
 
     <div class="user-footer">
@@ -1187,6 +1317,7 @@
     if (!currentUser) return;
     const isAdmin = currentUser.username === 'admin';
 
+    // ૧. સેન્ટ્રલ ડેશબોર્ડ બટનો (હાલના જેમ છે તેમ જ)
     const btnBackup = document.getElementById('btnFullBackupHub');
     if (btnBackup) btnBackup.style.display = isAdmin ? 'flex' : 'none';
     
@@ -1209,6 +1340,25 @@
     if (btnDataUpdate) btnDataUpdate.style.display = isAdmin ? 'flex' : 'none';
     if (btnLineList) btnLineList.style.display = isAdmin ? 'flex' : 'none';
     if (btnSapCode) btnSapCode.style.display = isAdmin ? 'flex' : 'none';
+
+    // 🟢 ૨. અહીં આ નવો ભાગ ઉમેરો: સાઇડબારના Spoolman ટ્રી-મેનૂ બટનો (Admin Only)
+    const grpQaqc = document.getElementById('grp-qaqc');
+    if (grpQaqc) grpQaqc.style.display = isAdmin ? 'flex' : 'none';
+
+    const adminSidebarButtons = [
+      'sideMtoUpd', 
+      'sideIgpUpd', 
+      'sideMinUpd', 
+      'sideAddNew', 
+      'sideLineList', 
+      'sideSapCode', 
+      'sideDataUpd', 
+      'sideBackup'
+    ];
+    adminSidebarButtons.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = isAdmin ? 'flex' : 'none';
+    });
   }
 
   /* 🟢 PROFESSIONAL QA/QC SECONDARY AUTH MODAL LOGIC */
@@ -1288,6 +1438,31 @@
   }
 
   function futureModuleNotice(name) { alert(`ℹ️ "${name}" module will be added in future.`); }
+
+  // 🟢 ૧. સાઇડબાર ટ્રી-મેનૂ ઓપન/ક્લોઝ કરવું (Accordion Toggle)
+  function toggleNavGroup(groupId) {
+    const grp = document.getElementById(groupId);
+    if (!grp) return;
+    const isOpen = grp.classList.contains('open');
+    // બીજા બધા બંધ કરી ફક્ત ક્લિક કરેલું ખોલવું
+    document.querySelectorAll('.nav-group').forEach(g => g.classList.remove('open'));
+    if (!isOpen) {
+      grp.classList.add('open');
+    }
+  }
+
+  // 🟢 ૨. QA/QC માટે પાસવર્ડ સિક્યોરિટી સાથે ટ્રી-મેનૂ ઓપન કરવું
+  function handleQaqcNavClick() {
+    if (!currentUser || currentUser.username !== 'admin') {
+      alert("⚠️ માત્ર Admin પાસે જ QA/QC મોડ્યુલની પરમિશન છે!");
+      return;
+    }
+    if (sessionStorage.getItem('qaqc_auth_passed') === 'true') {
+      toggleNavGroup('grp-qaqc');
+    } else {
+      triggerQaqcModuleAccess();
+    }
+  }
 
   /* DASHBOARD KPI & CHARTS LOADERS */
   function calculateWeldSum(rows) {
