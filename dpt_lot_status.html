@@ -190,6 +190,39 @@
     }
   </style>
 </head>
+  <script>
+  // ૧. માઉસનું રાઇટ ક્લિક (Right Click Context Menu) બંધ કરવું
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
+
+  // ૨. F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U (View Source) લૉક કરવું
+  document.addEventListener('keydown', function (e) {
+    // F12 કી રોકવી
+    if (e.key === 'F12' || e.keyCode === 123) {
+      e.preventDefault();
+      return false;
+    }
+
+    // Ctrl + Shift + I (DevTools) / Ctrl + Shift + J (Console) / Ctrl + Shift + C
+    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+      e.preventDefault();
+      return false;
+    }
+
+    // Ctrl + U (View Page Source) રોકવું
+    if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+      e.preventDefault();
+      return false;
+    }
+
+    // Ctrl + S (Save Page) રોકવું
+    if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+</script>
 <body>
 
   <!-- TOP HEADER -->
@@ -724,5 +757,16 @@
       }
     });
   </script>
+  <script>
+  // જો DevTools ખૂલે તો પેજને થોભાવી દેવું (Infinite Debugger Trap)
+  setInterval(function () {
+    const startTime = performance.now();
+    debugger;
+    const endTime = performance.now();
+    if (endTime - startTime > 100) {
+      document.body.innerHTML = '<h2 style="color:red; text-align:center; margin-top:20%;">⚠️ Developer Tools detected. Access is disabled for security reasons.</h2>';
+    }
+  }, 1000);
+</script>
 </body>
 </html>
