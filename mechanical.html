@@ -746,13 +746,9 @@
       await loadStageData(stage);
     }
 
-    function backToMechMenu() {
-      document.getElementById('stageContainer').style.display = 'none';
-      document.getElementById('mechHub').style.display = 'block';
-      // 🟢 URL માંથી ?stage= હટાવી દેવું
-      if (window.location.search) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
+   function backToMechMenu() {
+      // 🟢 સીધા મુખ્ય Dashboard Console (index.html) પર જવા માટે
+      window.location.href = 'index.html';
     }
 
     function setupStageUI(stage) {
