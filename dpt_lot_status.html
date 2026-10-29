@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DPT Lot Status | QA/QC Module</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, -apple-system, sans-serif; }
     body { background: #f4f6f8; color: #0f172a; padding: 18px 24px; -webkit-font-smoothing: antialiased; }
@@ -79,7 +80,7 @@
     .btn-outline { padding: 9px 15px; border: 1px solid #17365d; background: #fff; color: #17365d; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; }
     .btn-gray { padding: 9px 15px; border: 1px solid #777; background: #777; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12.5px; }
 
-    /* 🟢 Main Table Card & Sticky Header Styles */
+    /* Main Table Card & Sticky Header Styles */
     .table-card {
       background: #ffffff;
       border-radius: 10px;
@@ -189,40 +190,48 @@
       flex: 1;
     }
   </style>
-</head>
+
+  <!-- 🟢 F12, DevTools & Right-Click Lock Script -->
   <script>
-  // ૧. માઉસનું રાઇટ ક્લિક (Right Click Context Menu) બંધ કરવું
-  document.addEventListener('contextmenu', function (e) {
-    e.preventDefault();
-  });
-
-  // ૨. F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U (View Source) લૉક કરવું
-  document.addEventListener('keydown', function (e) {
-    // F12 કી રોકવી
-    if (e.key === 'F12' || e.keyCode === 123) {
+    // ૧. માઉસનું રાઇટ ક્લિક (Right Click Context Menu) બંધ કરવું
+    document.addEventListener('contextmenu', function (e) {
       e.preventDefault();
-      return false;
-    }
+    });
 
-    // Ctrl + Shift + I (DevTools) / Ctrl + Shift + J (Console) / Ctrl + Shift + C
-    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-      e.preventDefault();
-      return false;
-    }
+    // ૨. F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U, Ctrl+S લૉક કરવું
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+        return false;
+      }
 
-    // Ctrl + U (View Page Source) રોકવું
-    if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-      e.preventDefault();
-      return false;
-    }
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+        e.preventDefault();
+        return false;
+      }
 
-    // Ctrl + S (Save Page) રોકવું
-    if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
-      e.preventDefault();
-      return false;
-    }
-  });
-</script>
+      if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+        e.preventDefault();
+        return false;
+      }
+
+      if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // ૩. બ્રાઉઝર મેનૂમાંથી DevTools ખૂલે તો ફ્રીઝ કરવું (Debugger Trap)
+    setInterval(function () {
+      const startTime = performance.now();
+      debugger;
+      const endTime = performance.now();
+      if (endTime - startTime > 100) {
+        document.body.innerHTML = '<h2 style="color:red; text-align:center; margin-top:20%;">⚠️ Developer Tools detected. Access is disabled for security reasons.</h2>';
+      }
+    }, 1000);
+  </script>
+</head>
 <body>
 
   <!-- TOP HEADER -->
@@ -757,16 +766,5 @@
       }
     });
   </script>
-  <script>
-  // જો DevTools ખૂલે તો પેજને થોભાવી દેવું (Infinite Debugger Trap)
-  setInterval(function () {
-    const startTime = performance.now();
-    debugger;
-    const endTime = performance.now();
-    if (endTime - startTime > 100) {
-      document.body.innerHTML = '<h2 style="color:red; text-align:center; margin-top:20%;">⚠️ Developer Tools detected. Access is disabled for security reasons.</h2>';
-    }
-  }, 1000);
-</script>
 </body>
 </html>
