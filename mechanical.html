@@ -700,7 +700,17 @@
         }
       });
 
+     
+
       preloadAllRecords();
+      
+       // 🟢 URL માંથી stage પેરામીટર વાંચી સીધું સ્ટેજ ખોલવું (?stage=bending_issue વગેરે)
+      const urlParams = new URLSearchParams(window.location.search);
+      const autoStage = urlParams.get('stage');
+      if (autoStage) {
+        openStage(autoStage);
+      }
+      
       return true;
     }
 
@@ -739,6 +749,10 @@
     function backToMechMenu() {
       document.getElementById('stageContainer').style.display = 'none';
       document.getElementById('mechHub').style.display = 'block';
+      // 🟢 URL માંથી ?stage= હટાવી દેવું
+      if (window.location.search) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
 
     function setupStageUI(stage) {
