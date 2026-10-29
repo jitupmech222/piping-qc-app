@@ -56,22 +56,25 @@
       gap: 10px;
     }
 
-    .btn-back-dash {
-      background: #ffffff;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
+    .btn-back {
+      background: #ffffff !important;
+      color: #0b1329 !important;
+      border: 1px solid #cbd5e1 !important;
       border-radius: 8px;
       padding: 7px 16px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      text-decoration: none;
       transition: all 0.2s ease;
     }
-    .btn-back-dash:hover { background: #f8fafc; color: var(--teal); }
+    .btn-back:hover { 
+      background: #f8fafc !important; 
+      color: var(--teal) !important; 
+    }
 
     /* 🟢 2. FULL DISPLAY WORKSPACE */
     .full-workspace {
@@ -272,7 +275,7 @@
 </head>
 <body>
 
-  <!-- Full Width Top Navigation Bar -->
+  <!-- Top Navbar -->
   <header class="top-navbar">
     <div class="top-navbar-title">
       <span>📦</span>
@@ -280,6 +283,8 @@
     </div>
     <div style="display:flex; align-items:center; gap:14px;">
       <span id="adminSessionTag" style="font-size:12px; color:#94a3b8; font-weight:600;"></span>
+      
+      <!-- 🟢 અહીં ક્લાસ btn-back હોવો જોઈએ જેથી બટન સફેદ દેખાય -->
       <a href="index.html" class="btn-back">⬅️ Back to Console</a>
     </div>
   </header>
