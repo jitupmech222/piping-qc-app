@@ -488,10 +488,13 @@
         document.getElementById('dispDrawingNo').innerText = rows[0].drawing_no || '-';
         document.getElementById('dispPipeClass').innerText = rows[0].pipe_class || '-';
 
-        // 🟢 જો ખાલી હોય તો Drawing No ઇનપુટ બોક્સ પણ ભરી દેવું
         if (document.getElementById('drawingNoInput')) {
           document.getElementById('drawingNoInput').value = rows[0].drawing_no || '';
+          document.getElementById('drawingNoInput').disabled = true;
+          document.getElementById('drawingNoInput').style.background = "#f1f5f9";
         }
+        document.getElementById('spoolNoInput').disabled = true;
+        document.getElementById('spoolNoInput').style.background = "#f1f5f9";
 
         jointsList = rows.map(r => {
           const type = String(r.joint_type || '').trim().toUpperCase();
