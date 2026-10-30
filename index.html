@@ -285,16 +285,16 @@
     }
 
     /* =========================================================
-       SIDEBAR & WORKSPACE STYLES
+       SIDEBAR & WORKSPACE STYLES (1.5X BIGGER SIDE VIEW)
     ========================================================= */
     .sidebar {
-      width: 250px;
+      width: 360px; /* ૨૫૦px થી વધારીને ૩૬૦px (૧.૫ ગણી પહોળાઈ) */
       background: var(--sidebar-bg);
       color: #94a3b8;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 20px 14px;
+      padding: 24px 18px;
       position: sticky;
       top: 0;
       height: 100vh;
@@ -305,7 +305,7 @@
     }
 
     .sidebar.collapsed {
-      margin-left: -250px;
+      margin-left: -360px;
       transform: translateX(-100%);
     }
 
@@ -313,37 +313,42 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 22px;
     }
 
     .brand-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
 
     .brand-logo-img {
-      height: 40px;
+      height: 52px; /* લોગો ૧.૫ ગણો મોટો */
       width: auto;
-      max-width: 48px;
+      max-width: 62px;
       object-fit: contain;
     }
 
-    .brand-name { font-size: 14px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
+    .brand-name { 
+      font-size: 18px; /* મોટો ટાઇટલ ફોન્ટ */
+      font-weight: 800; 
+      color: #ffffff; 
+      letter-spacing: 0.8px; 
+    }
 
     .btn-toggle-in {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       color: #94a3b8;
-      border-radius: 6px;
-      width: 28px;
-      height: 28px;
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 800;
       cursor: pointer;
     }
@@ -351,45 +356,69 @@
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 11px 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
+      gap: 16px;
+      padding: 14px 18px; /* બટનનું પેડિંગ મોટું */
+      border-radius: 12px;
+      font-size: 16px; /* બટન ટેક્સ્ટ ૧.૫ ગણો મોટો */
+      font-weight: 700;
       color: #94a3b8;
       cursor: pointer;
       transition: all 0.2s;
-      margin-bottom: 3px;
+      margin-bottom: 6px;
     }
-    .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #ffffff; }
-    .nav-item.active { background: #0d9488; color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
+    .nav-item span:first-child { 
+      font-size: 20px; /* આઇકોન મોટો */
+    }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #ffffff; }
+    .nav-item.active { background: #0d9488; color: #ffffff; font-weight: 800; box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4); }
+
+    .nav-item .chevron {
+      margin-left: auto;
+      font-size: 15px;
+      transition: transform 0.25s ease;
+    }
+
+    .sub-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 14.5px; /* ડ્રોપડાઉન સબ-બટન્સ પણ ૧.૫ ગણા મોટા */
+      font-weight: 600;
+      color: #94a3b8;
+      text-decoration: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sub-nav-item .arrow { font-size: 14px; }
 
     .user-footer {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      gap: 14px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .user-profile { display: flex; align-items: center; gap: 10px; }
-    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1e293b; color: #2dd4bf; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #334155; }
-    .user-details { font-size: 12px; color: #ffffff; font-weight: 600; }
-    .user-details span { display: block; font-size: 10px; color: #64748b; font-weight: normal; }
+    .user-profile { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 44px; height: 44px; border-radius: 50%; background: #1e293b; color: #2dd4bf; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; border: 1.5px solid #334155; }
+    .user-details { font-size: 14px; color: #ffffff; font-weight: 700; }
+    .user-details span { display: block; font-size: 12px; color: #94a3b8; font-weight: normal; margin-top: 2px; }
     
     .btn-big-logout {
       width: 100%;
-      padding: 10px 14px;
+      padding: 12px 16px;
       background: #dc2626;
       color: #ffffff;
       border: none;
-      border-radius: 8px;
-      font-size: 13px;
+      border-radius: 10px;
+      font-size: 14.5px;
       font-weight: 800;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .main-workspace {
@@ -405,11 +434,11 @@
       border: 1.5px solid #cbd5e1;
       color: #334155;
       border-radius: 8px;
-      padding: 7px 12px;
-      font-size: 13px;
+      padding: 8px 14px;
+      font-size: 15px;
       font-weight: 800;
       cursor: pointer;
-      margin-right: 12px;
+      margin-right: 14px;
     }
 
     .workspace-top {
@@ -555,17 +584,19 @@
     }
 
     .charts-row {
-      display: grid;
-      grid-template-columns: 2fr 1.1fr;
-      gap: 16px;
-      margin-bottom: 24px;
+     display: grid;
+     grid-template-columns: 2fr 1.1fr;
+     gap: 16px;
+     margin-bottom: 0px;
+     min-height: calc(100vh - 350px); /* સ્ક્રીનના તળિયા સુધી પહોંચશે */
     }
-
     .chart-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 16px;
-      padding: 22px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
     }
 
     .chart-card-header {
@@ -1105,7 +1136,8 @@
             <h3>Stage Progression Pipeline</h3>
             <button style="border:none; background:#f1f5f9; padding:4px 10px; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="refreshProgressData()">Refresh</button>
           </div>
-          <div style="height: 250px;">
+          <!-- ૧. વેવ લાઈન ચાર્ટ -->
+          <div style="flex: 1; min-height: 380px; position: relative;">
             <canvas id="pipelineWaveChart"></canvas>
           </div>
         </div>
@@ -1114,7 +1146,8 @@
           <div class="chart-card-header">
             <h3>Spool Status Ratio</h3>
           </div>
-          <div style="height: 250px; display:flex; justify-content:center; align-items:center;">
+          <!-- ૨. ડોનટ ચાર્ટ -->
+          <div style="flex: 1; min-height: 380px; display:flex; justify-content:center; align-items:center; position: relative;">
             <canvas id="statusDonutChart"></canvas>
           </div>
         </div>
