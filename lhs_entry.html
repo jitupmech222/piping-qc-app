@@ -173,23 +173,48 @@
     <button id="btnChangeSpool" class="btn-reset" style="display:none;" onclick="handleChangeSpool()">🔄 Change Spool</button>
   </div>
 
-  <!-- 2. SEARCH & VERIFY SPOOL BOX WITH AUTO-COMPLETE -->
+  <!-- 2. DUAL SEARCH & VERIFY BOX (BY SPOOL NO OR DRAWING NO) -->
   <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; position:relative;">
-    <label style="font-size:13px;">Spool Unique No:</label>
     
-    <!-- Input Wrapper with Auto-Complete Dropdown -->
-    <div style="position:relative; width:280px;">
-      <input
-        type="text"
-        id="spoolNoInput"
-        placeholder="Enter Spool No (e.g. 7-07044)"
-        style="width:100%; font-weight:700;"
-        oninput="handleSpoolSearch(this.value)"
-        onfocus="if(this.value.trim()) handleSpoolSearch(this.value)"
-        onkeydown="if(event.key==='Enter') handleVerifySpool()"
-        autocomplete="off"
-      >
-      <div id="spoolDropdown" class="spool-dropdown-box"></div>
+    <!-- Option 1: Search by Spool Unique No -->
+    <div style="display:flex; align-items:center; gap:6px;">
+      <label style="font-size:13px; white-space:nowrap;">1. Spool Unique No:</label>
+      <div style="position:relative; width:220px;">
+        <input
+          type="text"
+          id="spoolNoInput"
+          placeholder="e.g. 7-07044"
+          style="width:100%; font-weight:700;"
+          oninput="handleSpoolSearch(this.value)"
+          onfocus="if(this.value.trim()) handleSpoolSearch(this.value)"
+          onkeydown="if(event.key==='Enter') handleVerifySpool()"
+          autocomplete="off"
+        >
+        <div id="spoolDropdown" class="spool-dropdown-box"></div>
+      </div>
+    </div>
+
+    <!-- OR Divider Badge -->
+    <span style="font-size:12px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:4px 10px; border-radius:6px; border:1px solid #bae6fd;">
+      અથવા (OR)
+    </span>
+
+    <!-- Option 2: Search by Drawing No -->
+    <div style="display:flex; align-items:center; gap:6px;">
+      <label style="font-size:13px; white-space:nowrap;">2. Drawing No:</label>
+      <div style="position:relative; width:260px;">
+        <input
+          type="text"
+          id="drawingNoInput"
+          placeholder="Type Drawing / Line No..."
+          style="width:100%; font-weight:700;"
+          oninput="handleDrawingSearch(this.value)"
+          onfocus="if(this.value.trim()) handleDrawingSearch(this.value)"
+          onkeydown="if(event.key==='Enter') handleVerifySpool()"
+          autocomplete="off"
+        >
+        <div id="drawingDropdown" class="spool-dropdown-box" style="width:340px;"></div>
+      </div>
     </div>
 
     <button type="button" id="btnVerifySpool" class="btn-primary" onclick="handleVerifySpool()">Verify Spool</button>
@@ -415,6 +440,7 @@
     -------------------------------------------------------------- */
     let searchTimeout = null;
 
+    // A. Search by Spool Unique No
     async function handleSpoolSearch(term) {
       clearTimeout(searchTimeout);
       const q = String(term || '').trim().toLowerCase();
@@ -427,7 +453,6 @@
 
       searchTimeout = setTimeout(async () => {
         try {
-          // Query piping_joints where Fd_date IS NULL and Spool_number matches
           const { data, error } = await db
             .from('piping_joints')
             .select('Spool_number, Drawing_no')
@@ -437,7 +462,6 @@
 
           if (error) throw error;
 
-          // Distinct Spools Filter (Multiple joints per spool prevented)
           const uniqueSpools = new Map();
           (data || []).forEach(r => {
             const sp = String(r.Spool_number || '').trim();
@@ -447,13 +471,13 @@
           });
 
           if (uniqueSpools.size === 0) {
-            dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px; text-align:center;">કોઈ Spool મળ્યો નથી (અથવા FD Dispatch થઈ ચૂક્યો છે)</div>';
+            dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px; text-align:center;">કોઈ Spool મળ્યો નથી (અથવા FD થઈ ગયેલ છે)</div>';
             dropdown.style.display = 'block';
             return;
           }
 
           dropdown.innerHTML = Array.from(uniqueSpools.entries()).map(([spoolNo, dwgNo]) => `
-            <div class="spool-dropdown-item" onclick="selectSpoolSuggestion('${spoolNo}')">
+            <div class="spool-dropdown-item" onclick="selectSpoolSuggestion('${spoolNo}', '${encodeURIComponent(dwgNo)}')">
               <span style="font-weight:bold; color:#0f172a;">${spoolNo}</span>
               <span style="font-size:11px; color:#64748b;">${dwgNo}</span>
             </div>
@@ -466,17 +490,81 @@
       }, 200);
     }
 
-    function selectSpoolSuggestion(spoolNo) {
+    async function handleDrawingSearch(term) {
+      clearTimeout(searchTimeout);
+      const q = String(term || '').trim().toLowerCase();
+      const dropdown = document.getElementById('drawingDropdown');
+
+      if (!q) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      searchTimeout = setTimeout(async () => {
+        try {
+          const { data, error } = await db
+            .from('piping_joints')
+            .select('Spool_number, Drawing_no')
+            .is('Fd_date', null)
+            .ilike('Drawing_no', `%${q}%`)
+            .limit(40);
+
+          if (error) throw error;
+
+          const uniquePairs = new Map();
+          (data || []).forEach(r => {
+            const sp = String(r.Spool_number || '').trim();
+            const dwg = String(r.Drawing_no || '').trim();
+            if (sp && !uniquePairs.has(sp)) {
+              uniquePairs.set(sp, dwg);
+            }
+          });
+
+          if (uniquePairs.size === 0) {
+            dropdown.innerHTML = '<div style="padding:10px; color:#94a3b8; font-size:12px; text-align:center;">કોઈ Drawing / Spool મળ્યો નથી</div>';
+            dropdown.style.display = 'block';
+            return;
+          }
+
+          dropdown.innerHTML = Array.from(uniquePairs.entries()).map(([spoolNo, dwgNo]) => `
+            <div class="spool-dropdown-item" onclick="selectSpoolSuggestion('${spoolNo}', '${encodeURIComponent(dwgNo)}')">
+              <div>
+                <b style="color:#0284c7;">${dwgNo}</b>
+                <span style="font-size:11.5px; color:#0f172a; margin-left:6px;">➔ <b>${spoolNo}</b></span>
+              </div>
+            </div>
+          `).join('');
+
+          dropdown.style.display = 'block';
+        } catch (err) {
+          console.error("Drawing search error:", err);
+        }
+      }, 200);
+    }
+
+    // C. Selection Handler for Both
+    function selectSpoolSuggestion(spoolNo, encDwgNo) {
+      const dwgNo = decodeURIComponent(encDwgNo || '');
       document.getElementById('spoolNoInput').value = spoolNo;
+      if (document.getElementById('drawingNoInput')) {
+        document.getElementById('drawingNoInput').value = dwgNo;
+      }
       document.getElementById('spoolDropdown').style.display = 'none';
+      if (document.getElementById('drawingDropdown')) {
+        document.getElementById('drawingDropdown').style.display = 'none';
+      }
       handleVerifySpool();
     }
 
-    // Close dropdown on outside click
+    // Close dropdowns on outside click
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#spoolNoInput') && !e.target.closest('#spoolDropdown')) {
         const drop = document.getElementById('spoolDropdown');
         if (drop) drop.style.display = 'none';
+      }
+      if (!e.target.closest('#drawingNoInput') && !e.target.closest('#drawingDropdown')) {
+        const dDrop = document.getElementById('drawingDropdown');
+        if (dDrop) dDrop.style.display = 'none';
       }
     });
 
@@ -886,6 +974,15 @@
       document.getElementById('spoolNoInput').style.background = "#fff";
       document.getElementById('spoolNoInput').value = "";
       document.getElementById('spoolDropdown').style.display = 'none';
+
+      // 🟢 Drawing No Input પણ રીસેટ કરવું
+      if (document.getElementById('drawingNoInput')) {
+        document.getElementById('drawingNoInput').disabled = false;
+        document.getElementById('drawingNoInput').style.background = "#fff";
+        document.getElementById('drawingNoInput').value = "";
+        document.getElementById('drawingDropdown').style.display = 'none';
+      }
+
       document.getElementById('lookupStatus').innerText = "";
       document.getElementById('btnVerifySpool').style.display = 'inline-block';
       document.getElementById('btnChangeSpool').style.display = 'none';
