@@ -661,6 +661,10 @@
 
         document.getElementById('spoolNoInput').disabled = true;
         document.getElementById('spoolNoInput').style.background = "#f1f5f9";
+        if (document.getElementById('drawingNoInput')) {
+          document.getElementById('drawingNoInput').disabled = true;
+          document.getElementById('drawingNoInput').style.background = "#f1f5f9";
+        }
         btn.style.display = 'none';
         document.getElementById('btnChangeSpool').style.display = 'inline-block';
         document.getElementById('verifiedSection').style.display = 'flex';
