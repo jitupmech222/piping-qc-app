@@ -320,7 +320,7 @@
 
     <div class="toolbar-right">
       <button type="button" id="btnModeView" class="btn-mode active-view" onclick="setMode(false)">View</button>
-      <button type="button" id="btnModeEdit" class="btn-mode" onclick="setMode(true)">Edit</button>
+      <button type="button" id="btnModeEdit" class="btn-mode" onclick="requestEditMode()">Edit</button>
       <button type="button" id="btnSave" class="btn-save" style="display: none;" onclick="saveChanges()">Save</button>
       <button type="button" id="btnClearFilters" class="btn-clear" onclick="clearAllFilters()">✖ Clear Filters</button>
       <button type="button" class="btn-export" onclick="exportToExcel()">Export View</button>
@@ -422,6 +422,7 @@
     let allRows = [];
     let isEditMode = false;
     let editedRows = new Map();
+    const EDIT_MODE_PASSWORD = "edit@6038"; // 🔐 તમારો એડિટ પાસવર્ડ
     let columnFilters = {};
     let openPopoverColKey = null;
 
@@ -831,6 +832,20 @@
       const totalPages = Math.ceil(getFilteredRows().length / pageSize) || 1;
       currentPage = totalPages;
       applyFiltersAndRender();
+    }
+
+
+    // 🔐 PASSWORD CHECK FOR EDIT MODE
+    function requestEditMode() {
+      const inputPass = prompt("🔐 Enter Password to Enable Edit Mode:");
+      if (inputPass === null) return; // જો યુઝર Cancel કરે
+
+      if (inputPass.trim() === EDIT_MODE_PASSWORD) {
+        alert("✅ Edit Mode Unlocked! You can now edit cells.");
+        setMode(true);
+      } else {
+        alert("❌ Incorrect Password! Access Denied.");
+      }
     }
 
     // 6. EDIT & SAVE HANDLERS
