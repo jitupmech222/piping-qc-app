@@ -1002,8 +1002,8 @@
           <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=bend_entry'"><span class="arrow">›</span> Bend Completed</a>
           <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=fitup_entry'"><span class="arrow">›</span> Fit Up Completed</a>
           <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=weld_visual'"><span class="arrow">›</span> Weld Visual Completed</a>
-          <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=ndt_clearance'"><span class="arrow">›</span> NDT Clearance</a>
-          <a class="sub-nav-item" onclick="window.location.href='mechanical.html?stage=fd'"><span class="arrow">›</span> Final Dispatch & DC No</a>
+          <a class="sub-nav-item" onclick="handleMechanicalQaqcStage('ndt_clearance')"><span class="arrow">›</span> NDT Clearance</a>
+          <a class="sub-nav-item" onclick="handleMechanicalQaqcStage('fd')"><span class="arrow">›</span> Final Dispatch & DC No</a>
         </div>
       </div>
 
@@ -1461,6 +1461,19 @@
     }
   }
 
+  let pendingStageRedirect = null; // મિકેનિકલ NDT કે FD સ્ટેજ સ્ટોર કરવા માટે
+
+  // 🟢 મિકેનિકલ મોડ્યુલમાંથી NDT Clearance કે Final Dispatch પર ક્લિક હેન્ડલર
+  function handleMechanicalQaqcStage(stageKey) {
+    if (sessionStorage.getItem('qaqc_auth_passed') === 'true') {
+      window.location.href = `mechanical.html?stage=${stageKey}`;
+    } else {
+      pendingStageRedirect = `mechanical.html?stage=${stageKey}`;
+      triggerModuleSecurityModal('qaqc');
+    }
+  }
+
+  // 🟢 પાસવર્ડ ચેક એક્ઝિક્યુટ હેન્ડલર (મિકેનિકલ સ્ટેજ રીડાયરેક્ટ સાથે)
   function executeModuleSecondaryAuth() {
     const u = document.getElementById('secInputUser').value.trim();
     const p = document.getElementById('secInputPass').value.trim();
@@ -1470,7 +1483,15 @@
       if (u === QAQC_SECURITY.user && p === QAQC_SECURITY.pass) {
         sessionStorage.setItem('qaqc_auth_passed', 'true');
         document.getElementById('moduleAuthModal').style.display = 'none';
-        toggleNavGroup('grp-qaqc');
+
+        // જો મિકેનિકલના NDT કે FD પરથી આવ્યા હોય તો સીધું તે પેજ ખુલશે
+        if (pendingStageRedirect) {
+          const target = pendingStageRedirect;
+          pendingStageRedirect = null;
+          window.location.href = target;
+        } else {
+          toggleNavGroup('grp-qaqc');
+        }
       } else {
         err.style.display = 'block';
       }
