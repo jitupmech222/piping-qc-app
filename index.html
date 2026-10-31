@@ -926,33 +926,33 @@
   </div>
 </div>
 
-<!-- 🟢 PROFESSIONAL QA/QC SECONDARY PIN/PASSWORD AUTH MODAL -->
-<div id="qaqcAuthModal">
+<!-- 🟢 UNIVERSAL MODULE SECURITY MODAL (QA/QC, MATERIAL & DATA) -->
+<div id="moduleAuthModal" style="position:fixed; inset:0; background:rgba(15,23,42,0.7); backdrop-filter:blur(8px); z-index:20000; display:none; align-items:center; justify-content:center; padding:20px;">
   <div class="qaqc-modal-card">
     <div class="qaqc-modal-header">
-      <div class="qaqc-icon-shield">🛡️</div>
-      <h3 style="margin:0; font-size:19px; font-weight:800; color:#0f172a; letter-spacing:-0.3px;">QA/QC Security Access</h3>
-      <p style="font-size:12.5px; color:#64748b; margin-top:4px;">Enter Authorized QA/QC Credentials to Continue</p>
+      <div class="qaqc-icon-shield" id="secModalIcon">🛡️</div>
+      <h3 style="margin:0; font-size:19px; font-weight:800; color:#0f172a; letter-spacing:-0.3px;" id="secModalTitle">Module Security Access</h3>
+      <p style="font-size:12.5px; color:#64748b; margin-top:4px;" id="secModalSubtitle">Enter Authorized Credentials to Continue</p>
     </div>
 
-    <div id="qaqcAuthError" style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; font-size:12.5px; font-weight:700; padding:9px 12px; border-radius:8px; margin-bottom:14px; display:none; text-align:center;">
-      ⚠️ Invalid QA/QC ID or Password!
+    <div id="secModalError" style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; font-size:12.5px; font-weight:700; padding:9px 12px; border-radius:8px; margin-bottom:14px; display:none; text-align:center;">
+      ⚠️ Invalid ID or Password!
     </div>
 
     <div style="margin-bottom:14px;">
-      <label style="font-size:12.5px; font-weight:700; color:#334155; margin-bottom:5px; display:block;">QA/QC ID</label>
-      <input type="text" id="qaqcInputUser" class="modern-input" placeholder="Enter QA/QC ID" autocomplete="off">
+      <label style="font-size:12.5px; font-weight:700; color:#334155; margin-bottom:5px; display:block;" id="secModalUserLabel">Access ID</label>
+      <input type="text" id="secInputUser" class="modern-input" placeholder="Enter ID" autocomplete="off">
     </div>
 
     <div style="margin-bottom:16px;">
-      <label style="font-size:12.5px; font-weight:700; color:#334155; margin-bottom:5px; display:block;">QA/QC Password</label>
-      <input type="password" id="qaqcInputPass" class="modern-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeQaqcSecondaryAuth()">
+      <label style="font-size:12.5px; font-weight:700; color:#334155; margin-bottom:5px; display:block;">Password</label>
+      <input type="password" id="secInputPass" class="modern-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') executeModuleSecondaryAuth()">
     </div>
 
-    <button type="button" class="btn-qaqc-verify" onclick="executeQaqcSecondaryAuth()">
-      <span>🔓</span> <span>Unlock QA/QC Module</span>
+    <button type="button" class="btn-qaqc-verify" onclick="executeModuleSecondaryAuth()">
+      <span>🔓</span> <span id="secModalBtnText">Unlock Module</span>
     </button>
-    <button type="button" class="btn-qaqc-cancel" onclick="closeQaqcAuthModal()">Cancel</button>
+    <button type="button" class="btn-qaqc-cancel" onclick="closeModuleAuthModal()">Cancel</button>
   </div>
 </div>
 
@@ -1033,7 +1033,7 @@
 
       <!-- 4. Material Management Dropdown (Image 3 મુજબ) -->
       <div class="nav-group" id="grp-mat">
-        <a class="nav-item" onclick="toggleNavGroup('grp-mat')">
+        <a class="nav-item" onclick="handleMaterialNavClick()">
           <span></span> <span>MATERIAL</span> <span class="chevron">▶</span>
         </a>
         <div class="sub-nav-list">
@@ -1059,7 +1059,7 @@
 
       <!-- 6. Data Registers Dropdown (Image 5 મુજબ) -->
       <div class="nav-group" id="grp-data">
-        <a class="nav-item" onclick="toggleNavGroup('grp-data')">
+        <a class="nav-item" onclick="handleDataNavClick()">
           <span></span> <span>DATA</span> <span class="chevron">▶</span>
         </a>
         <div class="sub-nav-list">
@@ -1245,6 +1245,9 @@
   };
 
   const QAQC_SECURITY = { user: "qaqc", pass: "qaqc@2026" };
+  const MATERIAL_SECURITY = { user: "mto", pass: "Aipl@#2025" };
+  const DATA_SECURITY = { user: "data", pass: "pfs@#2025" };
+  let currentSecModalType = null; // 'qaqc', 'material', અથવા 'data'
 
   let currentUser = null;
   const SUPABASE_URL = 'https://khaevpfnwpxcpzhbnooy.supabase.co';
@@ -1339,6 +1342,8 @@
     if (confirm("Do you wish to log out?")) {
       sessionStorage.removeItem('piping_app_auth');
       sessionStorage.removeItem('qaqc_auth_passed');
+      sessionStorage.removeItem('material_auth_passed');
+      sessionStorage.removeItem('data_auth_passed');
       currentUser = null;
       checkSessionAuth();
     }
@@ -1392,55 +1397,131 @@
     });
   }
 
-  /* 🟢 PROFESSIONAL QA/QC SECONDARY AUTH MODAL LOGIC */
-  function triggerQaqcModuleAccess() {
+  // 🟢 યુનિવર્સલ સેકન્ડરી સિક્યોરિટી પૉપ-અપ લોજિક
+  function triggerModuleSecurityModal(type) {
     if (!currentUser || currentUser.username !== 'admin') {
-      alert("⚠️ માત્ર Admin પાસે જ QA/QC મોડ્યુલની પરમિશન છે!");
+      alert("⚠️ માત્ર Admin પાસે જ આ મોડ્યુલ ખોલવાની પરમિશન છે!");
       return;
     }
-    if (sessionStorage.getItem('qaqc_auth_passed') === 'true') {
-      openCategoryHub('qaqcHub');
-      return;
+
+    currentSecModalType = type;
+    document.getElementById('secModalError').style.display = 'none';
+    document.getElementById('secInputUser').value = '';
+    document.getElementById('secInputPass').value = '';
+
+    const icon = document.getElementById('secModalIcon');
+    const title = document.getElementById('secModalTitle');
+    const sub = document.getElementById('secModalSubtitle');
+    const userLabel = document.getElementById('secModalUserLabel');
+    const btnText = document.getElementById('secModalBtnText');
+
+    if (type === 'qaqc') {
+      icon.innerText = '🛡️';
+      title.innerText = 'QA/QC Security Access';
+      sub.innerText = 'Enter Authorized QA/QC Credentials';
+      userLabel.innerText = 'QA/QC ID';
+      btnText.innerText = 'Unlock QA/QC Module';
+    } else if (type === 'material') {
+      icon.innerText = '📦';
+      title.innerText = 'Material Security Access';
+      sub.innerText = 'Enter Authorized Material Credentials';
+      userLabel.innerText = 'Material ID';
+      btnText.innerText = 'Unlock Material Module';
+    } else if (type === 'data') {
+      icon.innerText = '💾';
+      title.innerText = 'Data Security Access';
+      sub.innerText = 'Enter Authorized Data Credentials';
+      userLabel.innerText = 'Data ID';
+      btnText.innerText = 'Unlock Data Module';
     }
-    document.getElementById('qaqcAuthError').style.display = 'none';
-    document.getElementById('qaqcInputUser').value = '';
-    document.getElementById('qaqcInputPass').value = '';
-    document.getElementById('qaqcAuthModal').style.display = 'flex';
-    document.getElementById('qaqcInputUser').focus();
+
+    document.getElementById('moduleAuthModal').style.display = 'flex';
+    document.getElementById('secInputUser').focus();
   }
 
-  function closeQaqcAuthModal() {
-    document.getElementById('qaqcAuthModal').style.display = 'none';
-    if (window.location.search.includes('tab=qaqc')) {
+  function closeModuleAuthModal() {
+    document.getElementById('moduleAuthModal').style.display = 'none';
+    currentSecModalType = null;
+    if (window.location.search.includes('tab=')) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }
 
-  function executeQaqcSecondaryAuth() {
-    const enteredUser = document.getElementById('qaqcInputUser').value.trim();
-    const enteredPass = document.getElementById('qaqcInputPass').value.trim();
-    const err = document.getElementById('qaqcAuthError');
+  function executeModuleSecondaryAuth() {
+    const u = document.getElementById('secInputUser').value.trim();
+    const p = document.getElementById('secInputPass').value.trim();
+    const err = document.getElementById('secModalError');
 
-    if (enteredUser === QAQC_SECURITY.user && enteredPass === QAQC_SECURITY.pass) {
-      sessionStorage.setItem('qaqc_auth_passed', 'true');
-      document.getElementById('qaqcAuthModal').style.display = 'none';
-      openCategoryHub('qaqcHub');
+    if (currentSecModalType === 'qaqc') {
+      if (u === QAQC_SECURITY.user && p === QAQC_SECURITY.pass) {
+        sessionStorage.setItem('qaqc_auth_passed', 'true');
+        document.getElementById('moduleAuthModal').style.display = 'none';
+        toggleNavGroup('grp-qaqc');
+      } else {
+        err.style.display = 'block';
+      }
+    } else if (currentSecModalType === 'material') {
+      if (u === MATERIAL_SECURITY.user && p === MATERIAL_SECURITY.pass) {
+        sessionStorage.setItem('material_auth_passed', 'true');
+        document.getElementById('moduleAuthModal').style.display = 'none';
+        toggleNavGroup('grp-mat');
+      } else {
+        err.style.display = 'block';
+      }
+    } else if (currentSecModalType === 'data') {
+      if (u === DATA_SECURITY.user && p === DATA_SECURITY.pass) {
+        sessionStorage.setItem('data_auth_passed', 'true');
+        document.getElementById('moduleAuthModal').style.display = 'none';
+        toggleNavGroup('grp-data');
+      } else {
+        err.style.display = 'block';
+      }
+    }
+  }
+
+  // સાઇડબાર ક્લિક હેન્ડલર્સ
+  function handleQaqcNavClick() {
+    if (sessionStorage.getItem('qaqc_auth_passed') === 'true') {
+      toggleNavGroup('grp-qaqc');
     } else {
-      err.style.display = 'block';
+      triggerModuleSecurityModal('qaqc');
+    }
+  }
+
+  function handleMaterialNavClick() {
+    if (sessionStorage.getItem('material_auth_passed') === 'true') {
+      toggleNavGroup('grp-mat');
+    } else {
+      triggerModuleSecurityModal('material');
+    }
+  }
+
+  function handleDataNavClick() {
+    if (sessionStorage.getItem('data_auth_passed') === 'true') {
+      toggleNavGroup('grp-data');
+    } else {
+      triggerModuleSecurityModal('data');
     }
   }
 
   function openCategoryHub(hubId) {
     if (hubId === 'qaqcHub') {
-      if (!currentUser || currentUser.username !== 'admin') {
-        alert("⚠️ માત્ર Admin પાસે જ QA/QC Module ની પરમિશન છે!");
+      if (sessionStorage.getItem('qaqc_auth_passed') !== 'true') {
+        triggerModuleSecurityModal('qaqc');
         return;
       }
-      if (sessionStorage.getItem('qaqc_auth_passed') !== 'true') {
-        triggerQaqcModuleAccess();
+    } else if (hubId === 'matHub') {
+      if (sessionStorage.getItem('material_auth_passed') !== 'true') {
+        triggerModuleSecurityModal('material');
+        return;
+      }
+    } else if (hubId === 'dataHub') {
+      if (sessionStorage.getItem('data_auth_passed') !== 'true') {
+        triggerModuleSecurityModal('data');
         return;
       }
     }
+
     document.getElementById('hubMainMenu').style.display = 'none';
     document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
     const panel = document.getElementById(hubId);
