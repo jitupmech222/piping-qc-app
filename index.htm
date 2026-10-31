@@ -1414,7 +1414,7 @@
   // 🟢 યુનિવર્સલ સેકન્ડરી સિક્યોરિટી પૉપ-અપ લોજિક
   function triggerModuleSecurityModal(type) {
     if (!currentUser || currentUser.username !== 'admin') {
-      alert("⚠️ માત્ર Admin પાસે જ આ મોડ્યુલ ખોલવાની પરમિશન છે!");
+      alert("⚠️ Access Denied: Only Admin is permitted to access this module!");
       return;
     }
 
