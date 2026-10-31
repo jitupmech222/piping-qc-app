@@ -1578,6 +1578,7 @@
   }
 
   // 🟢 ૨. QA/QC માટે પાસવર્ડ સિક્યોરિટી સાથે ટ્રી-મેનૂ ઓપન કરવું
+  // 🟢 ૨. QA/QC માટે પાસવર્ડ સિક્યોરિટી સાથે ટ્રી-મેનૂ ઓપન કરવું
   function handleQaqcNavClick() {
     if (!currentUser || currentUser.username !== 'admin') {
       alert("⚠️ માત્ર Admin પાસે જ QA/QC મોડ્યુલની પરમિશન છે!");
@@ -1586,7 +1587,7 @@
     if (sessionStorage.getItem('qaqc_auth_passed') === 'true') {
       toggleNavGroup('grp-qaqc');
     } else {
-      triggerQaqcModuleAccess();
+      triggerModuleSecurityModal('qaqc');
     }
   }
 
