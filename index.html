@@ -1275,14 +1275,28 @@
       updateRoleVisibility();
       loadTopDashboardMetrics();
 
+      // 🟢 URL Routing with Verified Session Check
       const urlParams = new URLSearchParams(window.location.search);
       const openTab = urlParams.get('tab');
+
       if (openTab === 'qaqc') {
-        triggerModuleSecurityModal('qaqc');
+        if (sessionStorage.getItem('qaqc_auth_passed') === 'true') {
+          openCategoryHub('qaqcHub');
+        } else {
+          triggerModuleSecurityModal('qaqc');
+        }
       } else if (openTab === 'material' || openTab === 'matHub') {
-        triggerModuleSecurityModal('material');
-      } else if (openTab === 'dataHub') {
-        triggerModuleSecurityModal('data');
+        if (sessionStorage.getItem('material_auth_passed') === 'true') {
+          openCategoryHub('matHub');
+        } else {
+          triggerModuleSecurityModal('material');
+        }
+      } else if (openTab === 'data' || openTab === 'dataHub') {
+        if (sessionStorage.getItem('data_auth_passed') === 'true') {
+          openCategoryHub('dataHub');
+        } else {
+          triggerModuleSecurityModal('data');
+        }
       } else if (openTab) {
         openCategoryHub(openTab);
       }
