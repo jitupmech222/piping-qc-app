@@ -697,6 +697,7 @@
       }
     }
 
+    // === TOP REFERENCE LINE ===
     function userLogout() {
       if (confirm("Do you wish to log out?")) {
         sessionStorage.removeItem('piping_app_auth');
@@ -706,6 +707,15 @@
     }
 
     async function openStage(stage) {
+      // 🟢 NDT Clearance અને Final Dispatch માટે કડક QA/QC સુરક્ષા ચેક
+      if (stage === 'ndt_clearance' || stage === 'fd') {
+        if (sessionStorage.getItem('qaqc_auth_passed') !== 'true') {
+          alert("⚠️ આ સ્ટેજ વાપરવા માટે QA/QC ઍક્સેસ પરમિશન જરૂરી છે!");
+          window.location.href = 'index.html?tab=qaqc';
+          return;
+        }
+      }
+
       currentStage = stage;
       selectedQueue = [];
       document.getElementById('mechHub').style.display = 'none';
@@ -718,6 +728,7 @@
     }
 
     function backToMechMenu() {
+// === BOTTOM REFERENCE LINE ===
       window.location.href = 'index.html';
     }
 
