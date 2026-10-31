@@ -1342,8 +1342,11 @@
       sessionStorage.setItem('piping_app_auth', JSON.stringify(currentUser));
       err.style.display = 'none';
 
-      // 🟢 Bending સહિત તમામ યુઝર્સ સીધા નવા Dashboard Overview (index.htm) પર જ રહેશે
-      checkSessionAuth();
+      if (['bending', 'fitup', 'welding', 'qc/dc'].includes(u)) {
+        window.location.href = 'mechanical.html';
+      } else {
+        checkSessionAuth();
+      }
     } else {
       err.style.display = 'block';
     }
