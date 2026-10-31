@@ -1278,11 +1278,11 @@
       const urlParams = new URLSearchParams(window.location.search);
       const openTab = urlParams.get('tab');
       if (openTab === 'qaqc') {
-        triggerQaqcModuleAccess();
+        triggerModuleSecurityModal('qaqc');
       } else if (openTab === 'material' || openTab === 'matHub') {
-        openCategoryHub('matHub');
+        triggerModuleSecurityModal('material');
       } else if (openTab === 'dataHub') {
-        openCategoryHub('dataHub');
+        triggerModuleSecurityModal('data');
       } else if (openTab) {
         openCategoryHub(openTab);
       }
