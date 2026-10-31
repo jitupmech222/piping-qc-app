@@ -782,16 +782,15 @@
       const sessionData = sessionStorage.getItem('piping_app_auth');
       if (!sessionData) {
         alert("⚠️ કૃપા કરીને પહેલા Login કરો!");
-        window.location.href = 'index.html';
+        window.location.href = 'index.htm';
         return false;
       }
       const user = JSON.parse(sessionData);
       if (user.username !== 'admin') {
-        alert("⚠️ Access Denied: માત્ર Admin પાસે જ Custom Report ની પરમિશન છે!");
-        window.location.href = 'index.html?tab=reportHub';
+        alert("⚠️ Access Denied: Only Admin is permitted to access Custom Report!");
+        window.location.href = 'index.htm'; // 🟢 404 એરર દૂર કરવા માટે index.htm
         return false;
       }
-      document.getElementById('adminSessionTag').innerText = `Admin: ${user.name}`;
       return true;
     }
 
